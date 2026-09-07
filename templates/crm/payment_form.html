@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{% if object %}Изменить платёж{% else %}Новый платёж{% endif %} — {% if transportation %}{{ transportation.number|default:"Рейс" }}{% else %}{{ shipment.number|default:"Заявка" }}{% endif %}{% endblock %}
+{% block content %}
+{% with document=transportation|default:shipment %}
+<div class="page-heading with-action">
+    <div>
+        <a class="back-link" href="{{ document.get_absolute_url }}">← К документу {{ document.number|default:"без номера" }}</a>
+        <h1>{% if object %}Изменить платёж{% else %}Зарегистрировать платёж{% endif %}</h1>
+        <p>{% if transportation %}{{ document.route }}{% else %}{{ document.customer.name }} · {{ document.route }}{% endif %}</p>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <form method="post" class="entity-form uk-form-stacked">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span uk-icon="credit-card"></span><div><h2>Данные платежа</h2><p>Операция сразу попадёт в отчёт и изменит остаток задолженности.</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.direction %}
+                {% include "crm/includes/form_field.html" with field=form.amount %}
+                {% include "crm/includes/form_field.html" with field=form.payment_date %}
+                {% include "crm/includes/form_field.html" with field=form.method %}
+                {% include "crm/includes/form_field.html" with field=form.reference %}
+                {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+            </div>
+        </section>
+        <div class="form-actions"><a class="uk-button uk-button-default" href="{{ document.get_absolute_url }}">Отмена</a>{% if object %}{% if transportation %}<a class="uk-button uk-button-danger" href="{% url 'transportation-payment-delete' transportation.pk object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% else %}<a class="uk-button uk-button-danger" href="{% url 'payment-delete' shipment.pk object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}{% endif %}<button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> {% if object %}Сохранить{% else %}Зарегистрировать{% endif %}</button></div>
+    </form>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Текущие остатки</h2>
+            <span>Дебиторская задолженность</span><strong class="{% if transportation and transportation.receivable_state == 'overdue' or shipment and shipment.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ document.receivable_balance|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong><small>{% if transportation %}{{ transportation.customer_payment_due_date|date:"d.m.Y"|default:"Срок не указан" }}{% else %}{{ shipment.receivable_state_label }}{% endif %}</small>
+            <span>Кредиторская задолженность</span><strong class="{% if transportation and transportation.payable_state == 'overdue' or shipment and shipment.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ document.payable_balance|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong><small>{% if transportation %}{{ transportation.executor_payment_due_date|date:"d.m.Y"|default:"Срок не указан" }}{% else %}{{ shipment.payable_state_label }}{% endif %}</small>
+            <hr>
+            <span>Плановая маржа</span><strong class="{% if document.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ document.margin|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong>
+        </section>
+    </aside>
+</div>
+{% endwith %}
+{% endblock %}

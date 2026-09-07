@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ entity_title }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div><a class="back-link" href="{{ cancel_url }}">← Назад к планировщику</a><h1>{% if object %}Изменить{% else %}Новая{% endif %}: {{ entity_title|lower }}</h1><p>{{ entity_description }}</p></div>
+</div>
+<form method="post" class="entity-form uk-form-stacked">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default"><div class="form-grid">{% for field in form %}{% include "crm/includes/form_field.html" with field=field %}{% endfor %}</div></section>
+    <div class="form-actions"><a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a><button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button></div>
+</form>
+{% endblock %}

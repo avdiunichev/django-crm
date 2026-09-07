@@ -1,0 +1,29 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход — Экспедитор CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}">
+</head>
+<body class="login-page">
+    <main class="login-card uk-card uk-card-default uk-card-body">
+        <div class="brand login-brand uk-logo"><span class="brand-mark"><span uk-icon="world"></span></span><span><strong>Экспедитор</strong><small>CRM</small></span></div>
+        <h1 class="uk-h2">Добро пожаловать</h1>
+        <p class="uk-text-meta">Войдите, чтобы продолжить работу с заявками.</p>
+        {% if form.errors %}<div class="form-errors uk-alert-danger" uk-alert>Неверный логин или пароль.</div>{% endif %}
+        <form method="post" class="login-form uk-form-stacked">
+            {% csrf_token %}
+            <label for="id_username">Логин</label>
+            <input class="form-control uk-input" type="text" name="username" autofocus autocomplete="username" required id="id_username">
+            <label for="id_password">Пароль</label>
+            <input class="form-control uk-input" type="password" name="password" autocomplete="current-password" required id="id_password">
+            <button class="btn btn-primary btn-block uk-button uk-button-primary" type="submit">Войти</button>
+        </form>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/js/uikit-icons.min.js"></script>
+</body>
+</html>

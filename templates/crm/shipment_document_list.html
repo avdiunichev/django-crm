@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Документы — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Первичные документы</span><h1>Реестр документов</h1><p>Транспортные накладные, счета, УПД, акты и счета-фактуры по заявкам.</p></div>
+    <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'expeditor-list' %}"><span uk-icon="settings"></span> Экспедиторы и реквизиты</a>
+        <a class="uk-button uk-button-default" href="{% url 'document-batch-list' %}"><span uk-icon="list"></span> Пачки документов</a>
+        <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="plus"></span> Создать реализацию</a>
+    </div>
+</div>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Всего документов</span><i class="metric-icon uk-icon-button" uk-icon="file-text"></i></span><strong>{{ document_count }}</strong><small><span>во всех заявках</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Исходящие</span><i class="metric-icon uk-icon-button" uk-icon="arrow-up"></i></span><strong>{{ outgoing_count }}</strong><small><span>клиентам и контрагентам</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Входящие</span><i class="metric-icon uk-icon-button" uk-icon="arrow-down"></i></span><strong>{{ incoming_count }}</strong><small><span>от перевозчиков и исполнителей</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Ожидаются</span><i class="metric-icon uk-icon-button" uk-icon="clock"></i></span><strong>{{ expected_count }}</strong><small><span>ещё не получены</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Просрочены</span><i class="metric-icon uk-icon-button" uk-icon="warning"></i></span><strong>{{ overdue_count }}</strong><small><span class="uk-text-danger">срок уже прошёл</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Оригиналы</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ original_count }}</strong><small><span>получены в бумаге</span></small></article>
+</section>
+
+<form class="filters" method="get">
+    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Заявка, номер документа или контрагент">
+    <select class="form-control uk-select" name="expeditor"><option value="">Все экспедиторы</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="kind"><option value="">Все типы</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if value == current_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="party"><option value="">Все стороны</option>{% for value,label in party_choices %}<option value="{{ value }}" {% if value == current_party %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_direction or current_kind or current_status or current_party or current_expeditor %}<a class="clear-link" href="{% url 'shipment-document-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Документ</th><th>Основание</th><th>Наша компания</th><th>Направление</th><th>Контрагент</th><th>Дата / номер</th><th>Статус</th><th class="uk-text-right">Сумма / НДС</th><th>Файл</th><th></th></tr></thead>
+        <tbody>
+        {% for document in documents %}
+            <tr>
+                <td><strong>{{ document.get_kind_display }}</strong><small>{{ document.get_party_display }}</small></td>
+                <td><a class="primary-link" href="{{ document.source_absolute_url }}">{{ document.source_number }}</a><small>{{ document.source_customer_name }}</small></td>
+                <td>{% if document.source_owner_company %}<a href="{{ document.source_owner_company.get_absolute_url }}">{{ document.source_owner_company }}</a>{% else %}—{% endif %}</td>
+                <td><span class="uk-label {% if document.direction == 'incoming' %}uk-label-warning{% else %}uk-label-success{% endif %}">{{ document.get_direction_display }}</span></td>
+                <td>{{ document.counterparty_name }}{% if document.counterparty.tax_id %}<small>ИНН {{ document.counterparty.tax_id }}</small>{% endif %}</td>
+                <td>{{ document.document_date|date:"d.m.Y"|default:"—" }}<small>{{ document.number|default:"Без номера" }}</small></td>
+                <td><span class="badge uk-label {% if document.is_overdue %}uk-label-danger{% else %}document-status-{{ document.status }}{% endif %}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span>{% if document.expected_date %}<small>до {{ document.expected_date|date:"d.m.Y" }}</small>{% endif %}</td>
+                <td class="uk-text-right">{% if document.amount is not None %}<strong class="{% if document.is_overdue %}amount-problem{% elif document.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong><small>НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% else %}—{% endif %}</td>
+                <td>{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> {{ document.file_name }}</a>{% else %}<span class="uk-text-muted">Нет файла</span>{% endif %}</td>
+                <td><a class="row-action" href="{{ document.get_absolute_url }}">Изменить</a><a class="row-action danger" href="{% url 'shipment-document-delete' document.pk %}">Удалить</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="10" class="empty-state">Документов пока нет. Добавьте первый документ из реестра или карточки заявки.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

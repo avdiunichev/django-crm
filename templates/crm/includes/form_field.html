@@ -1,0 +1,6 @@
+<div class="field mb-3 {% if wide %}field-wide{% endif %}">
+    <label class="uk-form-label form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<b>*</b>{% endif %}</label>
+    {{ field }}
+    {% if field.help_text %}<small class="form-text">{{ field.help_text }}</small>{% endif %}
+    {% for error in field.errors %}<span class="field-error invalid-feedback d-block">{{ error }}</span>{% endfor %}
+</div>

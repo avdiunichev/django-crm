@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Планировщик — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div>
+        <span class="eyebrow">Оперативное управление</span>
+        <h1>Планировщик</h1>
+        <p>Даты рейсов, сроки оплат и поручения менеджеров в одном реестре.</p>
+    </div>
+    <a class="uk-button uk-button-primary" href="{% url 'planner-task-create' %}"><span uk-icon="plus"></span> Новая задача</a>
+</div>
+
+<form method="get" class="filters uk-card uk-card-default uk-card-body uk-padding-small">
+    <label><span class="uk-text-meta">Период с</span><input class="uk-input" type="text" name="date_from" value="{{ current_date_from }}" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date></label>
+    <label><span class="uk-text-meta">по</span><input class="uk-input" type="text" name="date_to" value="{{ current_date_to }}" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date></label>
+    <label><span class="uk-text-meta">Статус задачи</span><select class="uk-select" name="task_status"><option value="">Все задачи</option>{% for value,label in task_status_choices %}<option value="{{ value }}" {% if current_task_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label><span class="uk-text-meta">Ответственный</span><select class="uk-select" name="assignee"><option value="">Все ответственные</option>{% for person in assignees %}<option value="{{ person.pk }}" {% if current_assignee == person.pk|stringformat:'s' %}selected{% endif %}>{{ person.get_full_name|default:person.username }}</option>{% endfor %}</select></label>
+    <button class="uk-button uk-button-primary" type="submit"><span uk-icon="settings"></span> Применить</button>
+    <a class="clear-link" href="{% url 'planner' %}">Сбросить</a>
+</form>
+
+<section class="metrics-grid planner-metrics">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>События рейсов</span><i class="metric-icon uk-icon-button" uk-icon="calendar"></i></span><strong>{{ event_count }}</strong><small><span>{{ current_date_from }} — {{ current_date_to }}</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Задачи</span><i class="metric-icon uk-icon-button" uk-icon="list"></i></span><strong>{{ task_count }}</strong><small><span>открытых: {{ open_task_count }}</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Просрочено</span><i class="metric-icon uk-icon-button" uk-icon="warning"></i></span><strong class="uk-text-danger">{{ overdue_task_count }}</strong><small><span>задач требуют внимания</span></small></article>
+</section>
+
+<section class="panel uk-card uk-card-default planner-notifications uk-margin-medium-bottom">
+    <div class="panel-header"><div><span class="eyebrow">Автоконтроль</span><h2>Уведомления по рейсам</h2><p>Подсказки исчезают автоматически после заполнения данных или оплаты.</p></div><span class="uk-text-meta">{{ automatic_task_count }} открытых</span></div>
+    <div class="planner-notification-list">
+        {% for item in automatic_tasks %}
+            <a class="planner-notification planner-notification-{{ item.priority }}" href="{{ item.url }}">
+                <span class="planner-notification-icon" uk-icon="{% if item.priority == 'urgent' %}warning{% elif item.kind == 'payment' %}credit-card{% elif item.kind == 'document' %}file-text{% else %}settings{% endif %}"></span>
+                <span class="planner-notification-body"><strong>{{ item.title }}</strong><small>{{ item.transportation.number|default:'Черновик' }} · {{ item.transportation.route }}</small><span>{{ item.description }}</span></span>
+                <span class="planner-notification-meta">{% if item.due_date %}до {{ item.due_date|date:'d.m.Y' }}{% endif %}<span class="uk-label task-priority-{{ item.priority }}">{{ item.priority_label }}</span></span>
+            </a>
+        {% empty %}
+            <div class="dashboard-alert-empty"><span uk-icon="check"></span> Автоматических уведомлений нет.</div>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="planner-grid">
+    <section class="panel uk-card uk-card-default">
+        <div class="panel-header"><div><span class="eyebrow">Календарь событий</span><h2>Календарь рейсов</h2><p>События строятся автоматически из карточек перевозок.</p></div></div>
+        <div class="planner-agenda">
+            {% for day in events_by_date %}
+                <article class="planner-day {% if day.date == today %}is-today{% endif %}">
+                    <header><strong>{{ day.label }}</strong><span>{{ day.weekday }}</span></header>
+                    <div class="planner-day-events">
+                        {% for event in day.events %}
+                            <a class="planner-event planner-event-{{ event.kind }}" href="{{ event.url }}">
+                                <span class="planner-event-kind">{{ event.label }}</span>
+                                <strong>{{ event.title }}</strong>
+                                <small>{{ event.transportation.get_status_display }}{% if event.transportation.manager %} · {{ event.transportation.manager.get_full_name|default:event.transportation.manager.username }}{% endif %}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-cell planner-empty"><span uk-icon="calendar"></span><p>На выбранный период событий нет.</p><a href="{% url 'transportation-create' %}" class="uk-button uk-button-default">Оформить рейс</a></div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel uk-card uk-card-default">
+        <div class="panel-header"><div><span class="eyebrow">Мои поручения</span><h2>Задачи</h2><p>Задачи без срока остаются в списке при любом периоде.</p></div><a class="uk-button uk-button-text" href="{% url 'planner-task-create' %}">Добавить</a></div>
+        <div class="planner-tasks">
+            {% for task in tasks %}
+                <article class="planner-task {% if task.is_overdue %}is-overdue{% elif task.status == 'done' %}is-done{% endif %}">
+                    <div class="planner-task-check">
+                        {% if task.status != 'done' and task.status != 'cancelled' %}
+                            <form method="post" action="{% url 'planner-task-complete' task.pk %}"><input type="hidden" name="next" value="{{ request.get_full_path }}">{% csrf_token %}<button type="submit" class="task-check-button" title="Отметить выполненной"><span uk-icon="check"></span></button></form>
+                        {% else %}<span class="task-check-icon" uk-icon="check"></span>{% endif %}
+                    </div>
+                    <div class="planner-task-body"><div class="planner-task-title"><a href="{{ task.get_absolute_url }}">{{ task.title }}</a><span class="uk-label task-priority-{{ task.priority }}">{{ task.get_priority_display }}</span></div><div class="planner-task-meta"><span class="uk-label task-status-{{ task.status }}">{{ task.get_status_display }}</span>{% if task.assignee %}<span>{{ task.assignee.get_full_name|default:task.assignee.username }}</span>{% endif %}{% if task.transportation %}<a href="{{ task.transportation.get_absolute_url }}">{{ task.transportation.number|default:'Черновик' }}</a>{% endif %}</div>{% if task.description %}<p>{{ task.description|truncatechars:120 }}</p>{% endif %}</div>
+                    <div class="planner-task-date">{% if task.due_date %}<span class="{% if task.is_overdue %}uk-text-danger{% endif %}">{{ task.due_date|date:'d.m.Y' }}</span>{% else %}<span class="uk-text-meta">Без срока</span>{% endif %}<a class="uk-icon-button" uk-icon="pencil" href="{{ task.get_absolute_url }}" title="Изменить"></a></div>
+                </article>
+            {% empty %}
+                <div class="empty-cell planner-empty"><span uk-icon="check"></span><p>Задач нет. Добавьте первое поручение.</p><a href="{% url 'planner-task-create' %}" class="uk-button uk-button-default">Создать задачу</a></div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

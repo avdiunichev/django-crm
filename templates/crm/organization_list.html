@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Контрагенты — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Справочник</span><h1>Контрагенты</h1><p>Единые карточки организаций, ИП и физических лиц по принципу справочника 1С.</p></div>
+    <a class="onec-save-close uk-button" href="{% url 'organization-create' %}"><span uk-icon="plus"></span> Создать</a>
+</div>
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Всего организаций</span><i class="metric-icon uk-icon-button" uk-icon="users"></i></span><strong>{{ organization_count }}</strong><small><span>без дублей по ИНН</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Клиенты</span><i class="metric-icon uk-icon-button" uk-icon="user"></i></span><strong>{{ client_count }}</strong><small><span>активная роль</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Экспедиторы</span><i class="metric-icon uk-icon-button" uk-icon="git-fork"></i></span><strong>{{ forwarder_count }}</strong><small><span>привлечённые исполнители</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Перевозчики</span><i class="metric-icon uk-icon-button" uk-icon="move"></i></span><strong>{{ carrier_count }}</strong><small><span>могут выполнять рейсы</span></small></article>
+</section>
+<form class="filters" method="get">
+    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН или контакт">
+    <select class="form-control uk-select" name="role"><option value="">Все роли</option>{% for value,label in role_choices %}<option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="group"><option value="">Все группы</option>{% for group in organization_groups %}<option value="{{ group.pk }}" {% if current_group == group.pk|stringformat:'s' %}selected{% endif %}>{{ group }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="own"><option value="">Все компании</option><option value="1" {% if current_own == '1' %}selected{% endif %}>Только наши компании</option></select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_role or current_own or current_group %}<a class="clear-link" href="{% url 'organization-list' %}">Сбросить</a>{% endif %}
+</form>
+<section class="panel uk-card uk-card-default">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Контрагент</th><th>Группа</th><th>ИНН / КПП</th><th>Роли</th><th>Контакт</th><th>Статус ФНС</th><th></th></tr></thead>
+        <tbody>{% for organization in organizations %}<tr>
+            <td><a class="primary-link" href="{% url 'organization-detail' organization.pk %}">{{ organization }}</a><small>{{ organization.legal_address|default:"Адрес не указан" }}</small></td>
+            <td>{{ organization.group|default:"—" }}</td><td>{{ organization.tax_id|default:"—" }}{% if organization.kpp %} / {{ organization.kpp }}{% endif %}</td>
+            <td><div class="role-badges">{% if organization.is_own_company %}<span class="uk-label uk-label-success">Наша компания</span>{% endif %}{% for role in organization.active_roles %}<span class="uk-label">{{ role.get_role_display }}</span>{% empty %}<span class="uk-text-muted">Не назначены</span>{% endfor %}</div></td>
+            <td>{{ organization.contact_name|default:"—" }}<small>{{ organization.phone|default:organization.email }}</small></td>
+            <td><span class="badge uk-label {% if organization.fns_status == 'active' %}uk-label-success{% elif organization.fns_status != 'unknown' %}uk-label-warning{% endif %}">{{ organization.get_fns_status_display }}</span></td>
+            <td><a class="row-action" href="{% url 'organization-update' organization.pk %}">Изменить</a></td>
+        </tr>{% empty %}<tr><td colspan="7" class="empty-state">Контрагентов пока нет.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

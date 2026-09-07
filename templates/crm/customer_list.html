@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Клиенты — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action"><div><span class="eyebrow">Справочник</span><h1>Клиенты</h1><p>Заказчики и их контактные данные.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'customer-create' %}"><span uk-icon="plus"></span> Добавить клиента</a></div>
+<form class="filters" method="get"><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН, контакт или телефон"><button class="btn btn-secondary uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>{% if current_q %}<a class="clear-link" href="{% url 'customer-list' %}">Сбросить</a>{% endif %}</form>
+<section class="panel uk-card uk-card-default"><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle"><thead><tr><th>Компания</th><th>Контакт</th><th>Телефон / email</th><th>Заявок</th><th>Статус</th><th></th></tr></thead><tbody>
+{% for customer in customers %}<tr><td><a class="primary-link" href="{{ customer.get_absolute_url }}">{{ customer.name }}</a><small>ИНН {{ customer.tax_id|default:"—" }}</small></td><td>{{ customer.contact_name|default:"—" }}</td><td>{{ customer.phone|default:"—" }}<small>{{ customer.email }}</small></td><td>{{ customer.shipment_count }}</td><td>{% if customer.is_active %}<span class="badge uk-label status-delivered">Активен</span>{% else %}<span class="badge uk-label">Архив</span>{% endif %}</td><td><a class="row-action" href="{% url 'customer-update' customer.pk %}"><span uk-icon="pencil"></span></a></td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Клиентов пока нет.</td></tr>{% endfor %}
+</tbody></table></div></section>{% include "crm/includes/pagination.html" %}
+{% endblock %}

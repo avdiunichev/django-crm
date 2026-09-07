@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Изменить документ{% else %}Новый документ{% endif %}{% if shipment %} — {{ shipment.number }}{% else %} — Реестр документов{% endif %}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{% if shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">← {% if shipment %}К заявке {{ shipment.number }}{% else %}К реестру документов{% endif %}</a>
+        <h1>{% if object %}Изменить документ{% else %}Добавить документ{% endif %}</h1>
+        <p>{% if shipment %}{{ shipment.customer.name }} · {{ shipment.route }}{% else %}Присвойте входящий или исходящий документ конкретной заявке{% endif %}</p>
+    </div>
+</div>
+<div class="detail-grid">
+    <form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>01</span><div><h2>Реквизиты документа</h2><p>Тип, сторона, номер и текущее состояние</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.shipment wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.transportation wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.direction %}
+                {% include "crm/includes/form_field.html" with field=form.counterparty %}
+                {% include "crm/includes/form_field.html" with field=form.kind %}
+                {% include "crm/includes/form_field.html" with field=form.party %}
+                {% include "crm/includes/form_field.html" with field=form.status %}
+                {% include "crm/includes/form_field.html" with field=form.number %}
+                {% include "crm/includes/form_field.html" with field=form.document_date %}
+                {% include "crm/includes/form_field.html" with field=form.expected_date %}
+                {% include "crm/includes/form_field.html" with field=form.amount %}
+                {% include "crm/includes/form_field.html" with field=form.vat_amount %}
+                {% include "crm/includes/form_field.html" with field=form.currency %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>02</span><div><h2>Файл и комментарий</h2><p>Можно сначала создать ожидаемый документ без файла</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.file wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+            </div>
+            <p class="uk-text-meta uk-margin-small-bottom">Поддерживаются PDF, XML, DOC/DOCX, XLS/XLSX, JPG/PNG и ZIP до 20 МБ.</p>
+        </section>
+        <div class="form-actions">
+            <a class="uk-button uk-button-default" href="{% if shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
+            {% if object %}<a class="uk-button uk-button-danger" href="{% url 'shipment-document-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+            <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить документ</button>
+        </div>
+    </form>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default">
+            {% if shipment %}
+            <h2>Участники заявки</h2>
+            <span>Клиент</span><strong>{{ shipment.customer.name }}</strong>
+            <span>Перевозчик</span><strong>{{ shipment.carrier.name|default:"Не назначен" }}</strong>
+            <hr>
+            <span>Валюта заявки</span><strong>{{ shipment.currency|currency_symbol }}</strong>
+            {% else %}
+            <h2>Как работает реестр</h2>
+            <span>Исходящие</span><strong>счета, акты, УПД, сч-фактуры клиенту</strong>
+            <span>Входящие</span><strong>документы от перевозчиков и исполнителей</strong>
+            <hr>
+            <span>Привязка</span><strong>каждый документ закрепляется за заявкой</strong>
+            {% endif %}
+        </section>
+    </aside>
+</div>
+{% endblock %}

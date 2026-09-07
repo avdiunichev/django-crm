@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ entity_title }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{{ cancel_url }}">← К банковским документам</a><h1>{% if object %}Изменить{% else %}Создать{% endif %}: банковский приход / расход</h1><p>Выберите рейсы, по которым прошла одна операция в банковской выписке.</p></div>
+</div>
+<form method="post" class="entity-form bank-statement-form" data-bank-statement-form>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span uk-icon="credit-card"></span><div><h2>Реквизиты выписки</h2><p>Эти данные попадут во все платежи выбранных рейсов.</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.direction %}
+            {% include "crm/includes/form_field.html" with field=form.statement_date %}
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.bank_account %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.reference %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default bank-payment-picker">
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Рейсы для оплаты</h2><p>Показываются только проведённые рейсы с остатком задолженности. Сумму можно изменить для частичной оплаты.</p></div></div>
+        {% for error in form.non_field_errors %}{% endfor %}
+        <div class="bank-picker-summary"><span>Отмечено рейсов: <strong data-bank-selected-count>0</strong></span><span>Сумма операции: <strong class="amount-income" data-bank-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span></div>
+        <div class="bank-candidate-group" data-bank-direction="income">
+            <h3>Поступления от клиентов</h3>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider bank-candidate-table"><thead><tr><th><input class="uk-checkbox" type="checkbox" data-bank-select-all aria-label="Выбрать все поступления"></th><th>Рейс / маршрут</th><th>Клиент</th><th>Срок оплаты</th><th class="uk-text-right">Остаток</th><th>Платёжное поручение</th><th class="uk-text-right">Оплата</th></tr></thead><tbody>
+            {% for item in bank_income_candidates %}<tr><td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-bank-select {% if item.selected %}checked{% endif %}></td><td><a href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number }}</a><small>{{ item.transportation.route }}</small></td><td>{{ item.counterparty }}</td><td>{{ item.transportation.customer_payment_due_date|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-right amount-income">{{ item.balance|floatformat:"2g" }}</td><td><input class="uk-input uk-form-small bank-reference-input" type="text" maxlength="100" name="reference_{{ item.transportation.pk }}" value="{{ item.entered_reference }}" placeholder="№ платёжки" data-bank-reference></td><td><input class="uk-input uk-form-small bank-amount-input" type="number" min="0.01" max="{{ item.balance }}" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-bank-amount></td></tr>{% empty %}<tr><td colspan="7" class="empty-state">Нет рейсов с дебиторской задолженностью.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </div>
+        <div class="bank-candidate-group" data-bank-direction="expense">
+            <h3>Оплаты перевозчикам</h3>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider bank-candidate-table"><thead><tr><th><input class="uk-checkbox" type="checkbox" data-bank-select-all aria-label="Выбрать все расходы"></th><th>Рейс / маршрут</th><th>Исполнитель</th><th>Срок оплаты</th><th class="uk-text-right">Остаток</th><th>Платёжное поручение</th><th class="uk-text-right">Оплата</th></tr></thead><tbody>
+            {% for item in bank_expense_candidates %}<tr><td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-bank-select {% if item.selected %}checked{% endif %}></td><td><a href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number }}</a><small>{{ item.transportation.route }}</small></td><td>{{ item.counterparty }}</td><td>{{ item.transportation.executor_payment_due_date|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-right amount-expense">{{ item.balance|floatformat:"2g" }}</td><td><input class="uk-input uk-form-small bank-reference-input" type="text" maxlength="100" name="reference_{{ item.transportation.pk }}" value="{{ item.entered_reference }}" placeholder="№ платёжки" data-bank-reference></td><td><input class="uk-input uk-form-small bank-amount-input" type="number" min="0.01" max="{{ item.balance }}" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-bank-amount></td></tr>{% empty %}<tr><td colspan="7" class="empty-state">Нет рейсов с кредиторской задолженностью и назначенным исполнителем.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </div>
+    </section>
+    <div class="form-actions"><a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a><button class="uk-button uk-button-default" name="action" value="save" type="submit">Сохранить черновик</button><button class="uk-button uk-button-primary" name="action" value="post" type="submit"><span uk-icon="check"></span> Провести</button></div>
+</form>
+<script>
+(() => {
+    const form = document.querySelector("[data-bank-statement-form]");
+    if (!form) return;
+    const direction = form.querySelector("#id_direction");
+    const groups = [...form.querySelectorAll("[data-bank-direction]")];
+    const count = form.querySelector("[data-bank-selected-count]");
+    const total = form.querySelector("[data-bank-selected-total]");
+    const sync = () => {
+        const active = direction?.value || "income";
+        let selected = 0;
+        let sum = 0;
+        total.classList.toggle("amount-income", active === "income");
+        total.classList.toggle("amount-expense", active === "expense");
+        total.classList.remove("amount-problem");
+        groups.forEach((group) => {
+            const enabled = group.dataset.bankDirection === active;
+            group.hidden = !enabled;
+            group.querySelectorAll("[data-bank-select]").forEach((checkbox) => {
+                checkbox.disabled = !enabled;
+                if (enabled && checkbox.checked) {
+                    selected += 1;
+                    const input = group.querySelector(`[name="amount_${checkbox.value}"]`);
+                    sum += Number((input && input.value) || 0);
+                }
+            });
+            group.querySelectorAll("[data-bank-amount], [data-bank-reference]").forEach((input) => { input.disabled = !enabled; });
+            const boxes = [...group.querySelectorAll("[data-bank-select]")];
+            const selectAll = group.querySelector("[data-bank-select-all]");
+            if (selectAll) {
+                const checked = boxes.filter((checkbox) => checkbox.checked).length;
+                selectAll.checked = boxes.length > 0 && checked === boxes.length;
+                selectAll.indeterminate = checked > 0 && checked < boxes.length;
+                selectAll.disabled = !enabled || boxes.length === 0;
+            }
+        });
+        if (count) count.textContent = selected;
+        if (total) total.textContent = sum.toLocaleString("ru-RU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    };
+    direction?.addEventListener("change", sync);
+    groups.forEach((group) => {
+        group.querySelector("[data-bank-select-all]")?.addEventListener("change", (event) => {
+            group.querySelectorAll("[data-bank-select]").forEach((checkbox) => {
+                checkbox.checked = event.target.checked;
+            });
+            sync();
+        });
+    });
+    form.addEventListener("input", sync);
+    form.addEventListener("change", sync);
+    sync();
+})();
+</script>
+{% endblock %}

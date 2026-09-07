@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Изменить договор{% else %}Новый договор{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div><a class="back-link" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'contract-list' %}{% endif %}">← Договоры</a><h1>{% if object %}Изменить договор № {{ object.number }}{% else %}Создать договор{% endif %}</h1><p>Выберите шаблон и стороны. Юридический текст шаблона останется без изменений.</p></div>
+</div>
+<form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked" id="contract-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Шаблон и стороны</span><h2>Какой договор создаём</h2></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.expeditor wide=True %}
+            <div id="contract-customer-field" class="field-switch">{% include "crm/includes/form_field.html" with field=form.customer wide=True %}</div>
+            <div id="contract-carrier-field" class="field-switch">{% include "crm/includes/form_field.html" with field=form.carrier wide=True %}</div>
+        </div>
+    </section>
+    <section class="form-section uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Основные данные</span><h2>Номер и срок действия</h2></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.number %}
+            {% include "crm/includes/form_field.html" with field=form.status %}
+            {% include "crm/includes/form_field.html" with field=form.contract_date %}
+            {% include "crm/includes/form_field.html" with field=form.valid_until %}
+            {% include "crm/includes/form_field.html" with field=form.terminated_on %}
+            {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.debt_limit %}
+            {% include "crm/includes/form_field.html" with field=form.vat_rate %}
+            {% include "crm/includes/form_field.html" with field=form.city wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.payment_terms wide=True %}
+        </div>
+    </section>
+    <section class="form-section uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Подписанты</span><h2>Представители сторон</h2></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.expeditor_representative %}
+            {% include "crm/includes/form_field.html" with field=form.expeditor_authority_basis %}
+            {% include "crm/includes/form_field.html" with field=form.counterparty_representative %}
+            {% include "crm/includes/form_field.html" with field=form.counterparty_authority_basis %}
+            {% include "crm/includes/form_field.html" with field=form.document_file wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+    <div class="form-actions"><a class="btn btn-secondary uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'contract-list' %}{% endif %}">Отмена</a><button class="btn btn-primary uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> {% if object %}Сохранить изменения{% else %}Создать договор{% endif %}</button></div>
+</form>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("contract-form");
+    const kind = document.getElementById("id_kind");
+    const customerField = document.getElementById("contract-customer-field");
+    const carrierField = document.getElementById("contract-carrier-field");
+    if (!form || !kind || !customerField || !carrierField) return;
+    const sync = () => {
+        const clientContract = kind.value === "client_forwarding";
+        customerField.hidden = !clientContract;
+        carrierField.hidden = clientContract || !kind.value;
+    };
+    kind.addEventListener("change", sync);
+    form.addEventListener("submit", () => {
+        if (kind.value === "client_forwarding") document.getElementById("id_carrier").value = "";
+        else document.getElementById("id_customer").value = "";
+    });
+    sync();
+});
+</script>
+{% endblock %}

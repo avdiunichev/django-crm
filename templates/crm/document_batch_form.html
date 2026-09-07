@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{% if object %}Изменить пачку{% else %}Новая пачка документов{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{{ cancel_url }}">← К пачкам документов</a><span class="eyebrow">Реализация / поступление</span><h1>{% if object %}Изменить пачку документов{% else %}Создать пачку документов{% endif %}</h1><p>Выберите рейсы галочками и заполните табличную часть: тип, номер, дату, сумму и НДС.</p></div>
+</div>
+
+<form method="post" class="entity-form document-batch-form" data-document-batch-form>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span uk-icon="file-text"></span><div><h2>Шапка документа</h2><p>Эти настройки используются для всех выбранных строк.</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.direction %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.default_kind %}
+            {% include "crm/includes/form_field.html" with field=form.default_status %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.reference %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default document-batch-picker">
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты.</p></div></div>
+        <div class="bank-picker-summary">
+            <span>Отмечено рейсов: <strong data-document-selected-count>0</strong></span>
+            <span>Сумма документов: <strong class="amount-income" data-document-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span>
+        </div>
+        <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+            <thead><tr><th><input class="uk-checkbox" type="checkbox" data-document-select-all aria-label="Выбрать все"></th><th>Рейс / маршрут</th><th>Контрагент</th><th>Тип</th><th>Номер</th><th>Дата</th><th class="uk-text-right">Сумма</th><th class="uk-text-right">НДС</th></tr></thead>
+            <tbody>
+            {% for item in document_batch_candidates %}
+                <tr>
+                    <td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-document-select {% if item.selected %}checked{% endif %}></td>
+                    <td><a class="primary-link" href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number|default:"Черновик" }}</a><small>{{ item.transportation.route }}</small></td>
+                    <td>{% if item.counterparty %}{{ item.counterparty }}<small>ИНН {{ item.counterparty.tax_id|default:"—" }}</small>{% else %}<span class="uk-text-danger">Контрагент не определён</span>{% endif %}</td>
+                    <td><select class="uk-select uk-form-small" name="kind_{{ item.transportation.pk }}">{% for value,label in document_kind_choices %}<option value="{{ value }}" {% if item.entered_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+                    <td><input class="uk-input uk-form-small" type="text" maxlength="100" name="number_{{ item.transportation.pk }}" value="{{ item.entered_number }}" placeholder="№ документа"></td>
+                    <td><input class="uk-input uk-form-small" type="text" name="date_{{ item.transportation.pk }}" value="{{ item.entered_date }}" placeholder="дд.мм.гггг"></td>
+                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-document-amount></td>
+                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="vat_{{ item.transportation.pk }}" value="{{ item.entered_vat }}"></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="8" class="empty-state">Нет рейсов для подбора по выбранным условиям.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table></div>
+    </section>
+
+    <div class="form-actions">
+        <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
+        <button class="uk-button uk-button-default" name="action" value="save" type="submit">Сохранить черновик</button>
+        <button class="uk-button uk-button-primary" name="action" value="post" type="submit"><span uk-icon="check"></span> Провести</button>
+    </div>
+</form>
+
+<script>
+(() => {
+    const form = document.querySelector("[data-document-batch-form]");
+    if (!form) return;
+    const count = form.querySelector("[data-document-selected-count]");
+    const total = form.querySelector("[data-document-selected-total]");
+    const selectAll = form.querySelector("[data-document-select-all]");
+    const boxes = [...form.querySelectorAll("[data-document-select]")];
+    const sync = () => {
+        let selected = 0;
+        let sum = 0;
+        boxes.forEach((checkbox) => {
+            if (!checkbox.checked) return;
+            selected += 1;
+            const input = form.querySelector(`[name="amount_${checkbox.value}"]`);
+            sum += Number((input && input.value) || 0);
+        });
+        if (count) count.textContent = selected;
+        if (total) total.textContent = sum.toLocaleString("ru-RU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (selectAll) {
+            selectAll.checked = boxes.length > 0 && selected === boxes.length;
+            selectAll.indeterminate = selected > 0 && selected < boxes.length;
+        }
+    };
+    selectAll?.addEventListener("change", () => {
+        boxes.forEach((checkbox) => { checkbox.checked = selectAll.checked; });
+        sync();
+    });
+    form.addEventListener("input", sync);
+    form.addEventListener("change", sync);
+    sync();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Приходы и расходы — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div>
+        <span class="eyebrow">Банк и взаиморасчёты</span>
+        <h1>Приходы и расходы</h1>
+        <p>Массово регистрируйте оплаты из банковской выписки и проводите их по рейсам.</p>
+    </div>
+    <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense"><span uk-icon="arrow-down"></span> Создать расход</a>
+        <a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income"><span uk-icon="arrow-up"></span> Создать приход</a>
+    </div>
+</div>
+
+<section class="metrics-grid bank-statement-metrics">
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Документы</span><i class="metric-icon uk-icon-button" uk-icon="file-text"></i></span><strong>{{ page_obj.paginator.count }}</strong><small>банковских приходов и расходов</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="pencil"></i></span><strong>{{ draft_count }}</strong><small>готовы к проверке и проведению</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Проведено</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ posted_count }}</strong><small>платежи отражены в рейсах</small></article>
+</section>
+
+<form class="filters bank-statement-filters" method="get">
+    <select class="form-control uk-select" name="direction"><option value="">Все операции</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if current_direction == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="owner"><option value="">Все наши компании</option>{% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_direction or current_status or current_owner %}<a class="clear-link" href="{% url 'bank-statement-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default bank-statement-register">
+    <div class="onec-register-header"><div><span class="eyebrow">Регистр</span><h2>Банковские документы</h2><p>Проведённые операции уже участвуют в дебиторской и кредиторской задолженности.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} записей</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Документ</th><th>Операция</th><th>Компания / счёт</th><th>Строки</th><th class="uk-text-right">Сумма</th><th></th></tr></thead>
+        <tbody>
+        {% for statement in bank_statements %}
+            <tr>
+                <td><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.number }}</a><small>{{ statement.statement_date|date:"d.m.Y" }}{% if statement.reference %} · выписка {{ statement.reference }}{% endif %}</small></td>
+                <td><span class="uk-label {% if statement.status == 'voided' %}uk-label-danger{% elif statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small class="{% if statement.status == 'voided' %}amount-problem{% endif %}">{{ statement.get_status_display }}</small></td>
+                <td>{{ statement.owner_company }}{% if statement.bank_account %}<small>{{ statement.bank_account.account_number }} · {{ statement.bank_account.bank_name }}</small>{% endif %}</td>
+                <td>{{ statement.line_total|default:0 }}</td>
+                <td class="uk-text-right"><strong class="{% if statement.status == 'voided' %}amount-problem{% elif statement.direction == 'income' %}amount-income{% else %}amount-expense{% endif %}">{{ statement.total_sum|default:0|floatformat:"2g" }} {{ statement.currency|currency_symbol }}</strong></td>
+                <td class="uk-text-right"><a class="row-action" href="{{ statement.get_absolute_url }}">Открыть</a>{% if statement.status == 'draft' %}<a class="row-action" href="{% url 'bank-statement-update' statement.pk %}">Изменить</a>{% endif %}<a class="row-action uk-text-danger" href="{% url 'bank-statement-delete' statement.pk %}">Удалить</a></td>
+            </tr>
+        {% empty %}<tr><td colspan="6" class="empty-state">Банковских документов пока нет. Создайте приход или расход.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

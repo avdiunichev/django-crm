@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Автопарк — Экспедитор CRM{% endblock %}
+{% block body_class %}vehicle-directory-page{% endblock %}
+{% block content %}
+<div class="page-heading with-action vehicle-directory-heading">
+    <div><span class="eyebrow">Справочник ресурсов</span><h1>Подвижной состав <small>(автопарк)</small></h1><p>Тягачи, грузовые автомобили, газели, фургоны, прицепы и сцепки по принципу справочника 1С.</p></div>
+    <div class="heading-actions"><a class="uk-button uk-button-default" href="{% url 'vehicle-combination-create' %}"><span uk-icon="link"></span> Создать сцепку</a><a class="uk-button uk-button-primary" href="{% url 'vehicle-create' %}"><span uk-icon="plus"></span> Добавить транспорт</a></div>
+</div>
+
+<section class="metrics-grid vehicle-metrics">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Всего единиц</span><i class="metric-icon uk-icon-button" uk-icon="truck"></i></span><strong>{{ vehicle_total }}</strong><small><span>в едином автопарке</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>В эксплуатации</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ vehicle_active_total }}</strong><small><span>доступны для назначения</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Документы требуют внимания</span><i class="metric-icon uk-icon-button" uk-icon="warning"></i></span><strong>{{ vehicle_documents_attention }}</strong><small><span>страховка или техосмотр</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Активные сцепки</span><i class="metric-icon uk-icon-button" uk-icon="link"></i></span><strong>{{ vehicle_combinations_total }}</strong><small><span>тягач + прицеп</span></small></article>
+</section>
+
+<form class="filters vehicle-filters" method="get">
+    <label><span class="uk-text-meta">Поиск</span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Госномер, VIN, марка или перевозчик" autocomplete="off"></label>
+    <label><span class="uk-text-meta">Тип единицы</span><select class="uk-select" name="kind"><option value="">Все типы</option>{% for value,label in vehicle_kinds %}<option value="{{ value }}" {% if current_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label><span class="uk-text-meta">Состояние</span><select class="uk-select" name="active"><option value="">Все</option><option value="1" {% if current_active == '1' %}selected{% endif %}>В эксплуатации</option><option value="0" {% if current_active == '0' %}selected{% endif %}>Неактивные</option></select></label>
+    <label><span class="uk-text-meta">Перевозчик</span><select class="uk-select" name="carrier"><option value="">Все перевозчики</option>{% for carrier in vehicle_carriers %}<option value="{{ carrier.pk }}" {% if current_carrier == carrier.pk|stringformat:'s' %}selected{% endif %}>{{ carrier.name }}</option>{% endfor %}</select></label>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_kind or current_active or current_carrier %}<a class="clear-link" href="{% url 'vehicle-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default vehicle-register-panel">
+    <div class="panel-header"><div><h2>Реестр автопарка</h2><p>Откройте единицу техники, чтобы увидеть характеристики, сцепки и рейсы.</p></div><span class="uk-text-meta">Записей: {{ page_obj.paginator.count }}</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle vehicle-directory-table">
+        <thead><tr><th>Госномер</th><th>Транспорт</th><th>Перевозчик</th><th>Характеристики</th><th>Документы</th><th>Состояние</th><th></th></tr></thead>
+        <tbody>{% for vehicle in vehicles %}<tr>
+            <td><a class="primary-link" href="{{ vehicle.get_absolute_url }}">{{ vehicle.registration_number }}</a><small>{{ vehicle.get_kind_display }}</small></td>
+            <td>{{ vehicle.make }} {{ vehicle.model }}{% if vehicle.year %}<small>{{ vehicle.year }} г.</small>{% endif %}{% if vehicle.vin %}<small>VIN {{ vehicle.vin }}</small>{% endif %}{% if vehicle.active_combinations %}{% with combination=vehicle.active_combinations.0 %}<small class="uk-text-success">Сцепка: {{ combination.trailer.registration_number }}</small>{% endwith %}{% elif vehicle.requires_trailer %}<small class="uk-text-warning">Прицеп не прикреплён</small>{% endif %}</td>
+            <td>{% if vehicle.carrier.organization %}<a href="{{ vehicle.carrier.organization.get_absolute_url }}">{{ vehicle.carrier.name }}</a>{% else %}<a href="{{ vehicle.carrier.get_absolute_url }}">{{ vehicle.carrier.name }}</a>{% endif %}</td>
+            <td>{{ vehicle.body_type|default:"—" }}<small>{{ vehicle.capacity_kg|floatformat:-2 }} кг · {{ vehicle.volume_m3|floatformat:-2 }} м³ · {{ vehicle.pallet_capacity }} паллет</small></td>
+            <td>{% if vehicle.insurance_is_expired or vehicle.inspection_is_expired %}<span class="uk-label uk-label-danger">Требуют внимания</span>{% elif not vehicle.insurance_expiry_date or not vehicle.inspection_expiry_date %}<span class="uk-label uk-label-warning">Не полностью</span>{% else %}<span class="uk-label uk-label-success">В порядке</span>{% endif %}<small>Страховка: {{ vehicle.insurance_expiry_date|date:"d.m.Y"|default:"—" }}</small><small>Техосмотр: {{ vehicle.inspection_expiry_date|date:"d.m.Y"|default:"—" }}</small></td>
+            <td>{% if vehicle.is_active %}<span class="uk-label uk-label-success">В эксплуатации</span>{% else %}<span class="uk-label">Неактивен</span>{% endif %}</td>
+            <td><div class="vehicle-row-actions"><a class="row-action" href="{{ vehicle.get_absolute_url }}" title="Открыть карточку"><span uk-icon="list"></span></a><a class="row-action" href="{% url 'vehicle-update' vehicle.pk %}" title="Изменить"><span uk-icon="pencil"></span></a><a class="row-action danger" href="{% url 'vehicle-delete' vehicle.pk %}" title="Удалить"><span uk-icon="trash"></span></a></div></td>
+        </tr>{% empty %}<tr><td colspan="7" class="empty-state">Транспорт пока не добавлен.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    <div class="vehicle-register-footer"><span><i class="driver-legend-dot is-active"></i> Доступен для назначения</span><span><i class="driver-legend-dot is-warning"></i> Нет полного комплекта документов</span><span><i class="driver-legend-dot is-danger"></i> Срок документа истёк</span></div>
+</section>
+{% if is_paginated %}<nav class="pagination uk-pagination" aria-label="Пагинация автопарка">{% if page_obj.has_previous %}<a href="?q={{ current_q|urlencode }}&kind={{ current_kind }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}<span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href="?q={{ current_q|urlencode }}&kind={{ current_kind }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}</nav>{% endif %}
+{% endblock %}

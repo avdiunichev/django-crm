@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Удаление платежа — {% if transportation %}{{ transportation.number|default:"Рейс" }}{% else %}{{ shipment.number|default:"Заявка" }}{% endif %}{% endblock %}
+{% block content %}
+{% with document=transportation|default:shipment %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ document.get_absolute_url }}">← К документу {{ document.number|default:"без номера" }}</a>
+        <span class="eyebrow">Контроль взаиморасчётов</span>
+        <h1>Удалить платёж?</h1>
+        <p>{{ payment.get_direction_display }} · {{ payment.payment_date|date:"d.m.Y" }}</p>
+    </div>
+</div>
+
+<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert>
+        <h2><span uk-icon="warning"></span> Проверьте операцию</h2>
+        <p>После удаления система пересчитает дебиторскую и кредиторскую задолженность по заявке.</p>
+    </div>
+    <dl class="uk-description-list uk-description-list-divider">
+        <dt>Операция</dt><dd>{{ payment.get_direction_display }}</dd>
+        <dt>Сумма</dt><dd><strong>{{ payment.amount|floatformat:2|intcomma }} {{ document.currency|currency_symbol }}</strong></dd>
+        <dt>Платёжное поручение</dt><dd>{{ payment.reference|default:"не указано" }}</dd>
+        <dt>Комментарий</dt><dd>{{ payment.notes|default:"—" }}</dd>
+    </dl>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <a class="uk-button uk-button-default" href="{{ document.get_absolute_url }}">Отмена</a>
+            <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить платёж</button>
+        </div>
+    </form>
+</section>
+{% endwith %}
+{% endblock %}

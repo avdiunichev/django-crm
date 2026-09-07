@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Изменить сообщение — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ conversation.get_absolute_url }}">← Вернуться в чат</a>
+        <span class="eyebrow">Чат сотрудников</span>
+        <h1>Изменить сообщение</h1>
+        <p>В переписке появится отметка «изменено».</p>
+    </div>
+</div>
+
+<form method="post" class="entity-form narrow uk-form-stacked">
+    {% csrf_token %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span uk-icon="pencil"></span><div><h2>Текст сообщения</h2><p>Редактировать сообщение может только его автор.</p></div></div>
+        {% include "crm/includes/form_field.html" with field=form.text wide=True %}
+        {% if message.attachment %}<a class="chat-attachment chat-attachment-preview" href="{{ message.get_attachment_url }}"><span class="chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></a>{% endif %}
+    </section>
+    <div class="form-actions">
+        <a class="uk-button uk-button-default" href="{{ conversation.get_absolute_url }}">Отмена</a>
+        <a class="uk-button uk-button-danger" href="{{ message.get_delete_url }}"><span uk-icon="trash"></span> Удалить</a>
+        <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Удалить выписку — {{ bank_statement.number }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><a class="back-link" href="{% url 'bank-statement-list' %}">← К банковским документам</a><span class="eyebrow">Банк и взаиморасчёты</span><h1>Удалить выписку {{ bank_statement.number }}?</h1><p>{{ bank_statement.get_direction_display }} · {{ bank_statement.statement_date|date:"d.m.Y" }}</p></div></div>
+<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert><h2><span uk-icon="warning"></span> Проверьте удаление</h2><p>Вместе с выпиской будут удалены её строки и созданные платежи. Остатки задолженности по рейсам вернутся к состоянию до проведения.</p></div>
+    <dl class="uk-description-list uk-description-list-divider"><dt>Операция</dt><dd>{{ bank_statement.get_direction_display }}</dd><dt>Статус</dt><dd>{{ bank_statement.get_status_display }}</dd><dt>Строк рейсов</dt><dd>{{ bank_statement.line_count }}</dd><dt>Сумма</dt><dd><strong class="{% if bank_statement.status == 'voided' %}amount-problem{% elif bank_statement.direction == 'income' %}amount-income{% else %}amount-expense{% endif %}">{{ bank_statement.total_amount|floatformat:2|intcomma }} {{ bank_statement.currency|currency_symbol }}</strong></dd></dl>
+    <form method="post">{% csrf_token %}<div class="form-actions"><a class="uk-button uk-button-default" href="{{ bank_statement.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить выписку</button></div></form>
+</section>
+{% endblock %}

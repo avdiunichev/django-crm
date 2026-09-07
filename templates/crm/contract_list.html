@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Договоры — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Юридические документы</span><h1>Договоры</h1><p>Клиентские договоры ТЭО, договоры перевозки и договоры с привлечёнными экспедиторами.</p></div>
+    <a class="btn btn-primary uk-button uk-button-primary" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a>
+</div>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Всего договоров</span><i class="metric-icon uk-icon-button" uk-icon="album"></i></span><strong>{{ contract_count }}</strong><small><span>в реестре</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="file-edit"></i></span><strong>{{ draft_count }}</strong><small><span>нужно проверить</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Готовы</span><i class="metric-icon uk-icon-button" uk-icon="print"></i></span><strong>{{ ready_count }}</strong><small><span>к подписанию</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Подписаны</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ signed_count }}</strong><small><span>действующие и завершённые</span></small></article>
+</section>
+
+<form class="filters" method="get">
+    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН">
+    <select class="form-control uk-select" name="expeditor"><option value="">Все наши компании</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="kind"><option value="">Все типы</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if value == current_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_kind or current_status or current_expeditor %}<a class="clear-link" href="{% url 'contract-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Договор</th><th>Тип</th><th>Наша компания</th><th>Контрагент</th><th>Дата / срок</th><th>Отсрочка / лимит</th><th>Статус</th><th></th></tr></thead>
+        <tbody>
+        {% for contract in contracts %}
+            <tr>
+                <td><a class="primary-link" href="{{ contract.get_absolute_url }}">№ {{ contract.number }}</a><small>создан {{ contract.created_at|date:"d.m.Y H:i" }}</small></td>
+                <td>{{ contract.get_kind_display }}</td>
+                <td><a href="{{ contract.expeditor.get_absolute_url }}">{{ contract.expeditor }}</a></td>
+                <td><a href="{{ contract.counterparty.get_absolute_url }}">{{ contract.counterparty_name }}</a><small>ИНН {{ contract.counterparty.tax_id|default:"не указан" }}</small></td>
+                <td>{{ contract.contract_date|date:"d.m.Y" }}<small>{% if contract.valid_until %}до {{ contract.valid_until|date:"d.m.Y" }}{% else %}срок не указан{% endif %}{% if contract.terminated_on %} · расторгнут {{ contract.terminated_on|date:"d.m.Y" }}{% endif %}</small></td>
+                <td>{{ contract.payment_term_days }} дн.<small>лимит {{ contract.debt_limit|floatformat:2 }} ₽</small></td>
+                <td><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></td>
+                <td><a class="row-action" href="{% url 'contract-download' contract.pk %}"><span uk-icon="download"></span> DOCX</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="8" class="empty-state">Договоров пока нет. Создайте первый договор из одного из трёх шаблонов.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

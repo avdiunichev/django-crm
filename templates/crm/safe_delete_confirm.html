@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Удаление — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ cancel_url }}">← Вернуться к карточке</a>
+        <span class="eyebrow">Контроль связей</span>
+        <h1>Удалить {{ entity_label }}?</h1>
+        <p>{{ object }}</p>
+    </div>
+</div>
+
+<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+    {% if dependencies %}
+        <div class="uk-alert-danger" uk-alert>
+            <h2><span uk-icon="ban"></span> Удаление запрещено</h2>
+            <p>Запись используется в учёте. Сначала отвяжите или удалите связанные документы.</p>
+        </div>
+        <div class="safe-delete-dependencies">
+            {% for dependency in dependencies %}
+            <article>
+                <div><strong>{{ dependency.label }}</strong><span class="uk-badge">{{ dependency.count }}</span></div>
+                {% if dependency.examples %}<ul>{% for example in dependency.examples %}<li>{% if example.url %}<a href="{{ example.url }}"><span uk-icon="link"></span> {{ example.label }}</a>{% else %}{{ example.label }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        <div class="form-actions">
+            <a class="uk-button uk-button-primary" href="{{ cancel_url }}">Вернуться к карточке</a>
+            <a class="uk-button uk-button-default" href="{{ list_url }}">Открыть список</a>
+        </div>
+    {% else %}
+        <div class="uk-alert-warning" uk-alert>
+            <h2><span uk-icon="warning"></span> Связанные документы не найдены</h2>
+            {% if object.source_order %}
+                <p>Рейс будет удалён. Связанный <a href="{{ object.source_order.get_absolute_url }}">заказ {{ object.source_order.number }}</a> сохранится и будет возвращён в статус «Новый».</p>
+            {% else %}
+                <p>После подтверждения запись будет удалена без возможности восстановления.</p>
+            {% endif %}
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
+                <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить</button>
+            </div>
+        </form>
+    {% endif %}
+</section>
+{% endblock %}

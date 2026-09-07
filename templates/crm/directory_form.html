@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ entity_title }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading"><div><a class="back-link" href="{{ cancel_url }}">← Назад</a><h1>{% if object %}Изменить{% else %}Добавить{% endif %}: {{ entity_title|lower }}</h1><p>Контактная и служебная информация.</p></div></div>
+<form method="post" class="entity-form narrow uk-form-stacked">{% csrf_token %}{% if dadata_mode %}{% include "crm/includes/dadata_autofill.html" %}{% endif %}<section class="form-section uk-card uk-card-default"><div class="form-grid">{% for field in form %}{% include "crm/includes/form_field.html" with field=field wide=True %}{% endfor %}</div></section><div class="form-actions"><a class="btn btn-secondary uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a><button class="btn btn-primary uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button></div></form>
+{% endblock %}

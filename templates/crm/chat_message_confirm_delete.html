@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Удалить сообщение — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ conversation.get_absolute_url }}">← Вернуться в чат</a>
+        <span class="eyebrow">Чат сотрудников</span>
+        <h1>Удалить сообщение?</h1>
+        <p>{{ message.created_at|date:"d.m.Y, H:i" }}</p>
+    </div>
+</div>
+
+<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert><h2><span uk-icon="warning"></span> Сообщение исчезнет у обоих участников</h2><p>Восстановить его после удаления не получится.</p></div>
+    <div class="chat-delete-preview">
+        {% if message.text %}<p>{{ message.text|linebreaksbr }}</p>{% endif %}
+        {% if message.attachment %}<div class="chat-attachment"><span class="chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></div>{% endif %}
+    </div>
+    <form method="post">{% csrf_token %}<div class="form-actions"><a class="uk-button uk-button-default" href="{{ conversation.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить сообщение</button></div></form>
+</section>
+{% endblock %}

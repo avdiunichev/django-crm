@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Изменить строку — {{ bank_statement.number }}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ bank_statement.get_absolute_url }}">← К банковской выписке</a>
+        <span class="eyebrow">Платёж по рейсу</span>
+        <h1>Изменить платёж</h1>
+        <p>{{ bank_statement_line.transportation.number }} · {{ bank_statement_line.transportation.route }}</p>
+    </div>
+</div>
+<section class="form-section uk-card uk-card-default bank-statement-line-form">
+    <div class="form-section-title"><span uk-icon="pencil"></span><div><h2>Реквизиты операции</h2><p>Изменение суммы автоматически пересчитает задолженность по рейсу.</p></div></div>
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <form method="post" class="entity-form">
+        {% csrf_token %}
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.amount %}
+            {% include "crm/includes/form_field.html" with field=form.payment_reference %}
+        </div>
+        <dl class="uk-description-list uk-description-list-divider uk-margin-top">
+            <dt>Банковская выписка</dt><dd>{{ bank_statement.number }} · {{ bank_statement.get_direction_display }}</dd>
+            <dt>Контрагент</dt><dd>{% if bank_statement_line.payment %}{{ bank_statement_line.payment.get_direction_display }}{% endif %}</dd>
+        </dl>
+        <div class="form-actions"><a class="uk-button uk-button-default" href="{{ bank_statement.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button></div>
+    </form>
+</section>
+{% endblock %}

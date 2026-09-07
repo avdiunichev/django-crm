@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Прибыльность — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Управленческий учёт</span><h1>Прибыльность рейсов</h1><p>Выручка, расходы, маржа, НДС, налог и чистая прибыль по рейсам.</p></div>
+    <a class="uk-button uk-button-primary" href="{% url 'profitability-report-export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"><span uk-icon="download"></span> Скачать Excel</a>
+</div>
+
+<form class="filters uk-card uk-card-default uk-card-body uk-padding-small" method="get">
+    <input class="uk-input search" type="search" name="q" value="{{ current_q }}" placeholder="Рейс, контрагент, ИНН или город">
+    <input class="uk-input" type="text" name="date_from" value="{{ current_date_from }}" placeholder="Период с" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date>
+    <input class="uk-input" type="text" name="date_to" value="{{ current_date_to }}" placeholder="по" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date>
+    <select class="uk-select" name="owner"><option value="">Все наши компании</option>{% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:"s" %}selected{% endif %}>{{ owner.short_name|default:owner.name }}</option>{% endfor %}</select>
+    <select class="uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="uk-select" name="client"><option value="">Все клиенты</option>{% for client in clients %}<option value="{{ client.pk }}" {% if current_client == client.pk|stringformat:"s" %}selected{% endif %}>{{ client.short_name|default:client.name }}</option>{% endfor %}</select>
+    <select class="uk-select" name="executor"><option value="">Все исполнители</option>{% for executor in executors %}<option value="{{ executor.pk }}" {% if current_executor == executor.pk|stringformat:"s" %}selected{% endif %}>{{ executor.short_name|default:executor.name }}</option>{% endfor %}</select>
+    <select class="uk-select" name="manager"><option value="">Все менеджеры</option>{% for manager in managers %}<option value="{{ manager.pk }}" {% if current_manager == manager.pk|stringformat:"s" %}selected{% endif %}>{{ manager.get_full_name|default:manager.username }}</option>{% endfor %}</select>
+    <select class="uk-select" name="currency">{% for currency in currency_choices %}<option value="{{ currency }}" {% if current_currency == currency %}selected{% endif %}>{{ currency|currency_symbol }}</option>{% endfor %}</select>
+    <input class="uk-input" type="text" name="low_margin_percent" value="{{ low_margin_percent }}" placeholder="Маржа ниже %, напр. 10">
+    <label class="uk-flex uk-flex-middle uk-flex-nowrap uk-margin-small-left"><input class="uk-checkbox uk-margin-small-right" type="checkbox" name="loss_only" value="1" {% if loss_only %}checked{% endif %}> Убыточные</label>
+    <button class="uk-button uk-button-primary" type="submit"><span uk-icon="search"></span> Найти</button>
+    <a class="clear-link" href="{% url 'profitability-report' %}">Сбросить</a>
+</form>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Выручка</span><i class="metric-icon uk-icon-button" uk-icon="credit-card"></i></span><strong class="amount-income">{{ profit_totals.revenue|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>рейсов: {{ profit_totals.trip_count }}, проведено: {{ profit_totals.posted_count }}</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Расходы</span><i class="metric-icon uk-icon-button" uk-icon="arrow-up"></i></span><strong class="amount-expense">{{ profit_totals.cost|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>прямые расходы исполнителей</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Маржа</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong class="{% if profit_totals.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ profit_totals.margin|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>маржинальность {{ profit_totals.margin_percent }}%</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Чистая прибыль</span><i class="metric-icon uk-icon-button" uk-icon="ratio"></i></span><strong class="{% if profit_totals.net_profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ profit_totals.net_profit|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>убыточных рейсов: {{ profit_totals.loss_count }}</span></small></article>
+</section>
+
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="panel-header"><div><span class="eyebrow">Расшифровка</span><h2>Рейсы</h2><p>Основная таблица управленческой прибыльности.</p></div></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Рейс</th><th>Клиент</th><th>Исполнитель</th><th>Менеджер</th><th>Статус</th><th class="uk-text-right">Выручка</th><th class="uk-text-right">Расход</th><th class="uk-text-right">Маржа</th><th class="uk-text-right">НДС</th><th class="uk-text-right">Чистая прибыль</th></tr></thead>
+        <tbody>
+        {% for row in profit_rows %}
+            <tr>
+                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small>{{ row.transportation.route }}</small></td>
+                <td>{% if row.client %}<a href="{{ row.client.get_absolute_url }}">{{ row.client.short_name|default:row.client.name }}</a>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
+                <td>{% if row.executor %}<a href="{{ row.executor.get_absolute_url }}">{{ row.executor.short_name|default:row.executor.name }}</a>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
+                <td>{{ row.manager.get_full_name|default:row.manager.username }}</td>
+                <td><span class="uk-label">{{ row.transportation.get_status_display }}</span><small>{{ row.transportation.get_posting_status_display }}</small></td>
+                <td class="uk-text-right amount-income">{{ row.transportation.revenue|floatformat:"2g" }}</td>
+                <td class="uk-text-right amount-expense">{{ row.transportation.cost|floatformat:"2g" }}</td>
+                <td class="uk-text-right"><strong class="{% if row.transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.transportation.margin|floatformat:"2g" }}</strong><small>{{ row.transportation.margin_percent }}%</small></td>
+                <td class="uk-text-right amount-expense">{{ row.transportation.vat_payable|floatformat:"2g" }}</td>
+                <td class="uk-text-right"><strong class="{% if row.transportation.net_profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.transportation.net_profit|floatformat:"2g" }} {{ current_currency|currency_symbol }}</strong></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="10" class="empty-state">Рейсов по выбранным условиям нет.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="panel-header"><div><span class="eyebrow">Группировки</span><h2>Кто зарабатывает</h2><p>Сводка по ключевым аналитикам.</p></div></div>
+    <div class="uk-grid-medium uk-child-width-1-2@m" uk-grid>
+        <div><h3>Клиенты</h3><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider"><thead><tr><th>Клиент</th><th class="uk-text-right">Рейсы</th><th class="uk-text-right">Маржа</th><th class="uk-text-right">Чистая прибыль</th></tr></thead><tbody>{% for row in client_rows %}<tr><td>{% if row.entity %}<a class="primary-link" href="{{ row.entity.get_absolute_url }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td><td class="uk-text-right">{{ row.trip_count }}</td><td class="uk-text-right"><strong class="{% if row.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.margin|floatformat:"2g" }}</strong><small>{{ row.margin_percent }}%</small></td><td class="uk-text-right">{{ row.net_profit|floatformat:"2g" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">Нет данных.</td></tr>{% endfor %}</tbody></table></div></div>
+        <div><h3>Исполнители</h3><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider"><thead><tr><th>Исполнитель</th><th class="uk-text-right">Рейсы</th><th class="uk-text-right">Расход</th><th class="uk-text-right">Маржа</th></tr></thead><tbody>{% for row in executor_rows %}<tr><td>{% if row.entity %}<a class="primary-link" href="{{ row.entity.get_absolute_url }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td><td class="uk-text-right">{{ row.trip_count }}</td><td class="uk-text-right amount-expense">{{ row.cost|floatformat:"2g" }}</td><td class="uk-text-right"><strong class="{% if row.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.margin|floatformat:"2g" }}</strong></td></tr>{% empty %}<tr><td colspan="4" class="empty-state">Нет данных.</td></tr>{% endfor %}</tbody></table></div></div>
+        <div><h3>Менеджеры</h3><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider"><thead><tr><th>Менеджер</th><th class="uk-text-right">Рейсы</th><th class="uk-text-right">Маржа</th><th class="uk-text-right">%</th></tr></thead><tbody>{% for row in manager_rows %}<tr><td>{{ row.label }}</td><td class="uk-text-right">{{ row.trip_count }}</td><td class="uk-text-right"><strong class="{% if row.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.margin|floatformat:"2g" }}</strong></td><td class="uk-text-right">{{ row.margin_percent }}%</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">Нет данных.</td></tr>{% endfor %}</tbody></table></div></div>
+        <div><h3>Наши компании</h3><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider"><thead><tr><th>Компания</th><th class="uk-text-right">Рейсы</th><th class="uk-text-right">Маржа</th><th class="uk-text-right">Чистая прибыль</th></tr></thead><tbody>{% for row in owner_rows %}<tr><td><a class="primary-link" href="{{ row.entity.get_absolute_url }}">{{ row.label }}</a></td><td class="uk-text-right">{{ row.trip_count }}</td><td class="uk-text-right"><strong class="{% if row.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ row.margin|floatformat:"2g" }}</strong><small>{{ row.margin_percent }}%</small></td><td class="uk-text-right">{{ row.net_profit|floatformat:"2g" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">Нет данных.</td></tr>{% endfor %}</tbody></table></div></div>
+    </div>
+</section>
+{% endblock %}

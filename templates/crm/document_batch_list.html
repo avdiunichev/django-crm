@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Пачки документов — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'shipment-document-list' %}">← К реестру документов</a><span class="eyebrow">Реализация и поступление</span><h1>Пачки документов</h1><p>Массовое присвоение счетов, актов, УПД, счетов-фактур, ТрН и прочих документов рейсам.</p></div>
+    <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
+        <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="arrow-up"></span> Создать реализацию</a>
+    </div>
+</div>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="file-edit"></i></span><strong>{{ draft_count }}</strong><small>можно редактировать</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Проведены</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ posted_count }}</strong><small>строки уже в реестре</small></article>
+</section>
+
+<form class="filters" method="get">
+    <select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_direction or current_status %}<a class="clear-link" href="{% url 'document-batch-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Документ</th><th>Направление</th><th>Наша компания</th><th>Строк</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
+        <tbody>
+        {% for batch in document_batches %}
+            <tr>
+                <td><a class="primary-link" href="{{ batch.get_absolute_url }}">{{ batch.number }}</a><small>{{ batch.document_date|date:"d.m.Y" }}{% if batch.reference %} · {{ batch.reference }}{% endif %}</small></td>
+                <td><span class="uk-label {% if batch.direction == 'outgoing' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ batch.get_direction_display }}</span></td>
+                <td>{{ batch.owner_company }}</td>
+                <td>{{ batch.line_total|default:0 }}</td>
+                <td class="uk-text-right"><strong class="{% if batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ batch.amount_total|default:0|floatformat:"2g" }} {{ batch.currency|currency_symbol }}</strong></td>
+                <td>{{ batch.get_status_display }}</td>
+                <td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a>{% if batch.status != 'voided' %}<a class="row-action" href="{% url 'document-batch-update' batch.pk %}">Изменить</a>{% endif %}<a class="row-action danger" href="{% url 'document-batch-delete' batch.pk %}">Удалить</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7" class="empty-state">Пачек документов пока нет.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

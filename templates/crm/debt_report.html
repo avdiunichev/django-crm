@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Задолженность — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Взаиморасчёты</span><h1>Задолженность по рейсам</h1><p>Дебиторка клиентов и кредиторка перед исполнителями по проведённым рейсам.</p></div>
+    <div class="heading-actions">
+        <a class="uk-button uk-button-primary" href="{% url 'debt-report-export' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"><span uk-icon="download"></span> Скачать Excel</a>
+        <a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=income"><span uk-icon="arrow-down"></span> Создать приход</a>
+        <a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense"><span uk-icon="arrow-up"></span> Создать расход</a>
+    </div>
+</div>
+
+<form class="filters uk-card uk-card-default uk-card-body uk-padding-small" method="get">
+    <input class="uk-input search" type="search" name="q" value="{{ current_q }}" placeholder="Рейс, контрагент, ИНН или город">
+    <select class="uk-select" name="owner"><option value="">Все наши компании</option>{% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:"s" %}selected{% endif %}>{{ owner.short_name|default:owner.name }}</option>{% endfor %}</select>
+    <select class="uk-select" name="side"><option value="">Дебиторка и кредиторка</option>{% for value,label in side_choices %}<option value="{{ value }}" {% if current_side == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="uk-select" name="state"><option value="">Все состояния</option>{% for value,label in state_choices %}<option value="{{ value }}" {% if current_state == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="uk-select" name="currency">{% for currency in currency_choices %}<option value="{{ currency }}" {% if current_currency == currency %}selected{% endif %}>{{ currency|currency_symbol }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-primary" type="submit"><span uk-icon="search"></span> Найти</button>
+    <a class="clear-link" href="{% url 'debt-report' %}">Сбросить</a>
+</form>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Нам должны</span><i class="metric-icon uk-icon-button" uk-icon="arrow-down"></i></span><strong class="amount-income">{{ debt_totals.receivable|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span class="{% if debt_totals.overdue_receivable %}amount-problem{% endif %}">просрочено {{ debt_totals.overdue_receivable|floatformat:0|intcomma }}</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Мы должны</span><i class="metric-icon uk-icon-button" uk-icon="arrow-up"></i></span><strong class="amount-expense">{{ debt_totals.payable|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span class="{% if debt_totals.overdue_payable %}amount-problem{% endif %}">просрочено {{ debt_totals.overdue_payable|floatformat:0|intcomma }}</span></small></article>
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Чистая позиция</span><i class="metric-icon uk-icon-button" uk-icon="credit-card"></i></span><strong class="{% if debt_totals.net_position < 0 %}amount-expense{% else %}amount-income{% endif %}">{{ debt_totals.net_position|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>дебиторка − кредиторка</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Открытые строки</span><i class="metric-icon uk-icon-button" uk-icon="list"></i></span><strong>{{ debt_rows|length }}</strong><small><span>по выбранной выборке</span></small></article>
+</section>
+
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="panel-header"><div><span class="eyebrow">Расшифровка</span><h2>Задолженность по рейсам</h2><p>Просрочки поднимаются наверх, дальше сортировка по сроку оплаты.</p></div></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Рейс</th><th>Наша компания</th><th>Контрагент</th><th>Сторона</th><th>Срок</th><th>Состояние</th><th class="uk-text-right">Остаток</th><th></th></tr></thead>
+        <tbody>
+        {% for row in debt_rows %}
+            <tr>
+                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small>{{ row.transportation.route }}</small></td>
+                <td>{{ row.owner_company.short_name|default:row.owner_company.name }}</td>
+                <td>{% if row.counterparty %}<a href="{{ row.counterparty.get_absolute_url }}">{{ row.counterparty.short_name|default:row.counterparty.name }}</a><small>ИНН {{ row.counterparty.tax_id|default:"не указан" }}</small>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
+                <td><span class="uk-label {% if row.side == 'receivable' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ row.side_label }}</span></td>
+                <td>{{ row.due_date|date:"d.m.Y"|default:"—" }}{% if row.days_overdue %}<small class="amount-problem">{{ row.days_overdue }} дн.</small>{% endif %}</td>
+                <td><span class="uk-label {% if row.state == 'overdue' %}uk-label-danger{% elif row.state == 'no_due_date' %}uk-label-warning{% endif %}">{{ row.state_label }}</span></td>
+                <td class="uk-text-right"><strong class="{% if row.state == 'overdue' %}amount-problem{% elif row.side == 'receivable' %}amount-income{% else %}amount-expense{% endif %}">{{ row.balance|floatformat:"2g" }} {{ current_currency|currency_symbol }}</strong></td>
+                <td class="uk-text-right"><a class="uk-icon-button" uk-icon="plus" title="{% if row.side == 'receivable' %}Создать поступление{% else %}Создать оплату исполнителю{% endif %}" href="{% url 'transportation-payment-create' row.transportation.pk %}?direction={% if row.side == 'receivable' %}income{% else %}expense{% endif %}"></a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="8" class="empty-state">Открытой задолженности по выбранным условиям нет.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="panel-header"><div><span class="eyebrow">Сводка</span><h2>По контрагентам</h2><p>Кто формирует основной остаток задолженности.</p></div></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-middle">
+        <thead><tr><th>Контрагент</th><th>Сторона</th><th class="uk-text-right">Рейсы</th><th class="uk-text-right">Просрочено</th><th class="uk-text-right">Остаток</th></tr></thead>
+        <tbody>
+        {% for row in counterparty_rows %}
+            <tr>
+                <td>{% if row.counterparty %}<a class="primary-link" href="{{ row.counterparty.get_absolute_url }}">{{ row.counterparty.short_name|default:row.counterparty.name }}</a><small>ИНН {{ row.counterparty.tax_id|default:"не указан" }}</small>{% else %}<span class="uk-text-danger">Контрагент не указан</span>{% endif %}</td>
+                <td><span class="uk-label {% if row.side == 'receivable' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ row.side_label }}</span></td>
+                <td class="uk-text-right">{{ row.trip_count }}</td>
+                <td class="uk-text-right"><span class="{% if row.overdue %}amount-problem{% endif %}">{{ row.overdue|floatformat:"2g" }} {{ current_currency|currency_symbol }}</span></td>
+                <td class="uk-text-right"><strong class="{% if row.side == 'receivable' %}amount-income{% else %}amount-expense{% endif %}">{{ row.balance|floatformat:"2g" }} {{ current_currency|currency_symbol }}</strong></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" class="empty-state">Сводка пуста.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% endblock %}

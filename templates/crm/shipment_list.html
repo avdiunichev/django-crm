@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Заявки — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action"><div><span class="eyebrow">Перевозки</span><h1>Заявки</h1><p>Контроль всех перевозок в одном месте.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'shipment-create' %}"><span uk-icon="plus"></span> Новая заявка</a></div>
+{% if current_scope %}<div class="active-filter"><span>Фильтр дашборда</span><strong>{{ current_scope_label }}</strong><a href="{% url 'shipment-list' %}{% if current_expeditor %}?expeditor={{ current_expeditor }}{% if current_currency %}&amp;currency={{ current_currency }}{% endif %}{% elif current_currency %}?currency={{ current_currency }}{% endif %}" aria-label="Сбросить фильтр">×</a></div>{% endif %}
+<form class="filters" method="get">
+    {% if current_scope %}<input type="hidden" name="scope" value="{{ current_scope }}">{% endif %}
+    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, клиент, город или груз">
+    <select class="form-control uk-select" name="expeditor"><option value="">Все экспедиторы</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="currency"><option value="">Все валюты</option>{% for currency in currency_choices %}<option value="{{ currency }}" {% if current_currency == currency %}selected{% endif %}>{{ currency|currency_symbol }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="payment"><option value="">Любая оплата</option>{% for value,label in payment_choices %}<option value="{{ value }}" {% if value == current_payment %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="btn btn-secondary uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_status or current_payment or current_scope or current_expeditor or current_currency %}<a class="clear-link" href="{% url 'shipment-list' %}">Сбросить</a>{% endif %}
+</form>
+<section class="panel uk-card uk-card-default">{% include "crm/includes/shipment_table.html" %}</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

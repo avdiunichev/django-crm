@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ shipment.number }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action"><div><a class="back-link" href="{% url 'shipment-list' %}">← Все заявки</a><h1>{{ shipment.number }}</h1><p>{{ shipment.customer.name }} · {{ shipment.cargo_name }}</p></div><div class="heading-actions"><span class="badge large uk-label status-{{ shipment.status }}">{{ shipment.get_status_display }}</span>{% if shipment.transportation %}<a class="btn btn-primary uk-button uk-button-primary" href="{{ shipment.transportation.get_absolute_url }}"><span uk-icon="git-fork"></span> Новая карточка рейса</a>{% endif %}<a class="btn btn-secondary uk-button uk-button-default" href="{% url 'forwarding-order' shipment.pk %}"><span uk-icon="download"></span> Экспедиторское поручение</a><a class="btn btn-secondary uk-button uk-button-default" href="{% url 'shipment-update' shipment.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="uk-button uk-button-danger" href="{% url 'shipment-delete' shipment.pk %}"><span uk-icon="trash"></span> Удалить</a></div></div>
+<div class="detail-grid">
+    <section class="panel detail-main uk-card uk-card-default">
+        <div class="route-card"><div><span>Погрузка · {{ shipment.pickup_date|date:"d.m.Y" }}</span><strong>{{ shipment.pickup_city }}</strong><p>{{ shipment.pickup_address|default:"Адрес не указан" }}</p></div><div class="route-line"><span>→</span></div><div><span>Выгрузка · {{ shipment.delivery_date|date:"d.m.Y" }}</span><strong>{{ shipment.delivery_city }}</strong><p>{{ shipment.delivery_address|default:"Адрес не указан" }}</p></div></div>
+        <div class="section-title"><h2>Данные перевозки</h2></div>
+        <dl class="data-grid">
+            <div><dt>Груз</dt><dd>{{ shipment.cargo_name }}</dd></div><div><dt>Транспорт</dt><dd>{{ shipment.vehicle_type|default:"—" }}</dd></div>
+            <div><dt>Вес</dt><dd>{{ shipment.weight_kg|floatformat:-2 }} кг</dd></div><div><dt>Объём</dt><dd>{{ shipment.volume_m3|floatformat:-2 }} м³</dd></div>
+            <div><dt>Номер клиента</dt><dd>{{ shipment.customer_reference|default:"—" }}</dd></div><div><dt>Менеджер</dt><dd>{{ shipment.manager.get_full_name|default:shipment.manager.username }}</dd></div>
+        </dl>
+        {% if shipment.notes %}<div class="note"><strong>Комментарий</strong><p>{{ shipment.notes|linebreaksbr }}</p></div>{% endif %}
+    </section>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Участники и ресурсы</h2>
+            <span>Экспедитор</span><a href="{{ shipment.expeditor.get_absolute_url }}">{{ shipment.expeditor }}</a><small>ИНН {{ shipment.expeditor.tax_id }}{% if shipment.expeditor.kpp %} · КПП {{ shipment.expeditor.kpp }}{% endif %}</small>
+            <span>Клиент</span><a href="{{ shipment.customer.get_absolute_url }}">{{ shipment.customer.name }}</a><small>{{ shipment.customer.contact_name }}{% if shipment.customer.phone %} · {{ shipment.customer.phone }}{% endif %}</small>
+            <span>Перевозчик</span>{% if shipment.carrier %}<a href="{{ shipment.carrier.get_absolute_url }}">{{ shipment.carrier.name }}</a><small>{{ shipment.carrier.contact_name }}{% if shipment.carrier.phone %} · {{ shipment.carrier.phone }}{% endif %}</small>{% else %}<strong class="warning-text">Не назначен</strong>{% endif %}
+            <hr>
+            <span>Водитель</span>{% if shipment.driver %}<a href="{{ shipment.driver.get_absolute_url }}">{{ shipment.driver.full_name }}</a><small>{{ shipment.driver.phone }} · категории {{ shipment.driver.license_categories }}</small>{% else %}<strong class="warning-text">Не назначен</strong>{% endif %}
+            <span>Транспорт</span>{% if shipment.vehicle %}<a href="{{ shipment.vehicle.get_absolute_url }}">{{ shipment.vehicle.registration_number }}</a><small>{{ shipment.vehicle.make }} {{ shipment.vehicle.model }}{% if shipment.vehicle.trailer_registration_number %} · прицеп {{ shipment.vehicle.trailer_registration_number }}{% endif %}</small>{% else %}<strong class="warning-text">Не назначен</strong>{% endif %}
+        </section>
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Финансы</h2>
+            <div class="money-row"><span>Ставка клиенту</span><strong class="amount-income">{{ shipment.customer_price|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <div class="money-row"><span>Получено</span><strong class="amount-income">{{ shipment.received_amount|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <div class="money-row total"><span>Дебиторская задолженность</span><strong class="{% if shipment.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ shipment.receivable_balance|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <p class="uk-text-meta uk-margin-small-top">Срок: {{ shipment.customer_payment_due_date|date:"d.m.Y"|default:"не указан" }} · <span class="uk-label {% if shipment.receivable_state == 'overdue' %}uk-label-danger{% elif shipment.receivable_state == 'paid' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ shipment.receivable_state_label }}</span></p>
+            <hr>
+            <div class="money-row"><span>Ставка перевозчику</span><strong class="amount-expense">{{ shipment.carrier_price|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <div class="money-row"><span>Выплачено</span><strong class="amount-expense">{{ shipment.paid_to_carrier_amount|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <div class="money-row total"><span>Кредиторская задолженность</span><strong class="{% if shipment.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ shipment.payable_balance|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+            <p class="uk-text-meta uk-margin-small-top">Срок: {{ shipment.carrier_payment_due_date|date:"d.m.Y"|default:"не указан" }} · <span class="uk-label {% if shipment.payable_state == 'overdue' %}uk-label-danger{% elif shipment.payable_state == 'paid' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ shipment.payable_state_label }}</span></p>
+            <hr>
+            <div class="money-row total"><span>Плановая маржа</span><strong class="{% if shipment.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ shipment.margin|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></div>
+        </section>
+    </aside>
+</div>
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="section-title with-action">
+        <div><h2>Документы по заявке</h2><p class="uk-text-meta uk-margin-remove">ТрН, счета, УПД, акты и счета-фактуры</p></div>
+        <div class="heading-actions"><a class="uk-button uk-button-default uk-button-small" href="{% url 'shipment-document-list' %}?q={{ shipment.number }}&amp;expeditor={{ shipment.expeditor_id }}">Весь реестр</a><a class="uk-button uk-button-default uk-button-small" href="{% url 'accounting-document-create' shipment.pk %}"><span uk-icon="download"></span> Сформировать</a><a class="uk-button uk-button-primary uk-button-small" href="{% url 'shipment-document-create' shipment.pk %}"><span uk-icon="plus"></span> Добавить документ</a></div>
+    </div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-middle">
+        <thead><tr><th>Тип</th><th>Направление</th><th>Номер / дата</th><th>Контрагент</th><th>Статус</th><th class="uk-text-right">Сумма / НДС</th><th>Файл</th><th></th></tr></thead>
+        <tbody>
+        {% for document in shipment.documents.all %}
+            <tr>
+                <td><strong>{{ document.get_kind_display }}</strong><small>{{ document.get_party_display }}</small></td>
+                <td><span class="uk-label {% if document.direction == 'incoming' %}uk-label-warning{% else %}uk-label-success{% endif %}">{{ document.get_direction_display }}</span></td>
+                <td>{{ document.number|default:"Без номера" }}<small>{{ document.document_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
+                <td>{{ document.counterparty_name }}{% if document.counterparty.tax_id %}<small>ИНН {{ document.counterparty.tax_id }}</small>{% endif %}</td>
+                <td><span class="badge uk-label {% if document.is_overdue %}uk-label-danger{% else %}document-status-{{ document.status }}{% endif %}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span>{% if document.expected_date %}<small>до {{ document.expected_date|date:"d.m.Y" }}</small>{% endif %}</td>
+                <td class="uk-text-right">{% if document.amount is not None %}<strong class="{% if document.is_overdue %}amount-problem{% elif document.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong><small>НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% else %}—{% endif %}</td>
+                <td>{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> {{ document.file_name }}</a>{% else %}<span class="uk-text-muted">Нет файла</span>{% endif %}</td>
+                <td><a class="row-action" href="{{ document.get_absolute_url }}">Изменить</a><a class="row-action danger" href="{% url 'shipment-document-delete' document.pk %}">Удалить</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="8" class="empty-cell">Документы по заявке ещё не добавлены.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+<section class="panel uk-card uk-card-default uk-margin-medium-top">
+    <div class="section-title with-action">
+        <div><h2>История платежей</h2><p class="uk-text-meta uk-margin-remove">Все поступления и выплаты по заявке</p></div>
+        <div class="heading-actions">
+            <a class="uk-button uk-button-primary uk-button-small" href="{% url 'payment-create' shipment.pk %}?direction=income"><span uk-icon="plus"></span> Поступление</a>
+            {% if shipment.carrier %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'payment-create' shipment.pk %}?direction=expense"><span uk-icon="plus"></span> Выплата</a>{% endif %}
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="uk-table uk-table-small uk-table-divider uk-table-middle">
+            <thead><tr><th>Дата</th><th>Операция</th><th>Платёжное поручение</th><th>Способ</th><th>Добавил</th><th class="uk-text-right">Сумма</th><th></th></tr></thead>
+            <tbody>
+            {% for payment in shipment.payments.all %}
+                <tr>
+                    <td>{{ payment.payment_date|date:"d.m.Y" }}</td>
+                    <td><span class="uk-label {% if payment.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">Оплачено</span><small>{% if payment.direction == 'income' %}Клиентом{% else %}Перевозчику{% endif %}</small></td>
+                    <td>{{ payment.reference|default:"—" }}{% if payment.notes %}<div class="uk-text-meta">{{ payment.notes }}</div>{% endif %}</td>
+                    <td>{{ payment.get_method_display }}</td>
+                    <td>{{ payment.created_by.get_full_name|default:payment.created_by.username|default:"—" }}</td>
+                    <td class="uk-text-right"><strong class="{% if payment.direction == 'income' %}amount-income{% else %}amount-expense{% endif %}">{{ payment.amount|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong></td>
+                    <td class="uk-text-right"><a class="uk-icon-button" uk-icon="pencil" title="Изменить платёж" href="{% url 'payment-update' shipment.pk payment.pk %}"></a> <a class="uk-icon-button uk-text-danger" uk-icon="trash" title="Удалить платёж" href="{% url 'payment-delete' shipment.pk payment.pk %}"></a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="empty-cell">Платежей пока нет.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

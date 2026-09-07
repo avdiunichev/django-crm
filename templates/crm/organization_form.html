@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}{{ object }}{% else %}Новый контрагент{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<form method="post" class="onec-workspace" novalidate>
+    {% csrf_token %}
+    {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}
+    {{ form.bank_name }}{{ form.bik }}{{ form.settlement_account }}{{ form.correspondent_account }}
+    {{ form.legal_address_meta }}
+
+    <div class="onec-titlebar">
+        <a class="onec-back" href="{% url 'organization-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
+        <div>
+            <h1>{% if object %}{{ object }} <small>(Контрагент)</small>{% else %}Новый контрагент{% endif %}</h1>
+            {% if object %}<p>Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}</p>{% else %}<p>Единый справочник компаний и физических лиц</p>{% endif %}
+        </div>
+    </div>
+
+    {% if form.non_field_errors or bank_formset.non_form_errors or contact_formset.non_form_errors %}
+    <div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}{{ bank_formset.non_form_errors }}{{ contact_formset.non_form_errors }}</div>
+    {% endif %}
+
+    <div class="onec-commandbar">
+        <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+        <button class="onec-command uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
+        {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True %}
+        {% if object %}
+        <a class="onec-command uk-button uk-button-default" href="{% url 'contract-create' %}?organization={{ object.pk }}"><span uk-icon="album"></span> Создать договор</a>
+        <a class="onec-command uk-button uk-button-default" href="{% url 'shipment-document-list' %}?q={{ object.tax_id|urlencode }}"><span uk-icon="folder"></span> Документы</a>
+        <a class="onec-command uk-button uk-button-danger" href="{% url 'organization-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
+        {% endif %}
+        <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+    </div>
+
+    <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
+        <li><a href="#">Основное</a></li>
+        <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
+        <li><a href="#">Договоры <span>{{ contracts|length }}</span></a></li>
+        <li><a href="#">Банковские счета <span>{% if object %}{{ object.bank_accounts.count }}{% else %}0{% endif %}</span></a></li>
+        <li><a href="#">Контактные лица <span>{% if object %}{{ object.contact_people.count }}{% else %}0{% endif %}</span></a></li>
+        <li><a href="#">Взаиморасчёты <span>{{ settlement_rows|length }}</span></a></li>
+    </ul>
+
+    <ul id="organization-sections" class="uk-switcher onec-switcher">
+        <li>
+            <div class="onec-main-grid">
+                <section class="onec-master-form">
+                    <div class="onec-form-row"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label><div>{{ form.kind }}{{ form.kind.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.name.id_for_label }}">{{ form.name.label }} <b>*</b></label><div>{{ form.name }}{{ form.name.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.short_name.id_for_label }}">{{ form.short_name.label }}</label><div>{{ form.short_name }}{{ form.short_name.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.group.id_for_label }}">{{ form.group.label }}</label><div>{{ form.group }}{{ form.group.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.registration_country.id_for_label }}">{{ form.registration_country.label }}</label><div>{{ form.registration_country }}{{ form.registration_country.errors }}</div></div>
+                    <div class="onec-form-row compact-value"><label for="{{ form.tax_id.id_for_label }}">{{ form.tax_id.label }}</label><div>{{ form.tax_id }}{{ form.tax_id.errors }}</div></div>
+                    <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
+                        <span uk-icon="warning"></span>
+                        <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
+                        <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку</a>
+                    </div>
+                    <div class="onec-form-row compact-value"><label for="{{ form.kpp.id_for_label }}">{{ form.kpp.label }}</label><div>{{ form.kpp }}{{ form.kpp.errors }}</div></div>
+                    <div class="onec-verification {% if form.instance.verification_status == 'verified' %}is-ok{% elif form.instance.verification_status == 'warning' %}is-warning{% endif %}">
+                        <span uk-icon="{% if form.instance.verification_status == 'verified' %}check{% else %}info{% endif %}"></span>
+                        {{ form.instance.get_verification_status_display|default:"Контрагент ещё не проверен" }}{% if form.instance.verified_at %} · {{ form.instance.verified_at|date:"d.m.Y H:i" }}{% endif %}{{ form.verification_status }}
+                    </div>
+                    <div class="onec-two-values">
+                        <div class="onec-form-row compact-value"><label for="{{ form.ogrn.id_for_label }}">{{ form.ogrn.label }}</label><div>{{ form.ogrn }}{{ form.ogrn.errors }}</div></div>
+                        <div class="onec-form-row compact-value"><label for="{{ form.registration_date.id_for_label }}">{{ form.registration_date.label }}</label><div>{{ form.registration_date }}{{ form.registration_date.errors }}</div></div>
+                    </div>
+                    <div class="onec-form-row compact-value"><label for="{{ form.okato.id_for_label }}">{{ form.okato.label }}</label><div>{{ form.okato }}{{ form.okato.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.legal_address.id_for_label }}">{{ form.legal_address.label }}</label><div>{{ form.legal_address }}{{ form.legal_address.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.director_name.id_for_label }}">{{ form.director_name.label }}</label><div>{{ form.director_name }}{{ form.director_name.errors }}</div></div>
+                    <div class="onec-form-row"><label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label><div>{{ form.notes }}{{ form.notes.errors }}</div></div>
+
+                    <section class="onec-role-section onec-finance-settings">
+                        <h2>Финансовые настройки</h2>
+                        <div class="onec-two-values">
+                            <div class="onec-form-row compact-value"><label for="{{ form.default_vat_rate.id_for_label }}">{{ form.default_vat_rate.label }}</label><div>{{ form.default_vat_rate }}{{ form.default_vat_rate.errors }}</div></div>
+                            <div class="onec-form-row compact-value"><label for="{{ form.payment_term_days.id_for_label }}">{{ form.payment_term_days.label }}</label><div>{{ form.payment_term_days }}{{ form.payment_term_days.errors }}</div></div>
+                        </div>
+                        <div class="onec-two-values">
+                            <div class="onec-form-row compact-value"><label for="{{ form.credit_limit.id_for_label }}">{{ form.credit_limit.label }}</label><div>{{ form.credit_limit }}{{ form.credit_limit.errors }}</div></div>
+                            <div class="onec-form-row compact-value"><label for="{{ form.edo_operator.id_for_label }}">{{ form.edo_operator.label }}</label><div>{{ form.edo_operator }}{{ form.edo_operator.errors }}</div></div>
+                        </div>
+                        <div class="onec-form-row"><label for="{{ form.edo_id.id_for_label }}">{{ form.edo_id.label }}</label><div>{{ form.edo_id }}{{ form.edo_id.errors }}<small class="uk-text-muted">Используется при подготовке XML для Контур.Диадок.</small></div></div>
+                        <div class="onec-form-row"><label for="{{ form.originals_handling.id_for_label }}">{{ form.originals_handling.label }}</label><div>{{ form.originals_handling }}{{ form.originals_handling.errors }}</div></div>
+                    </section>
+
+                    <section class="onec-role-section">
+                        <h2>Роли контрагента</h2>
+                        <p>Отметьте все варианты, в которых контрагент участвует в работе.</p>
+                        <div class="onec-flags onec-role-flags">
+                            {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
+                        </div>
+                        {{ form.roles.errors }}
+                        <div class="onec-flags">{{ form.is_own_company }} <label for="{{ form.is_own_company.id_for_label }}">{{ form.is_own_company.label }}</label>{{ form.is_active }} <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label></div>
+                        <div class="onec-own-company-tax" data-own-company-tax>
+                            <label for="{{ form.profit_tax_rate.id_for_label }}">{{ form.profit_tax_rate.label }}</label>
+                            {{ form.profit_tax_rate }}{{ form.profit_tax_rate.errors }}
+                            <small>Используется для расчёта чистой прибыли по рейсам этой компании.</small>
+                        </div>
+                    </section>
+                    <details class="onec-disclosure"><summary>Основной банковский счёт: {% if object.settlement_account %}{{ object.settlement_account }}, {{ object.bank_name }}{% else %}не указан{% endif %}</summary><p>Все банковские реквизиты редактируются на вкладке «Банковские счета».</p></details>
+                    <details class="onec-disclosure"><summary>Адрес и телефон: {{ object.legal_address|default:"не указаны" }}{% if object.phone %}, {{ object.phone }}{% endif %}</summary><p>{{ object.email|default:"Email не указан" }}</p></details>
+                    <details class="onec-disclosure"><summary>Контактное лицо: {{ object.contact_name|default:"не указано" }}</summary><p>Все контакты редактируются на вкладке «Контактные лица».</p></details>
+                </section>
+
+                <aside class="onec-sidepanels">
+                    <article><h3>Проверка контрагента</h3><strong data-fns-status class="{% if form.instance.fns_status == 'active' %}uk-text-success{% elif form.instance.fns_status != 'unknown' %}uk-text-danger{% endif %}">ФНС: {{ form.instance.get_fns_status_display|default:"Не проверен" }}</strong><p>{% if form.instance.fns_checked_at %}Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}{% else %}Нажмите «Проверка контрагента» после ввода ИНН.{% endif %}</p><small>{{ form.instance.get_verification_status_display|default:"Реквизиты не проверены" }}</small></article>
+                    <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="5">{{ receivable_total|floatformat:2 }} ₽</a></article>
+                    <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="5">{{ payable_total|floatformat:2 }} ₽</a></article>
+                    <article class="neutral"><h3>Работа с контрагентом</h3><p>Активных рейсов: <strong>{{ active_trip_count }}</strong></p><p>Ролей: <strong>{% if object %}{{ object.roles.count }}{% else %}0{% endif %}</strong></p></article>
+                </aside>
+            </div>
+        </li>
+
+        <li>
+            <div class="onec-register-header"><div><h2>Документы контрагента</h2><p>Документы всех связанных рейсов.</p></div><a class="uk-button uk-button-default" href="{% url 'shipment-document-list' %}">Открыть журнал документов</a></div>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Документ</th><th>Номер / дата</th><th>Рейс</th><th>Сторона</th><th>Статус</th><th>Сумма</th></tr></thead><tbody>
+            {% for document in organization_documents %}<tr><td><a href="{{ document.get_absolute_url }}">{{ document.get_kind_display }}</a></td><td>{{ document.number|default:"—" }}<small>{{ document.document_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td><td><a href="{{ document.shipment.get_absolute_url }}">{{ document.shipment.number }}</a></td><td>{{ document.get_party_display }}</td><td>{{ document.get_status_display }}</td><td>{{ document.amount|floatformat:2|default:"—" }} {{ document.currency|currency_symbol }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Связанных документов пока нет.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </li>
+
+        <li>
+            <div class="onec-register-header"><div><h2>Договоры</h2><p>Клиентские, перевозочные и экспедиторские договоры.</p></div><a class="uk-button uk-button-primary" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать</a></div>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Номер</th><th>Вид договора</th><th>Наша компания</th><th>Дата</th><th>Статус</th></tr></thead><tbody>
+            {% for contract in contracts %}<tr><td><a href="{{ contract.get_absolute_url }}">{{ contract.number }}</a></td><td>{{ contract.get_kind_display }}</td><td>{{ contract.expeditor }}</td><td>{{ contract.contract_date|date:"d.m.Y" }}</td><td>{{ contract.get_status_display }}</td></tr>{% empty %}<tr><td colspan="5" class="empty-state">С контрагентом ещё нет договоров.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </li>
+
+        <li>
+            {{ bank_formset.management_form }}
+            <div class="onec-register-header"><div><h2>Банковские счета</h2><p>Основной счёт подставляется в договоры и бухгалтерские документы.</p></div><button class="uk-button uk-button-default" type="button" data-add-form="bank_accounts"><span uk-icon="plus"></span> Добавить счёт</button></div>
+            {% if bank_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ bank_formset.non_form_errors }}</div>{% endif %}
+            <div class="onec-formset" data-formset="bank_accounts">
+                {% for account_form in bank_formset %}<article class="onec-register-row">{{ account_form.id }}
+                    <div class="field wide"><label>{{ account_form.account_number.label }}</label>{{ account_form.account_number }}{{ account_form.account_number.errors }}</div><div class="field wide"><label>{{ account_form.bank_name.label }}</label>{{ account_form.bank_name }}{{ account_form.bank_name.errors }}</div><div class="field"><label>{{ account_form.bik.label }}</label>{{ account_form.bik }}</div><div class="field"><label>{{ account_form.correspondent_account.label }}</label>{{ account_form.correspondent_account }}</div><div class="field"><label>{{ account_form.currency.label }}</label>{{ account_form.currency }}</div><div class="field check">{{ account_form.is_primary }} <label>{{ account_form.is_primary.label }}</label></div><div class="field check">{{ account_form.is_active }} <label>{{ account_form.is_active.label }}</label></div><div class="field check danger">{{ account_form.DELETE }} <label>{{ account_form.DELETE.label }}</label></div><div class="field full"><label>{{ account_form.notes.label }}</label>{{ account_form.notes }}</div>
+                </article>{% endfor %}
+            </div>
+            <template id="bank_accounts-empty-form"><article class="onec-register-row">{{ bank_formset.empty_form.id }}<div class="field wide"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field wide"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div><div class="field"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}</div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.currency.label }}</label>{{ bank_formset.empty_form.currency }}</div><div class="field check">{{ bank_formset.empty_form.is_primary }} <label>{{ bank_formset.empty_form.is_primary.label }}</label></div><div class="field check">{{ bank_formset.empty_form.is_active }} <label>{{ bank_formset.empty_form.is_active.label }}</label></div><div class="field check danger">{{ bank_formset.empty_form.DELETE }} <label>{{ bank_formset.empty_form.DELETE.label }}</label></div><div class="field full"><label>{{ bank_formset.empty_form.notes.label }}</label>{{ bank_formset.empty_form.notes }}</div></article></template>
+        </li>
+
+        <li>
+            {{ contact_formset.management_form }}
+            <div class="onec-register-header"><div><h2>Контактные лица</h2><p>Ответственные сотрудники контрагента и их рабочие контакты.</p></div><button class="uk-button uk-button-default" type="button" data-add-form="contact_people"><span uk-icon="plus"></span> Добавить контакт</button></div>
+            {% if contact_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ contact_formset.non_form_errors }}</div>{% endif %}
+            <div class="onec-formset" data-formset="contact_people">
+                {% for contact_form in contact_formset %}<article class="onec-register-row contact-row">{{ contact_form.id }}
+                    <div class="field wide"><label>{{ contact_form.full_name.label }}</label>{{ contact_form.full_name }}{{ contact_form.full_name.errors }}</div><div class="field wide"><label>{{ contact_form.position.label }}</label>{{ contact_form.position }}</div><div class="field"><label>{{ contact_form.phone.label }}</label>{{ contact_form.phone }}</div><div class="field"><label>{{ contact_form.email.label }}</label>{{ contact_form.email }}</div><div class="field check">{{ contact_form.is_primary }} <label>{{ contact_form.is_primary.label }}</label></div><div class="field check">{{ contact_form.is_active }} <label>{{ contact_form.is_active.label }}</label></div><div class="field check danger">{{ contact_form.DELETE }} <label>{{ contact_form.DELETE.label }}</label></div><div class="field full"><label>{{ contact_form.notes.label }}</label>{{ contact_form.notes }}</div>
+                </article>{% endfor %}
+            </div>
+            <template id="contact_people-empty-form"><article class="onec-register-row contact-row">{{ contact_formset.empty_form.id }}<div class="field wide"><label>{{ contact_formset.empty_form.full_name.label }}</label>{{ contact_formset.empty_form.full_name }}</div><div class="field wide"><label>{{ contact_formset.empty_form.position.label }}</label>{{ contact_formset.empty_form.position }}</div><div class="field"><label>{{ contact_formset.empty_form.phone.label }}</label>{{ contact_formset.empty_form.phone }}</div><div class="field"><label>{{ contact_formset.empty_form.email.label }}</label>{{ contact_formset.empty_form.email }}</div><div class="field check">{{ contact_formset.empty_form.is_primary }} <label>{{ contact_formset.empty_form.is_primary.label }}</label></div><div class="field check">{{ contact_formset.empty_form.is_active }} <label>{{ contact_formset.empty_form.is_active.label }}</label></div><div class="field check danger">{{ contact_formset.empty_form.DELETE }} <label>{{ contact_formset.empty_form.DELETE.label }}</label></div><div class="field full"><label>{{ contact_formset.empty_form.notes.label }}</label>{{ contact_formset.empty_form.notes }}</div></article></template>
+        </li>
+
+        <li>
+            <div class="onec-debt-summary"><article><span>Дебиторская задолженность</span><strong>{{ receivable_total|floatformat:2 }} ₽</strong><small>Нам должен контрагент</small></article><article><span>Кредиторская задолженность</span><strong>{{ payable_total|floatformat:2 }} ₽</strong><small>Мы должны контрагенту</small></article></div>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Рейс</th><th>Роль</th><th>Начислено</th><th>Оплачено</th><th>Остаток</th><th>Состояние</th></tr></thead><tbody>
+            {% for row in settlement_rows %}<tr><td><a href="{{ row.shipment.get_absolute_url }}">{{ row.shipment.number }}</a><small>{{ row.shipment.route }}</small></td><td>{{ row.side }}</td><td>{{ row.accrued|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</td><td>{{ row.paid|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</td><td class="{% if row.balance > 0 %}uk-text-danger{% endif %}"><strong>{{ row.balance|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</strong></td><td>{{ row.state }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Взаиморасчётов с контрагентом пока нет.</td></tr>{% endfor %}
+            </tbody></table></div>
+        </li>
+    </ul>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const taxId = document.getElementById("{{ form.tax_id.id_for_label }}");
+    const duplicateWarning = document.getElementById("inn-duplicate-warning");
+    const duplicateText = duplicateWarning?.querySelector("[data-inn-duplicate-text]");
+    const duplicateLink = duplicateWarning?.querySelector("[data-inn-duplicate-link]");
+    const submitButtons = document.querySelectorAll('.onec-commandbar button[type="submit"]');
+    let innCheckTimer;
+    let innCheckController;
+    const showDuplicate = (organization) => {
+        duplicateText.textContent = `Контрагент «${organization.name}» с таким ИНН уже существует.`;
+        duplicateLink.href = organization.url;
+        duplicateWarning.hidden = false;
+        submitButtons.forEach((button) => { button.disabled = true; });
+    };
+    const hideDuplicate = () => {
+        duplicateWarning.hidden = true;
+        submitButtons.forEach((button) => { button.disabled = false; });
+    };
+    const checkInn = async () => {
+        const inn = (taxId?.value || "").replace(/\D/g, "");
+        innCheckController?.abort();
+        if (![10, 12].includes(inn.length)) {
+            hideDuplicate();
+            return;
+        }
+        innCheckController = new AbortController();
+        const params = new URLSearchParams({inn});
+        {% if object %}params.set("exclude", "{{ object.pk }}");{% endif %}
+        try {
+            const response = await fetch(`{% url 'organization-check-inn' %}?${params}`, {
+                headers: {"Accept": "application/json"},
+                signal: innCheckController.signal
+            });
+            const result = await response.json();
+            if (response.ok && result.exists) showDuplicate(result.organization);
+            else hideDuplicate();
+        } catch (error) {
+            if (error.name !== "AbortError") hideDuplicate();
+        }
+    };
+    ["input", "change"].forEach((eventName) => taxId?.addEventListener(eventName, () => {
+        clearTimeout(innCheckTimer);
+        innCheckTimer = setTimeout(checkInn, 300);
+    }));
+    const ownCompany = document.getElementById("{{ form.is_own_company.id_for_label }}");
+    const ownCompanyTax = document.querySelector("[data-own-company-tax]");
+    const syncOwnCompanyTax = () => ownCompanyTax?.classList.toggle("uk-hidden", !ownCompany?.checked);
+    ownCompany?.addEventListener("change", syncOwnCompanyTax);
+    syncOwnCompanyTax();
+    document.querySelectorAll("[data-add-form]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const prefix = button.dataset.addForm;
+            const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+            const template = document.getElementById(`${prefix}-empty-form`);
+            const target = document.querySelector(`[data-formset="${prefix}"]`);
+            if (!total || !template || !target) return;
+            const index = Number(total.value);
+            target.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", index));
+            total.value = index + 1;
+        });
+    });
+    document.addEventListener("change", (event) => {
+        if (!event.target.matches('[name$="-is_primary"]') || !event.target.checked) return;
+        const formset = event.target.closest(".onec-formset");
+        formset?.querySelectorAll('[name$="-is_primary"]').forEach((field) => { if (field !== event.target) field.checked = false; });
+    });
+    document.querySelectorAll("[data-open-organization-tab]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+            const tabs = document.querySelector(".onec-tabs");
+            if (tabs && window.UIkit) UIkit.tab(tabs).show(Number(link.dataset.openOrganizationTab));
+        });
+    });
+});
+</script>
+{% endblock %}

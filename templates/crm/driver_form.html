@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ entity_title }} — Экспедитор CRM{% endblock %}
+{% block body_class %}driver-form-page{% endblock %}
+{% block content %}
+<div class="onec-workspace driver-form-workspace">
+<div class="page-heading with-action driver-titlebar">
+    <div>
+        <a class="back-link" href="{{ cancel_url }}">← Назад</a>
+        <h1>{% if object %}Изменить{% else %}Добавить{% endif %}: {{ entity_title|lower }}</h1>
+        <p>Один водитель может работать у нескольких перевозчиков, а документы сохраняются в истории.</p>
+    </div>
+</div>
+<form method="post" class="entity-form" data-driver-form>
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="form-section">
+        <div class="form-section-title"><div><h2>Перевозчики</h2><p>Добавьте все компании, в которых работает водитель. Ровно одну отметьте основной.</p></div></div>
+        {{ employment_formset.management_form }}
+        {% if employment_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_formset.non_form_errors }}</div>{% endif %}
+        <div class="driver-register-list" data-employment-list>
+            {% for employment_form in employment_formset %}
+                <article class="driver-passport-card{% if employment_form.instance.is_primary %} is-current{% endif %}" data-employment-form>
+                    {{ employment_form.id }}
+                    <div class="driver-passport-card-head">
+                        <strong>{% if employment_form.instance.pk %}{{ employment_form.instance.carrier.name }}{% else %}Новый перевозчик{% endif %}</strong>
+                        {% if employment_form.instance.pk %}<label class="passport-delete">{{ employment_form.DELETE }} Удалить из списка</label>{% endif %}
+                    </div>
+                    {% if employment_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_form.non_field_errors }}</div>{% endif %}
+                    <div class="form-grid employment-grid">
+                        {% include "crm/includes/form_field.html" with field=employment_form.carrier %}
+                        {% include "crm/includes/form_field.html" with field=employment_form.is_primary %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-employment-empty-form>
+            <article class="driver-passport-card" data-employment-form>
+                {{ employment_formset.empty_form.id }}
+                <div class="driver-passport-card-head"><strong>Новый перевозчик</strong></div>
+                <div class="form-grid employment-grid">
+                    {% include "crm/includes/form_field.html" with field=employment_formset.empty_form.carrier %}
+                    {% include "crm/includes/form_field.html" with field=employment_formset.empty_form.is_primary %}
+                </div>
+            </article>
+        </template>
+        <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add><span uk-icon="plus"></span> Добавить перевозчика</button>
+        <div class="form-grid driver-status-grid">
+            {% include "crm/includes/form_field.html" with field=form.is_active %}
+        </div>
+    </section>
+
+    <section class="form-section">
+        <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет фамилию, имя и отчество во время ввода.</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.last_name %}
+            {% include "crm/includes/form_field.html" with field=form.first_name %}
+            {% include "crm/includes/form_field.html" with field=form.middle_name %}
+            {% include "crm/includes/form_field.html" with field=form.phone %}
+            {% include "crm/includes/form_field.html" with field=form.birth_date %}
+            {% include "crm/includes/form_field.html" with field=form.tax_id %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section">
+        <div class="form-section-title"><div><h2>Паспорта</h2><p>Серия и номер уникальны во всей системе. При вводе нового паспорта прежний останется в истории.</p></div></div>
+        {{ passport_formset.management_form }}
+        {% if passport_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_formset.non_form_errors }}</div>{% endif %}
+        <div class="driver-passport-list" data-passport-list>
+            {% for passport_form in passport_formset %}
+                <article class="driver-passport-card{% if passport_form.instance.is_current %} is-current{% endif %}" data-passport-form>
+                    {{ passport_form.id }}
+                    <div class="driver-passport-card-head">
+                        <strong>{% if passport_form.instance.pk %}Паспорт {{ passport_form.instance.series }} {{ passport_form.instance.number }}{% else %}Новый паспорт{% endif %}</strong>
+                        {% if passport_form.instance.pk %}<label class="passport-delete">{{ passport_form.DELETE }} Удалить из истории</label>{% endif %}
+                    </div>
+                    {% if passport_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_form.non_field_errors }}</div>{% endif %}
+                    <div class="form-grid passport-grid">
+                        {% include "crm/includes/form_field.html" with field=passport_form.series %}
+                        {% include "crm/includes/form_field.html" with field=passport_form.number %}
+                        {% include "crm/includes/form_field.html" with field=passport_form.issue_date %}
+                        {% include "crm/includes/form_field.html" with field=passport_form.is_current %}
+                        {% include "crm/includes/form_field.html" with field=passport_form.issued_by wide=True %}
+                        {% include "crm/includes/form_field.html" with field=passport_form.notes wide=True %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-passport-empty-form>
+            <article class="driver-passport-card" data-passport-form>
+                {{ passport_formset.empty_form.id }}
+                <div class="driver-passport-card-head"><strong>Новый паспорт</strong></div>
+                <div class="form-grid passport-grid">
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.series %}
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.number %}
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issue_date %}
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.is_current %}
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issued_by wide=True %}
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.notes wide=True %}
+                </div>
+            </article>
+        </template>
+        <button class="uk-button uk-button-default uk-button-small" type="button" data-passport-add><span uk-icon="plus"></span> Добавить ещё паспорт</button>
+    </section>
+
+    <section class="form-section">
+        <div class="form-section-title"><div><h2>Водительские удостоверения</h2><p>Добавление нового удостоверения не удаляет старое. Ровно одно удостоверение должно быть действующим.</p></div></div>
+        {{ license_formset.management_form }}
+        {% if license_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ license_formset.non_form_errors }}</div>{% endif %}
+        <div class="driver-register-list" data-license-list>
+            {% for license_form in license_formset %}
+                <article class="driver-passport-card{% if license_form.instance.is_current %} is-current{% endif %}" data-license-form>
+                    {{ license_form.id }}
+                    <div class="driver-passport-card-head">
+                        <strong>{% if license_form.instance.pk %}Удостоверение {{ license_form.instance.number }}{% else %}Новое удостоверение{% endif %}</strong>
+                        {% if license_form.instance.pk %}<label class="passport-delete">{{ license_form.DELETE }} Удалить из истории</label>{% endif %}
+                    </div>
+                    {% if license_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ license_form.non_field_errors }}</div>{% endif %}
+                    <div class="form-grid license-grid">
+                        {% include "crm/includes/form_field.html" with field=license_form.number %}
+                        {% include "crm/includes/form_field.html" with field=license_form.categories wide=True %}
+                        {% include "crm/includes/form_field.html" with field=license_form.issue_date %}
+                        {% include "crm/includes/form_field.html" with field=license_form.expiry_date %}
+                        {% include "crm/includes/form_field.html" with field=license_form.is_current %}
+                        {% include "crm/includes/form_field.html" with field=license_form.notes wide=True %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-license-empty-form>
+            <article class="driver-passport-card" data-license-form>
+                {{ license_formset.empty_form.id }}
+                <div class="driver-passport-card-head"><strong>Новое удостоверение</strong></div>
+                <div class="form-grid license-grid">
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.number %}
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.categories wide=True %}
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.issue_date %}
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.expiry_date %}
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.is_current %}
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.notes wide=True %}
+                </div>
+            </article>
+        </template>
+        <button class="uk-button uk-button-default uk-button-small" type="button" data-license-add><span uk-icon="plus"></span> Добавить ещё удостоверение</button>
+    </section>
+
+    <div class="form-actions">
+        <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
+        {% if object and delete_url_name %}<a class="uk-button uk-button-danger" href="{% url delete_url_name object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+        <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button>
+    </div>
+</form>
+</div>
+{% endblock %}

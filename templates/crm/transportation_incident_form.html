@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{% if incident %}Изменить событие{% else %}Новое событие{% endif %} — {{ transportation.number|default:"Рейс" }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← {{ transportation.number|default:"Рейс" }}</a><span class="eyebrow">Событие перевозки</span><h1>{% if incident %}Изменить штраф / претензию{% else %}Добавить штраф / претензию{% endif %}</h1><p>Все операционные и финансовые последствия хранятся непосредственно в карточке рейса.</p></div></div>
+<form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default"><div class="form-grid">
+        {% include "crm/includes/form_field.html" with field=form.kind %}{% include "crm/includes/form_field.html" with field=form.status %}{% include "crm/includes/form_field.html" with field=form.counterparty wide=True %}{% include "crm/includes/form_field.html" with field=form.occurred_on %}{% include "crm/includes/form_field.html" with field=form.title wide=True %}{% include "crm/includes/form_field.html" with field=form.description wide=True %}
+    </div></section>
+    <section class="form-section uk-card uk-card-default"><div class="form-section-title"><span>Финансы</span><div><h2>Финансовый эффект</h2><p>Укажите, увеличивает ли событие доход или расходы рейса.</p></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.financial_impact %}{% include "crm/includes/form_field.html" with field=form.amount %}{% include "crm/includes/form_field.html" with field=form.currency %}</div></section>
+    <section class="form-section uk-card uk-card-default"><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.resolution wide=True %}{% include "crm/includes/form_field.html" with field=form.document_file wide=True %}{% include "crm/includes/form_field.html" with field=form.resolved_on %}</div></section>
+    <div class="form-actions"><a class="uk-button uk-button-default" href="{{ transportation.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button>{% if incident %}<button class="uk-button uk-button-danger" type="submit" formaction="{% url 'transportation-incident-delete' transportation.pk incident.pk %}" formmethod="post" onclick="return confirm('Удалить событие?');"><span uk-icon="trash"></span> Удалить</button>{% endif %}</div>
+</form>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Экспедиторское поручение — {{ shipment.number }}{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div>
+        <a class="back-link" href="{{ shipment.get_absolute_url }}">← К заявке {{ shipment.number }}</a>
+        <h1>Экспедиторское поручение</h1>
+        <p>Проверьте реквизиты — после сохранения сформируется редактируемый документ DOCX.</p>
+    </div>
+    {% if has_saved_order %}<span class="uk-label uk-label-success">Черновик сохранён</span>{% endif %}
+</div>
+
+<div class="uk-alert-primary" uk-alert>
+    <p><strong>Данные перевозки подставляются из заявки.</strong> Маршрут, даты, груз, вес и объём изменяются в самой заявке. Здесь заполняются только реквизиты поручения.</p>
+</div>
+
+<div class="detail-grid">
+    <form method="post" class="entity-form uk-form-stacked">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>01</span><div><h2>Договор и дата</h2><p>Основание для оформления поручения</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.contract_number %}
+                {% include "crm/includes/form_field.html" with field=form.contract_date %}
+                {% include "crm/includes/form_field.html" with field=form.order_date %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>02</span><div><h2>Грузоотправитель</h2><p>По умолчанию используются реквизиты клиента</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.shipper_name %}
+                {% include "crm/includes/form_field.html" with field=form.shipper_tax_id %}
+                {% include "crm/includes/form_field.html" with field=form.shipper_address wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.shipper_contact_name %}
+                {% include "crm/includes/form_field.html" with field=form.shipper_phone %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>03</span><div><h2>Грузополучатель</h2><p>Организация и контакт на выгрузке</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.consignee_name %}
+                {% include "crm/includes/form_field.html" with field=form.consignee_address wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.consignee_contact_name %}
+                {% include "crm/includes/form_field.html" with field=form.consignee_phone %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>04</span><div><h2>Дополнительные сведения о грузе</h2><p>Упаковка, места, габариты и специальные требования</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.pickup_hours %}
+                {% include "crm/includes/form_field.html" with field=form.packaging_type %}
+                {% include "crm/includes/form_field.html" with field=form.package_count %}
+                {% include "crm/includes/form_field.html" with field=form.cargo_insurance %}
+                {% include "crm/includes/form_field.html" with field=form.cargo_length_m %}
+                {% include "crm/includes/form_field.html" with field=form.cargo_width_m %}
+                {% include "crm/includes/form_field.html" with field=form.cargo_height_m %}
+                {% include "crm/includes/form_field.html" with field=form.special_conditions wide=True %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>05</span><div><h2>Расчёты и подписи</h2><p>Плательщик и представители сторон</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.payer %}
+                {% include "crm/includes/form_field.html" with field=form.payment_place %}
+                {% include "crm/includes/form_field.html" with field=form.expediter_representative %}
+                {% include "crm/includes/form_field.html" with field=form.client_representative %}
+            </div>
+        </section>
+        <div class="form-actions">
+            <a class="uk-button uk-button-default" href="{{ shipment.get_absolute_url }}">Отмена</a>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="check"></span> Сохранить черновик</button>
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="download"><span uk-icon="download"></span> Скачать DOCX</button>
+        </div>
+    </form>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Из заявки</h2>
+            <span>Маршрут</span><strong>{{ shipment.route }}</strong>
+            <span>Погрузка</span><strong>{{ shipment.pickup_date|date:"d.m.Y" }}</strong><small>{{ shipment.pickup_address|default:"Адрес не указан" }}</small>
+            <span>Выгрузка</span><strong>{{ shipment.delivery_date|date:"d.m.Y" }}</strong><small>{{ shipment.delivery_address|default:"Адрес не указан" }}</small>
+            <hr>
+            <span>Груз</span><strong>{{ shipment.cargo_name }}</strong>
+            <span>Вес / объём</span><strong>{{ shipment.weight_kg|floatformat:-2 }} кг · {{ shipment.volume_m3|floatformat:-2 }} м³</strong>
+            <span>Транспорт</span><strong>{{ shipment.vehicle_type|default:"Не указан" }}</strong>
+        </section>
+        <div class="uk-alert-warning" uk-alert>
+            <p class="uk-text-small">DOCX — редактируемый проект для проверки и печатного оформления. При ЭДО сведения нужно перенести в формат оператора и подписать электронной подписью.</p>
+        </div>
+    </aside>
+</div>
+{% endblock %}

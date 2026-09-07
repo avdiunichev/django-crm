@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ carrier.name }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action"><div><a class="back-link" href="{% url 'organization-list' %}">← Контрагенты</a><h1>{{ carrier.name }}</h1><p>ИНН {{ carrier.tax_id|default:"не указан" }} · <span class="rating">★ {{ carrier.rating }}</span></p></div><div class="heading-actions">{% if carrier.organization %}<a class="btn btn-primary uk-button uk-button-primary" href="{{ carrier.organization.get_absolute_url }}"><span uk-icon="users"></span> Карточка контрагента</a>{% endif %}<a class="btn btn-secondary uk-button uk-button-default" href="{% url 'carrier-update' carrier.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="btn btn-secondary uk-button uk-button-default" href="{% url 'contract-create' %}?kind=carrier_transport&carrier={{ carrier.pk }}"><span uk-icon="album"></span> Новый договор</a>{% if carrier.organization %}<a class="uk-button uk-button-danger" href="{% url 'organization-delete' carrier.organization.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}</div></div>
+<div class="detail-grid">
+    <section class="detail-side">
+        <section class="panel uk-card uk-card-default">
+            <div class="section-title"><h2>Водители</h2><a href="{% url 'driver-create' %}?carrier={{ carrier.pk }}" data-driver-modal><span uk-icon="plus"></span> Добавить</a></div>
+            <ul class="uk-list uk-list-divider resource-list">
+                {% for driver in drivers %}<li><div><a class="primary-link" href="{{ driver.get_absolute_url }}">{{ driver.full_name }}</a><small>{{ driver.phone }} · категории {{ driver.license_categories }}</small></div>{% if driver.is_active %}<span class="uk-label uk-label-success">Работает</span>{% else %}<span class="uk-label">Неактивен</span>{% endif %}</li>{% empty %}<li class="empty-state">Водителей нет.</li>{% endfor %}
+            </ul>
+        </section>
+        <section class="panel uk-card uk-card-default">
+            <div class="section-title"><h2>Подвижной состав</h2><a href="{% url 'vehicle-create' %}?carrier={{ carrier.pk }}"><span uk-icon="plus"></span> Добавить</a></div>
+            <ul class="uk-list uk-list-divider resource-list">
+                {% for vehicle in vehicles %}<li><div><a class="primary-link" href="{{ vehicle.get_absolute_url }}">{{ vehicle.registration_number }}</a><small>{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.body_type|default:vehicle.get_kind_display }}</small></div>{% if vehicle.is_active %}<span class="uk-label uk-label-success">В работе</span>{% else %}<span class="uk-label">Неактивен</span>{% endif %}</li>{% empty %}<li class="empty-state">Транспорт не добавлен.</li>{% endfor %}
+            </ul>
+        </section>
+        <section class="panel detail-main uk-card uk-card-default"><div class="section-title"><h2>Последние заявки</h2></div>{% include "crm/includes/shipment_table.html" with compact=True %}</section>
+    </section>
+    <aside class="detail-side"><section class="panel info-card uk-card uk-card-default"><h2>Контакты и реквизиты</h2><span>Контактное лицо</span><strong>{{ carrier.contact_name|default:"—" }}</strong><span>Руководитель</span><strong>{{ carrier.director_name|default:"—" }}</strong><span>Телефон</span><strong>{{ carrier.phone|default:"—" }}</strong><span>Email</span>{% if carrier.email %}<a href="mailto:{{ carrier.email }}">{{ carrier.email }}</a>{% else %}<strong>—</strong>{% endif %}<span>Адрес</span><strong>{{ carrier.address|default:"—" }}</strong><span>ОГРН / ОГРНИП</span><strong>{{ carrier.ogrn|default:"—" }}</strong><span>Банк / БИК</span><strong>{{ carrier.bank_name|default:"—" }}{% if carrier.bik %} · {{ carrier.bik }}{% endif %}</strong><span>Расчётный счёт</span><strong>{{ carrier.settlement_account|default:"—" }}</strong><span>Заявленные типы транспорта</span><strong>{{ carrier.vehicle_types|default:"—" }}</strong>{% if carrier.notes %}<hr><span>Комментарий</span><p>{{ carrier.notes }}</p>{% endif %}</section></aside>
+</div>
+{% endblock %}

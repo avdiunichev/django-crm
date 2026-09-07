@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Dashboard — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Dashboard</span><h1>Обзор перевозок</h1><p class="dashboard-today"><span uk-icon="calendar"></span> Сегодня {% now "l, d E Y" %}</p><p>Главные показатели и ближайшие задачи команды.</p></div>
+    <form class="heading-actions" method="get" data-dynamic-filter>
+        <select class="uk-select" name="expeditor"><option value="">Все экспедиторы</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
+        <select class="uk-select" name="currency">{% for currency in currency_choices %}<option value="{{ currency }}" {% if current_currency == currency %}selected{% endif %}>{{ currency|currency_symbol }}</option>{% endfor %}</select>
+    </form>
+</div>
+<section class="metrics-grid dashboard-metrics">
+    <a class="metric-card metric-link uk-card uk-card-primary uk-card-body uk-light" href="{% url 'shipment-list' %}?scope=active{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Активные заявки</span><i class="metric-icon uk-icon-button" uk-icon="list"></i></span><strong>{{ active_count }}</strong><small><span>{{ today_pickups }} погрузок сегодня</span><b>Открыть →</b></small></a>
+    <a class="metric-card metric-link uk-card uk-card-default uk-card-body" href="{% url 'shipment-list' %}?scope=unassigned{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Без перевозчика</span><i class="metric-icon uk-icon-button" uk-icon="users"></i></span><strong>{{ unassigned_count }}</strong><small><span>требуют назначения</span><b>Открыть →</b></small></a>
+    <a class="metric-card metric-link uk-card uk-card-default uk-card-body" href="{% url 'shipment-list' %}?scope=revenue&amp;currency={{ current_currency }}{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Выручка</span><i class="metric-icon uk-icon-button" uk-icon="credit-card"></i></span><strong class="amount-income">{{ revenue|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>по текущей выборке</span><b>Открыть →</b></small></a>
+    <a class="metric-card metric-link uk-card uk-card-default uk-card-body" href="{% url 'shipment-list' %}?scope=margin&amp;currency={{ current_currency }}{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Маржа</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong class="{% if margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ margin|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span>{{ overdue_count }} просроченных поступлений</span><b>Открыть →</b></small></a>
+    <a class="metric-card metric-link uk-card uk-card-default uk-card-body" href="{% url 'shipment-list' %}?scope=receivables&amp;currency={{ current_currency }}{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Дебиторская задолженность</span><i class="metric-icon uk-icon-button" uk-icon="arrow-down"></i></span><strong class="amount-income">{{ receivables|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span class="{% if overdue_receivables %}amount-problem{% endif %}">просрочено {{ overdue_receivables|floatformat:0|intcomma }}</span><b>Открыть →</b></small></a>
+    <a class="metric-card metric-link uk-card uk-card-default uk-card-body" href="{% url 'shipment-list' %}?scope=payables&amp;currency={{ current_currency }}{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="metric-top"><span>Кредиторская задолженность</span><i class="metric-icon uk-icon-button" uk-icon="arrow-up"></i></span><strong class="amount-expense">{{ payables|floatformat:0|intcomma }} {{ current_currency|currency_symbol }}</strong><small><span class="{% if overdue_payables %}amount-problem{% endif %}">просрочено {{ overdue_payables|floatformat:0|intcomma }}</span><b>Открыть →</b></small></a>
+</section>
+<div class="dashboard-grid">
+    <section class="panel uk-card uk-card-default">
+        <div class="panel-header"><div><h2>Последние заявки</h2><p>Актуальные перевозки</p></div><a href="{% url 'shipment-list' %}{% if current_expeditor %}?expeditor={{ current_expeditor }}{% endif %}">Все заявки →</a></div>
+        {% include "crm/includes/shipment_table.html" with shipments=recent_shipments compact=True %}
+    </section>
+    <section class="panel status-panel uk-card uk-card-default">
+        <div class="panel-header"><div><h2>По статусам</h2><p>Распределение работы</p></div></div>
+        <div class="status-list">
+            {% for item in status_stats %}
+            <a href="{% url 'shipment-list' %}?status={{ item.value }}{% if current_expeditor %}&amp;expeditor={{ current_expeditor }}{% endif %}"><span class="status-dot status-{{ item.value }}"></span><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+<section class="panel uk-card uk-card-default dashboard-alerts uk-margin-medium-top">
+    <div class="panel-header"><div><span class="eyebrow">Контроль</span><h2>Требуют внимания</h2><p>Автоматические подсказки по текущим рейсам.</p></div><a href="{% url 'planner' %}">Открыть планировщик →</a></div>
+    <div class="dashboard-alert-list">
+        {% for item in dashboard_automatic_tasks %}
+            <a class="dashboard-alert dashboard-alert-{{ item.priority }}" href="{{ item.url }}">
+                <span class="dashboard-alert-icon" uk-icon="{% if item.priority == 'urgent' %}warning{% elif item.kind == 'payment' %}credit-card{% elif item.kind == 'document' %}file-text{% else %}settings{% endif %}"></span>
+                <span class="dashboard-alert-body"><strong>{{ item.title }}</strong><small>{{ item.transportation.number|default:'Черновик' }} · {{ item.transportation.route }}</small></span>
+                <span class="dashboard-alert-date">{% if item.due_date %}до {{ item.due_date|date:'d.m.Y' }}{% endif %}<span class="uk-label task-priority-{{ item.priority }}">{{ item.priority_label }}</span></span>
+            </a>
+        {% empty %}
+            <div class="dashboard-alert-empty"><span uk-icon="check"></span> Все текущие рейсы заполнены, срочных задач нет.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

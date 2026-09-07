@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Удалить платёж — {{ bank_statement_line.statement.number }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><a class="back-link" href="{{ bank_statement_line.statement.get_absolute_url }}">← К банковской выписке</a><span class="eyebrow">Платёж по рейсу</span><h1>Удалить строку?</h1><p>{{ bank_statement_line.transportation.number }} · {{ bank_statement_line.transportation.route }}</p></div></div>
+<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert><h2><span uk-icon="warning"></span> Проверьте операцию</h2><p>Будет удалена строка выписки и связанный платёж. Задолженность рейса пересчитается.</p></div>
+    <dl class="uk-description-list uk-description-list-divider"><dt>Выписка</dt><dd>{{ bank_statement_line.statement.number }}</dd><dt>Операция</dt><dd>{{ bank_statement_line.statement.get_direction_display }}</dd><dt>Платёжное поручение</dt><dd>{{ bank_statement_line.payment_reference|default:bank_statement_line.payment.reference|default:"не указано" }}</dd><dt>Сумма</dt><dd><strong class="{% if bank_statement_line.statement.status == 'voided' %}amount-problem{% elif bank_statement_line.statement.direction == 'income' %}amount-income{% else %}amount-expense{% endif %}">{{ bank_statement_line.amount|floatformat:2|intcomma }} {{ bank_statement_line.statement.currency|currency_symbol }}</strong></dd></dl>
+    <form method="post">{% csrf_token %}<div class="form-actions"><a class="uk-button uk-button-default" href="{{ bank_statement_line.statement.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить строку</button></div></form>
+</section>
+{% endblock %}

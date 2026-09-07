@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ document_batch.number }} — Пачка документов{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'document-batch-list' %}">← К пачкам документов</a><span class="eyebrow">Реализация / поступление</span><h1>{{ document_batch.number }}</h1><p>{{ document_batch.get_direction_display }} · {{ document_batch.document_date|date:"d.m.Y" }} · {{ document_batch.owner_company }}</p></div>
+    <div class="heading-actions">
+        {% if document_batch.status == 'draft' %}
+            <a class="uk-button uk-button-default" href="{% url 'document-batch-update' document_batch.pk %}"><span uk-icon="pencil"></span> Изменить</a>
+            <form class="inline-form" method="post" action="{% url 'document-batch-post' document_batch.pk %}">{% csrf_token %}<button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Провести</button></form>
+        {% elif document_batch.status == 'posted' %}
+            <form class="inline-form" method="post" action="{% url 'document-batch-unpost' document_batch.pk %}">{% csrf_token %}<button class="uk-button uk-button-default" type="submit"><span uk-icon="refresh"></span> Вернуть в черновик</button></form>
+        {% endif %}
+        <a class="uk-button uk-button-danger" href="{% url 'document-batch-delete' document_batch.pk %}"><span uk-icon="trash"></span> Удалить</a>
+    </div>
+</div>
+
+<section class="bank-statement-overview">
+    <article><span>Статус</span><strong>{{ document_batch.get_status_display }}</strong></article>
+    <article><span>Строк рейсов</span><strong>{{ document_batch.line_count }}</strong></article>
+    <article><span>Сумма</span><strong class="{% if document_batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document_batch.total_amount|floatformat:"2g" }} {{ document_batch.currency|currency_symbol }}</strong></article>
+    <article><span>НДС</span><strong>{{ document_batch.total_vat_amount|floatformat:"2g" }} {{ document_batch.currency|currency_symbol }}</strong></article>
+</section>
+
+<section class="panel uk-card uk-card-default">
+    <div class="onec-register-header"><div><span class="eyebrow">Расшифровка</span><h2>Документы по рейсам</h2><p>{% if document_batch.reference %}Пакет {{ document_batch.reference }}. {% endif %}При проведении каждая строка попадает в общий реестр документов.</p></div></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Рейс</th><th>Контрагент</th><th>Тип</th><th>Номер / дата</th><th class="uk-text-right">Сумма / НДС</th><th>Запись реестра</th></tr></thead>
+        <tbody>
+        {% for line in document_batch.lines.all %}
+            <tr>
+                <td><a class="primary-link" href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small>{{ line.transportation.route }}</small></td>
+                <td>{{ line.counterparty|default:"—" }}</td>
+                <td>{{ line.get_kind_display }}</td>
+                <td>{{ line.document_number|default:"Без номера" }}<small>{% if line.document_date %}{{ line.document_date|date:"d.m.Y" }}{% else %}{{ document_batch.document_date|date:"d.m.Y" }}{% endif %}</small></td>
+                <td class="uk-text-right"><strong class="{% if document_batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ line.amount|floatformat:"2g" }} {{ document_batch.currency|currency_symbol }}</strong><small>НДС {{ line.vat_amount|floatformat:"2g" }}</small></td>
+                <td>{% if line.shipment_document %}<a href="{{ line.shipment_document.get_absolute_url }}">Открыть документ</a>{% else %}<span class="uk-text-muted">Будет создан при проведении</span>{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="empty-state">Строки не добавлены.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+
+{% if document_batch.notes %}<section class="panel uk-card uk-card-default uk-card-body"><h2>Комментарий</h2><p class="uk-margin-remove">{{ document_batch.notes|linebreaksbr }}</p></section>{% endif %}
+{% endblock %}

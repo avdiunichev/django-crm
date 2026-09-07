@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Договор № {{ contract.number }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'contract-list' %}">← Договоры</a><span class="eyebrow">{{ contract.get_kind_display }}</span><h1>Договор № {{ contract.number }}</h1><p>{{ contract.contract_date|date:"d.m.Y" }} · {{ contract.expeditor }} и {{ contract.counterparty_name }}</p></div>
+    <div class="heading-actions"><a class="btn btn-secondary uk-button uk-button-default" href="{% url 'contract-update' contract.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'contract-download' contract.pk %}"><span uk-icon="download"></span> Скачать DOCX</a></div>
+</div>
+
+{% if missing_requisites %}<div class="uk-alert-warning" uk-alert><h3>Договор можно скачать, но часть реквизитов будет отмечена прочерком</h3><p>Заполните в карточках сторон: {{ missing_requisites|join:", " }}.</p></div>{% endif %}
+
+<div class="detail-grid">
+    <section class="panel detail-main uk-card uk-card-default">
+        <div class="section-title"><h2>Стороны договора</h2></div>
+        <div class="contract-parties">
+            <article><span>{% if contract.kind == 'client_forwarding' %}Экспедитор{% else %}{% if contract.kind == 'carrier_transport' %}Заказчик{% else %}Клиент{% endif %}{% endif %}</span><h3>{{ contract.expeditor.name }}</h3><p>ИНН {{ contract.expeditor.tax_id }}{% if contract.expeditor.kpp %} / КПП {{ contract.expeditor.kpp }}{% endif %}</p><p>{{ contract.expeditor.legal_address }}</p><a href="{{ contract.expeditor.get_absolute_url }}">Открыть реквизиты →</a></article>
+            <article><span>{% if contract.kind == 'client_forwarding' %}Клиент{% elif contract.kind == 'carrier_transport' %}Перевозчик{% else %}Привлечённый экспедитор{% endif %}</span><h3>{{ contract.counterparty_name }}</h3><p>ИНН {{ contract.counterparty.tax_id|default:"не указан" }}{% if contract.counterparty.kpp %} / КПП {{ contract.counterparty.kpp }}{% endif %}</p><p>{{ contract.counterparty.address|default:"Адрес не указан" }}</p><a href="{{ contract.counterparty.get_absolute_url }}">Открыть реквизиты →</a></article>
+        </div>
+        <hr>
+        <div class="section-title"><h2>Подписанты</h2></div>
+        <dl class="uk-description-list uk-description-list-divider"><dt>Наша компания</dt><dd>{{ contract.expeditor_representative|default:"Не указан" }}, на основании {{ contract.expeditor_authority_basis }}</dd><dt>Контрагент</dt><dd>{{ contract.counterparty_representative|default:"Не указан" }}, на основании {{ contract.counterparty_authority_basis }}</dd></dl>
+        {% if contract.notes %}<hr><h3>Внутренний комментарий</h3><p>{{ contract.notes|linebreaksbr }}</p>{% endif %}
+        <hr><div class="section-title"><h2>Условия расчётов</h2></div><dl class="uk-description-list uk-description-list-divider"><dt>Отсрочка оплаты</dt><dd>{{ contract.payment_term_days }} дней</dd><dt>Лимит задолженности</dt><dd>{{ contract.debt_limit|floatformat:2 }} ₽</dd><dt>Ставка НДС</dt><dd>{{ contract.vat_rate|default:"Не задана" }}</dd><dt>Условия оплаты</dt><dd>{{ contract.payment_terms|default:"Не указаны"|linebreaksbr }}</dd><dt>Файл договора</dt><dd>{% if contract.document_file %}<a href="{{ contract.document_file.url }}" target="_blank">Открыть PDF</a>{% else %}Не загружен{% endif %}</dd></dl>
+    </section>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default"><h2>Карточка договора</h2><span>Статус</span><strong><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></strong><span>Дата</span><strong>{{ contract.contract_date|date:"d.m.Y" }}</strong><span>Город</span><strong>{{ contract.city }}</strong><span>Действует до</span><strong>{{ contract.valid_until|date:"d.m.Y"|default:"Не указано" }}</strong><span>Расторгнут</span><strong>{{ contract.terminated_on|date:"d.m.Y"|default:"Нет" }}</strong><span>Лимит задолженности</span><strong>{{ contract.debt_limit|floatformat:2 }} ₽</strong><span>Создал</span><strong>{{ contract.created_by.get_full_name|default:contract.created_by.username|default:"—" }}</strong></section>
+        <section class="panel uk-card uk-card-primary uk-card-body uk-light"><h3>Исходный шаблон сохранён</h3><p>При каждом скачивании CRM берёт утверждённый DOCX и подставляет актуальные данные договора и реквизиты сторон.</p><a class="uk-button uk-button-default" href="{% url 'contract-download' contract.pk %}"><span uk-icon="download"></span> Скачать документ</a></section>
+    </aside>
+</div>
+{% endblock %}

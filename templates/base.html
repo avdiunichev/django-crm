@@ -1,0 +1,93 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Экспедитор CRM{% endblock %}</title>
+    <script>
+        (() => {
+            const storageKey = "crm-color-theme";
+            let theme = "light";
+            try {
+                const savedTheme = window.localStorage.getItem(storageKey);
+                if (savedTheme === "light" || savedTheme === "dark") theme = savedTheme;
+            } catch (error) {
+                /* Приложение остаётся в светлой теме, если хранилище браузера недоступно. */
+            }
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260906-vehicle-requisites">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
+<div class="app-shell">
+    <aside class="sidebar uk-background-default">
+        <a class="brand uk-logo" href="{% url 'dashboard' %}">
+            <span><strong>CRM ЭКСПЕДИТОР</strong></span>
+        </a>
+        <nav class="nav">
+            <ul class="uk-nav uk-nav-default">
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}uk-active{% endif %}"><a href="{% url 'dashboard' %}"><span class="uk-margin-small-right" uk-icon="home"></span> Dashboard</a></li>
+                <li class="{% if 'chat' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'chat' %}"><span class="uk-margin-small-right" uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a></li>
+                <li class="{% if 'order' in request.resolver_match.url_name and 'forwarding-order' not in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'order-list' %}"><span class="uk-margin-small-right" uk-icon="cart"></span> Заказы</a></li>
+                <li class="{% if 'transportation' in request.resolver_match.url_name and request.resolver_match.url_name != 'transportation-accounting' %}uk-active{% endif %}"><a href="{% url 'transportation-list' %}"><span class="uk-margin-small-right" uk-icon="git-fork"></span> Рейсы</a></li>
+                <li class="{% if request.resolver_match.url_name == 'transportation-accounting' %}uk-active{% endif %}"><a href="{% url 'transportation-accounting' %}"><span class="uk-margin-small-right" uk-icon="database"></span> Учёт перевозок</a></li>
+                {% if crm_access.can_access_finance %}<li class="{% if 'bank-statement' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'bank-statement-list' %}"><span class="uk-margin-small-right" uk-icon="credit-card"></span> Приходы / расходы</a></li>{% endif %}
+                <li class="{% if 'shipment' in request.resolver_match.url_name and 'shipment-document' not in request.resolver_match.url_name or request.resolver_match.url_name == 'forwarding-order' %}uk-active{% endif %}"><a href="{% url 'shipment-list' %}"><span class="uk-margin-small-right" uk-icon="list"></span> Заявки</a></li>
+                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'reports' %}uk-active{% endif %}"><a href="{% url 'reports' %}"><span class="uk-margin-small-right" uk-icon="table"></span> Отчёты</a></li>{% endif %}
+                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'debt-report' %}uk-active{% endif %}"><a href="{% url 'debt-report' %}"><span class="uk-margin-small-right" uk-icon="warning"></span> Задолженность</a></li>{% endif %}
+                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'profitability-report' %}uk-active{% endif %}"><a href="{% url 'profitability-report' %}"><span class="uk-margin-small-right" uk-icon="triangle-up"></span> Прибыльность</a></li>{% endif %}
+                <li class="{% if 'planner' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'planner' %}"><span class="uk-margin-small-right" uk-icon="calendar"></span> Планировщик</a></li>
+                <li class="{% if 'shipment-document' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}"><a href="{% url 'shipment-document-list' %}"><span class="uk-margin-small-right" uk-icon="file-text"></span> Документы</a></li>
+                <li class="{% if 'contract' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'contract-list' %}"><span class="uk-margin-small-right" uk-icon="album"></span> Договоры</a></li>
+                <li class="{% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'organization-list' %}"><span class="uk-margin-small-right" uk-icon="users"></span> Контрагенты</a></li>
+                <li class="{% if 'driver' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'driver-list' %}"><span class="uk-margin-small-right" uk-icon="user"></span> Водители</a></li>
+                <li class="{% if 'vehicle' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'vehicle-list' %}"><span class="uk-margin-small-right" uk-icon="nut"></span> Автопарк</a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="theme-switcher" role="group" aria-label="Тема оформления">
+                <span class="theme-switcher-label">Оформление</span>
+                <div class="theme-switcher-options">
+                    <button type="button" data-theme-choice="light" aria-pressed="false"><span uk-icon="sun"></span><span>Светлая</span></button>
+                    <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
+                </div>
+            </div>
+            {% if user.is_staff %}<a href="{% url 'admin:index' %}">Администрирование</a>{% endif %}
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button class="link-button" type="submit">Выйти</button>
+            </form>
+        </div>
+    </aside>
+    <main class="main">
+        <div class="content">
+            {% if messages %}
+                {% for message in messages %}<div class="alert uk-alert-success" uk-alert><a class="uk-alert-close" uk-close></a>{{ message }}</div>{% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/js/uikit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/js/uikit-icons.min.js"></script>
+<script src="{% static 'js/theme.js' %}?v=20260831-theme"></script>
+<script src="{% static 'js/date-inputs.js' %}?v=20260831-date-inputs"></script>
+<script src="{% static 'js/dynamic-filters.js' %}?v=20260831-dynamic-filters"></script>
+<script src="{% static 'js/table-sort.js' %}?v=20260906-money-sort"></script>
+<script src="{% static 'js/transportation-workspace.js' %}?v=20260831-transportation-workspace-2"></script>
+<script src="{% static 'js/smart-selects.js' %}?v=20260901-smart-selects"></script>
+<script src="{% static 'js/address-suggestions.js' %}?v=20260901-dadata-addresses"></script>
+<script src="{% static 'js/driver-suggestions.js' %}?v=20260901-driver-dadata"></script>
+<script src="{% static 'js/driver-passports.js' %}?v=20260901-driver-passports-2"></script>
+<script src="{% static 'js/driver-licenses.js' %}?v=20260901-driver-licenses"></script>
+<script src="{% static 'js/driver-carriers.js' %}?v=20260901-driver-carriers-2"></script>
+<script src="{% static 'js/driver-modal.js' %}?v=20260901-driver-modal-3"></script>
+<script src="{% static 'js/order-route.js' %}?v=20260901-orders"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

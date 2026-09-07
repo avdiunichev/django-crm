@@ -1,0 +1,45 @@
+<div class="uk-modal-dialog uk-modal-body crm-quick-create-dialog">
+    <button class="uk-modal-close-default" type="button" uk-close aria-label="Закрыть"></button>
+    <div class="crm-quick-create-heading">
+        <span class="eyebrow">Создание из заявки</span>
+        <h2>{{ form_title }}</h2>
+        <p>{{ form_description }}{% if organization %} Перевозчик: <strong>{{ organization }}</strong>.{% endif %}</p>
+    </div>
+
+    <form method="post" action="{{ action_url }}" class="entity-form uk-form-stacked" data-quick-create-form data-quick-kind="{{ quick_kind }}">
+        {% csrf_token %}
+        {% if required_role %}<input type="hidden" name="required_role" value="{{ required_role }}">{% endif %}
+        {% if organization_id %}<input type="hidden" name="organization" value="{{ organization_id }}">{% endif %}
+        {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+
+        {% if quick_kind == "organization" %}
+        <div class="crm-quick-inn-tools" data-quick-dadata data-url="{% url 'dadata-party-by-inn' %}">
+            <span>Можно заполнить реквизиты автоматически по ИНН</span>
+            <button class="uk-button uk-button-default uk-button-small" type="button" data-quick-dadata-button><span uk-icon="search"></span> Заполнить по ИНН</button>
+            <small data-quick-dadata-status aria-live="polite"></small>
+        </div>
+        {% endif %}
+
+        <div class="form-grid crm-quick-create-grid">
+            {% for field in form %}
+                {% if field.is_hidden %}
+                    {{ field }}
+                {% elif field.name == "roles" %}
+                    <div class="field field-wide crm-quick-roles">
+                        <label class="uk-form-label">{{ field.label }}<b>*</b></label>
+                        <div class="onec-flags onec-role-flags">
+                            {% for checkbox in field %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
+                        </div>
+                        {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+                    </div>
+                {% else %}
+                    {% include "crm/includes/form_field.html" with field=field %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="form-actions crm-quick-create-actions">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Отмена</button>
+            <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Создать и выбрать</button>
+        </div>
+    </form>
+</div>

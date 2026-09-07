@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Удалить пачку документов — {{ document_batch.number }}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ document_batch.get_absolute_url }}">← К пачке документов</a>
+        <span class="eyebrow">Реализация / поступление</span>
+        <h1>Удалить {{ document_batch.number }}?</h1>
+        <p>{{ document_batch.get_direction_display }} · {{ document_batch.document_date|date:"d.m.Y" }}</p>
+    </div>
+</div>
+
+<section class="delete-confirmation uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert>
+        <p class="uk-margin-remove">Если пачка проведена, созданные из неё записи реестра документов будут удалены вместе с пачкой.</p>
+    </div>
+    <dl class="uk-description-list uk-description-list-divider">
+        <dt>Статус</dt><dd>{{ document_batch.get_status_display }}</dd>
+        <dt>Строк рейсов</dt><dd>{{ document_batch.line_count }}</dd>
+        <dt>Сумма</dt><dd><strong class="{% if document_batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document_batch.total_amount|floatformat:"2g" }} {{ document_batch.currency|currency_symbol }}</strong></dd>
+        <dt>НДС</dt><dd>{{ document_batch.total_vat_amount|floatformat:"2g" }} {{ document_batch.currency|currency_symbol }}</dd>
+    </dl>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <a class="uk-button uk-button-default" href="{{ document_batch.get_absolute_url }}">Отмена</a>
+            <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить пачку</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

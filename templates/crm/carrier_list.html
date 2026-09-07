@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Перевозчики — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action"><div><span class="eyebrow">Справочник</span><h1>Перевозчики</h1><p>Партнёры, контакты и доступный транспорт.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'carrier-create' %}"><span uk-icon="plus"></span> Добавить перевозчика</a></div>
+<form class="filters" method="get"><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН, контакт или транспорт"><button class="btn btn-secondary uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>{% if current_q %}<a class="clear-link" href="{% url 'carrier-list' %}">Сбросить</a>{% endif %}</form>
+<section class="panel uk-card uk-card-default"><div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle"><thead><tr><th>Компания</th><th>Контакт</th><th>Транспорт</th><th>Рейтинг</th><th>Заявок</th><th></th></tr></thead><tbody>
+{% for carrier in carriers %}<tr><td><a class="primary-link" href="{{ carrier.get_absolute_url }}">{{ carrier.name }}</a><small>ИНН {{ carrier.tax_id|default:"—" }}</small></td><td>{{ carrier.contact_name|default:"—" }}<small>{{ carrier.phone }}</small></td><td>{{ carrier.vehicle_types|default:"—" }}</td><td><span class="rating">★ {{ carrier.rating }}</span></td><td>{{ carrier.shipment_count }}</td><td><a class="row-action" href="{% url 'carrier-update' carrier.pk %}"><span uk-icon="pencil"></span></a></td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Перевозчиков пока нет.</td></tr>{% endfor %}
+</tbody></table></div></section>{% include "crm/includes/pagination.html" %}
+{% endblock %}

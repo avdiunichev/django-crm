@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Цепочка {{ transportation.number }} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← Рейс {{ transportation.number }}</a><h1>Исполнитель и фактический перевозчик</h1><p>Эти участники учитываются отдельно. Для исполнителя-экспедитора фактический перевозчик обязателен.</p></div></div>
+<form method="post" class="entity-form uk-form-stacked" id="chain-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}?return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}">{% csrf_token %}{% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default"><div class="section-title"><div><span class="eyebrow">Закупка</span><h2>Наш исполнитель</h2></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.executor wide=True %}{% include "crm/includes/form_field.html" with field=form.executor_role %}<div class="chain-contract-field">{% include "crm/includes/form_field.html" with field=form.contract %}<p class="chain-contract-hint uk-text-warning" data-chain-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-chain-contract-create hidden href="{% url 'contract-create' %}?return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}"><span uk-icon="plus"></span> Создать договор</a></div>{% include "crm/includes/form_field.html" with field=form.instruction_number %}{% include "crm/includes/form_field.html" with field=form.instruction_status %}</div></section>
+    <section class="form-section uk-card uk-card-default"><div class="section-title"><div><span class="eyebrow">Фактическое исполнение</span><h2>Кто реально везёт груз</h2></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.actual_carrier wide=True %}{% include "crm/includes/form_field.html" with field=form.driver %}{% include "crm/includes/form_field.html" with field=form.combination wide=True %}{% include "crm/includes/form_field.html" with field=form.vehicle %}{% include "crm/includes/form_field.html" with field=form.trailer %}{% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}</div></section>
+    <div class="form-actions"><a class="btn btn-secondary uk-button uk-button-default" href="{{ transportation.get_absolute_url }}">Отмена</a><button class="btn btn-primary uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить цепочку</button></div>
+</form>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("chain-form");
+    const executor = document.getElementById("id_executor");
+    const role = document.getElementById("id_executor_role");
+    const carrier = document.getElementById("id_actual_carrier");
+    if (!form || !executor || !role || !carrier) return;
+    const contract = document.getElementById("id_contract");
+    const contractCreate = form.querySelector("[data-chain-contract-create]");
+    const contractHint = form.querySelector("[data-chain-contract-hint]");
+    const selects = {drivers: document.getElementById("id_driver"), combinations: document.getElementById("id_combination"), vehicles: document.getElementById("id_vehicle"), trailers: document.getElementById("id_trailer")};
+    const replaceOptions = (select, items, selected) => { if (!select) return; select.innerHTML = '<option value="">---------</option>'; items.forEach(item => { const option = new Option(item.label, item.id); if (item.tractor_id) option.dataset.tractorId = item.tractor_id; if (item.trailer_id) option.dataset.trailerId = item.trailer_id; option.selected = String(item.id) === String(selected || ""); select.add(option); }); };
+    const loadResources = async () => { const id = carrier.value; const selected = {drivers: selects.drivers?.value, combinations: selects.combinations?.value, vehicles: selects.vehicles?.value, trailers: selects.trailers?.value}; if (!id) { Object.values(selects).forEach(select => replaceOptions(select, [], "")); return; } const response = await fetch(form.dataset.resourceUrl + "?organization=" + encodeURIComponent(id)); const data = await response.json(); replaceOptions(selects.drivers, data.drivers, selected.drivers); replaceOptions(selects.combinations, data.combinations || [], selected.combinations); replaceOptions(selects.vehicles, data.vehicles, selected.vehicles); replaceOptions(selects.trailers, data.trailers, selected.trailers); };
+    selects.combinations?.addEventListener("change", () => { const option = selects.combinations.options[selects.combinations.selectedIndex]; if (!option?.dataset.tractorId) return; selects.vehicles.value = option.dataset.tractorId; selects.trailers.value = option.dataset.trailerId || ""; selects.vehicles.dispatchEvent(new Event("change", {bubbles: true})); selects.trailers.dispatchEvent(new Event("change", {bubbles: true})); });
+    const updateContractAction = () => {
+        const missing = Boolean(executor.value && !contract?.value);
+        if (contractHint) contractHint.hidden = !missing;
+        if (!contractCreate) return;
+        contractCreate.hidden = !missing;
+        if (missing) {
+            const url = new URL(form.dataset.contractCreateBase, window.location.origin);
+            url.searchParams.set("kind", role.value === "carrier" ? "carrier_transport" : "subcontractor_forwarding");
+            url.searchParams.set("counterparty_organization", executor.value);
+            contractCreate.href = `${url.pathname}${url.search}`;
+        }
+    };
+    let previousExecutor = executor.value;
+    let previousRole = role.value;
+    const syncDirectCarrier = () => { if (previousExecutor && previousExecutor !== executor.value && contract) contract.value = ""; if (previousRole && previousRole !== role.value && contract) contract.value = ""; previousExecutor = executor.value; previousRole = role.value; if (role.value === "carrier" && executor.value) { carrier.value = executor.value; loadResources(); } updateContractAction(); };
+    executor.addEventListener("change", syncDirectCarrier); role.addEventListener("change", syncDirectCarrier); contract?.addEventListener("change", updateContractAction); carrier.addEventListener("change", loadResources); updateContractAction();
+});
+</script>
+{% endblock %}

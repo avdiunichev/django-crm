@@ -1,0 +1,116 @@
+<section class="{% if dadata_compact %}onec-dadata-inline{% else %}uk-card uk-card-default uk-card-body uk-padding-small uk-margin-bottom{% endif %}" data-dadata-autofill data-mode="{{ dadata_mode }}" data-inn-id="{{ dadata_inn_id|default:'id_tax_id' }}" data-url="{% url 'dadata-party-by-inn' %}">
+    {% if dadata_compact %}
+    <button class="onec-command uk-button uk-button-default" type="button" data-dadata-button><span uk-icon="search"></span> Проверка контрагента</button>
+    <span class="onec-command-status" data-dadata-status aria-live="polite"></span>
+    {% else %}
+    <div class="uk-flex uk-flex-between uk-flex-middle uk-flex-wrap">
+        <div>
+            <strong><span uk-icon="bolt"></span> Заполнение по ИНН через DaData</strong>
+            <p class="uk-text-meta uk-margin-remove">Введите ИНН в форме ниже и нажмите кнопку. Уже заполненные реквизиты будут обновлены.</p>
+        </div>
+        <button class="uk-button uk-button-primary uk-button-small" type="button" data-dadata-button><span uk-icon="refresh"></span> Найти и заполнить</button>
+    </div>
+    <p class="uk-text-small uk-margin-small-top uk-margin-remove-bottom" data-dadata-status aria-live="polite"></p>
+    {% endif %}
+</section>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.querySelector("[data-dadata-autofill]");
+    if (!container) return;
+    const button = container.querySelector("[data-dadata-button]");
+    const status = container.querySelector("[data-dadata-status]");
+    const innInput = document.getElementById(container.dataset.innId);
+    const csrfToken = container.closest("form")?.querySelector("[name=csrfmiddlewaretoken]")?.value;
+    if (!button || !status || !innInput) return;
+
+    const setStatus = (message, kind = "muted") => {
+        status.textContent = message;
+        status.className = "uk-text-small uk-margin-small-top uk-margin-remove-bottom " + (
+            kind === "success" ? "uk-text-success" : kind === "danger" ? "uk-text-danger" : "uk-text-muted"
+        );
+    };
+    const setField = (id, value) => {
+        const field = document.getElementById(id);
+        if (!field || !value) return;
+        field.value = value;
+        field.dispatchEvent(new Event("change", {bubbles: true}));
+    };
+
+    button.addEventListener("click", async () => {
+        const inn = innInput.value.trim();
+        if (!/^\d{10}$|^\d{12}$/.test(inn)) {
+            setStatus("Укажите ИНН из 10 цифр для организации или 12 для ИП.", "danger");
+            innInput.focus();
+            return;
+        }
+        button.disabled = true;
+        setStatus("Получаем реквизиты…");
+        try {
+            const response = await fetch(container.dataset.url, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    "X-CSRFToken": csrfToken || ""
+                },
+                body: new URLSearchParams({inn})
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Не удалось получить реквизиты.");
+            const party = result.party;
+            const isExpeditor = container.dataset.mode === "expeditor";
+            const isBuyer = container.dataset.mode === "buyer";
+            const fnsStatusBadge = document.querySelector("[data-fns-status]");
+            if (isBuyer) {
+                setField("id_buyer_name", party.short_name || party.full_name);
+                setField("id_buyer_tax_id", party.inn);
+                setField("id_buyer_kpp", party.kpp);
+                setField("id_buyer_address", party.legal_address);
+            } else {
+                setField("id_name", isExpeditor ? party.full_name : (party.short_name || party.full_name));
+                setField("id_short_name", party.short_name);
+                setField("id_tax_id", party.inn);
+                setField("id_kpp", party.kpp);
+                setField("id_ogrn", party.ogrn);
+                setField("id_okato", party.okato);
+                setField("id_registration_date", party.registration_date);
+                setField("id_legal_address", party.legal_address);
+                setField("id_address", party.legal_address);
+                setField("id_legal_address_meta", JSON.stringify(party.address_data || {}));
+                setField("id_director_name", party.director_name);
+                setField("id_phone", party.phone);
+                setField("id_email", party.email);
+                setField("id_verification_status", party.is_invalid || (party.status && party.status !== "ACTIVE") ? "warning" : "verified");
+                const fnsStatusMap = {
+                    ACTIVE: "active",
+                    LIQUIDATED: "liquidated",
+                    LIQUIDATING: "liquidating",
+                    REORGANIZING: "reorganizing",
+                    BANKRUPT: "bankrupt"
+                };
+                setField("id_fns_status", fnsStatusMap[party.status] || "unknown");
+                if (fnsStatusBadge) {
+                    fnsStatusBadge.textContent = "ФНС: " + (party.status_label || "Не проверен");
+                    fnsStatusBadge.classList.toggle("uk-text-success", party.status === "ACTIVE");
+                    fnsStatusBadge.classList.toggle("uk-text-danger", party.status && party.status !== "ACTIVE");
+                }
+                if (party.organization_type === "INDIVIDUAL") setField("id_kind", "entrepreneur");
+            }
+
+            let message = "Реквизиты заполнены";
+            if (party.status_label) message += ". Статус: " + party.status_label;
+            if (party.is_invalid) {
+                setStatus(message + ". DaData сообщает о недостоверных сведениях — проверьте данные вручную.", "danger");
+            } else if (party.status && party.status !== "ACTIVE") {
+                setStatus(message + ". Перед сохранением проверьте статус организации.", "danger");
+            } else {
+                setStatus(message + ". Проверьте данные перед сохранением.", "success");
+            }
+        } catch (error) {
+            setStatus(error.message || "Не удалось получить реквизиты.", "danger");
+        } finally {
+            button.disabled = false;
+        }
+    });
+});
+</script>

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Чат сотрудников — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">Команда</span><h1>Чат сотрудников</h1><p>Внутренняя переписка пользователей CRM.</p></div></div>
+
+<div class="chat-shell uk-card uk-card-default">
+    <aside class="chat-sidebar">
+        <form class="chat-start-form" method="post" action="{% url 'chat-start' %}">
+            {% csrf_token %}
+            <label class="uk-form-label" for="chat-user-select">Новый диалог</label>
+            <div class="uk-flex uk-flex-middle uk-grid-small" uk-grid>
+                <div class="uk-width-expand"><select class="uk-select" id="chat-user-select" name="user_id" required><option value="">Выберите сотрудника</option>{% for employee in available_users %}<option value="{{ employee.pk }}">{{ employee.get_full_name|default:employee.username }}</option>{% endfor %}</select></div>
+                <div class="uk-width-auto"><button class="uk-button uk-button-primary" type="submit" title="Начать диалог"><span uk-icon="plus"></span></button></div>
+            </div>
+        </form>
+        <div class="chat-conversation-list">
+            {% for row in conversation_rows %}
+                <a class="chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}">
+                    <span class="chat-avatar">{{ row.other_user.get_full_name|default:row.other_user.username|slice:":1"|upper }}</span>
+                    <span class="chat-conversation-copy"><strong>{{ row.other_user.get_full_name|default:row.other_user.username }}</strong><small>{% if row.last_message %}{% if row.last_message.sender_id == user.pk %}Вы: {% endif %}{% if row.last_message.text %}{{ row.last_message.text|truncatechars:42 }}{% elif row.last_message.attachment %}Файл: {{ row.last_message.attachment_filename|truncatechars:34 }}{% endif %}{% else %}Диалог создан{% endif %}</small></span>
+                    {% if row.unread_count %}<span class="uk-badge">{{ row.unread_count }}</span>{% endif %}
+                </a>
+            {% empty %}
+                <div class="chat-empty-list"><span uk-icon="comments"></span><p>Диалогов пока нет.<br>Выберите сотрудника выше.</p></div>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <section class="chat-main">
+        {% if current_conversation %}
+            <header class="chat-header"><span class="chat-avatar large">{{ current_other_user.get_full_name|default:current_other_user.username|slice:":1"|upper }}</span><div><strong>{{ current_other_user.get_full_name|default:current_other_user.username }}</strong><small>@{{ current_other_user.username }}</small></div></header>
+            <div class="chat-thread" data-chat-thread data-messages-url="{% url 'chat-messages' current_conversation.pk %}">
+                {% for message in current_messages %}
+                    <article class="chat-message {% if message.sender_id == user.pk %}is-mine{% endif %}" data-message-id="{{ message.pk }}"><div><strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>{% if message.text %}<p>{{ message.text|linebreaksbr }}</p>{% endif %}{% if message.attachment %}<a class="chat-attachment" href="{{ message.get_attachment_url }}"><span class="chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></a>{% endif %}<footer class="chat-message-meta"><time>{{ message.created_at|date:"H:i" }}{% if message.edited_at %} · изменено{% endif %}</time>{% if message.sender_id == user.pk %}<span class="chat-message-actions"><a href="{{ message.get_absolute_url }}" title="Изменить сообщение" aria-label="Изменить сообщение"><span uk-icon="pencil"></span></a><a href="{{ message.get_delete_url }}" title="Удалить сообщение" aria-label="Удалить сообщение"><span uk-icon="trash"></span></a></span>{% endif %}</footer></div></article>
+                {% empty %}
+                    <div class="chat-thread-empty" data-chat-empty><span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p></div>
+                {% endfor %}
+            </div>
+            <form class="chat-compose" method="post" action="{% url 'chat-send' current_conversation.pk %}" enctype="multipart/form-data" data-chat-form>
+                {% csrf_token %}
+                <label class="chat-file-button" title="Прикрепить файл"><span uk-icon="file-text"></span>{{ message_form.attachment }}<span data-chat-file-name>Файл</span></label>
+                {{ message_form.text }}
+                <button class="uk-button uk-button-primary" type="submit"><span uk-icon="push"></span><span>Отправить</span></button>
+                <small class="chat-compose-hint">Документы, таблицы, изображения и архивы · до 20 МБ</small>
+                <small class="uk-text-danger" data-chat-error aria-live="polite"></small>
+            </form>
+        {% else %}
+            <div class="chat-placeholder"><span class="uk-icon-button" uk-icon="comments; ratio: 1.5"></span><h2>Выберите диалог</h2><p>Или начните новую переписку с сотрудником CRM.</p></div>
+        {% endif %}
+    </section>
+</div>
+
+{% if current_conversation %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const thread = document.querySelector("[data-chat-thread]");
+    const form = document.querySelector("[data-chat-form]");
+    const textarea = form?.querySelector("textarea[name=text]");
+    const fileInput = form?.querySelector("input[type=file]");
+    const fileName = form?.querySelector("[data-chat-file-name]");
+    const error = form?.querySelector("[data-chat-error]");
+    if (!thread || !form || !textarea) return;
+    let lastMessageId = Number(thread.querySelector("[data-message-id]:last-of-type")?.dataset.messageId || 0);
+
+    const scrollToBottom = () => { thread.scrollTop = thread.scrollHeight; };
+    const ensureEmptyState = () => {
+        if (thread.querySelector("[data-message-id]") || thread.querySelector("[data-chat-empty]")) return;
+        const empty = document.createElement("div");
+        empty.className = "chat-thread-empty";
+        empty.dataset.chatEmpty = "";
+        empty.innerHTML = '<span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p>';
+        thread.append(empty);
+        if (window.UIkit) UIkit.update(empty);
+    };
+    const renderMessage = (message) => {
+        let article = thread.querySelector(`[data-message-id="${message.id}"]`);
+        const isNew = !article;
+        thread.querySelector("[data-chat-empty]")?.remove();
+        if (!article) article = document.createElement("article");
+        article.className = "chat-message" + (message.is_mine ? " is-mine" : "");
+        article.dataset.messageId = message.id;
+        let bubble = article.querySelector(":scope > div");
+        if (!bubble) {
+            bubble = document.createElement("div");
+            article.append(bubble);
+        }
+        bubble.replaceChildren();
+        const sender = document.createElement("strong");
+        sender.textContent = message.sender;
+        bubble.append(sender);
+        if (message.text) {
+            const text = document.createElement("p");
+            text.textContent = message.text;
+            bubble.append(text);
+        }
+        if (message.attachment) {
+            const attachment = document.createElement("a");
+            attachment.className = "chat-attachment";
+            attachment.href = message.attachment.url;
+            const icon = document.createElement("span");
+            icon.className = "chat-attachment-icon";
+            icon.textContent = "📎";
+            const copy = document.createElement("span");
+            const name = document.createElement("b");
+            const size = document.createElement("small");
+            name.textContent = message.attachment.name;
+            size.textContent = message.attachment.size;
+            copy.append(name, size);
+            attachment.append(icon, copy);
+            bubble.append(attachment);
+        }
+        const meta = document.createElement("footer");
+        meta.className = "chat-message-meta";
+        const time = document.createElement("time");
+        time.textContent = message.created_at + (message.edited ? " · изменено" : "");
+        meta.append(time);
+        if (message.is_mine) {
+            const actions = document.createElement("span");
+            actions.className = "chat-message-actions";
+            const edit = document.createElement("a");
+            edit.href = message.edit_url;
+            edit.title = "Изменить сообщение";
+            edit.setAttribute("aria-label", edit.title);
+            edit.innerHTML = '<span uk-icon="pencil"></span>';
+            const remove = document.createElement("a");
+            remove.href = message.delete_url;
+            remove.title = "Удалить сообщение";
+            remove.setAttribute("aria-label", remove.title);
+            remove.innerHTML = '<span uk-icon="trash"></span>';
+            actions.append(edit, remove);
+            meta.append(actions);
+        }
+        bubble.append(meta);
+        if (isNew) thread.append(article);
+        if (window.UIkit) UIkit.update(article);
+        lastMessageId = Math.max(lastMessageId, Number(message.id));
+        return isNew;
+    };
+    const syncMessages = (result) => {
+        const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
+        const receivedIds = new Set(result.messages.map(message => String(message.id)));
+        let hasNew = false;
+        result.messages.forEach(message => { hasNew = renderMessage(message) || hasNew; });
+        if (result.full_sync) {
+            thread.querySelectorAll("[data-message-id]").forEach(article => {
+                if (!receivedIds.has(article.dataset.messageId)) article.remove();
+            });
+            lastMessageId = result.messages.reduce((maximum, message) => Math.max(maximum, Number(message.id)), 0);
+            ensureEmptyState();
+        }
+        if (hasNew && wasNearBottom) scrollToBottom();
+    };
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!textarea.value.trim() && !fileInput?.files.length) return;
+        const submit = form.querySelector("button[type=submit]");
+        submit.disabled = true;
+        error.textContent = "";
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: {"X-Requested-With": "XMLHttpRequest"},
+                body: new FormData(form)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Не удалось отправить сообщение.");
+            renderMessage(result.message);
+            form.reset();
+            if (fileName) fileName.textContent = "Файл";
+            scrollToBottom();
+            textarea.focus();
+        } catch (requestError) {
+            error.textContent = requestError.message;
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    fileInput?.addEventListener("change", () => {
+        if (fileName) fileName.textContent = fileInput.files[0]?.name || "Файл";
+    });
+
+    textarea.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            form.requestSubmit();
+        }
+    });
+
+    const pollMessages = async () => {
+        if (document.hidden) return;
+        try {
+            const response = await fetch(thread.dataset.messagesUrl + "?sync=1", {headers: {"Accept": "application/json"}});
+            if (!response.ok) return;
+            const result = await response.json();
+            syncMessages(result);
+        } catch (requestError) {
+            // Следующая попытка обновления произойдёт автоматически.
+        }
+    };
+
+    scrollToBottom();
+    window.setInterval(pollMessages, 3000);
+});
+</script>
+{% endif %}
+{% endblock %}

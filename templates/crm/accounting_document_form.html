@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Бухгалтерский документ — {{ shipment.number }}{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{{ shipment.get_absolute_url }}">← К заявке {{ shipment.number }}</a><h1>Бухгалтерский документ</h1><p>Счёт, акт, УПД или счёт-фактура для клиента.</p></div>
+    <a class="uk-button uk-button-default" href="{% url 'expeditor-update' shipment.expeditor.pk %}"><span uk-icon="settings"></span> Реквизиты экспедитора</a>
+</div>
+{% if not company_profile %}
+<div class="uk-alert-danger" uk-alert><p><strong>Не заполнены реквизиты компании.</strong> Перед формированием документа укажите данные экспедитора.</p></div>
+{% else %}
+<div class="uk-alert-primary" uk-alert><p>После скачивания DOCX автоматически сохранится в реестре заявки со статусом «Выставлен».</p></div>
+{% endif %}
+<div class="detail-grid">
+    <form method="post" class="entity-form uk-form-stacked">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>01</span><div><h2>Документ и основание</h2><p>Тип, номер, дата и договор</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.kind %}
+                {% include "crm/includes/form_field.html" with field=form.number %}
+                {% include "crm/includes/form_field.html" with field=form.document_date %}
+                {% include "crm/includes/form_field.html" with field=form.contract_number %}
+                {% include "crm/includes/form_field.html" with field=form.contract_date %}
+            </div>
+        </section>
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>02</span><div><h2>Услуга и расчёт</h2><p>Одна строка услуги на основании заявки</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.service_name wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.quantity %}
+                {% include "crm/includes/form_field.html" with field=form.unit %}
+                {% include "crm/includes/form_field.html" with field=form.amount %}
+                {% include "crm/includes/form_field.html" with field=form.currency %}
+                {% include "crm/includes/form_field.html" with field=form.vat_rate %}
+                <div id="upd-status-field">{% include "crm/includes/form_field.html" with field=form.upd_status %}</div>
+            </div>
+        </section>
+        {% include "crm/includes/dadata_autofill.html" with dadata_mode="buyer" dadata_inn_id="id_buyer_tax_id" %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>03</span><div><h2>Покупатель</h2><p>Реквизиты клиента можно скорректировать только для этого документа</p></div></div>
+            <div class="form-grid">
+                {% include "crm/includes/form_field.html" with field=form.buyer_name %}
+                {% include "crm/includes/form_field.html" with field=form.buyer_tax_id %}
+                {% include "crm/includes/form_field.html" with field=form.buyer_kpp %}
+                {% include "crm/includes/form_field.html" with field=form.buyer_address wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+            </div>
+        </section>
+        <div class="form-actions"><a class="uk-button uk-button-default" href="{{ shipment.get_absolute_url }}">Отмена</a><button class="uk-button uk-button-primary" type="submit" {% if not company_profile %}disabled{% endif %}><span uk-icon="download"></span> Сформировать и скачать DOCX</button></div>
+    </form>
+    <aside class="detail-side">
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Экспедитор / исполнитель</h2>
+            {% if company_profile %}<strong>{{ company_profile.name }}</strong><small>ИНН {{ company_profile.tax_id }}{% if company_profile.kpp %} · КПП {{ company_profile.kpp }}{% endif %}</small><span>Банк</span><strong>{{ company_profile.bank_name|default:"Не указан" }}</strong><small>БИК {{ company_profile.bik|default:"—" }} · р/с {{ company_profile.settlement_account|default:"—" }}</small><span>НДС по умолчанию</span><strong>{{ company_profile.get_default_vat_rate_display }}</strong>{% else %}<strong class="uk-text-danger">Реквизиты не заполнены</strong>{% endif %}
+        </section>
+        <section class="panel info-card uk-card uk-card-default">
+            <h2>Из заявки</h2><span>Клиент</span><strong>{{ shipment.customer.name }}</strong><span>Услуга</span><strong>{{ shipment.route }}</strong><span>Сумма</span><strong class="amount-income">{{ shipment.customer_price|floatformat:0|intcomma }} {{ shipment.currency|currency_symbol }}</strong>
+        </section>
+        <div class="uk-alert-warning" uk-alert><p class="uk-text-small">Это редактируемый проект. Перед подписанием бухгалтер должен проверить реквизиты, ставку НДС и применимость формы.</p></div>
+    </aside>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const kind = document.getElementById("id_kind");
+    const updStatus = document.getElementById("upd-status-field");
+    if (!kind || !updStatus) return;
+    const updateVisibility = () => updStatus.hidden = kind.value !== "upd";
+    kind.addEventListener("change", updateVisibility);
+    updateVisibility();
+});
+</script>
+{% endblock %}

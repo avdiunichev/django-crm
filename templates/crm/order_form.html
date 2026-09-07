@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="onec-document-heading">
+    <div>
+        <a class="back-link" href="{% url 'order-list' %}">← Заказы</a>
+        <span class="eyebrow">Документ клиента</span>
+        <h1>{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %}</h1>
+        <p>Ставка, условия оплаты, характеристики груза и маршрут до назначения исполнителя.</p>
+    </div>
+    <div class="onec-document-state"><span>Статус</span><strong>{% if object %}{{ object.get_status_display }}{% else %}Новый{% endif %}</strong></div>
+</div>
+
+<form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <div class="onec-command-bar">
+        <button class="uk-button uk-button-primary" type="submit" name="action" value="save"><span uk-icon="check"></span> Сохранить</button>
+        {% if object.transportation_id %}
+            <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
+        {% else %}
+            <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign"><span uk-icon="forward"></span> Назначить</button>
+        {% endif %}
+        {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
+    </div>
+
+    {% if missing_client_contract %}
+    <div class="uk-alert-warning" uk-alert>
+        <h3>По клиенту нет действующего договора</h3>
+        <p>Создайте договор ТЭО с клиентом прямо из заказа. Наша компания и клиент уже будут подставлены.</p>
+        <a class="uk-button uk-button-default uk-button-small" href="{{ client_contract_create_url }}"><span uk-icon="plus"></span> Создать договор</a>
+    </div>
+    {% endif %}
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {% include "crm/includes/form_field.html" with field=form.manager %}
+            {% include "crm/includes/form_field.html" with field=form.client wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>02</span><div><h2>Ставка и форма оплаты</h2><p>Коммерческие условия заказа клиента</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.rate %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.payment_form %}
+            {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>03</span><div><h2>Характеристики груза</h2><p>Наименование, количество и специальные требования</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.cargo_name wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.weight_kg %}
+            {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
+            {% include "crm/includes/form_field.html" with field=form.package_count %}
+            {% include "crm/includes/form_field.html" with field=form.pallet_count %}
+            {% include "crm/includes/form_field.html" with field=form.package_type %}
+            {% include "crm/includes/form_field.html" with field=form.temperature_regime %}
+            {% include "crm/includes/form_field.html" with field=form.vehicle_requirements wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.cargo_description wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.special_requirements wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>04</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить любое количество операций.</p></div></div>
+        {{ stop_formset.management_form }}
+        {% if stop_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_formset.non_form_errors }}</div>{% endif %}
+        <div class="order-route-list" data-order-route-list>
+            {% for stop_form in stop_formset %}
+                <article class="order-route-stop" data-order-route-stop>
+                    {{ stop_form.id }}{{ stop_form.sequence }}
+                    <div class="order-route-stop-head">
+                        <div><span class="route-stop-index" data-route-number>{{ forloop.counter }}</span><strong data-route-title>{% if stop_form.instance.kind == 'delivery' or stop_form.initial.kind == 'delivery' %}Выгрузка{% else %}Погрузка{% endif %}</strong></div>
+                        <label class="passport-delete">{{ stop_form.DELETE }} Удалить точку</label>
+                    </div>
+                    {% if stop_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_form.non_field_errors }}</div>{% endif %}
+                    <div class="form-grid order-route-grid">
+                        {% include "crm/includes/form_field.html" with field=stop_form.kind %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.city %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.address wide=True %}
+                        {{ stop_form.address_meta }}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_date %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_from %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_to %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.contact_name %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.contact_phone %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.instructions wide=True %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-order-route-empty-form>
+            <article class="order-route-stop" data-order-route-stop>
+                {{ stop_formset.empty_form.id }}{{ stop_formset.empty_form.sequence }}
+                <div class="order-route-stop-head">
+                    <div><span class="route-stop-index" data-route-number></span><strong data-route-title>Погрузка</strong></div>
+                    <label class="passport-delete">{{ stop_formset.empty_form.DELETE }} Удалить точку</label>
+                </div>
+                <div class="form-grid order-route-grid">
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.kind %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address wide=True %}
+                    {{ stop_formset.empty_form.address_meta }}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_date %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_from %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_to %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_name %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_phone %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.instructions wide=True %}
+                </div>
+            </article>
+        </template>
+        <div class="order-route-actions">
+            <button class="uk-button uk-button-default" type="button" data-order-route-add="pickup"><span uk-icon="plus"></span> Добавить погрузку</button>
+            <button class="uk-button uk-button-default" type="button" data-order-route-add="delivery"><span uk-icon="plus"></span> Добавить выгрузку</button>
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>05</span><div><h2>Комментарий</h2><p>Внутренние примечания по заказу</p></div></div>
+        <div class="form-grid">{% include "crm/includes/form_field.html" with field=form.notes wide=True %}</div>
+    </section>
+
+    <div class="form-actions onec-bottom-actions">
+        <button class="uk-button uk-button-primary" type="submit" name="action" value="save">Сохранить</button>
+        {% if object.transportation_id %}
+            <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}">Открыть рейс</a>
+        {% else %}
+            <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign">Назначить</button>
+        {% endif %}
+        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Отмена</a>
+    </div>
+</form>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("[data-order-form]");
+    const client = document.getElementById("id_client");
+    const owner = document.getElementById("id_owner_company");
+    const term = document.getElementById("id_payment_term_days");
+    if (!form || !client) return;
+    const applyDefaults = async () => {
+        if (!client.value) return;
+        try {
+            const query = owner?.value ? `?owner=${encodeURIComponent(owner.value)}` : "";
+            const response = await fetch(`/api/organizations/${client.value}/defaults/${query}`, {headers: {"Accept": "application/json"}});
+            if (!response.ok) return;
+            const data = await response.json();
+            if (term && data.payment_term_days && (form.dataset.clientDefaultsClient !== client.value || !term.value)) {
+                term.value = data.payment_term_days;
+                term.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            form.dataset.clientDefaultsClient = client.value;
+        } catch (error) { /* optional convenience */ }
+    };
+    client.addEventListener("change", applyDefaults);
+});
+</script>
+{% endblock %}

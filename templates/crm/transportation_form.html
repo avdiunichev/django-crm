@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{% if object %}Заявка {{ object.number|default:"(черновик)" }}{% else %}Оформить заявку{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="onec-document-heading">
+    <div>
+        <a class="back-link" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">← Заявки / рейсы</a>
+        <span class="eyebrow">Документ</span>
+        <h1>{% if object %}Заявка / рейс {{ object.number|default:"(номер при проведении)" }}{% else %}Оформить заявку{% endif %}</h1>
+        <p>Клиентская продажа, закупка перевозки, маршрут и фактическое исполнение в одном документе.</p>
+    </div>
+    <div class="onec-document-state">
+        <span>Состояние</span>
+        <strong>{% if object %}{{ object.get_posting_status_display }}{% else %}Черновик{% endif %}</strong>
+    </div>
+</div>
+
+<form method="post" class="entity-form uk-form-stacked onec-document-form" id="transportation-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}" data-return-transportation="{% if object %}{{ object.pk }}{% endif %}">
+    {% csrf_token %}
+    {{ form.pickup_address_meta }}{{ form.delivery_address_meta }}
+    {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <div class="onec-command-bar">
+        <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
+        <button class="uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
+        <button class="uk-button uk-button-default" type="submit" name="action" value="save_close">Записать и закрыть</button>
+        {% if object %}<a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+        <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">Закрыть</a>
+    </div>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>01</span><div><h2>Шапка документа</h2><p>Организация, ответственный и текущее состояние рейса</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {% include "crm/includes/form_field.html" with field=form.manager %}
+            {% include "crm/includes/form_field.html" with field=form.status %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>02</span><div><h2>Продажа клиенту</h2><p>Кто заказал перевозку, по какому основанию и сколько платит</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.client wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
+            {% include "crm/includes/form_field.html" with field=form.client_reference %}
+            {% include "crm/includes/form_field.html" with field=form.customer_amount %}
+            {% include "crm/includes/form_field.html" with field=form.customer_vat_rate %}
+            {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>03</span><div><h2>Маршрут</h2><p>Погрузка и выгрузка — даты сохраняются в самом рейсе и в точках маршрута</p></div></div>
+        <div class="onec-route-columns">
+            <div class="onec-route-block">
+                <h3><span class="route-stop-index">1</span> Погрузка</h3>
+                <div class="form-grid">
+                    {% include "crm/includes/form_field.html" with field=form.pickup_city %}
+                    {% include "crm/includes/form_field.html" with field=form.pickup_date %}
+                    {% include "crm/includes/form_field.html" with field=form.pickup_address wide=True %}
+                </div>
+            </div>
+            <div class="onec-route-block">
+                <h3><span class="route-stop-index">2</span> Выгрузка</h3>
+                <div class="form-grid">
+                    {% include "crm/includes/form_field.html" with field=form.delivery_city %}
+                    {% include "crm/includes/form_field.html" with field=form.delivery_date %}
+                    {% include "crm/includes/form_field.html" with field=form.delivery_address wide=True %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>04</span><div><h2>Груз</h2><p>Параметры груза, упаковки и требования к обработке</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.cargo_name wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.weight_kg %}
+            {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
+            {% include "crm/includes/form_field.html" with field=form.package_count %}
+            {% include "crm/includes/form_field.html" with field=form.pallet_count %}
+            {% include "crm/includes/form_field.html" with field=form.package_type %}
+            {% include "crm/includes/form_field.html" with field=form.loading_method %}
+            {% include "crm/includes/form_field.html" with field=form.unloading_method %}
+            {% include "crm/includes/form_field.html" with field=form.temperature_regime %}
+            {% include "crm/includes/form_field.html" with field=form.vehicle_requirements wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.cargo_description wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.special_requirements wide=True %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>05</span><div><h2>Закупка у исполнителя</h2><p>Посредник и фактический перевозчик учитываются раздельно</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.executor wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.executor_role %}
+            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
+            {% include "crm/includes/form_field.html" with field=form.executor_instruction_number %}
+            {% include "crm/includes/form_field.html" with field=form.executor_amount %}
+            {% include "crm/includes/form_field.html" with field=form.executor_vat_rate %}
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
+        </div>
+        <hr>
+        <div class="section-title"><div><span class="eyebrow">Фактическое исполнение</span><h2>Кто реально везёт груз</h2></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.actual_carrier wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.driver %}
+            {% include "crm/includes/form_field.html" with field=form.combination wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.vehicle %}
+            {% include "crm/includes/form_field.html" with field=form.trailer %}
+            {% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default onec-finance-result">
+        <div class="form-section-title"><span>06</span><div><h2>Результат рейса</h2><p>Предварительный управленческий результат до проведения</p></div></div>
+        <div class="finance-summary">
+            <article><span>Продажа</span><strong id="preview-revenue">0,00</strong></article>
+            <article><span>Закупка</span><strong id="preview-cost">0,00</strong></article>
+            <article><span>Маржа</span><strong id="preview-margin">0,00</strong></article>
+            <article><span>Маржинальность</span><strong id="preview-percent">0,00%</strong></article>
+        </div>
+        <div class="finance-tax-result uk-margin-top">
+            <article><span>НДС к уплате</span><strong id="preview-vat-payable">0,00</strong><small>НДС продажи − НДС закупки</small></article>
+            <article><span>Прибыль рейса без НДС</span><strong id="preview-profit">0,00</strong><small>Доход без НДС − расход без НДС</small></article>
+            <article><span>Расчётный налог на прибыль</span><strong id="preview-profit-tax">0,00</strong><small id="preview-profit-tax-rate">Ставка нашей компании</small></article>
+            <article class="is-net-profit"><span>Чистая прибыль</span><strong id="preview-net-profit">0,00</strong><small>Прибыль без НДС − расчётный налог</small></article>
+        </div>
+        <div class="form-grid uk-margin-top">
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
+    <div class="form-actions onec-bottom-actions">
+        <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
+        <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
+        <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">Отмена</a>
+    </div>
+</form>
+
+{{ vat_rate_map|json_script:"vat-rate-map" }}
+{{ owner_tax_rate_map|json_script:"owner-tax-rate-map" }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("transportation-form");
+    const client = document.getElementById("id_client");
+    const owner = document.getElementById("id_owner_company");
+    const customerContract = document.getElementById("id_customer_contract");
+    const customerVatRate = document.getElementById("id_customer_vat_rate");
+    const customerPaymentTerm = document.getElementById("id_customer_payment_term_days");
+    const applyClientDefaults = async () => {
+        if (!client?.value) return;
+        try {
+            const params = owner?.value ? `?owner=${encodeURIComponent(owner.value)}` : "";
+            const response = await fetch(`/api/organizations/${client.value}/defaults/${params}`, {headers: {"Accept": "application/json"}});
+            if (!response.ok) return;
+            const data = await response.json();
+            const isNewClient = form.dataset.clientDefaultsClient !== client.value;
+            if (customerVatRate && data.vat_rate_id && (isNewClient || !customerVatRate.value)) {
+                customerVatRate.value = String(data.vat_rate_id);
+                customerVatRate.dispatchEvent(new Event("change", {bubbles: true}));
+            }
+            if (customerPaymentTerm && data.payment_term_days && (isNewClient || !customerPaymentTerm.value)) {
+                customerPaymentTerm.value = data.payment_term_days;
+                customerPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            if (customerContract && data.contract_id && (isNewClient || !customerContract.value)) {
+                customerContract.value = String(data.contract_id);
+                customerContract.dispatchEvent(new Event("change", {bubbles: true}));
+            }
+            form.dataset.clientDefaultsClient = client.value;
+        } catch (error) { /* defaults are optional when the server is unavailable */ }
+    };
+    client?.addEventListener("change", applyClientDefaults);
+    owner?.addEventListener("change", () => { delete form.dataset.clientDefaultsClient; applyClientDefaults(); });
+    const executor = document.getElementById("id_executor");
+    const role = document.getElementById("id_executor_role");
+    const carrier = document.getElementById("id_actual_carrier");
+    const executorContract = document.getElementById("id_executor_contract");
+    const contractCreate = form.querySelector("[data-executor-contract-create]");
+    const contractHint = form.querySelector("[data-executor-contract-hint]");
+    const selects = {
+        drivers: document.getElementById("id_driver"),
+        combinations: document.getElementById("id_combination"),
+        vehicles: document.getElementById("id_vehicle"),
+        trailers: document.getElementById("id_trailer")
+    };
+    const replaceOptions = (select, items, selected) => {
+        if (!select) return;
+        select.innerHTML = '<option value="">---------</option>';
+        items.forEach(item => {
+            const option = new Option(item.label, item.id);
+            if (item.tractor_id) option.dataset.tractorId = item.tractor_id;
+            if (item.trailer_id) option.dataset.trailerId = item.trailer_id;
+            option.selected = String(item.id) === String(selected || "");
+            select.add(option);
+        });
+        select.dispatchEvent(new Event("optionschange", {bubbles: true}));
+    };
+    const loadResources = async () => {
+        const selected = {
+            drivers: selects.drivers?.value,
+            combinations: selects.combinations?.value,
+            vehicles: selects.vehicles?.value,
+            trailers: selects.trailers?.value
+        };
+        if (!carrier.value) {
+            Object.values(selects).forEach(select => replaceOptions(select, [], ""));
+            return;
+        }
+        const response = await fetch(form.dataset.resourceUrl + "?organization=" + encodeURIComponent(carrier.value));
+        if (!response.ok) return;
+        const data = await response.json();
+        replaceOptions(selects.drivers, data.drivers, selected.drivers);
+        replaceOptions(selects.combinations, data.combinations || [], selected.combinations);
+        replaceOptions(selects.vehicles, data.vehicles, selected.vehicles);
+        replaceOptions(selects.trailers, data.trailers, selected.trailers);
+    };
+    let previousExecutor = executor?.value || "";
+    let previousRole = role?.value || "";
+    const syncDirectCarrier = () => {
+        if (executorContract && previousExecutor && previousExecutor !== executor.value) executorContract.value = "";
+        if (executorContract && previousRole && previousRole !== role.value) executorContract.value = "";
+        previousExecutor = executor?.value || "";
+        previousRole = role?.value || "";
+        if (role.value === "carrier" && executor.value) {
+            carrier.value = executor.value;
+            loadResources();
+        }
+    };
+    const updateContractAction = () => {
+        const missing = Boolean(executor?.value && !executorContract?.value);
+        if (contractHint) contractHint.hidden = !missing;
+        if (!contractCreate) return;
+        contractCreate.hidden = !missing;
+        if (!missing) return;
+        const url = new URL(form.dataset.contractCreateBase, window.location.origin);
+        url.searchParams.set("kind", role?.value === "carrier" ? "carrier_transport" : "subcontractor_forwarding");
+        url.searchParams.set("counterparty_organization", executor.value);
+        if (form.dataset.returnTransportation) url.searchParams.set("return_transportation", form.dataset.returnTransportation);
+        if (owner?.value) url.searchParams.set("owner_organization", owner.value);
+        contractCreate.href = `${url.pathname}${url.search}`;
+    };
+    executor.addEventListener("change", syncDirectCarrier);
+    role.addEventListener("change", syncDirectCarrier);
+    executor.addEventListener("change", updateContractAction);
+    role.addEventListener("change", updateContractAction);
+    executorContract?.addEventListener("change", updateContractAction);
+    carrier.addEventListener("change", loadResources);
+    updateContractAction();
+    selects.combinations?.addEventListener("change", () => {
+        const option = selects.combinations.options[selects.combinations.selectedIndex];
+        if (!option?.dataset.tractorId) return;
+        selects.vehicles.value = option.dataset.tractorId;
+        selects.trailers.value = option.dataset.trailerId || "";
+        selects.vehicles.dispatchEvent(new Event("change", {bubbles: true}));
+        selects.trailers.dispatchEvent(new Event("change", {bubbles: true}));
+    });
+
+    const revenue = document.getElementById("id_customer_amount");
+    const cost = document.getElementById("id_executor_amount");
+    const ownerCompany = document.getElementById("id_owner_company");
+    const executorVatRate = document.getElementById("id_executor_vat_rate");
+    const currency = document.getElementById("id_currency");
+    const vatRates = JSON.parse(document.getElementById("vat-rate-map")?.textContent || "{}");
+    const ownerTaxRates = JSON.parse(document.getElementById("owner-tax-rate-map")?.textContent || "{}");
+    const format = value => new Intl.NumberFormat("ru-RU", {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(value) + " " + ((currency?.value || "RUB") === "RUB" ? "₽" : (currency?.value || "RUB"));
+    const roundMoney = value => Math.round((value + Number.EPSILON) * 100) / 100;
+    const vatFromGross = (amount, field) => {
+        const rate = Number(vatRates[field?.value] || 0);
+        return rate ? roundMoney(amount * rate / (100 + rate)) : 0;
+    };
+    const recalculate = () => {
+        const income = Number(String(revenue?.value || 0).replace(",", ".")) || 0;
+        const expense = Number(String(cost?.value || 0).replace(",", ".")) || 0;
+        const margin = income - expense;
+        const outputVat = vatFromGross(income, customerVatRate);
+        const inputVat = vatFromGross(expense, executorVatRate);
+        const vatPayable = Math.max(roundMoney(outputVat - inputVat), 0);
+        const profit = roundMoney((income - outputVat) - (expense - inputVat));
+        const profitTaxRate = Number(ownerTaxRates[ownerCompany?.value] ?? 25);
+        const profitTax = profit > 0 ? roundMoney(profit * profitTaxRate / 100) : 0;
+        const netProfit = roundMoney(profit - profitTax);
+        document.getElementById("preview-revenue").textContent = format(income);
+        document.getElementById("preview-cost").textContent = format(expense);
+        document.getElementById("preview-margin").textContent = format(margin);
+        document.getElementById("preview-percent").textContent = (income ? margin / income * 100 : 0).toLocaleString("ru-RU", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + "%";
+        document.getElementById("preview-vat-payable").textContent = format(vatPayable);
+        document.getElementById("preview-profit").textContent = format(profit);
+        document.getElementById("preview-profit-tax").textContent = format(profitTax);
+        document.getElementById("preview-profit-tax-rate").textContent = "Ставка нашей компании: " + profitTaxRate.toLocaleString("ru-RU") + "%";
+        document.getElementById("preview-net-profit").textContent = format(netProfit);
+    };
+    [revenue, cost, currency, ownerCompany, customerVatRate, executorVatRate].forEach(field => {
+        field?.addEventListener("input", recalculate);
+        field?.addEventListener("change", recalculate);
+    });
+    recalculate();
+});
+</script>
+{% endblock %}

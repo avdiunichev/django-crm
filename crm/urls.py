@@ -1,0 +1,476 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("api/carrier-resources/", views.carrier_resources, name="carrier-resources"),
+    path(
+        "api/organization-resources/",
+        views.organization_resources,
+        name="organization-resources",
+    ),
+    path(
+        "quick-create/organization/",
+        views.QuickOrganizationCreateView.as_view(),
+        name="quick-organization-create",
+    ),
+    path(
+        "quick-create/driver/",
+        views.QuickDriverCreateView.as_view(),
+        name="quick-driver-create",
+    ),
+    path(
+        "quick-create/vehicle/",
+        views.QuickVehicleCreateView.as_view(),
+        name="quick-vehicle-create",
+    ),
+    path(
+        "api/dadata/party/", views.dadata_party_by_inn,
+        name="dadata-party-by-inn",
+    ),
+    path(
+        "api/dadata/address/", views.dadata_address_suggestions,
+        name="dadata-address-suggestions",
+    ),
+    path(
+        "api/dadata/fio/", views.dadata_fio_suggestions,
+        name="dadata-fio-suggestions",
+    ),
+    path(
+        "api/dadata/fms-unit/", views.dadata_fms_unit_suggestions,
+        name="dadata-fms-unit-suggestions",
+    ),
+    path(
+        "api/organizations/check-inn/",
+        views.organization_check_inn,
+        name="organization-check-inn",
+    ),
+    path(
+        "api/organizations/<int:pk>/defaults/",
+        views.organization_defaults,
+        name="organization-defaults",
+    ),
+    path("", views.DashboardView.as_view(), name="dashboard"),
+    path("chat/", views.ChatView.as_view(), name="chat"),
+    path("chat/start/", views.ChatStartView.as_view(), name="chat-start"),
+    path(
+        "chat/<int:pk>/", views.ChatView.as_view(), name="chat-conversation"
+    ),
+    path(
+        "chat/<int:pk>/send/", views.ChatSendMessageView.as_view(),
+        name="chat-send",
+    ),
+    path(
+        "chat/<int:pk>/messages/", views.ChatMessagesView.as_view(),
+        name="chat-messages",
+    ),
+    path(
+        "chat/<int:conversation_pk>/messages/<int:pk>/edit/",
+        views.ChatMessageUpdateView.as_view(),
+        name="chat-message-update",
+    ),
+    path(
+        "chat/<int:conversation_pk>/messages/<int:pk>/delete/",
+        views.ChatMessageDeleteView.as_view(),
+        name="chat-message-delete",
+    ),
+    path(
+        "chat/<int:conversation_pk>/messages/<int:pk>/attachment/",
+        views.ChatMessageAttachmentView.as_view(),
+        name="chat-message-attachment",
+    ),
+    path("reports/", views.ReportsView.as_view(), name="reports"),
+    path(
+        "reports/taxes/export/",
+        views.TaxReportExportView.as_view(),
+        name="tax-report-export",
+    ),
+    path("debts/", views.DebtReportView.as_view(), name="debt-report"),
+    path(
+        "debts/export/",
+        views.DebtReportExportView.as_view(),
+        name="debt-report-export",
+    ),
+    path(
+        "profitability/",
+        views.ProfitabilityReportView.as_view(),
+        name="profitability-report",
+    ),
+    path(
+        "profitability/export/",
+        views.ProfitabilityReportExportView.as_view(),
+        name="profitability-report-export",
+    ),
+    path(
+        "bank-statements/",
+        views.BankStatementListView.as_view(),
+        name="bank-statement-list",
+    ),
+    path(
+        "bank-statements/new/",
+        views.BankStatementCreateView.as_view(),
+        name="bank-statement-create",
+    ),
+    path(
+        "bank-statements/<int:pk>/",
+        views.BankStatementDetailView.as_view(),
+        name="bank-statement-detail",
+    ),
+    path(
+        "bank-statements/<int:pk>/edit/",
+        views.BankStatementUpdateView.as_view(),
+        name="bank-statement-update",
+    ),
+    path(
+        "bank-statements/<int:statement_pk>/lines/<int:pk>/edit/",
+        views.BankStatementLineUpdateView.as_view(),
+        name="bank-statement-line-update",
+    ),
+    path(
+        "bank-statements/<int:statement_pk>/lines/<int:pk>/delete/",
+        views.BankStatementLineDeleteView.as_view(),
+        name="bank-statement-line-delete",
+    ),
+    path(
+        "bank-statements/<int:pk>/unpost/",
+        views.BankStatementUnpostView.as_view(),
+        name="bank-statement-unpost",
+    ),
+    path(
+        "bank-statements/<int:pk>/delete/",
+        views.BankStatementDeleteView.as_view(),
+        name="bank-statement-delete",
+    ),
+    path(
+        "bank-statements/<int:pk>/post/",
+        views.BankStatementPostView.as_view(),
+        name="bank-statement-post",
+    ),
+    path("planner/", views.PlannerView.as_view(), name="planner"),
+    path(
+        "planner/tasks/new/",
+        views.PlannerTaskCreateView.as_view(),
+        name="planner-task-create",
+    ),
+    path(
+        "planner/tasks/<int:pk>/edit/",
+        views.PlannerTaskUpdateView.as_view(),
+        name="planner-task-update",
+    ),
+    path(
+        "planner/tasks/<int:pk>/complete/",
+        views.PlannerTaskCompleteView.as_view(),
+        name="planner-task-complete",
+    ),
+    path("orders/", views.TransportOrderListView.as_view(), name="order-list"),
+    path(
+        "orders/new/",
+        views.TransportOrderCreateView.as_view(),
+        name="order-create",
+    ),
+    path(
+        "orders/<int:pk>/edit/",
+        views.TransportOrderUpdateView.as_view(),
+        name="order-update",
+    ),
+    path(
+        "orders/<int:pk>/assign/",
+        views.TransportOrderAssignView.as_view(),
+        name="order-assign",
+    ),
+    path(
+        "orders/<int:pk>/delete/",
+        views.TransportOrderDeleteView.as_view(),
+        name="order-delete",
+    ),
+    path(
+        "transportations/",
+        views.TransportationListView.as_view(),
+        name="transportation-list",
+    ),
+    path(
+        "transportation-accounting/",
+        views.TransportationAccountingView.as_view(),
+        name="transportation-accounting",
+    ),
+    path(
+        "transportations/new/",
+        views.TransportationCreateView.as_view(),
+        name="transportation-create",
+    ),
+    path(
+        "transportations/<int:pk>/",
+        views.TransportationDetailView.as_view(),
+        name="transportation-detail",
+    ),
+    path(
+        "transportations/<int:pk>/edit/",
+        views.TransportationUpdateView.as_view(),
+        name="transportation-update",
+    ),
+    path(
+        "transportations/<int:pk>/delete/",
+        views.TransportationDeleteView.as_view(),
+        name="transportation-delete",
+    ),
+    path(
+        "transportations/<int:pk>/post/",
+        views.TransportationPostView.as_view(),
+        name="transportation-post",
+    ),
+    path(
+        "transportations/<int:pk>/unpost/",
+        views.TransportationUnpostView.as_view(),
+        name="transportation-unpost",
+    ),
+    path(
+        "transportations/<int:pk>/advance-status/",
+        views.TransportationStatusAdvanceView.as_view(),
+        name="transportation-advance-status",
+    ),
+    path(
+        "transportations/<int:pk>/close/",
+        views.TransportationCloseView.as_view(),
+        name="transportation-close",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/payments/new/",
+        views.TransportationPaymentCreateView.as_view(),
+        name="transportation-payment-create",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/payments/<int:pk>/edit/",
+        views.TransportationPaymentUpdateView.as_view(),
+        name="transportation-payment-update",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/payments/<int:pk>/delete/",
+        views.TransportationPaymentDeleteView.as_view(),
+        name="transportation-payment-delete",
+    ),
+    path(
+        "transportations/<int:pk>/epd/prepare/",
+        views.TransportationEpdPrepareView.as_view(),
+        name="transportation-epd-prepare",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/epd/<int:pk>/download/",
+        views.TransportationEpdDownloadView.as_view(),
+        name="transportation-epd-download",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/epd/<int:pk>/send/",
+        views.TransportationEpdSendView.as_view(),
+        name="transportation-epd-send",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/incidents/new/",
+        views.TransportationIncidentCreateView.as_view(),
+        name="transportation-incident-create",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/incidents/<int:pk>/edit/",
+        views.TransportationIncidentUpdateView.as_view(),
+        name="transportation-incident-update",
+    ),
+    path(
+        "transportations/<int:transportation_pk>/incidents/<int:pk>/delete/",
+        views.TransportationIncidentDeleteView.as_view(),
+        name="transportation-incident-delete",
+    ),
+    path(
+        "transportations/<int:pk>/chain/",
+        views.TransportationChainUpdateView.as_view(),
+        name="transportation-chain-update",
+    ),
+    path(
+        "organizations/",
+        views.OrganizationListView.as_view(),
+        name="organization-list",
+    ),
+    path(
+        "organizations/new/",
+        views.OrganizationCreateView.as_view(),
+        name="organization-create",
+    ),
+    path(
+        "organizations/<int:pk>/",
+        views.OrganizationDetailView.as_view(),
+        name="organization-detail",
+    ),
+    path(
+        "organizations/<int:pk>/edit/",
+        views.OrganizationUpdateView.as_view(),
+        name="organization-update",
+    ),
+    path(
+        "organizations/<int:pk>/delete/",
+        views.OrganizationDeleteView.as_view(),
+        name="organization-delete",
+    ),
+    path("contracts/", views.ContractListView.as_view(), name="contract-list"),
+    path(
+        "contracts/new/", views.ContractCreateView.as_view(), name="contract-create"
+    ),
+    path(
+        "contracts/<int:pk>/",
+        views.ContractDetailView.as_view(),
+        name="contract-detail",
+    ),
+    path(
+        "contracts/<int:pk>/edit/",
+        views.ContractUpdateView.as_view(),
+        name="contract-update",
+    ),
+    path(
+        "contracts/<int:pk>/download/",
+        views.ContractDownloadView.as_view(),
+        name="contract-download",
+    ),
+    path(
+        "documents/",
+        views.ShipmentDocumentListView.as_view(),
+        name="shipment-document-list",
+    ),
+    path(
+        "documents/batches/",
+        views.DocumentBatchListView.as_view(),
+        name="document-batch-list",
+    ),
+    path(
+        "documents/batches/new/",
+        views.DocumentBatchCreateView.as_view(),
+        name="document-batch-create",
+    ),
+    path(
+        "documents/batches/<int:pk>/",
+        views.DocumentBatchDetailView.as_view(),
+        name="document-batch-detail",
+    ),
+    path(
+        "documents/batches/<int:pk>/edit/",
+        views.DocumentBatchUpdateView.as_view(),
+        name="document-batch-update",
+    ),
+    path(
+        "documents/batches/<int:pk>/post/",
+        views.DocumentBatchPostView.as_view(),
+        name="document-batch-post",
+    ),
+    path(
+        "documents/batches/<int:pk>/unpost/",
+        views.DocumentBatchUnpostView.as_view(),
+        name="document-batch-unpost",
+    ),
+    path(
+        "documents/batches/<int:pk>/delete/",
+        views.DocumentBatchDeleteView.as_view(),
+        name="document-batch-delete",
+    ),
+    path(
+        "documents/new/",
+        views.ShipmentDocumentCreateView.as_view(),
+        name="shipment-document-create-general",
+    ),
+    path(
+        "documents/company-profile/",
+        views.CompanyProfileView.as_view(),
+        name="company-profile",
+    ),
+    path("expeditors/", views.ExpeditorListView.as_view(), name="expeditor-list"),
+    path(
+        "expeditors/new/", views.ExpeditorCreateView.as_view(),
+        name="expeditor-create",
+    ),
+    path(
+        "expeditors/<int:pk>/", views.ExpeditorDetailView.as_view(),
+        name="expeditor-detail",
+    ),
+    path(
+        "expeditors/<int:pk>/edit/", views.ExpeditorUpdateView.as_view(),
+        name="expeditor-update",
+    ),
+    path("shipments/", views.ShipmentListView.as_view(), name="shipment-list"),
+    path("shipments/new/", views.ShipmentCreateView.as_view(), name="shipment-create"),
+    path("shipments/<int:pk>/", views.ShipmentDetailView.as_view(), name="shipment-detail"),
+    path("shipments/<int:pk>/edit/", views.ShipmentUpdateView.as_view(), name="shipment-update"),
+    path("shipments/<int:pk>/delete/", views.ShipmentDeleteView.as_view(), name="shipment-delete"),
+    path(
+        "shipments/<int:pk>/payments/new/",
+        views.PaymentCreateView.as_view(),
+        name="payment-create",
+    ),
+    path(
+        "shipments/<int:shipment_pk>/payments/<int:pk>/edit/",
+        views.PaymentUpdateView.as_view(),
+        name="payment-update",
+    ),
+    path(
+        "shipments/<int:shipment_pk>/payments/<int:pk>/delete/",
+        views.PaymentDeleteView.as_view(),
+        name="payment-delete",
+    ),
+    path(
+        "shipments/<int:pk>/forwarding-order/",
+        views.ForwardingOrderView.as_view(),
+        name="forwarding-order",
+    ),
+    path(
+        "shipments/<int:pk>/accounting-documents/new/",
+        views.AccountingDocumentCreateView.as_view(),
+        name="accounting-document-create",
+    ),
+    path(
+        "shipments/<int:shipment_pk>/documents/new/",
+        views.ShipmentDocumentCreateView.as_view(),
+        name="shipment-document-create",
+    ),
+    path(
+        "documents/<int:pk>/edit/",
+        views.ShipmentDocumentUpdateView.as_view(),
+        name="shipment-document-update",
+    ),
+    path(
+        "documents/<int:pk>/delete/",
+        views.ShipmentDocumentDeleteView.as_view(),
+        name="shipment-document-delete",
+    ),
+    path(
+        "documents/<int:pk>/download/",
+        views.ShipmentDocumentDownloadView.as_view(),
+        name="shipment-document-download",
+    ),
+    path("customers/", views.CustomerListView.as_view(), name="customer-list"),
+    path("customers/new/", views.CustomerCreateView.as_view(), name="customer-create"),
+    path("customers/<int:pk>/", views.CustomerDetailView.as_view(), name="customer-detail"),
+    path("customers/<int:pk>/edit/", views.CustomerUpdateView.as_view(), name="customer-update"),
+    path("carriers/", views.CarrierListView.as_view(), name="carrier-list"),
+    path("carriers/new/", views.CarrierCreateView.as_view(), name="carrier-create"),
+    path("carriers/<int:pk>/", views.CarrierDetailView.as_view(), name="carrier-detail"),
+    path("carriers/<int:pk>/edit/", views.CarrierUpdateView.as_view(), name="carrier-update"),
+    path("drivers/", views.DriverListView.as_view(), name="driver-list"),
+    path("drivers/new/", views.DriverCreateView.as_view(), name="driver-create"),
+    path("drivers/<int:pk>/", views.DriverDetailView.as_view(), name="driver-detail"),
+    path("drivers/<int:pk>/edit/", views.DriverUpdateView.as_view(), name="driver-update"),
+    path("drivers/<int:pk>/delete/", views.DriverDeleteView.as_view(), name="driver-delete"),
+    path("vehicles/", views.VehicleListView.as_view(), name="vehicle-list"),
+    path("vehicles/new/", views.VehicleCreateView.as_view(), name="vehicle-create"),
+    path(
+        "vehicles/combinations/new/",
+        views.VehicleCombinationCreateView.as_view(),
+        name="vehicle-combination-create",
+    ),
+    path(
+        "vehicles/combinations/<int:pk>/edit/",
+        views.VehicleCombinationUpdateView.as_view(),
+        name="vehicle-combination-update",
+    ),
+    path(
+        "vehicles/combinations/<int:pk>/delete/",
+        views.VehicleCombinationDeleteView.as_view(),
+        name="vehicle-combination-delete",
+    ),
+    path("vehicles/<int:pk>/", views.VehicleDetailView.as_view(), name="vehicle-detail"),
+    path("vehicles/<int:pk>/edit/", views.VehicleUpdateView.as_view(), name="vehicle-update"),
+    path("vehicles/<int:pk>/delete/", views.VehicleDeleteView.as_view(), name="vehicle-delete"),
+]

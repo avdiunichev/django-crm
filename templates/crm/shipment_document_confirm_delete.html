@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Удалить документ — {{ document_record.shipment.number }}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ document_record.shipment.get_absolute_url }}">← К заявке {{ document_record.shipment.number }}</a>
+        <h1>Удалить документ?</h1>
+        <p>Документ будет удалён из реестра и из карточки заявки.</p>
+    </div>
+</div>
+
+<div class="delete-confirmation uk-card uk-card-default uk-card-body">
+    <div class="uk-alert-warning" uk-alert>
+        <p class="uk-margin-remove">Проверьте документ перед удалением. Если к нему был прикреплён файл, запись с файлом также будет удалена.</p>
+    </div>
+    <dl class="data-grid">
+        <div><dt>Заявка</dt><dd>{{ document_record.shipment.number }}</dd></div>
+        <div><dt>Тип</dt><dd>{{ document_record.get_kind_display }}</dd></div>
+        <div><dt>Направление</dt><dd>{{ document_record.get_direction_display }}</dd></div>
+        <div><dt>Контрагент</dt><dd>{{ document_record.counterparty_name }}</dd></div>
+        <div><dt>Номер</dt><dd>{{ document_record.number|default:"Без номера" }}</dd></div>
+        <div><dt>Дата</dt><dd>{{ document_record.document_date|date:"d.m.Y"|default:"Не указана" }}</dd></div>
+        <div><dt>Статус</dt><dd>{{ document_record.get_status_display }}</dd></div>
+        <div><dt>Сумма</dt><dd>{% if document_record.amount is not None %}{{ document_record.amount|floatformat:0|intcomma }} {{ document_record.currency|currency_symbol }}{% else %}—{% endif %}</dd></div>
+        <div><dt>НДС</dt><dd>{% if document_record.vat_amount is not None %}{{ document_record.vat_amount|floatformat:0|intcomma }}{% else %}—{% endif %}</dd></div>
+        <div><dt>Файл</dt><dd>{% if document_record.file %}{{ document_record.file_name }}{% else %}Нет файла{% endif %}</dd></div>
+    </dl>
+    <form method="post" class="form-actions">
+        {% csrf_token %}
+        <a class="uk-button uk-button-default" href="{{ document_record.shipment.get_absolute_url }}">Отмена</a>
+        <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить документ</button>
+    </form>
+</div>
+{% endblock %}

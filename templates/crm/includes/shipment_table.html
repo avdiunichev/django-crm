@@ -1,0 +1,20 @@
+<div class="table-wrap">
+<table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+    <thead><tr><th>Заявка</th><th>Маршрут</th><th>Клиент</th>{% if not compact %}<th>Экспедитор</th><th>Экипаж</th>{% endif %}<th>Погрузка</th><th>Статус</th>{% if not compact %}<th>{% if current_scope == 'receivables' %}Дебиторка{% elif current_scope == 'payables' %}Кредиторка{% else %}Маржа{% endif %}</th><th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for shipment in shipments %}
+        <tr>
+            <td><a class="primary-link" href="{{ shipment.get_absolute_url }}">{{ shipment.number }}</a><small>{{ shipment.cargo_name }}</small></td>
+            <td><strong>{{ shipment.pickup_city }}</strong><span class="route-arrow">→</span><strong>{{ shipment.delivery_city }}</strong></td>
+            <td>{{ shipment.customer.name }}</td>
+            {% if not compact %}<td><a href="{{ shipment.expeditor.get_absolute_url }}">{{ shipment.expeditor }}</a><small>ИНН {{ shipment.expeditor.tax_id }}</small></td><td>{% if shipment.driver %}<a href="{{ shipment.driver.get_absolute_url }}">{{ shipment.driver.full_name }}</a>{% else %}—{% endif %}<small>{% if shipment.vehicle %}{{ shipment.vehicle.registration_number }}{% else %}Транспорт не назначен{% endif %}</small></td>{% endif %}
+            <td>{{ shipment.pickup_date|date:"d.m.Y" }}</td>
+            <td><span class="badge uk-label status-{{ shipment.status }}">{{ shipment.get_status_display }}</span></td>
+            {% if not compact %}<td>{% if current_scope == 'receivables' %}<span class="{% if shipment.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ shipment.receivable_balance|floatformat:0 }}</span>{% elif current_scope == 'payables' %}<span class="{% if shipment.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ shipment.payable_balance|floatformat:0 }}</span>{% else %}<span class="{% if shipment.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ shipment.margin|floatformat:0 }}</span>{% endif %} {{ shipment.currency|currency_symbol }}</td><td><a class="row-action" href="{% url 'shipment-update' shipment.pk %}">Изменить</a></td>{% endif %}
+        </tr>
+    {% empty %}
+        <tr><td colspan="9" class="empty-state">Заявок пока нет.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>

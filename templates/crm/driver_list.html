@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Водители — Экспедитор CRM{% endblock %}
+{% block body_class %}driver-directory-page{% endblock %}
+{% block content %}
+<div class="page-heading with-action driver-directory-heading">
+    <div>
+        <span class="eyebrow">Справочник</span>
+        <h1>Водители <small>(физические лица)</small></h1>
+        <p>Единые карточки водителей, документы и места работы по принципу справочника 1С.</p>
+    </div>
+    <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'vehicle-list' %}"><span uk-icon="truck"></span> Автопарк</a>
+        <a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal><span uk-icon="plus"></span> Создать</a>
+    </div>
+</div>
+
+<section class="metrics-grid driver-metrics">
+    <article class="metric-card uk-card uk-card-primary uk-card-body uk-light"><span class="metric-top"><span>Всего водителей</span><i class="metric-icon uk-icon-button" uk-icon="users"></i></span><strong>{{ driver_total }}</strong><small><span>единый справочник</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Активны</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ driver_active_total }}</strong><small><span>доступны для назначения</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Документы требуют внимания</span><i class="metric-icon uk-icon-button" uk-icon="warning"></i></span><strong>{{ driver_documents_attention }}</strong><small><span>срок истёк или не указан</span></small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Компании</span><i class="metric-icon uk-icon-button" uk-icon="users"></i></span><strong>{{ driver_companies_total }}</strong><small><span>активные места работы</span></small></article>
+</section>
+
+<form class="filters driver-filters" method="get">
+    <label><span class="uk-text-meta">Поиск</span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон, удостоверение или перевозчик" autocomplete="off"></label>
+    <label><span class="uk-text-meta">Состояние</span><select class="uk-select" name="active"><option value="">Все</option><option value="1" {% if current_active == '1' %}selected{% endif %}>Активные</option><option value="0" {% if current_active == '0' %}selected{% endif %}>Неактивные</option></select></label>
+    <label><span class="uk-text-meta">Компания</span><select class="uk-select" name="carrier"><option value="">Все компании</option>{% for carrier in driver_carriers %}<option value="{{ carrier.pk }}" {% if current_carrier == carrier.pk|stringformat:'s' %}selected{% endif %}>{{ carrier.name }}</option>{% endfor %}</select></label>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_active or current_carrier %}<a class="clear-link" href="{% url 'driver-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default driver-register-panel">
+    <div class="panel-header"><div><h2>Водители</h2><p>Нажмите на Ф. И. О., чтобы открыть карточку, документы и историю.</p></div><span class="uk-text-meta">Записей: {{ page_obj.paginator.count }}</span></div>
+    <div class="table-wrap">
+        <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle driver-directory-table">
+            <thead><tr><th>Водитель</th><th>Компании</th><th>Контакт и ИНН</th><th>Удостоверение</th><th>Срок действия</th><th>Состояние</th><th></th></tr></thead>
+            <tbody>
+            {% for driver in drivers %}
+                <tr>
+                    <td><a class="primary-link" href="{{ driver.get_absolute_url }}">{{ driver.full_name }}</a><small>Карточка № {{ driver.pk }}</small></td>
+                    <td>{% if driver.carrier.organization %}<a href="{{ driver.carrier.organization.get_absolute_url }}">{{ driver.carrier.name }}</a>{% else %}<a href="{{ driver.carrier.get_absolute_url }}">{{ driver.carrier.name }}</a>{% endif %}<small>Основная компания</small>{% for employment in driver.employments.all %}{% if employment.is_active and not employment.is_primary %}<small>{% if employment.carrier.organization %}<a href="{{ employment.carrier.organization.get_absolute_url }}">{{ employment.carrier.name }}</a>{% else %}<a href="{{ employment.carrier.get_absolute_url }}">{{ employment.carrier.name }}</a>{% endif %}</small>{% endif %}{% endfor %}</td>
+                    <td>{{ driver.phone|default:"—" }}<small>ИНН {{ driver.tax_id|default:"не указан" }}</small></td>
+                    <td>{{ driver.license_number|default:"—" }}<small>Категории: {{ driver.license_categories|default:"не указаны" }}</small></td>
+                    <td>{% if driver.license_is_expired %}<span class="uk-label uk-label-danger">Истекло {{ driver.license_expiry_date|date:"d.m.Y" }}</span>{% elif driver.license_expiry_date %}{{ driver.license_expiry_date|date:"d.m.Y" }}{% else %}<span class="uk-label uk-label-warning">Не указано</span>{% endif %}</td>
+                    <td>{% if driver.is_active %}<span class="uk-label uk-label-success">Активен</span><small>Можно назначать</small>{% else %}<span class="uk-label">Неактивен</span><small>Архив</small>{% endif %}</td>
+                    <td><div class="driver-row-actions"><a class="row-action" href="{{ driver.get_absolute_url }}" title="Открыть карточку"><span uk-icon="list"></span></a><a class="row-action" href="{% url 'driver-update' driver.pk %}" data-driver-modal title="Изменить"><span uk-icon="pencil"></span></a><a class="row-action danger" href="{% url 'driver-delete' driver.pk %}" title="Удалить"><span uk-icon="trash"></span></a></div></td>
+                </tr>
+            {% empty %}<tr><td colspan="7" class="empty-state">Водители не найдены. Создайте первую карточку.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="driver-register-footer"><span><i class="driver-legend-dot is-active"></i> Активен — доступен при оформлении рейса</span><span><i class="driver-legend-dot is-warning"></i> Требует проверки документов</span></div>
+</section>
+{% if is_paginated %}
+<nav class="pagination uk-pagination" aria-label="Пагинация водителей">
+    {% if page_obj.has_previous %}<a href="?q={{ current_q|urlencode }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}
+    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?q={{ current_q|urlencode }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

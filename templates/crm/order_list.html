@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Заказы — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div>
+        <span class="eyebrow">Коммерческая работа</span>
+        <h1>Заказы</h1>
+        <p>Входящие заказы клиентов до назначения исполнителя и формирования рейса.</p>
+    </div>
+    <a class="btn btn-primary uk-button uk-button-primary" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
+</div>
+
+<div class="stats-grid compact-stats">
+    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}"><span>Всего заказов</span><strong>{{ order_count }}</strong></a>
+    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}?status=new"><span>Ожидают назначения</span><strong>{{ new_count }}</strong></a>
+    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}?status=assigned"><span>Назначены в рейсы</span><strong>{{ assigned_count }}</strong></a>
+    <article class="stat-card uk-card uk-card-default"><span>Сумма заказов</span><strong class="amount-income">{{ total_rate|floatformat:"0g" }} ₽</strong></article>
+</div>
+
+<section class="panel uk-card uk-card-default">
+    <form class="filters" method="get">
+        <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, клиент, ИНН, груз, город или адрес">
+        <select class="form-control uk-select" name="owner">
+            <option value="">Все наши компании</option>
+            {% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}
+        </select>
+        <select class="form-control uk-select" name="status">
+            <option value="">Все статусы</option>
+            {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+        {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
+    </form>
+
+    <div class="table-wrap">
+        <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table">
+            <thead><tr><th>Заказ</th><th>Клиент</th><th>Маршрут</th><th>Груз</th><th>Ставка / оплата</th><th>Статус</th><th></th></tr></thead>
+            <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td><a class="primary-link" href="{{ order.get_absolute_url }}">{{ order.number }}</a><small>{{ order.document_date|date:"d.m.Y" }} · {{ order.manager.get_full_name|default:order.manager.username }}</small></td>
+                    <td><a href="{{ order.client.get_absolute_url }}">{{ order.client }}</a>{% if order.client.tax_id %}<small>ИНН {{ order.client.tax_id }}</small>{% endif %}</td>
+                    <td>{{ order.route }}<small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
+                    <td>{{ order.cargo_name }}<small>{{ order.weight_kg|floatformat:"0g" }} кг{% if order.volume_m3 %} · {{ order.volume_m3|floatformat:"2" }} м³{% endif %}</small></td>
+                    <td><strong class="amount-income">{{ order.rate|floatformat:"2g" }} {{ order.currency|currency_symbol }}</strong><small>{{ order.get_payment_form_display }} · отсрочка {{ order.payment_term_days }} дн.</small></td>
+                    <td><span class="badge uk-label {% if order.status == 'assigned' %}uk-label-success{% endif %}">{{ order.get_status_display }}</span>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% endif %}</td>
+                    <td class="order-register-actions">
+                        {% if order.transportation_id %}
+                            <a class="uk-button uk-button-small uk-button-default" href="{% url 'transportation-update' order.transportation_id %}">Открыть рейс</a>
+                        {% else %}
+                            <form method="post" action="{% url 'order-assign' order.pk %}">{% csrf_token %}<button class="uk-button uk-button-small uk-button-primary" type="submit">Назначить</button></form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="empty-state">Заказов пока нет. Создайте первый заказ клиента.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}
