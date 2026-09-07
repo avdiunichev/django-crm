@@ -11,6 +11,13 @@ if [[ ! -f /etc/django-crm.env ]]; then
   exit 1
 fi
 
+set -a
+# shellcheck disable=SC1091
+source /etc/django-crm.env
+set +a
+
+: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in /etc/django-crm.env}"
+
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y \
@@ -24,11 +31,13 @@ apt-get install -y \
 
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /bin/bash "$APP_USER"
 
-sudo -u postgres psql <<'SQL'
+sudo -u postgres psql -v postgres_password="$POSTGRES_PASSWORD" <<'SQL'
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'django_crm') THEN
-    CREATE ROLE django_crm LOGIN PASSWORD 'django_crm_local_password_change_me';
+    CREATE ROLE django_crm LOGIN PASSWORD :'postgres_password';
+  ELSE
+    ALTER ROLE django_crm WITH PASSWORD :'postgres_password';
   END IF;
 END
 $$;
