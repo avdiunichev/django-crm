@@ -37,7 +37,7 @@ def assign_order_to_transportation(order, user):
 
     order = (
         TransportOrder.objects.select_for_update()
-        .select_related("owner_company", "client", "manager", "transportation")
+        .select_related("owner_company", "client", "manager")
         .get(pk=order.pk)
     )
     if order.transportation_id:
