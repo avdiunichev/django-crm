@@ -31,16 +31,15 @@ apt-get install -y \
 
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /bin/bash "$APP_USER"
 
-sudo -u postgres psql -v postgres_password="$POSTGRES_PASSWORD" <<'SQL'
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'django_crm') THEN
-    CREATE ROLE django_crm LOGIN PASSWORD :'postgres_password';
-  ELSE
-    ALTER ROLE django_crm WITH PASSWORD :'postgres_password';
-  END IF;
-END
-$$;
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname = 'django_crm'" | grep -q 1; then
+  printf "ALTER ROLE django_crm WITH PASSWORD :'postgres_password';\n" \
+    | sudo -u postgres psql -v postgres_password="$POSTGRES_PASSWORD"
+else
+  printf "CREATE ROLE django_crm LOGIN PASSWORD :'postgres_password';\n" \
+    | sudo -u postgres psql -v postgres_password="$POSTGRES_PASSWORD"
+fi
+
+sudo -u postgres psql <<'SQL'
 SELECT 'CREATE DATABASE django_crm OWNER django_crm'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'django_crm')\gexec
 SQL
