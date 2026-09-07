@@ -188,8 +188,9 @@ CSRF_TRUSTED_ORIGINS = [
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "1") == "1"
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    COOKIE_SECURE = os.environ.get("DJANGO_COOKIE_SECURE", "1") == "1"
+    SESSION_COOKIE_SECURE = COOKIE_SECURE
+    CSRF_COOKIE_SECURE = COOKIE_SECURE
 
 # DaData «Организация по ИНН». Ключ хранится только на сервере и никогда не
 # передаётся в браузер.
