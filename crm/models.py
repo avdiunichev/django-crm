@@ -1776,9 +1776,8 @@ class Transportation(TimestampedModel):
         stops = list(self.stops.all())
         if not stops:
             return "Маршрут не указан"
-        if len(stops) == 1:
-            return stops[0].city or stops[0].address
-        return f"{stops[0].city or stops[0].address} → {stops[-1].city or stops[-1].address}"
+        points = [stop.city or stop.address for stop in stops]
+        return " → ".join(point for point in points if point) or "Маршрут не указан"
 
     @property
     def revenue(self):
@@ -2191,11 +2190,8 @@ class TransportOrder(TimestampedModel):
         stops = list(self.stops.all())
         if not stops:
             return "Маршрут не указан"
-        first = stops[0].city or stops[0].address
-        last = stops[-1].city or stops[-1].address
-        intermediate = max(len(stops) - 2, 0)
-        suffix = f" · ещё {intermediate}" if intermediate else ""
-        return f"{first} → {last}{suffix}"
+        points = [stop.city or stop.address for stop in stops]
+        return " → ".join(point for point in points if point) or "Маршрут не указан"
 
     def get_absolute_url(self):
         return reverse("order-update", kwargs={"pk": self.pk})

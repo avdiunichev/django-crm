@@ -56,6 +56,7 @@ from .models import (
     TransportationStatusEvent,
     TransportationElectronicDocument,
     TripCharge,
+    TransportationStop,
     UserProfile,
     VATRate,
     VehicleAssignment,
@@ -308,7 +309,7 @@ class CrmTestCase(TestCase):
         order = TransportOrder.objects.get(cargo_name="Пластиковая тара")
         self.assertRegex(order.number, r"^ЗК-\d{4}-\d{5}$")
         self.assertEqual(order.stops.count(), 3)
-        self.assertEqual(order.route, "Санкт-Петербург → Москва · ещё 1")
+        self.assertEqual(order.route, "Санкт-Петербург → Тверь → Москва")
         registry = self.client.get(reverse("order-list"))
         self.assertContains(registry, order.number)
         self.assertContains(registry, "Пластиковая тара")
@@ -2143,12 +2144,14 @@ class CrmTestCase(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertContains(response, 'data-dadata-address=""', count=2)
+                self.assertContains(response, 'data-dadata-city=""', count=2)
                 self.assertContains(
                     response,
                     reverse("dadata-address-suggestions"),
-                    count=2,
+                    count=4,
                 )
                 self.assertContains(response, "js/address-suggestions.js")
+                self.assertContains(response, "js/city-suggestions.js")
 
     @override_settings(
         DADATA_API_TOKEN="test-server-token",
@@ -3752,8 +3755,53 @@ class CrmTestCase(TestCase):
         )
         content = b"".join(response.streaming_content)
         document = Document(BytesIO(content))
-        text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+        text_parts = [paragraph.text for paragraph in document.paragraphs]
+        text_parts.extend(
+            cell.text
+            for table in document.tables
+            for row in table.rows
+            for cell in row.cells
+        )
+        text = "\n".join(text_parts)
         self.assertIn("ДОГОВОР-ЗАЯВКА на перевозку груза", text)
+
+    def test_transportation_route_and_docx_show_every_stop(self):
+        transportation = self.shipment.transportation
+        transportation.stops.all().delete()
+        for sequence, kind, city in (
+            (1, TransportationStop.Kind.PICKUP, "Санкт-Петербург"),
+            (2, TransportationStop.Kind.INTERMEDIATE, "Тверь"),
+            (3, TransportationStop.Kind.DELIVERY, "Москва"),
+        ):
+            TransportationStop.objects.create(
+                transportation=transportation,
+                sequence=sequence,
+                kind=kind,
+                city=city,
+                address=f"{city}, склад {sequence}",
+            )
+
+        self.assertEqual(transportation.route, "Санкт-Петербург → Тверь → Москва")
+        self.client.force_login(self.user)
+        response = self.client.get(transportation.get_absolute_url())
+        self.assertContains(response, "Санкт-Петербург → Тверь → Москва")
+        self.assertContains(response, "Промежуточная точка")
+        self.assertContains(response, "Тверь")
+
+        docx_response = self.client.get(
+            reverse("transportation-executor-application", args=[transportation.pk])
+        )
+        content = b"".join(docx_response.streaming_content)
+        document = Document(BytesIO(content))
+        text = "\n".join(
+            cell.text
+            for table in document.tables
+            for row in table.rows
+            for cell in row.cells
+        )
+        self.assertIn("Санкт-Петербург → Тверь → Москва", text)
+        self.assertIn("Промежуточная точка", text)
+        self.assertIn("Тверь, склад 2", text)
 
     def test_attached_document_download_requires_login(self):
         with tempfile.TemporaryDirectory() as media_directory:

@@ -318,12 +318,6 @@ def build_executor_transportation_application_docx(transportation):
     executor = link.contractor_party.organization if link else None
     contract = link.contract if link else None
     stops = list(transportation.stops.all())
-    pickup_stops = [stop for stop in stops if stop.kind == stop.Kind.PICKUP]
-    delivery_stops = [stop for stop in stops if stop.kind == stop.Kind.DELIVERY]
-    if not pickup_stops and stops:
-        pickup_stops = [stops[0]]
-    if not delivery_stops and len(stops) > 1:
-        delivery_stops = [stops[-1]]
 
     number = (
         link.instruction_number
@@ -407,15 +401,24 @@ def build_executor_transportation_application_docx(transportation):
     _set_cell_text(route_row[0], transportation.route, align=WD_ALIGN_PARAGRAPH.CENTER)
     route_row[0].merge(route_row[1]).merge(route_row[2])
 
-    def add_stop_rows(kind_title, stop_list, date_label):
+    def stop_operation_text(stop):
+        if stop.kind == stop.Kind.PICKUP:
+            return "Погрузка"
+        if stop.kind == stop.Kind.DELIVERY:
+            return "Выгрузка"
+        return stop.get_kind_display()
+
+    def add_stop_rows(stop_list):
         for index, stop in enumerate(stop_list, start=1):
+            operation = stop_operation_text(stop)
             spacer = route_table.add_row().cells
             spacer[0].merge(spacer[1]).merge(spacer[2])
             rows = (
-                (f"{kind_title} {index}", _stop_organization_text(stop)),
-                (f"Адрес {'погрузки' if stop.kind == stop.Kind.PICKUP else 'выгрузки'}", _stop_address(stop)),
+                (f"Точка маршрута {index}", operation),
+                ("Организация", _stop_organization_text(stop)),
+                (f"Адрес ({operation.lower()})", _stop_address(stop)),
                 ("Контакт / комментарий", " / ".join(part for part in (stop.contact_phone, stop.contact_name, stop.instructions) if part)),
-                (date_label, _datetime_window(stop.planned_from, stop.planned_to)),
+                (f"Дата ({operation.lower()})", _datetime_window(stop.planned_from, stop.planned_to)),
             )
             for label, value in rows:
                 cells = route_table.add_row().cells
@@ -423,8 +426,7 @@ def build_executor_transportation_application_docx(transportation):
                 _set_cell_text(cells[1], value or "не указано")
                 cells[1].merge(cells[2])
 
-    add_stop_rows("Грузоотправитель", pickup_stops, "Дата погрузки")
-    add_stop_rows("Грузополучатель", delivery_stops, "Дата выгрузки")
+    add_stop_rows(stops)
 
     vehicle_header = route_table.add_row().cells
     _set_cell_text(vehicle_header[0], "ТС", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)

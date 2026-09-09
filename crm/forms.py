@@ -168,6 +168,17 @@ def configure_dadata_address_fields(form):
     """Enable server-proxied DaData suggestions for route address fields."""
 
     suggestions_url = reverse("dadata-address-suggestions")
+    for city_name in ("pickup_city", "delivery_city"):
+        if city_name not in form.fields:
+            continue
+        form.fields[city_name].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-city": "",
+                "data-dadata-city-url": suggestions_url,
+                "placeholder": "Начните вводить город или населённый пункт",
+            }
+        )
     for address_name, city_name in (
         ("pickup_address", "pickup_city"),
         ("delivery_address", "delivery_city"),
@@ -955,6 +966,14 @@ class TransportOrderStopForm(StyledModelForm):
                 "data-dadata-city-source": f"id_{self.add_prefix('city')}",
                 "data-dadata-meta-target": f"id_{self.add_prefix('address_meta')}",
                 "placeholder": "Начните вводить улицу, дом или полный адрес",
+            }
+        )
+        self.fields["city"].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-city": "",
+                "data-dadata-city-url": reverse("dadata-address-suggestions"),
+                "placeholder": "Начните вводить город или населённый пункт",
             }
         )
         self.fields["contact_phone"].widget.attrs.update(

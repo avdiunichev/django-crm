@@ -37,6 +37,7 @@
             refresh();
             window.CRMUniversalSelects?.enhanceWithin(row);
             window.CRMAddressSuggestions?.enhanceWithin(row);
+            window.CRMCitySuggestions?.enhanceWithin(row);
             row?.querySelector("input[name$='-city']")?.focus();
         };
 
