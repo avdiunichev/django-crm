@@ -231,6 +231,7 @@ from .forms import (
     TransportOrderStopFormSet,
     TransportationChainForm,
     TransportationDocumentForm,
+    TransportationStopFormSet,
     TransportationIncidentForm,
     VehicleForm,
     VehicleCombinationForm,
@@ -5730,14 +5731,34 @@ class TransportationDocumentEditMixin:
     model = Transportation
     form_class = TransportationDocumentForm
     template_name = "crm/transportation_form.html"
+    stop_prefix = "route_stops"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
 
+    def get_stop_formset(self, form, data=None):
+        kwargs = {
+            "data": data,
+            "instance": form.instance,
+            "prefix": self.stop_prefix,
+        }
+        if not form.instance.pk and data is None:
+            kwargs["initial"] = [
+                {"sequence": 1, "kind": TransportationStop.Kind.PICKUP},
+                {"sequence": 2, "kind": TransportationStop.Kind.DELIVERY},
+            ]
+        formset = TransportationStopFormSet(**kwargs)
+        if not form.instance.pk and data is None:
+            formset.extra = 2
+        return formset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context.setdefault(
+            "stop_formset", self.get_stop_formset(context["form"])
+        )
         context["vat_rate_map"] = {
             str(rate.pk): str(rate.rate)
             for rate in VATRate.objects.filter(is_active=True)
@@ -5749,6 +5770,20 @@ class TransportationDocumentEditMixin:
             )
         }
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object() if kwargs.get("pk") else None
+        form = self.get_form()
+        if f"{self.stop_prefix}-TOTAL_FORMS" not in request.POST:
+            return super().post(request, *args, **kwargs)
+        form.use_route_formset = True
+        stop_formset = self.get_stop_formset(form, data=request.POST)
+        if form.is_valid() and stop_formset.is_valid():
+            self._stop_formset = stop_formset
+            return self.form_valid(form)
+        return self.render_to_response(
+            self.get_context_data(form=form, stop_formset=stop_formset)
+        )
 
     @staticmethod
     def validation_messages(error):
@@ -5774,8 +5809,16 @@ class TransportationDocumentEditMixin:
         )
         changes = _form_audit_changes(form, include_all=is_create)
         with transaction.atomic():
+            stop_formset = getattr(self, "_stop_formset", None)
+            if stop_formset:
+                start_date, end_date = stop_formset.route_bounds()
+                form.instance.planned_start_date = start_date
+                form.instance.planned_end_date = end_date
             self.object = form.save()
             form.save_related(self.request.user)
+            if stop_formset:
+                stop_formset.instance = self.object
+                stop_formset.save()
             if previous_status != self.object.status:
                 changes.setdefault(
                     "Статус",

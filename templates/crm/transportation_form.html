@@ -17,7 +17,6 @@
 
 <form method="post" class="entity-form uk-form-stacked onec-document-form" id="transportation-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}" data-return-transportation="{% if object %}{{ object.pk }}{% endif %}">
     {% csrf_token %}
-    {{ form.pickup_address_meta }}{{ form.delivery_address_meta }}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <div class="onec-command-bar">
         <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
@@ -50,28 +49,62 @@
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>03</span><div><h2>Маршрут</h2><p>Погрузка и выгрузка — даты сохраняются в самом рейсе и в точках маршрута</p></div></div>
-        <div class="onec-route-columns">
-            <div class="onec-route-block">
-                <h3><span class="route-stop-index">1</span> Погрузка</h3>
-                <div class="form-grid">
-                    {% include "crm/includes/form_field.html" with field=form.pickup_organization wide=True %}
-                    {% include "crm/includes/form_field.html" with field=form.pickup_organization_text wide=True %}
-                    {% include "crm/includes/form_field.html" with field=form.pickup_city %}
-                    {% include "crm/includes/form_field.html" with field=form.pickup_date %}
-                    {% include "crm/includes/form_field.html" with field=form.pickup_address wide=True %}
+        <div class="form-section-title"><span>03</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить промежуточные погрузки и выгрузки.</p></div></div>
+        {{ stop_formset.management_form }}
+        {% if stop_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_formset.non_form_errors }}</div>{% endif %}
+        <div class="order-route-list" data-order-route-list>
+            {% for stop_form in stop_formset %}
+                <article class="order-route-stop" data-order-route-stop>
+                    {{ stop_form.id }}{{ stop_form.sequence }}
+                    <div class="order-route-stop-head">
+                        <div><span class="route-stop-index" data-route-number>{{ forloop.counter }}</span><strong data-route-title>{% if stop_form.instance.kind == 'delivery' or stop_form.initial.kind == 'delivery' %}Выгрузка{% elif stop_form.instance.kind == 'intermediate' or stop_form.initial.kind == 'intermediate' %}Промежуточная точка{% else %}Погрузка{% endif %}</strong></div>
+                        <label class="passport-delete">{{ stop_form.DELETE }} Удалить точку</label>
+                    </div>
+                    {% if stop_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_form.non_field_errors }}</div>{% endif %}
+                    <div class="form-grid order-route-grid">
+                        {% include "crm/includes/form_field.html" with field=stop_form.kind %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.organization wide=True %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.organization_text wide=True %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.city %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.address wide=True %}
+                        {{ stop_form.address_meta }}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_date %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_from %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_to %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.contact_name %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.contact_phone %}
+                        {% include "crm/includes/form_field.html" with field=stop_form.instructions wide=True %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-order-route-empty-form>
+            <article class="order-route-stop" data-order-route-stop>
+                {{ stop_formset.empty_form.id }}{{ stop_formset.empty_form.sequence }}
+                <div class="order-route-stop-head">
+                    <div><span class="route-stop-index" data-route-number></span><strong data-route-title>Погрузка</strong></div>
+                    <label class="passport-delete">{{ stop_formset.empty_form.DELETE }} Удалить точку</label>
                 </div>
-            </div>
-            <div class="onec-route-block">
-                <h3><span class="route-stop-index">2</span> Выгрузка</h3>
-                <div class="form-grid">
-                    {% include "crm/includes/form_field.html" with field=form.delivery_organization wide=True %}
-                    {% include "crm/includes/form_field.html" with field=form.delivery_organization_text wide=True %}
-                    {% include "crm/includes/form_field.html" with field=form.delivery_city %}
-                    {% include "crm/includes/form_field.html" with field=form.delivery_date %}
-                    {% include "crm/includes/form_field.html" with field=form.delivery_address wide=True %}
+                <div class="form-grid order-route-grid">
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.kind %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.organization wide=True %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.organization_text wide=True %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address wide=True %}
+                    {{ stop_formset.empty_form.address_meta }}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_date %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_from %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_to %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_name %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_phone %}
+                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.instructions wide=True %}
                 </div>
-            </div>
+            </article>
+        </template>
+        <div class="order-route-actions">
+            <button class="uk-button uk-button-default" type="button" data-order-route-add="pickup"><span uk-icon="plus"></span> Добавить погрузку</button>
+            <button class="uk-button uk-button-default" type="button" data-order-route-add="intermediate"><span uk-icon="plus"></span> Добавить промежуточную</button>
+            <button class="uk-button uk-button-default" type="button" data-order-route-add="delivery"><span uk-icon="plus"></span> Добавить выгрузку</button>
         </div>
     </section>
 

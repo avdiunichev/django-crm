@@ -18,8 +18,13 @@
             const number = row.querySelector("[data-route-number]");
             if (number) number.textContent = String(index + 1);
             const title = row.querySelector("[data-route-title]");
-            if (title) title.textContent = kind === "delivery" ? "Выгрузка" : "Погрузка";
+            if (title) {
+                title.textContent = kind === "delivery"
+                    ? "Выгрузка"
+                    : (kind === "intermediate" ? "Промежуточная точка" : "Погрузка");
+            }
             row.classList.toggle("is-delivery", kind === "delivery");
+            row.classList.toggle("is-intermediate", kind === "intermediate");
             row.classList.toggle("is-deleted", Boolean(deleted));
         };
         const refresh = () => rows().forEach(updateRow);

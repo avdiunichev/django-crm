@@ -2143,13 +2143,19 @@ class CrmTestCase(TestCase):
         for url in (reverse("transportation-create"), reverse("shipment-create")):
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertContains(response, 'data-dadata-address=""', count=2)
-                self.assertContains(response, 'data-dadata-city=""', count=2)
+                expected_address_fields = 3 if url == reverse("transportation-create") else 2
+                expected_city_fields = 3 if url == reverse("transportation-create") else 2
                 self.assertContains(
                     response,
-                    reverse("dadata-address-suggestions"),
-                    count=4,
+                    'data-dadata-address=""',
+                    count=expected_address_fields,
                 )
+                self.assertContains(
+                    response,
+                    'data-dadata-city=""',
+                    count=expected_city_fields,
+                )
+                self.assertContains(response, reverse("dadata-address-suggestions"))
                 self.assertContains(response, "js/address-suggestions.js")
                 self.assertContains(response, "js/city-suggestions.js")
 
@@ -3802,6 +3808,30 @@ class CrmTestCase(TestCase):
         self.assertIn("Санкт-Петербург → Тверь → Москва", text)
         self.assertIn("Промежуточная точка", text)
         self.assertIn("Тверь, склад 2", text)
+
+    def test_transportation_edit_form_shows_multiple_delivery_stops(self):
+        transportation = self.shipment.transportation
+        transportation.stops.all().delete()
+        for sequence, kind, city in (
+            (1, TransportationStop.Kind.PICKUP, "Санкт-Петербург"),
+            (2, TransportationStop.Kind.DELIVERY, "Москва"),
+            (3, TransportationStop.Kind.DELIVERY, "Нижний Новгород"),
+        ):
+            TransportationStop.objects.create(
+                transportation=transportation,
+                sequence=sequence,
+                kind=kind,
+                city=city,
+                address=f"{city}, склад {sequence}",
+            )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("transportation-update", args=[transportation.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="route_stops-TOTAL_FORMS" value="3"')
+        self.assertContains(response, 'name="route_stops-1-city" value="Москва"')
+        self.assertContains(response, 'name="route_stops-2-city" value="Нижний Новгород"')
 
     def test_attached_document_download_requires_login(self):
         with tempfile.TemporaryDirectory() as media_directory:

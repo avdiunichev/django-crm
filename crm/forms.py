@@ -1089,6 +1089,205 @@ TransportOrderStopFormSet = inlineformset_factory(
 )
 
 
+class TransportationStopForm(StyledModelForm):
+    address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
+    planned_date = forms.DateField(label="Дата", required=False)
+    planned_time_from = forms.TimeField(label="Время с", required=False)
+    planned_time_to = forms.TimeField(label="Время до", required=False)
+
+    class Meta:
+        model = TransportationStop
+        fields = [
+            "sequence", "kind", "organization", "organization_text", "city",
+            "address", "planned_date", "planned_time_from", "planned_time_to",
+            "contact_name", "contact_phone", "instructions",
+        ]
+        widgets = {
+            "sequence": forms.HiddenInput(),
+            "planned_time_from": forms.TimeInput(
+                format="%H:%M", attrs={"type": "time"}
+            ),
+            "planned_time_to": forms.TimeInput(
+                format="%H:%M", attrs={"type": "time"}
+            ),
+            "instructions": forms.Textarea(attrs={"rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["organization"].queryset = Organization.objects.filter(
+            is_active=True
+        ).distinct()
+        self.fields["organization"].required = False
+        self.fields["organization"].widget.attrs.update(
+            {
+                "data-smart-select": "organization",
+                "data-create-url": reverse("quick-organization-create"),
+                "data-search-placeholder": "Название или ИНН контрагента",
+                "data-create-label": "Создать контрагента",
+            }
+        )
+        self.fields["planned_date"].widget = CRMDateInput()
+        self.fields["planned_date"].input_formats = CRM_DATE_INPUT_FORMATS
+        self.fields["planned_time_from"].input_formats = ("%H:%M",)
+        self.fields["planned_time_to"].input_formats = ("%H:%M",)
+        self.fields["city"].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-city": "",
+                "data-dadata-city-url": reverse("dadata-address-suggestions"),
+                "placeholder": "Начните вводить город или населённый пункт",
+            }
+        )
+        self.fields["address"].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-address": "",
+                "data-dadata-address-url": reverse("dadata-address-suggestions"),
+                "data-dadata-city-source": f"id_{self.add_prefix('city')}",
+                "data-dadata-meta-target": f"id_{self.add_prefix('address_meta')}",
+                "placeholder": "Начните вводить улицу, дом или полный адрес",
+            }
+        )
+        self.fields["contact_phone"].widget.attrs.update(
+            {"inputmode": "tel", "placeholder": "+7 900 000-00-00"}
+        )
+        if self.instance.pk and not self.is_bound:
+            self.initial["planned_date"] = (
+                self.instance.planned_from.date()
+                if self.instance.planned_from
+                else None
+            )
+            self.initial["planned_time_from"] = (
+                self.instance.planned_from.time().replace(second=0, microsecond=0)
+                if self.instance.planned_from
+                else None
+            )
+            self.initial["planned_time_to"] = (
+                self.instance.planned_to.time().replace(second=0, microsecond=0)
+                if self.instance.planned_to
+                else None
+            )
+            values = {
+                key: getattr(self.instance, key, "")
+                for key in (
+                    "address_fias_id", "address_postal_code", "address_region_code",
+                    "address_region", "address_area", "address_city",
+                    "address_settlement", "address_street", "address_house",
+                    "address_block", "address_flat",
+                )
+            }
+            if any(values.values()):
+                self.initial["address_meta"] = json.dumps(values, ensure_ascii=False)
+
+    @staticmethod
+    def _planned_datetime(date_value, time_value):
+        if not date_value:
+            return None
+        combined = datetime.combine(date_value, time_value or time(hour=9))
+        return timezone.make_aware(combined, timezone.get_current_timezone())
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.planned_from = self._planned_datetime(
+            self.cleaned_data.get("planned_date"),
+            self.cleaned_data.get("planned_time_from"),
+        )
+        instance.planned_to = self._planned_datetime(
+            self.cleaned_data.get("planned_date"),
+            self.cleaned_data.get("planned_time_to"),
+        )
+        raw = self.cleaned_data.get("address_meta") or ""
+        try:
+            parsed = json.loads(raw) if isinstance(raw, str) else raw
+        except (TypeError, ValueError):
+            parsed = {}
+        if not isinstance(parsed, dict):
+            parsed = {}
+        mapping = {
+            "fias_id": "address_fias_id",
+            "postal_code": "address_postal_code",
+            "region_code": "address_region_code",
+            "region": "address_region",
+            "area": "address_area",
+            "city": "address_city",
+            "settlement": "address_settlement",
+            "street": "address_street",
+            "house": "address_house",
+            "block": "address_block",
+            "flat": "address_flat",
+        }
+        max_lengths = {
+            "address_fias_id": 36, "address_postal_code": 12,
+            "address_region_code": 3, "address_region": 150,
+            "address_area": 150, "address_city": 150,
+            "address_settlement": 150, "address_street": 150,
+            "address_house": 30, "address_block": 30, "address_flat": 30,
+        }
+        for source, target in mapping.items():
+            value = parsed.get(source) or parsed.get(target) or ""
+            setattr(instance, target, str(value)[: max_lengths[target]])
+        if commit:
+            instance.save()
+        return instance
+
+
+class BaseTransportationStopFormSet(BaseInlineFormSet):
+    def active_forms(self):
+        return [
+            form
+            for form in self.forms
+            if hasattr(form, "cleaned_data")
+            and not form.cleaned_data.get("DELETE")
+            and form.cleaned_data.get("city")
+        ]
+
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        rows = self.active_forms()
+        if len(rows) < 2:
+            raise forms.ValidationError(
+                "Маршрут должен содержать минимум погрузку и выгрузку."
+            )
+        if rows[0].cleaned_data.get("kind") != TransportationStop.Kind.PICKUP:
+            rows[0].add_error("kind", "Первая точка должна быть погрузкой.")
+        if rows[-1].cleaned_data.get("kind") != TransportationStop.Kind.DELIVERY:
+            rows[-1].add_error("kind", "Последняя точка должна быть выгрузкой.")
+        previous_date = None
+        for index, form in enumerate(rows, start=1):
+            form.cleaned_data["sequence"] = index
+            form.instance.sequence = index
+            current_date = form.cleaned_data.get("planned_date")
+            if previous_date and current_date and current_date < previous_date:
+                form.add_error(
+                    "planned_date",
+                    "Дата точки не может быть раньше предыдущей точки маршрута.",
+                )
+            if current_date:
+                previous_date = current_date
+
+    def route_bounds(self):
+        rows = self.active_forms()
+        dated = [row.cleaned_data.get("planned_date") for row in rows]
+        dated = [value for value in dated if value]
+        return (
+            dated[0] if dated else None,
+            dated[-1] if dated else None,
+        )
+
+
+TransportationStopFormSet = inlineformset_factory(
+    Transportation,
+    TransportationStop,
+    form=TransportationStopForm,
+    formset=BaseTransportationStopFormSet,
+    extra=0,
+    can_delete=True,
+)
+
+
 class TransportationDocumentForm(StyledModelForm):
     pickup_address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
     delivery_address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
@@ -1149,12 +1348,12 @@ class TransportationDocumentForm(StyledModelForm):
         required=False,
         help_text="Если контрагента нет в справочнике, можно просто вписать название.",
     )
-    pickup_city = forms.CharField(label="Город погрузки", max_length=120)
+    pickup_city = forms.CharField(label="Город погрузки", max_length=120, required=False)
     pickup_address = forms.CharField(
         label="Адрес погрузки", max_length=255, required=False
     )
     pickup_date = forms.DateField(
-        label="Дата погрузки", widget=forms.DateInput(attrs={"type": "date"})
+        label="Дата погрузки", required=False, widget=forms.DateInput(attrs={"type": "date"})
     )
     delivery_organization = OrganizationChoiceField(
         label="Грузополучатель",
@@ -1167,12 +1366,12 @@ class TransportationDocumentForm(StyledModelForm):
         required=False,
         help_text="Если контрагента нет в справочнике, можно просто вписать название.",
     )
-    delivery_city = forms.CharField(label="Город выгрузки", max_length=120)
+    delivery_city = forms.CharField(label="Город выгрузки", max_length=120, required=False)
     delivery_address = forms.CharField(
         label="Адрес выгрузки", max_length=255, required=False
     )
     delivery_date = forms.DateField(
-        label="Дата выгрузки", widget=forms.DateInput(attrs={"type": "date"})
+        label="Дата выгрузки", required=False, widget=forms.DateInput(attrs={"type": "date"})
     )
 
     class Meta:
@@ -1645,8 +1844,9 @@ class TransportationDocumentForm(StyledModelForm):
         return timezone.make_aware(combined, timezone.get_current_timezone())
 
     def save(self, commit=True):
-        self.instance.planned_start_date = self.cleaned_data.get("pickup_date")
-        self.instance.planned_end_date = self.cleaned_data.get("delivery_date")
+        if not getattr(self, "use_route_formset", False):
+            self.instance.planned_start_date = self.cleaned_data.get("pickup_date")
+            self.instance.planned_end_date = self.cleaned_data.get("delivery_date")
         return super().save(commit=commit)
 
     def save_related(self, user):
@@ -1715,57 +1915,58 @@ class TransportationDocumentForm(StyledModelForm):
                 for key in allowed
             }
 
-        pickup = transportation.stops.filter(
-            kind=TransportationStop.Kind.PICKUP
-        ).order_by("sequence").first()
-        pickup_values = {
-            "kind": TransportationStop.Kind.PICKUP,
-            "organization": self.cleaned_data.get("pickup_organization"),
-            "organization_text": self.cleaned_data.get("pickup_organization_text", ""),
-            "city": self.cleaned_data["pickup_city"],
-            "address": self.cleaned_data.get("pickup_address", ""),
-            "planned_from": self._planned_datetime(self.cleaned_data["pickup_date"]),
-        }
-        pickup_values.update(address_values("pickup"))
-        if pickup:
-            for field_name, value in pickup_values.items():
-                setattr(pickup, field_name, value)
-            pickup.save(update_fields=[*pickup_values, "updated_at"])
-        else:
-            TransportationStop.objects.create(
-                transportation=transportation,
-                sequence=1,
-                **pickup_values,
-            )
+        if not getattr(self, "use_route_formset", False):
+            pickup = transportation.stops.filter(
+                kind=TransportationStop.Kind.PICKUP
+            ).order_by("sequence").first()
+            pickup_values = {
+                "kind": TransportationStop.Kind.PICKUP,
+                "organization": self.cleaned_data.get("pickup_organization"),
+                "organization_text": self.cleaned_data.get("pickup_organization_text", ""),
+                "city": self.cleaned_data["pickup_city"],
+                "address": self.cleaned_data.get("pickup_address", ""),
+                "planned_from": self._planned_datetime(self.cleaned_data["pickup_date"]),
+            }
+            pickup_values.update(address_values("pickup"))
+            if pickup:
+                for field_name, value in pickup_values.items():
+                    setattr(pickup, field_name, value)
+                pickup.save(update_fields=[*pickup_values, "updated_at"])
+            else:
+                TransportationStop.objects.create(
+                    transportation=transportation,
+                    sequence=1,
+                    **pickup_values,
+                )
 
-        delivery = transportation.stops.filter(
-            kind=TransportationStop.Kind.DELIVERY
-        ).order_by("-sequence").first()
-        delivery_values = {
-            "kind": TransportationStop.Kind.DELIVERY,
-            "organization": self.cleaned_data.get("delivery_organization"),
-            "organization_text": self.cleaned_data.get("delivery_organization_text", ""),
-            "city": self.cleaned_data["delivery_city"],
-            "address": self.cleaned_data.get("delivery_address", ""),
-            "planned_from": self._planned_datetime(self.cleaned_data["delivery_date"]),
-        }
-        delivery_values.update(address_values("delivery"))
-        if delivery:
-            for field_name, value in delivery_values.items():
-                setattr(delivery, field_name, value)
-            delivery.save(update_fields=[*delivery_values, "updated_at"])
-        else:
-            last_sequence = (
-                transportation.stops.order_by("-sequence").values_list(
-                    "sequence", flat=True
-                ).first()
-                or 1
-            )
-            TransportationStop.objects.create(
-                transportation=transportation,
-                sequence=last_sequence + 1,
-                **delivery_values,
-            )
+            delivery = transportation.stops.filter(
+                kind=TransportationStop.Kind.DELIVERY
+            ).order_by("-sequence").first()
+            delivery_values = {
+                "kind": TransportationStop.Kind.DELIVERY,
+                "organization": self.cleaned_data.get("delivery_organization"),
+                "organization_text": self.cleaned_data.get("delivery_organization_text", ""),
+                "city": self.cleaned_data["delivery_city"],
+                "address": self.cleaned_data.get("delivery_address", ""),
+                "planned_from": self._planned_datetime(self.cleaned_data["delivery_date"]),
+            }
+            delivery_values.update(address_values("delivery"))
+            if delivery:
+                for field_name, value in delivery_values.items():
+                    setattr(delivery, field_name, value)
+                delivery.save(update_fields=[*delivery_values, "updated_at"])
+            else:
+                last_sequence = (
+                    transportation.stops.order_by("-sequence").values_list(
+                        "sequence", flat=True
+                    ).first()
+                    or 1
+                )
+                TransportationStop.objects.create(
+                    transportation=transportation,
+                    sequence=last_sequence + 1,
+                    **delivery_values,
+                )
 
         for assignment in transportation.vehicle_assignments.filter(is_active=True):
             assignment.is_active = False
