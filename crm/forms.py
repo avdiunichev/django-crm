@@ -586,6 +586,21 @@ class OrganizationBankAccountForm(StyledModelForm):
             "currency", "is_primary", "is_active", "notes",
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["bik"].widget.attrs.update(
+            {
+                "data-dadata-bank": "",
+                "data-dadata-bank-url": reverse("dadata-bank-by-bik"),
+                "data-bank-name-field": self.add_prefix("bank_name"),
+                "data-correspondent-account-field": self.add_prefix(
+                    "correspondent_account"
+                ),
+                "autocomplete": "off",
+                "placeholder": "9 цифр",
+            }
+        )
+
 
 class OrganizationContactForm(StyledModelForm):
     class Meta:

@@ -1928,6 +1928,10 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
+    def test_dadata_bank_lookup_requires_login(self):
+        response = self.client.get(reverse("dadata-bank-by-bik"), {"bik": "044525225"})
+        self.assertEqual(response.status_code, 302)
+
     def test_dadata_address_suggestions_ignore_short_queries(self):
         self.client.force_login(self.user)
         response = self.client.get(
@@ -1999,6 +2003,59 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("10 цифр", response.json()["error"])
+
+    def test_dadata_bank_lookup_validates_bik(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("dadata-bank-by-bik"), {"bik": "044"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("9 цифр", response.json()["error"])
+
+    @override_settings(
+        DADATA_API_TOKEN="test-server-token",
+        DADATA_BANK_URL="https://suggestions.test/findById/bank",
+    )
+    @patch("crm.dadata.urlopen")
+    def test_dadata_bank_lookup_returns_normalized_bank_details(self, mocked_urlopen):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self):
+                return json.dumps(
+                    {
+                        "suggestions": [
+                            {
+                                "value": "ПАО СБЕРБАНК",
+                                "data": {
+                                    "bic": "044525225",
+                                    "correspondent_account": "30101810400000000225",
+                                    "name": {
+                                        "payment": "ПАО СБЕРБАНК",
+                                        "short": "СБЕРБАНК",
+                                    },
+                                    "address": {"value": "г Москва"},
+                                },
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                ).encode("utf-8")
+
+        mocked_urlopen.return_value = FakeResponse()
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("dadata-bank-by-bik"), {"bik": "044525225"})
+
+        self.assertEqual(response.status_code, 200)
+        bank = response.json()["bank"]
+        self.assertEqual(bank["bank_name"], "ПАО СБЕРБАНК")
+        self.assertEqual(bank["bik"], "044525225")
+        self.assertEqual(bank["correspondent_account"], "30101810400000000225")
+        request = mocked_urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://suggestions.test/findById/bank")
+        self.assertEqual(json.loads(request.data), {"query": "044525225", "count": 1})
 
     @override_settings(DADATA_API_TOKEN="test-server-token")
     @patch("crm.dadata.urlopen")

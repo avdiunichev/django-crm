@@ -198,6 +198,41 @@ def suggest_addresses(query, city="", count=10):
     return suggestions
 
 
+def _normalize_bank(suggestion):
+    data = suggestion.get("data") or {}
+    name = data.get("name") or {}
+    address = data.get("address") or {}
+    return {
+        "value": suggestion.get("value") or name.get("payment") or "",
+        "bank_name": name.get("payment") or name.get("short") or suggestion.get("value") or "",
+        "bik": data.get("bic") or "",
+        "correspondent_account": data.get("correspondent_account") or "",
+        "swift": data.get("swift") or "",
+        "registration_number": data.get("registration_number") or "",
+        "city": address.get("data", {}).get("city_with_type", "") if isinstance(address.get("data"), dict) else "",
+        "address": address.get("value") or "",
+    }
+
+
+def find_bank_by_bik(bik):
+    """Return normalized bank details by BIK without exposing the token."""
+
+    bik = "".join(ch for ch in str(bik or "") if ch.isdigit())
+    cache_key = f"dadata-bank:{bik}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    result = _request_suggestions(
+        settings.DADATA_BANK_URL,
+        {"query": bik, "count": 1},
+    )
+    suggestions = result.get("suggestions") or []
+    bank = _normalize_bank(suggestions[0]) if suggestions else None
+    cache.set(cache_key, bank, timeout=60 * 60 * 24)
+    return bank
+
+
 def suggest_person_names(query, part, count=10):
     """Return granular surname, name or patronymic suggestions."""
 

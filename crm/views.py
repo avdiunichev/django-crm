@@ -191,6 +191,7 @@ def _xlsx_response(filename, sheets):
 from .dadata import (
     DadataNotConfigured,
     DadataUnavailable,
+    find_bank_by_bik,
     find_party_by_inn,
     suggest_addresses,
     suggest_fms_units,
@@ -767,6 +768,23 @@ def dadata_address_suggestions(request):
     except DadataUnavailable as error:
         return JsonResponse({"error": str(error)}, status=502)
     return JsonResponse({"suggestions": suggestions})
+
+
+@login_required
+@require_GET
+def dadata_bank_by_bik(request):
+    bik = re.sub(r"\D", "", request.GET.get("bik", ""))
+    if len(bik) != 9:
+        return JsonResponse({"error": "Укажите БИК из 9 цифр."}, status=400)
+    try:
+        bank = find_bank_by_bik(bik)
+    except DadataNotConfigured as error:
+        return JsonResponse({"error": str(error)}, status=503)
+    except DadataUnavailable as error:
+        return JsonResponse({"error": str(error)}, status=502)
+    if bank is None:
+        return JsonResponse({"error": "Банк с таким БИК не найден в DaData."}, status=404)
+    return JsonResponse({"bank": bank})
 
 
 @login_required

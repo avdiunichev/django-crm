@@ -205,6 +205,9 @@ DADATA_PARTY_URL = (
 DADATA_ADDRESS_URL = (
     "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
 )
+DADATA_BANK_URL = (
+    "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/bank"
+)
 DADATA_FIO_URL = (
     "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio"
 )

@@ -33,6 +33,10 @@ urlpatterns = [
         name="dadata-address-suggestions",
     ),
     path(
+        "api/dadata/bank/", views.dadata_bank_by_bik,
+        name="dadata-bank-by-bik",
+    ),
+    path(
         "api/dadata/fio/", views.dadata_fio_suggestions,
         name="dadata-fio-suggestions",
     ),
