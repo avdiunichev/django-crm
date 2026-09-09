@@ -153,6 +153,24 @@ class CRMDateInput(forms.DateInput):
         super().__init__(attrs=date_attrs, format=CRM_DATE_DISPLAY_FORMAT)
 
 
+class CRMTimeInput(forms.TimeInput):
+    """Text time input in HH:MM format without the browser's native picker."""
+
+    input_type = "text"
+
+    def __init__(self, attrs=None):
+        time_attrs = {
+            "placeholder": "ЧЧ:ММ",
+            "inputmode": "numeric",
+            "autocomplete": "off",
+            "maxlength": "5",
+            "data-crm-time": "",
+        }
+        time_attrs.update(attrs or {})
+        time_attrs.pop("type", None)
+        super().__init__(attrs=time_attrs, format="%H:%M")
+
+
 def configure_crm_date_fields(form):
     """Apply one display and input format to every date field in a form."""
 
@@ -945,12 +963,8 @@ class TransportOrderStopForm(StyledModelForm):
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
-            "planned_time_from": forms.TimeInput(
-                format="%H:%M", attrs={"type": "time"}
-            ),
-            "planned_time_to": forms.TimeInput(
-                format="%H:%M", attrs={"type": "time"}
-            ),
+            "planned_time_from": CRMTimeInput(),
+            "planned_time_to": CRMTimeInput(),
             "instructions": forms.Textarea(attrs={"rows": 2}),
         }
 
@@ -1091,9 +1105,24 @@ TransportOrderStopFormSet = inlineformset_factory(
 
 class TransportationStopForm(StyledModelForm):
     address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
-    planned_date = forms.DateField(label="Дата", required=False)
-    planned_time_from = forms.TimeField(label="Время с", required=False)
-    planned_time_to = forms.TimeField(label="Время до", required=False)
+    planned_date = forms.DateField(
+        label="Дата",
+        required=False,
+        input_formats=CRM_DATE_INPUT_FORMATS,
+        widget=CRMDateInput(),
+    )
+    planned_time_from = forms.TimeField(
+        label="Время с",
+        required=False,
+        input_formats=("%H:%M",),
+        widget=CRMTimeInput(),
+    )
+    planned_time_to = forms.TimeField(
+        label="Время до",
+        required=False,
+        input_formats=("%H:%M",),
+        widget=CRMTimeInput(),
+    )
 
     class Meta:
         model = TransportationStop
@@ -1104,12 +1133,6 @@ class TransportationStopForm(StyledModelForm):
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
-            "planned_time_from": forms.TimeInput(
-                format="%H:%M", attrs={"type": "time"}
-            ),
-            "planned_time_to": forms.TimeInput(
-                format="%H:%M", attrs={"type": "time"}
-            ),
             "instructions": forms.Textarea(attrs={"rows": 2}),
         }
 
@@ -1153,19 +1176,29 @@ class TransportationStopForm(StyledModelForm):
             {"inputmode": "tel", "placeholder": "+7 900 000-00-00"}
         )
         if self.instance.pk and not self.is_bound:
+            planned_from = (
+                timezone.localtime(self.instance.planned_from)
+                if self.instance.planned_from and timezone.is_aware(self.instance.planned_from)
+                else self.instance.planned_from
+            )
+            planned_to = (
+                timezone.localtime(self.instance.planned_to)
+                if self.instance.planned_to and timezone.is_aware(self.instance.planned_to)
+                else self.instance.planned_to
+            )
             self.initial["planned_date"] = (
-                self.instance.planned_from.date()
-                if self.instance.planned_from
+                planned_from.date()
+                if planned_from
                 else None
             )
             self.initial["planned_time_from"] = (
-                self.instance.planned_from.time().replace(second=0, microsecond=0)
-                if self.instance.planned_from
+                planned_from.time().replace(second=0, microsecond=0)
+                if planned_from
                 else None
             )
             self.initial["planned_time_to"] = (
-                self.instance.planned_to.time().replace(second=0, microsecond=0)
-                if self.instance.planned_to
+                planned_to.time().replace(second=0, microsecond=0)
+                if planned_to
                 else None
             )
             values = {

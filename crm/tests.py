@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 from decimal import Decimal
 from io import BytesIO
 import json
@@ -12,6 +12,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from docx import Document
 
 from .forms import (
@@ -335,10 +336,10 @@ class CrmTestCase(TestCase):
             planned_start_date=date.today(),
             planned_end_date=date.today() + timedelta(days=2),
         )
-        for sequence, kind, city in (
-            (1, TransportOrderStop.Kind.PICKUP, "Псков"),
-            (2, TransportOrderStop.Kind.DELIVERY, "Тверь"),
-            (3, TransportOrderStop.Kind.DELIVERY, "Москва"),
+        for sequence, kind, city, time_from, time_to in (
+            (1, TransportOrderStop.Kind.PICKUP, "Псков", time(8, 30), time(12, 0)),
+            (2, TransportOrderStop.Kind.DELIVERY, "Тверь", time(14, 15), time(15, 45)),
+            (3, TransportOrderStop.Kind.DELIVERY, "Москва", time(9, 0), time(11, 30)),
         ):
             TransportOrderStop.objects.create(
                 order=order,
@@ -346,6 +347,8 @@ class CrmTestCase(TestCase):
                 kind=kind,
                 city=city,
                 planned_date=date.today() + timedelta(days=sequence - 1),
+                planned_time_from=time_from,
+                planned_time_to=time_to,
             )
         self.client.force_login(self.user)
 
@@ -363,6 +366,19 @@ class CrmTestCase(TestCase):
         self.assertEqual(
             list(transportation.stops.values_list("city", flat=True)),
             ["Псков", "Тверь", "Москва"],
+        )
+        first_stop = transportation.stops.order_by("sequence").first()
+        self.assertEqual(
+            timezone.localtime(first_stop.planned_from).time().replace(
+                second=0, microsecond=0
+            ),
+            time(8, 30),
+        )
+        self.assertEqual(
+            timezone.localtime(first_stop.planned_to).time().replace(
+                second=0, microsecond=0
+            ),
+            time(12, 0),
         )
         self.assertTrue(
             transportation.parties.filter(

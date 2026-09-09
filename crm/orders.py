@@ -14,12 +14,14 @@ from .models import (
 )
 
 
-def _planned_datetime(route_stop):
+def _planned_datetime(route_stop, time_value=None, *, default_time=None):
     if not route_stop.planned_date:
+        return None
+    if time_value is None and default_time is None:
         return None
     value = datetime.combine(
         route_stop.planned_date,
-        route_stop.planned_time_from or time(hour=9),
+        time_value or default_time,
     )
     return timezone.make_aware(value, timezone.get_current_timezone())
 
@@ -109,7 +111,10 @@ def assign_order_to_transportation(order, user):
             address_flat=route_stop.address_flat,
             contact_name=route_stop.contact_name,
             contact_phone=route_stop.contact_phone,
-            planned_from=_planned_datetime(route_stop),
+            planned_from=_planned_datetime(
+                route_stop, route_stop.planned_time_from, default_time=time(hour=9)
+            ),
+            planned_to=_planned_datetime(route_stop, route_stop.planned_time_to),
             instructions=route_stop.instructions,
         )
 
