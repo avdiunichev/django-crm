@@ -6235,6 +6235,7 @@ body.uikit-theme {
 .uikit-theme .vehicle-register-panel,
 .uikit-theme .driver-info-panel,
 .uikit-theme .vehicle-info-panel,
+.uikit-theme .organization-summary-card,
 .uikit-theme .driver-summary-card,
 .uikit-theme .vehicle-summary-card,
 .uikit-theme .transport-chain-panel,
@@ -6243,6 +6244,130 @@ body.uikit-theme {
     border-radius: 10px;
     background: #fff;
     box-shadow: 0 10px 26px rgba(31, 41, 55, .055);
+}
+
+.uikit-theme .directory-card {
+    display: grid;
+    gap: 18px;
+}
+
+.uikit-theme .directory-titlebar,
+.uikit-theme .onec-titlebar {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 0;
+}
+
+.uikit-theme .directory-titlebar h1,
+.uikit-theme .onec-titlebar h1 {
+    margin: 4px 0 4px;
+    color: #2f3846;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.18;
+}
+
+.uikit-theme .directory-titlebar h1 small,
+.uikit-theme .onec-titlebar h1 small {
+    color: #4b5563;
+    font-size: .72em;
+    font-weight: 400;
+}
+
+.uikit-theme .directory-titlebar p,
+.uikit-theme .onec-titlebar p {
+    margin: 0;
+    color: #8b8f97;
+    font-size: 14px;
+}
+
+.uikit-theme .directory-commandbar,
+.uikit-theme .onec-commandbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+}
+
+.uikit-theme .directory-card-state,
+.uikit-theme .driver-card-state,
+.uikit-theme .vehicle-card-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    color: #8b8f97;
+    font-size: 13px;
+}
+
+.uikit-theme .directory-card-state.is-active,
+.uikit-theme .driver-card-state.is-active,
+.uikit-theme .vehicle-card-state.is-active {
+    color: #168b60;
+}
+
+.uikit-theme .directory-summary-card,
+.uikit-theme .driver-summary-card,
+.uikit-theme .vehicle-summary-card {
+    min-height: 116px;
+    margin: 0;
+    padding: 24px !important;
+}
+
+.uikit-theme .directory-summary-card .uk-grid > div,
+.uikit-theme .driver-summary-stats div,
+.uikit-theme .vehicle-summary-stats div {
+    min-width: 120px;
+}
+
+.uikit-theme .directory-summary-card .uk-text-meta,
+.uikit-theme .driver-summary-stats span,
+.uikit-theme .vehicle-summary-stats span {
+    color: #8b8f97;
+    font-size: 13px;
+}
+
+.uikit-theme .directory-summary-card strong,
+.uikit-theme .driver-summary-stats strong,
+.uikit-theme .vehicle-summary-stats strong {
+    margin-top: 6px;
+    color: #2f3846;
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.uikit-theme .directory-tabs,
+.uikit-theme .onec-tabs {
+    margin-top: 2px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #dce4ee;
+}
+
+.uikit-theme .directory-tabs > *,
+.uikit-theme .onec-tabs > * {
+    padding-left: 0;
+}
+
+.uikit-theme .directory-tabs > * > a,
+.uikit-theme .onec-tabs > * > a {
+    min-height: 42px;
+    padding: 0 18px 10px;
+    color: #8b8f97;
+    font-size: 14px;
+    letter-spacing: .04em;
+}
+
+.uikit-theme .directory-tabs > .uk-active > a,
+.uikit-theme .onec-tabs > .uk-active > a {
+    color: #2f3846;
+    border-color: #1e87f0;
+}
+
+.uikit-theme .onec-switcher {
+    margin-top: 0;
 }
 
 .uikit-theme .panel-header,

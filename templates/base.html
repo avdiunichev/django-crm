@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260906-vehicle-requisites">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260908-directory-unified">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
@@ -43,6 +43,7 @@
                 {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'profitability-report' %}uk-active{% endif %}"><a href="{% url 'profitability-report' %}"><span class="uk-margin-small-right" uk-icon="triangle-up"></span> Прибыльность</a></li>{% endif %}
                 <li class="{% if 'planner' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'planner' %}"><span class="uk-margin-small-right" uk-icon="calendar"></span> Планировщик</a></li>
                 <li class="{% if 'shipment-document' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}"><a href="{% url 'shipment-document-list' %}"><span class="uk-margin-small-right" uk-icon="file-text"></span> Документы</a></li>
+                {% if crm_access.can_access_finance %}<li class="{% if 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'primary-document-registry-list' %}"><span class="uk-margin-small-right" uk-icon="folder"></span> Первичка</a></li>{% endif %}
                 <li class="{% if 'contract' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'contract-list' %}"><span class="uk-margin-small-right" uk-icon="album"></span> Договоры</a></li>
                 <li class="{% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'organization-list' %}"><span class="uk-margin-small-right" uk-icon="users"></span> Контрагенты</a></li>
                 <li class="{% if 'driver' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'driver-list' %}"><span class="uk-margin-small-right" uk-icon="user"></span> Водители</a></li>

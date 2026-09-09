@@ -1714,7 +1714,7 @@ class CrmTestCase(TestCase):
         self.client.force_login(self.user)
         dashboard = self.client.get(reverse("dashboard"))
         self.assertContains(dashboard, "uikit@3.25.21")
-        self.assertContains(dashboard, "v=20260906-vehicle-requisites")
+        self.assertContains(dashboard, "v=20260908-directory-unified")
         self.assertContains(dashboard, "uikit-theme")
         self.assertContains(dashboard, "uk-card uk-card-default")
         self.assertContains(dashboard, "Dashboard")
@@ -3681,6 +3681,22 @@ class CrmTestCase(TestCase):
         self.assertEqual(line.shipment_document.number, "УПД-ПАЧКА-001")
         self.assertEqual(line.shipment_document.direction, ShipmentDocument.Direction.OUTGOING)
         self.assertEqual(line.shipment_document.amount, Decimal("100000.00"))
+
+    def test_transportation_executor_application_download_creates_docx(self):
+        transportation = self.shipment.transportation
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("transportation-executor-application", args=[transportation.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+        content = b"".join(response.streaming_content)
+        document = Document(BytesIO(content))
+        text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+        self.assertIn("ДОГОВОР-ЗАЯВКА на перевозку груза", text)
 
     def test_attached_document_download_requires_login(self):
         with tempfile.TemporaryDirectory() as media_directory:

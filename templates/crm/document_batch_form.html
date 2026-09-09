@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}{% if object %}Изменить пачку{% else %}Новая пачка документов{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}Изменить реестр{% else %}Новый реестр первички{% endif %} — Экспедитор CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><a class="back-link" href="{{ cancel_url }}">← К пачкам документов</a><span class="eyebrow">Реализация / поступление</span><h1>{% if object %}Изменить пачку документов{% else %}Создать пачку документов{% endif %}</h1><p>Выберите рейсы галочками и заполните табличную часть: тип, номер, дату, сумму и НДС.</p></div>
+    <div><a class="back-link" href="{{ cancel_url }}">← К реестрам первички</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить реестр документов{% else %}Создать реестр первички{% endif %}</h1><p>Выберите рейсы галочками и заполните табличную часть. Для реализации показываются только рейсы, которые уже доставлены или находятся дальше по цепочке закрытия.</p></div>
 </div>
 
 <form method="post" class="entity-form document-batch-form" data-document-batch-form>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span uk-icon="file-text"></span><div><h2>Шапка документа</h2><p>Эти настройки используются для всех выбранных строк.</p></div></div>
+        <div class="form-section-title"><span uk-icon="file-text"></span><div><h2>Шапка реестра</h2><p>Эти настройки используются для всех выбранных строк.</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.direction %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
@@ -24,7 +24,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default document-batch-picker">
-        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты.</p></div></div>
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты. Отметьте те рейсы, которые нужно передать бухгалтерии.</p></div></div>
         <div class="bank-picker-summary">
             <span>Отмечено рейсов: <strong data-document-selected-count>0</strong></span>
             <span>Сумма документов: <strong class="amount-income" data-document-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span>
@@ -40,8 +40,8 @@
                     <td><select class="uk-select uk-form-small" name="kind_{{ item.transportation.pk }}">{% for value,label in document_kind_choices %}<option value="{{ value }}" {% if item.entered_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
                     <td><input class="uk-input uk-form-small" type="text" maxlength="100" name="number_{{ item.transportation.pk }}" value="{{ item.entered_number }}" placeholder="№ документа"></td>
                     <td><input class="uk-input uk-form-small" type="text" name="date_{{ item.transportation.pk }}" value="{{ item.entered_date }}" placeholder="дд.мм.гггг"></td>
-                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-document-amount></td>
-                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="vat_{{ item.transportation.pk }}" value="{{ item.entered_vat }}"></td>
+                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount|decimal_input }}" data-document-amount></td>
+                    <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="vat_{{ item.transportation.pk }}" value="{{ item.entered_vat|decimal_input }}"></td>
                 </tr>
             {% empty %}
                 <tr><td colspan="8" class="empty-state">Нет рейсов для подбора по выбранным условиям.</td></tr>
@@ -52,7 +52,7 @@
 
     <div class="form-actions">
         <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
-        <button class="uk-button uk-button-default" name="action" value="save" type="submit">Сохранить черновик</button>
+        <button class="uk-button uk-button-default" name="action" value="save" type="submit">Сохранить реестр</button>
         <button class="uk-button uk-button-primary" name="action" value="post" type="submit"><span uk-icon="check"></span> Провести</button>
     </div>
 </form>

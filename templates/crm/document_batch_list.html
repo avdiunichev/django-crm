@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Пачки документов — Экспедитор CRM{% endblock %}
+{% block title %}Реестры первичных документов — Экспедитор CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><a class="back-link" href="{% url 'shipment-document-list' %}">← К реестру документов</a><span class="eyebrow">Реализация и поступление</span><h1>Пачки документов</h1><p>Массовое присвоение счетов, актов, УПД, счетов-фактур, ТрН и прочих документов рейсам.</p></div>
+    <div><a class="back-link" href="{% url 'shipment-document-list' %}">← К общему реестру документов</a><span class="eyebrow">Бухгалтерия</span><h1>Реестры первичных документов</h1><p>Задания бухгалтерии на выставление счетов, актов, УПД, счетов-фактур, ТрН и привязку документов к рейсам.</p></div>
     <div class="heading-actions">
         <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
-        <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="arrow-up"></span> Создать реализацию</a>
+        <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="file-edit"></span> Реестр на реализацию</a>
     </div>
 </div>
 
@@ -37,7 +37,7 @@
                 <td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a>{% if batch.status != 'voided' %}<a class="row-action" href="{% url 'document-batch-update' batch.pk %}">Изменить</a>{% endif %}<a class="row-action danger" href="{% url 'document-batch-delete' batch.pk %}">Удалить</a></td>
             </tr>
         {% empty %}
-            <tr><td colspan="7" class="empty-state">Пачек документов пока нет.</td></tr>
+            <tr><td colspan="7" class="empty-state">Реестров первичных документов пока нет.</td></tr>
         {% endfor %}
         </tbody>
     </table></div>

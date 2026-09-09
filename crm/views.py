@@ -2393,7 +2393,7 @@ class ShipmentDocumentDownloadView(LoginRequiredMixin, View):
         )
 
 
-def _document_batch_candidates(direction, owner_id=None, currency="RUB"):
+def _document_batch_candidates(direction, owner_id=None, currency="RUB", delivered_only=False):
     queryset = (
         Transportation.objects.all()
         .select_related("owner_company", "legacy_shipment")
@@ -2413,6 +2413,15 @@ def _document_batch_candidates(direction, owner_id=None, currency="RUB"):
         )
         .order_by("-planned_start_date", "-created_at")
     )
+    if delivered_only and direction == DocumentBatch.Direction.OUTGOING:
+        queryset = queryset.filter(
+            status__in=[
+                Transportation.Status.DELIVERED,
+                Transportation.Status.DOCUMENTS_RECEIVED,
+                Transportation.Status.CUSTOMER_INVOICED,
+                Transportation.Status.CLOSED,
+            ]
+        )
     if owner_id:
         queryset = queryset.filter(owner_company_id=owner_id)
     if currency:
@@ -2504,6 +2513,11 @@ class DocumentBatchEditorMixin:
     form_class = DocumentBatchForm
     template_name = "crm/document_batch_form.html"
 
+    def is_primary_registry_mode(self):
+        return str(self.request.resolver_match.url_name or "").startswith(
+            "primary-document-registry"
+        )
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
@@ -2552,7 +2566,12 @@ class DocumentBatchEditorMixin:
         if currency not in {"RUB", "USD", "EUR"}:
             currency = "RUB"
         selected, values = self._selected_state()
-        candidates = _document_batch_candidates(direction, owner_id=owner_id, currency=currency)
+        candidates = _document_batch_candidates(
+            direction,
+            owner_id=owner_id,
+            currency=currency,
+            delivered_only=self.is_primary_registry_mode(),
+        )
         default_kind = form.data.get("default_kind") if form.is_bound else form.initial.get("default_kind", ShipmentDocument.Kind.UPD)
         default_date = form.data.get("document_date") if form.is_bound else form.initial.get("document_date", timezone.localdate())
         default_date_value = default_date.isoformat() if hasattr(default_date, "isoformat") else str(default_date or "")
@@ -2568,6 +2587,7 @@ class DocumentBatchEditorMixin:
             "document_batch_candidates": candidates,
             "document_kind_choices": ShipmentDocument.Kind.choices,
             "cancel_url": reverse_lazy("document-batch-list"),
+            "is_primary_registry_mode": self.is_primary_registry_mode(),
         }
 
     def get_context_data(self, **kwargs):
@@ -2581,7 +2601,12 @@ class DocumentBatchEditorMixin:
         currency = form.cleaned_data["currency"]
         candidate_map = {
             str(item["transportation"].pk): item
-            for item in _document_batch_candidates(direction, owner_id, currency)
+            for item in _document_batch_candidates(
+                direction,
+                owner_id,
+                currency,
+                delivered_only=self.is_primary_registry_mode(),
+            )
         }
         selected_ids = self.request.POST.getlist("transportation_ids")
         if not selected_ids:
@@ -2595,7 +2620,7 @@ class DocumentBatchEditorMixin:
             seen.add(raw_id)
             candidate = candidate_map.get(raw_id)
             if not candidate:
-                errors.append("Один из выбранных рейсов недоступен для этой пачки.")
+                errors.append("Один из выбранных рейсов недоступен для этого реестра.")
                 continue
             kind = self.request.POST.get(f"kind_{raw_id}", form.cleaned_data["default_kind"])
             if kind not in ShipmentDocument.Kind.values:
@@ -2646,9 +2671,9 @@ class DocumentBatchEditorMixin:
                 self.object = self._save_batch(form, lines)
                 if request.POST.get("action") == "post":
                     _post_document_batch(self.object, request.user)
-                    messages.success(request, f"Пачка документов {self.object.number} проведена.")
+                    messages.success(request, f"Реестр документов {self.object.number} проведён.")
                 else:
-                    messages.success(request, f"Пачка документов {self.object.number} сохранена как черновик.")
+                    messages.success(request, f"Реестр документов {self.object.number} сохранён как черновик.")
             return redirect(self.object.get_absolute_url())
         return self.render_to_response(self.get_context_data(form=form))
 
@@ -2715,11 +2740,11 @@ class DocumentBatchPostView(LoginRequiredMixin, FinanceAccessMixin, View):
             messages.info(request, f"{batch.number} уже проведена.")
             return redirect(batch.get_absolute_url())
         if not batch.lines.exists():
-            messages.error(request, "В пачке нет строк.")
+            messages.error(request, "В реестре нет строк.")
             return redirect(batch.get_absolute_url())
         with transaction.atomic():
             _post_document_batch(batch, request.user)
-        messages.success(request, f"Пачка документов {batch.number} проведена.")
+        messages.success(request, f"Реестр документов {batch.number} проведён.")
         return redirect(batch.get_absolute_url())
 
 
@@ -2750,7 +2775,7 @@ class DocumentBatchDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
             if batch.status == DocumentBatch.Status.POSTED:
                 _unpost_document_batch(batch)
             batch.delete()
-        messages.success(request, f"Пачка документов {number} удалена.")
+        messages.success(request, f"Реестр документов {number} удалён.")
         return redirect("document-batch-list")
 
 
@@ -6429,6 +6454,44 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             }
         )
         return context
+
+
+class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        transportation = get_object_or_404(
+            Transportation.objects.select_related(
+                "owner_company",
+                "executor_vat_rate",
+                "package_type",
+                "loading_method",
+                "unloading_method",
+            ).prefetch_related(
+                "stops__organization",
+                "execution_links__contract",
+                "execution_links__contractor_party__organization",
+                "vehicle_assignments__driver__passports",
+                "vehicle_assignments__vehicle",
+                "vehicle_assignments__trailer",
+            ),
+            pk=pk,
+        )
+        from .documents import build_executor_transportation_application_docx
+
+        stream = build_executor_transportation_application_docx(transportation)
+        safe_number = re.sub(
+            r"[^0-9A-Za-zА-Яа-я_-]+",
+            "_",
+            transportation.number or f"рейс_{transportation.pk}",
+        )
+        return FileResponse(
+            stream,
+            as_attachment=True,
+            filename=f"Заявка_исполнителю_{safe_number}.docx",
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+        )
 
 
 class TransportationChainUpdateView(LoginRequiredMixin, FormView):

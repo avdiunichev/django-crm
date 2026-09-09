@@ -19,6 +19,7 @@
     <span class="onec-posting-badge {% if transportation.posting_status == 'posted' %}is-posted{% endif %}">{{ transportation.get_posting_status_display }}</span>
     <span class="badge uk-label transportation-status">{{ transportation.get_status_display }}</span>
     <form method="post" action="{% url 'transportation-epd-prepare' transportation.pk %}" class="inline-form">{% csrf_token %}<button class="uk-button uk-button-default" type="submit" title="Проверить данные и сформировать черновики ЭПД"><span uk-icon="file-edit"></span> Подготовить ЭПД</button></form>
+    <a class="uk-button uk-button-default" href="{% url 'transportation-executor-application' transportation.pk %}"><span uk-icon="download"></span> Заявка исполнителю DOCX</a>
     <a class="uk-button uk-button-default" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="users"></span> Назначить исполнение</a>
     {% with link=execution_links.0 %}{% if link and not link.contract %}<a class="uk-button uk-button-default" href="{% url 'contract-create' %}?kind={% if link.contractor_role == 'carrier' %}carrier_transport{% else %}subcontractor_forwarding{% endif %}&return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}&counterparty_organization={{ link.contractor_party.organization_id }}"><span uk-icon="plus"></span> Создать договор</a>{% endif %}{% endwith %}
     {% if transportation.posting_status == 'posted' %}

@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 *.py[cod]
+~$*.xlsx
 db.sqlite3
 .DS_Store
 staticfiles/

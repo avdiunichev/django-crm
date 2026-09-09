@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Удалить пачку документов — {{ document_batch.number }}{% endblock %}
+{% block title %}Удалить реестр документов — {{ document_batch.number }}{% endblock %}
 {% block content %}
 <div class="page-heading">
     <div>
-        <a class="back-link" href="{{ document_batch.get_absolute_url }}">← К пачке документов</a>
-        <span class="eyebrow">Реализация / поступление</span>
+        <a class="back-link" href="{{ document_batch.get_absolute_url }}">← К реестру документов</a>
+        <span class="eyebrow">Бухгалтерия</span>
         <h1>Удалить {{ document_batch.number }}?</h1>
         <p>{{ document_batch.get_direction_display }} · {{ document_batch.document_date|date:"d.m.Y" }}</p>
     </div>
@@ -13,7 +13,7 @@
 
 <section class="delete-confirmation uk-card uk-card-default uk-card-body">
     <div class="uk-alert-warning" uk-alert>
-        <p class="uk-margin-remove">Если пачка проведена, созданные из неё записи реестра документов будут удалены вместе с пачкой.</p>
+        <p class="uk-margin-remove">Если реестр проведён, созданные из него записи общего реестра документов будут удалены вместе с ним.</p>
     </div>
     <dl class="uk-description-list uk-description-list-divider">
         <dt>Статус</dt><dd>{{ document_batch.get_status_display }}</dd>
@@ -25,7 +25,7 @@
         {% csrf_token %}
         <div class="form-actions">
             <a class="uk-button uk-button-default" href="{{ document_batch.get_absolute_url }}">Отмена</a>
-            <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить пачку</button>
+            <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить реестр</button>
         </div>
     </form>
 </section>

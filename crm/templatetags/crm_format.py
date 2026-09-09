@@ -33,3 +33,16 @@ def currency_symbol(value):
     if value in (None, ""):
         return ""
     return symbols.get(str(value).upper(), value)
+
+
+@register.filter
+def decimal_input(value, decimals=2):
+    """Format decimal value for HTML number inputs as 1000000.00."""
+    if value in (None, ""):
+        return ""
+    try:
+        amount = Decimal(str(value).replace(" ", "").replace(",", "."))
+        places = int(decimals)
+    except (InvalidOperation, TypeError, ValueError):
+        return value
+    return f"{amount:.{places}f}"

@@ -214,6 +214,11 @@ urlpatterns = [
         name="transportation-delete",
     ),
     path(
+        "transportations/<int:pk>/executor-application/",
+        views.TransportationExecutorApplicationDownloadView.as_view(),
+        name="transportation-executor-application",
+    ),
+    path(
         "transportations/<int:pk>/post/",
         views.TransportationPostView.as_view(),
         name="transportation-post",
@@ -338,9 +343,19 @@ urlpatterns = [
         name="document-batch-list",
     ),
     path(
+        "primary-documents/",
+        views.DocumentBatchListView.as_view(),
+        name="primary-document-registry-list",
+    ),
+    path(
         "documents/batches/new/",
         views.DocumentBatchCreateView.as_view(),
         name="document-batch-create",
+    ),
+    path(
+        "primary-documents/new/",
+        views.DocumentBatchCreateView.as_view(),
+        name="primary-document-registry-create",
     ),
     path(
         "documents/batches/<int:pk>/",

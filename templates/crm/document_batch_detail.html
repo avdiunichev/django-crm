@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}{{ document_batch.number }} — Пачка документов{% endblock %}
+{% block title %}{{ document_batch.number }} — Реестр первички{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><a class="back-link" href="{% url 'document-batch-list' %}">← К пачкам документов</a><span class="eyebrow">Реализация / поступление</span><h1>{{ document_batch.number }}</h1><p>{{ document_batch.get_direction_display }} · {{ document_batch.document_date|date:"d.m.Y" }} · {{ document_batch.owner_company }}</p></div>
+    <div><a class="back-link" href="{% url 'document-batch-list' %}">← К реестрам первички</a><span class="eyebrow">Бухгалтерия</span><h1>{{ document_batch.number }}</h1><p>{{ document_batch.get_direction_display }} · {{ document_batch.document_date|date:"d.m.Y" }} · {{ document_batch.owner_company }}</p></div>
     <div class="heading-actions">
         {% if document_batch.status == 'draft' %}
             <a class="uk-button uk-button-default" href="{% url 'document-batch-update' document_batch.pk %}"><span uk-icon="pencil"></span> Изменить</a>
@@ -11,6 +11,8 @@
         {% elif document_batch.status == 'posted' %}
             <form class="inline-form" method="post" action="{% url 'document-batch-unpost' document_batch.pk %}">{% csrf_token %}<button class="uk-button uk-button-default" type="submit"><span uk-icon="refresh"></span> Вернуть в черновик</button></form>
         {% endif %}
+        <button class="uk-button uk-button-default" type="button" disabled title="Добавим после согласования Excel-шаблона"><span uk-icon="download"></span> Выгрузить Excel</button>
+        <button class="uk-button uk-button-default" type="button" disabled title="Добавим после согласования Excel-шаблона"><span uk-icon="upload"></span> Загрузить номера</button>
         <a class="uk-button uk-button-danger" href="{% url 'document-batch-delete' document_batch.pk %}"><span uk-icon="trash"></span> Удалить</a>
     </div>
 </div>
@@ -23,7 +25,7 @@
 </section>
 
 <section class="panel uk-card uk-card-default">
-    <div class="onec-register-header"><div><span class="eyebrow">Расшифровка</span><h2>Документы по рейсам</h2><p>{% if document_batch.reference %}Пакет {{ document_batch.reference }}. {% endif %}При проведении каждая строка попадает в общий реестр документов.</p></div></div>
+    <div class="onec-register-header"><div><span class="eyebrow">Расшифровка</span><h2>Документы по рейсам</h2><p>{% if document_batch.reference %}Пакет {{ document_batch.reference }}. {% endif %}При проведении каждая строка попадает в общий реестр документов. Excel-выгрузку и обратную загрузку номеров подключим к этому месту после получения шаблона.</p></div></div>
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
         <thead><tr><th>Рейс</th><th>Контрагент</th><th>Тип</th><th>Номер / дата</th><th class="uk-text-right">Сумма / НДС</th><th>Запись реестра</th></tr></thead>
         <tbody>
