@@ -528,7 +528,7 @@ def post_bank_statement(statement, user=None):
 
     statement = (
         BankStatement.objects.select_for_update()
-        .select_related("owner_company", "bank_account")
+        .select_related("owner_company")
         .get(pk=statement.pk)
     )
     if statement.status != BankStatement.Status.DRAFT:
@@ -642,7 +642,7 @@ def unpost_bank_statement(statement, user=None):
     lines = list(
         BankStatementLine.objects.select_for_update()
         .filter(statement=statement)
-        .select_related("transportation", "payment")
+        .select_related("transportation")
     )
     for line in lines:
         if line.payment_id:
@@ -677,7 +677,7 @@ def delete_bank_statement(statement, user=None):
     lines = list(
         BankStatementLine.objects.select_for_update()
         .filter(statement=statement)
-        .select_related("transportation", "payment")
+        .select_related("transportation")
     )
     for line in lines:
         if line.payment_id:

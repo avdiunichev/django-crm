@@ -5637,7 +5637,7 @@ class BankStatementLineDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
         with transaction.atomic():
             line = get_object_or_404(
                 BankStatementLine.objects.select_for_update().select_related(
-                    "statement", "transportation", "payment"
+                    "statement", "transportation"
                 ),
                 pk=pk,
                 statement_id=statement_pk,
