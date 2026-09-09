@@ -4,6 +4,7 @@ from io import BytesIO
 from docx import Document
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 from django.utils import timezone
@@ -132,6 +133,22 @@ def _details_table(document):
     return table
 
 
+def _remove_table_borders(table):
+    tbl = table._tbl
+    tbl_pr = tbl.tblPr
+    borders = tbl_pr.first_child_found_in("w:tblBorders")
+    if borders is None:
+        borders = OxmlElement("w:tblBorders")
+        tbl_pr.append(borders)
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        tag = f"w:{edge}"
+        element = borders.find(qn(tag))
+        if element is None:
+            element = OxmlElement(tag)
+            borders.append(element)
+        element.set(qn("w:val"), "nil")
+
+
 def _set_cell_text(cell, text, *, bold=False, size=9, align=None):
     cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
     paragraph = cell.paragraphs[0]
@@ -184,6 +201,42 @@ def _organization_name_with_inn(organization):
     tax_id = getattr(organization, "tax_id", "")
     suffix = f", ИНН {tax_id}" if tax_id else ", ИНН не указан"
     return f"{_full_organization_name(organization)}{suffix}"
+
+
+def _organization_director_name(organization):
+    if not organization:
+        return ""
+    director = getattr(organization, "director_name", "") or ""
+    if director:
+        return director
+    for relation_name in ("legacy_expeditors", "legacy_carriers", "legacy_customers"):
+        related = getattr(organization, relation_name, None)
+        if not related:
+            continue
+        legacy = related.first()
+        if legacy and getattr(legacy, "director_name", ""):
+            return legacy.director_name
+    return ""
+
+
+def _contract_signatory_text(contract, side, organization):
+    if side == "expeditor":
+        representative = (
+            getattr(contract, "expeditor_representative", "") if contract else ""
+        ) or _organization_director_name(organization)
+        basis = (
+            getattr(contract, "expeditor_authority_basis", "") if contract else ""
+        ) or "Устава"
+    else:
+        representative = (
+            getattr(contract, "counterparty_representative", "") if contract else ""
+        ) or _organization_director_name(organization)
+        basis = (
+            getattr(contract, "counterparty_authority_basis", "") if contract else ""
+        ) or "Устава"
+    if representative:
+        return f"{representative}, действующий(ая) на основании {basis}"
+    return "________________________, действующий(ая) на основании ____________"
 
 
 def _stop_organization_text(stop):
@@ -434,11 +487,12 @@ def build_executor_transportation_application_docx(transportation):
 
     clauses = (
         "Стороны несут ответственность за неисполнение либо ненадлежащее исполнение взятых на себя обязательств по настоящему договору-заявке в соответствии с условиями договора и законодательства РФ.",
-        "Для исполнения договора-заявки Перевозчик вправе привлекать к перевозке третьих лиц. В этом случае Перевозчик несет ответственность за действия и бездействия третьих лиц, привлеченных к исполнению договора-заявки. Возложение исполнения обязательства на третье лицо не освобождает Перевозчика от ответственности перед Экспедитором за исполнение договора-заявки.",
-        "В случае задержки подачи транспортного средства к месту погрузки, указанному в договоре-заявке Экспедитора более чем на 8 часов, Перевозчик выплачивает штраф Экспедитору в размере 1500 руб. в сутки (24 часа).",
+        "Для исполнения договора-заявки Исполнитель вправе привлекать к перевозке третьих лиц, если иное не предусмотрено договором сторон. В этом случае Исполнитель несёт ответственность за действия и бездействие привлечённых лиц как за свои собственные.",
+        "Возложение исполнения обязательств на третье лицо не освобождает Исполнителя от ответственности перед Экспедитором за надлежащее исполнение настоящей договор-заявки.",
+        "В случае задержки подачи транспортного средства к месту погрузки, указанному в договоре-заявке Экспедитора более чем на 8 часов, Исполнитель выплачивает штраф Экспедитору в размере 1500 руб. в сутки (24 часа).",
         "Информировать Экспедитора заблаговременно о невозможности прихода транспорта в назначенное время и место погрузки, о задержке в пути следования к месту погрузки.",
-        "В случае нарушения согласованных Сторонами сроков перевозки (доставки) Перевозчик выплачивает Экспедитору штраф в размере 1500 руб. за каждые сутки задержки при междугородней доставке.",
-        "Перевозчик несет ответственность за несохранность груза в процессе перевозки с момента получения и подписания товарно-транспортных сопроводительных документов водителем до момента передачи груза грузополучателю, уполномоченному им лицу.",
+        "В случае нарушения согласованных Сторонами сроков перевозки (доставки) Исполнитель выплачивает Экспедитору штраф в размере 1500 руб. за каждые сутки задержки при междугородней доставке.",
+        "Исполнитель несёт ответственность за несохранность груза в процессе перевозки с момента получения и подписания товарно-транспортных сопроводительных документов водителем до момента передачи груза грузополучателю либо уполномоченному им лицу.",
         "Экспедитор обязуется принимать все меры для предотвращения простоя транспортного средства при погрузке/выгрузке груза.",
         "До момента заключения долгосрочного договора настоящая договор-заявка на перевозку имеет силу разового заказа.",
         "Стороны договорились, что факсовые и электронные копии настоящей договор-заявки имеют силу оригинала.",
@@ -449,12 +503,21 @@ def build_executor_transportation_application_docx(transportation):
     signatures = document.add_table(rows=3, cols=2)
     signatures.style = "Table Grid"
     signatures.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _remove_table_borders(signatures)
     _set_cell_text(signatures.cell(0, 0), "Экспедитор", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(signatures.cell(0, 1), "Исполнитель", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(signatures.cell(1, 0), _full_organization_name(transportation.owner_company))
     _set_cell_text(signatures.cell(1, 1), _full_organization_name(executor))
-    _set_cell_text(signatures.cell(2, 0), "________________ / __________________")
-    _set_cell_text(signatures.cell(2, 1), "________________ / __________________")
+    _set_cell_text(
+        signatures.cell(2, 0),
+        f"{_contract_signatory_text(contract, 'expeditor', transportation.owner_company)}\n"
+        "________________ / __________________",
+    )
+    _set_cell_text(
+        signatures.cell(2, 1),
+        f"{_contract_signatory_text(contract, 'counterparty', executor)}\n"
+        "________________ / __________________",
+    )
 
     stream = BytesIO()
     document.save(stream)
