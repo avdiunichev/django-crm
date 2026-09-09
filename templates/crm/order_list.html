@@ -11,12 +11,28 @@
     <a class="btn btn-primary uk-button uk-button-primary" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
 </div>
 
-<div class="stats-grid compact-stats">
-    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}"><span>Всего заказов</span><strong>{{ order_count }}</strong></a>
-    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}?status=new"><span>Ожидают назначения</span><strong>{{ new_count }}</strong></a>
-    <a class="stat-card uk-card uk-card-default" href="{% url 'order-list' %}?status=assigned"><span>Назначены в рейсы</span><strong>{{ assigned_count }}</strong></a>
-    <article class="stat-card uk-card uk-card-default"><span>Сумма заказов</span><strong class="amount-income">{{ total_rate|floatformat:"0g" }} ₽</strong></article>
-</div>
+<section class="metrics-grid order-metrics">
+    <a class="metric-link metric-card uk-card uk-card-default {% if not current_status and not current_q and not current_owner %}is-selected{% endif %}" href="{% url 'order-list' %}">
+        <span class="metric-top"><span>Всего заказов</span><i class="metric-icon uk-icon-button" uk-icon="cart"></i></span>
+        <strong>{{ order_count }}</strong>
+        <small><span>в коммерческом регистре</span><b>Показать все →</b></small>
+    </a>
+    <a class="metric-link metric-card uk-card uk-card-default {% if current_status == 'new' %}is-selected{% endif %}" href="{% url 'order-list' %}?status=new">
+        <span class="metric-top"><span>Ожидают назначения</span><i class="metric-icon uk-icon-button" uk-icon="clock"></i></span>
+        <strong>{{ new_count }}</strong>
+        <small><span>нужно подобрать исполнителя</span><b>Открыть →</b></small>
+    </a>
+    <a class="metric-link metric-card uk-card uk-card-default {% if current_status == 'assigned' %}is-selected{% endif %}" href="{% url 'order-list' %}?status=assigned">
+        <span class="metric-top"><span>Назначены в рейсы</span><i class="metric-icon uk-icon-button" uk-icon="git-fork"></i></span>
+        <strong>{{ assigned_count }}</strong>
+        <small><span>уже переданы в работу</span><b>Открыть →</b></small>
+    </a>
+    <article class="metric-card uk-card uk-card-default">
+        <span class="metric-top"><span>Сумма заказов</span><i class="metric-icon uk-icon-button" uk-icon="credit-card"></i></span>
+        <strong class="amount-income amount-cell">{{ total_rate|floatformat:"2g" }} ₽</strong>
+        <small><span>по текущему отбору</span></small>
+    </article>
+</section>
 
 <section class="panel uk-card uk-card-default">
     <form class="filters" method="get">
