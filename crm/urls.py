@@ -96,6 +96,41 @@ urlpatterns = [
         name="debt-report-export",
     ),
     path(
+        "reconciliation-acts/",
+        views.ReconciliationActListView.as_view(),
+        name="reconciliation-act-list",
+    ),
+    path(
+        "reconciliation-acts/new/",
+        views.ReconciliationActCreateView.as_view(),
+        name="reconciliation-act-create",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/",
+        views.ReconciliationActDetailView.as_view(),
+        name="reconciliation-act-detail",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/edit/",
+        views.ReconciliationActUpdateView.as_view(),
+        name="reconciliation-act-update",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/regenerate/",
+        views.ReconciliationActRegenerateView.as_view(),
+        name="reconciliation-act-regenerate",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/void/",
+        views.ReconciliationActVoidView.as_view(),
+        name="reconciliation-act-void",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/export/",
+        views.ReconciliationActExportView.as_view(),
+        name="reconciliation-act-export",
+    ),
+    path(
         "profitability/",
         views.ProfitabilityReportView.as_view(),
         name="profitability-report",

@@ -225,6 +225,7 @@ from .forms import (
     PaymentForm,
     PlannerTaskForm,
     QuickOrganizationForm,
+    ReconciliationActForm,
     ShipmentDocumentForm,
     ShipmentForm,
     TransportOrderForm,
@@ -257,6 +258,8 @@ from .models import (
     OrganizationRole,
     Payment,
     PlannerTask,
+    ReconciliationAct,
+    ReconciliationActLine,
     Shipment,
     ShipmentDocument,
     SettlementMovement,
@@ -2873,6 +2876,261 @@ class DocumentBatchDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
             batch.delete()
         messages.success(request, f"Реестр документов {number} удалён.")
         return redirect("document-batch-list")
+
+
+def _reconciliation_amounts(movement):
+    amount = movement.amount or Decimal("0.00")
+    absolute = abs(amount)
+    if movement.side == SettlementMovement.Side.RECEIVABLE:
+        return (absolute, Decimal("0.00")) if amount >= 0 else (Decimal("0.00"), absolute)
+    return (Decimal("0.00"), absolute) if amount >= 0 else (absolute, Decimal("0.00"))
+
+
+def _reconciliation_description(movement):
+    transportation = movement.transportation
+    trip_number = transportation.number or "рейс без номера"
+    side = "клиент" if movement.side == SettlementMovement.Side.RECEIVABLE else "исполнитель"
+    payment_reference = ""
+    if movement.payment_id and movement.payment:
+        payment_reference = f" · платёжка {movement.payment.reference or movement.payment.number}"
+    return f"{movement.get_kind_display()} · {side} · {trip_number}{payment_reference}"
+
+
+def _generate_reconciliation_act(act, user=None):
+    movements = list(
+        SettlementMovement.objects.filter(
+            owner_company=act.owner_company,
+            counterparty=act.counterparty,
+            currency=act.currency,
+        )
+        .select_related("transportation", "payment")
+        .order_by("movement_date", "created_at", "pk")
+    )
+    opening = Decimal("0.00")
+    for movement in movements:
+        debit, credit = _reconciliation_amounts(movement)
+        if movement.movement_date < act.period_from:
+            opening += debit - credit
+
+    balance = opening
+    debit_turnover = Decimal("0.00")
+    credit_turnover = Decimal("0.00")
+    lines = []
+    for movement in movements:
+        if not (act.period_from <= movement.movement_date <= act.period_to):
+            continue
+        debit, credit = _reconciliation_amounts(movement)
+        balance += debit - credit
+        debit_turnover += debit
+        credit_turnover += credit
+        lines.append(
+            ReconciliationActLine(
+                act=act,
+                movement=movement,
+                transportation=movement.transportation,
+                movement_date=movement.movement_date,
+                description=_reconciliation_description(movement),
+                debit=debit,
+                credit=credit,
+                balance=balance,
+            )
+        )
+
+    act.opening_balance = opening
+    act.debit_turnover = debit_turnover
+    act.credit_turnover = credit_turnover
+    act.closing_balance = balance
+    act.status = ReconciliationAct.Status.GENERATED
+    act.generated_by = user
+    act.generated_at = timezone.now()
+    act.save(
+        update_fields=[
+            "opening_balance",
+            "debit_turnover",
+            "credit_turnover",
+            "closing_balance",
+            "status",
+            "generated_by",
+            "generated_at",
+            "updated_at",
+        ]
+    )
+    act.lines.all().delete()
+    if lines:
+        ReconciliationActLine.objects.bulk_create(lines)
+    return act
+
+
+class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, ListView):
+    model = ReconciliationAct
+    template_name = "crm/reconciliation_act_list.html"
+    context_object_name = "acts"
+    paginate_by = 30
+
+    def get_queryset(self):
+        queryset = ReconciliationAct.objects.select_related(
+            "owner_company", "counterparty"
+        ).annotate(line_total=Count("lines"))
+        status = self.request.GET.get("status", "").strip()
+        owner = self.request.GET.get("owner", "").strip()
+        query = self.request.GET.get("q", "").strip()
+        if status in ReconciliationAct.Status.values:
+            queryset = queryset.filter(status=status)
+        if owner.isdigit():
+            queryset = queryset.filter(owner_company_id=owner)
+        if query:
+            queryset = queryset.filter(
+                Q(number__iunicodecontains=query)
+                | Q(counterparty__name__iunicodecontains=query)
+                | Q(counterparty__tax_id__iunicodecontains=query)
+                | Q(owner_company__name__iunicodecontains=query)
+            ).distinct()
+        return queryset.order_by("-document_date", "-created_at")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "status_choices": ReconciliationAct.Status.choices,
+                "owners": Organization.objects.filter(is_own_company=True, is_active=True),
+                "current_status": self.request.GET.get("status", ""),
+                "current_owner": self.request.GET.get("owner", ""),
+                "current_q": self.request.GET.get("q", ""),
+                "draft_count": ReconciliationAct.objects.filter(
+                    status=ReconciliationAct.Status.DRAFT
+                ).count(),
+                "generated_count": ReconciliationAct.objects.filter(
+                    status=ReconciliationAct.Status.GENERATED
+                ).count(),
+            }
+        )
+        return context
+
+
+class ReconciliationActCreateView(LoginRequiredMixin, FinanceAccessMixin, CreateView):
+    model = ReconciliationAct
+    form_class = ReconciliationActForm
+    template_name = "crm/reconciliation_act_form.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            self.object.created_by = self.request.user
+            self.object.save()
+            _generate_reconciliation_act(self.object, self.request.user)
+        messages.success(self.request, f"Акт сверки {self.object.number} сформирован.")
+        return redirect(self.object.get_absolute_url())
+
+
+class ReconciliationActUpdateView(LoginRequiredMixin, FinanceAccessMixin, UpdateView):
+    model = ReconciliationAct
+    form_class = ReconciliationActForm
+    template_name = "crm/reconciliation_act_form.html"
+
+    def get_queryset(self):
+        return ReconciliationAct.objects.exclude(status=ReconciliationAct.Status.VOIDED)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            self.object = form.save()
+            _generate_reconciliation_act(self.object, self.request.user)
+        messages.success(self.request, f"Акт сверки {self.object.number} пересформирован.")
+        return redirect(self.object.get_absolute_url())
+
+
+class ReconciliationActDetailView(LoginRequiredMixin, FinanceAccessMixin, DetailView):
+    model = ReconciliationAct
+    template_name = "crm/reconciliation_act_detail.html"
+    context_object_name = "act"
+
+    def get_queryset(self):
+        return ReconciliationAct.objects.select_related(
+            "owner_company", "counterparty", "created_by", "generated_by"
+        ).prefetch_related(
+            Prefetch(
+                "lines",
+                queryset=ReconciliationActLine.objects.select_related(
+                    "transportation", "movement", "movement__payment"
+                ).order_by("movement_date", "created_at", "pk"),
+            )
+        )
+
+
+class ReconciliationActRegenerateView(LoginRequiredMixin, FinanceAccessMixin, View):
+    def post(self, request, pk):
+        act = get_object_or_404(
+            ReconciliationAct.objects.exclude(status=ReconciliationAct.Status.VOIDED),
+            pk=pk,
+        )
+        with transaction.atomic():
+            _generate_reconciliation_act(act, request.user)
+        messages.success(request, f"Акт сверки {act.number} пересформирован.")
+        return redirect(act.get_absolute_url())
+
+
+class ReconciliationActVoidView(LoginRequiredMixin, FinanceAccessMixin, View):
+    def post(self, request, pk):
+        act = get_object_or_404(
+            ReconciliationAct.objects.exclude(status=ReconciliationAct.Status.VOIDED),
+            pk=pk,
+        )
+        act.status = ReconciliationAct.Status.VOIDED
+        act.save(update_fields=["status", "updated_at"])
+        messages.success(request, f"Акт сверки {act.number} аннулирован.")
+        return redirect("reconciliation-act-list")
+
+
+class ReconciliationActExportView(LoginRequiredMixin, FinanceAccessMixin, View):
+    def get(self, request, pk):
+        act = get_object_or_404(
+            ReconciliationAct.objects.select_related("owner_company", "counterparty"),
+            pk=pk,
+        )
+        rows = [
+            ["Акт сверки", act.number],
+            ["Дата", act.document_date],
+            ["Период", f"{act.period_from:%d.%m.%Y} — {act.period_to:%d.%m.%Y}"],
+            ["Наша компания", act.owner_company.name],
+            ["Контрагент", act.counterparty.name],
+            ["Валюта", act.currency],
+            [],
+            ["Дата", "Операция", "Рейс", "Дебет", "Кредит", "Сальдо"],
+            ["", "Сальдо на начало", "", "", "", act.opening_balance],
+        ]
+        for line in act.lines.select_related("transportation").order_by(
+            "movement_date", "created_at", "pk"
+        ):
+            rows.append(
+                [
+                    line.movement_date,
+                    line.description,
+                    line.transportation.number or "Черновик",
+                    line.debit,
+                    line.credit,
+                    line.balance,
+                ]
+            )
+        rows.extend(
+            [
+                [],
+                ["", "Обороты за период", "", act.debit_turnover, act.credit_turnover, ""],
+                ["", "Сальдо на конец", "", "", "", act.closing_balance],
+            ]
+        )
+        return _xlsx_response(
+            f"reconciliation-{act.number or act.pk}.xlsx",
+            (("Акт сверки", rows),),
+        )
 
 
 class ReportsView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):

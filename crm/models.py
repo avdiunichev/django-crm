@@ -3886,6 +3886,184 @@ class DocumentBatchLine(TimestampedModel):
         return f"{self.batch} · {self.transportation} · {self.get_kind_display()}"
 
 
+class ReconciliationActNumberSequence(TimestampedModel):
+    owner_company = models.ForeignKey(
+        Organization,
+        verbose_name="Наша компания",
+        related_name="reconciliation_number_sequences",
+        on_delete=models.CASCADE,
+    )
+    year = models.PositiveSmallIntegerField("Год")
+    last_value = models.PositiveIntegerField("Последний номер", default=0)
+
+    class Meta:
+        verbose_name = "нумератор актов сверки"
+        verbose_name_plural = "нумераторы актов сверки"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("owner_company", "year"),
+                name="unique_reconciliation_sequence_per_company_year",
+            )
+        ]
+
+
+class ReconciliationAct(TimestampedModel):
+    """Акт сверки взаиморасчётов с контрагентом за период."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Черновик"
+        GENERATED = "generated", "Сформирован"
+        VOIDED = "voided", "Аннулирован"
+
+    number = models.CharField("Номер акта", max_length=40, unique=True, blank=True)
+    document_date = models.DateField("Дата акта", default=timezone.localdate)
+    status = models.CharField(
+        "Статус", max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    owner_company = models.ForeignKey(
+        Organization,
+        verbose_name="Наша компания",
+        related_name="reconciliation_acts",
+        on_delete=models.PROTECT,
+    )
+    counterparty = models.ForeignKey(
+        Organization,
+        verbose_name="Контрагент",
+        related_name="counterparty_reconciliation_acts",
+        on_delete=models.PROTECT,
+    )
+    period_from = models.DateField("Период с")
+    period_to = models.DateField("Период по")
+    currency = models.CharField(
+        "Валюта",
+        max_length=3,
+        choices=[("RUB", "RUB"), ("USD", "USD"), ("EUR", "EUR")],
+        default="RUB",
+    )
+    opening_balance = models.DecimalField(
+        "Сальдо на начало",
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    debit_turnover = models.DecimalField(
+        "Дебетовый оборот",
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    credit_turnover = models.DecimalField(
+        "Кредитовый оборот",
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    closing_balance = models.DecimalField(
+        "Сальдо на конец",
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    notes = models.TextField("Комментарий", blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Создал",
+        related_name="created_reconciliation_acts",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Сформировал",
+        related_name="generated_reconciliation_acts",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    generated_at = models.DateTimeField("Дата формирования", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "акт сверки"
+        verbose_name_plural = "акты сверки"
+        ordering = ("-document_date", "-created_at")
+        indexes = [
+            models.Index(fields=("owner_company", "counterparty", "period_from", "period_to")),
+            models.Index(fields=("status", "document_date")),
+        ]
+
+    def __str__(self):
+        return f"{self.number or 'Новый акт сверки'} · {self.counterparty}"
+
+    def save(self, *args, **kwargs):
+        if self.number:
+            return super().save(*args, **kwargs)
+        with transaction.atomic():
+            year = self.document_date.year
+            sequence, _ = ReconciliationActNumberSequence.objects.select_for_update().get_or_create(
+                owner_company=self.owner_company,
+                year=year,
+                defaults={"last_value": 0},
+            )
+            sequence.last_value += 1
+            sequence.save(update_fields=["last_value", "updated_at"])
+            self.number = f"АС-{year}-{sequence.last_value:05d}"
+            return super().save(*args, **kwargs)
+
+    @property
+    def line_count(self):
+        return self.lines.count()
+
+    def get_absolute_url(self):
+        return reverse("reconciliation-act-detail", kwargs={"pk": self.pk})
+
+
+class ReconciliationActLine(TimestampedModel):
+    act = models.ForeignKey(
+        ReconciliationAct,
+        verbose_name="Акт сверки",
+        related_name="lines",
+        on_delete=models.CASCADE,
+    )
+    movement = models.ForeignKey(
+        SettlementMovement,
+        verbose_name="Движение взаиморасчётов",
+        related_name="reconciliation_lines",
+        on_delete=models.PROTECT,
+    )
+    transportation = models.ForeignKey(
+        Transportation,
+        verbose_name="Рейс",
+        related_name="reconciliation_lines",
+        on_delete=models.PROTECT,
+    )
+    movement_date = models.DateField("Дата")
+    description = models.CharField("Содержание операции", max_length=255)
+    debit = models.DecimalField(
+        "Дебет", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    credit = models.DecimalField(
+        "Кредит", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    balance = models.DecimalField(
+        "Сальдо", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+
+    class Meta:
+        verbose_name = "строка акта сверки"
+        verbose_name_plural = "строки акта сверки"
+        ordering = ("movement_date", "created_at")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("act", "movement"),
+                name="unique_reconciliation_act_movement",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.act} · {self.description}"
+
+
 class DirectConversation(TimestampedModel):
     user_low = models.ForeignKey(
         settings.AUTH_USER_MODEL,

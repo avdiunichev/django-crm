@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Акты сверки — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Бухгалтерия</span><h1>Акты сверки</h1><p>Сверка взаиморасчётов с клиентами, перевозчиками и экспедиторами по данным рейсов и банковских выписок.</p></div>
+    <a class="uk-button uk-button-primary" href="{% url 'reconciliation-act-create' %}"><span uk-icon="plus"></span> Создать акт сверки</a>
+</div>
+
+<section class="metrics-grid">
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="file-edit"></i></span><strong>{{ draft_count }}</strong><small>можно изменить и сформировать</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Сформированы</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ generated_count }}</strong><small>готовы к отправке контрагенту</small></article>
+</section>
+
+<form class="filters" method="get" data-dynamic-filter>
+    <input class="uk-input form-control search" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН">
+    <select class="uk-select form-control" name="owner"><option value="">Все наши компании</option>{% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}</select>
+    <select class="uk-select form-control" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'reconciliation-act-list' %}">Сбросить</a>{% endif %}
+</form>
+
+<section class="panel uk-card uk-card-default">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Акт</th><th>Период</th><th>Наша компания</th><th>Контрагент</th><th class="uk-text-right">Сальдо</th><th>Статус</th><th></th></tr></thead>
+        <tbody>
+        {% for act in acts %}
+            <tr>
+                <td><a class="primary-link" href="{{ act.get_absolute_url }}">{{ act.number }}</a><small>{{ act.document_date|date:"d.m.Y" }} · строк {{ act.line_total|default:0 }}</small></td>
+                <td>{{ act.period_from|date:"d.m.Y" }} → {{ act.period_to|date:"d.m.Y" }}</td>
+                <td>{{ act.owner_company }}</td>
+                <td><a href="{{ act.counterparty.get_absolute_url }}">{{ act.counterparty }}</a><small>ИНН {{ act.counterparty.tax_id|default:"—" }}</small></td>
+                <td class="uk-text-right"><strong class="{% if act.closing_balance < 0 %}amount-expense{% elif act.closing_balance > 0 %}amount-income{% endif %}">{{ act.closing_balance|floatformat:"2g" }} {{ act.currency|currency_symbol }}</strong></td>
+                <td><span class="uk-label {% if act.status == 'generated' %}uk-label-success{% elif act.status == 'voided' %}uk-label-danger{% endif %}">{{ act.get_status_display }}</span></td>
+                <td class="uk-text-right"><a class="row-action" href="{{ act.get_absolute_url }}">Открыть</a>{% if act.status != 'voided' %}<a class="row-action" href="{% url 'reconciliation-act-update' act.pk %}">Изменить</a>{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7" class="empty-state">Актов сверки пока нет.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

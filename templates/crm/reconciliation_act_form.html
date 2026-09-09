@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}{{ object.number }}{% else %}Новый акт сверки{% endif %} — Экспедитор CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'reconciliation-act-list' %}">← К актам сверки</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить акт сверки{% else %}Создать акт сверки{% endif %}</h1><p>Система сформирует строки по движениям взаиморасчётов за выбранный период.</p></div>
+</div>
+
+<form method="post" class="entity-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span uk-icon="future"></span><div><h2>Параметры сверки</h2><p>Выберите стороны, период и валюту акта.</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.counterparty wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.period_from %}
+            {% include "crm/includes/form_field.html" with field=form.period_to %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+    <div class="form-actions">
+        <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'reconciliation-act-list' %}{% endif %}">Отмена</a>
+        <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сформировать акт</button>
+    </div>
+</form>
+{% endblock %}

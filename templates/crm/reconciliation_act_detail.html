@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ act.number }} — Акт сверки{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'reconciliation-act-list' %}">← К актам сверки</a><span class="eyebrow">Акт сверки</span><h1>{{ act.number }}</h1><p>{{ act.owner_company }} ↔ {{ act.counterparty }} · {{ act.period_from|date:"d.m.Y" }} — {{ act.period_to|date:"d.m.Y" }}</p></div>
+    <div class="heading-actions">
+        {% if act.status != 'voided' %}
+            <a class="uk-button uk-button-default" href="{% url 'reconciliation-act-update' act.pk %}"><span uk-icon="pencil"></span> Изменить</a>
+            <form class="inline-form" method="post" action="{% url 'reconciliation-act-regenerate' act.pk %}">{% csrf_token %}<button class="uk-button uk-button-default" type="submit"><span uk-icon="refresh"></span> Пересформировать</button></form>
+        {% endif %}
+        <a class="uk-button uk-button-primary" href="{% url 'reconciliation-act-export' act.pk %}"><span uk-icon="download"></span> Скачать Excel</a>
+        {% if act.status != 'voided' %}<form class="inline-form" method="post" action="{% url 'reconciliation-act-void' act.pk %}">{% csrf_token %}<button class="uk-button uk-button-danger" type="submit"><span uk-icon="ban"></span> Аннулировать</button></form>{% endif %}
+    </div>
+</div>
+
+<section class="bank-statement-overview">
+    <article><span>Сальдо на начало</span><strong class="{% if act.opening_balance < 0 %}amount-expense{% elif act.opening_balance > 0 %}amount-income{% endif %}">{{ act.opening_balance|floatformat:"2g" }} {{ act.currency|currency_symbol }}</strong></article>
+    <article><span>Дебетовый оборот</span><strong class="amount-income">{{ act.debit_turnover|floatformat:"2g" }} {{ act.currency|currency_symbol }}</strong></article>
+    <article><span>Кредитовый оборот</span><strong class="amount-expense">{{ act.credit_turnover|floatformat:"2g" }} {{ act.currency|currency_symbol }}</strong></article>
+    <article><span>Сальдо на конец</span><strong class="{% if act.closing_balance < 0 %}amount-expense{% elif act.closing_balance > 0 %}amount-income{% endif %}">{{ act.closing_balance|floatformat:"2g" }} {{ act.currency|currency_symbol }}</strong></article>
+</section>
+
+<section class="panel uk-card uk-card-default">
+    <div class="onec-register-header"><div><span class="eyebrow">Расшифровка</span><h2>Движения взаиморасчётов</h2><p>{% if act.generated_at %}Сформировано {{ act.generated_at|date:"d.m.Y H:i" }}{% if act.generated_by %} · {{ act.generated_by }}{% endif %}.{% endif %}</p></div><span class="uk-label {% if act.status == 'generated' %}uk-label-success{% elif act.status == 'voided' %}uk-label-danger{% endif %}">{{ act.get_status_display }}</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+        <thead><tr><th>Дата</th><th>Операция</th><th>Рейс</th><th class="uk-text-right">Дебет</th><th class="uk-text-right">Кредит</th><th class="uk-text-right">Сальдо</th></tr></thead>
+        <tbody>
+            <tr><td>—</td><td><strong>Сальдо на начало</strong></td><td></td><td></td><td></td><td class="uk-text-right"><strong>{{ act.opening_balance|floatformat:"2g" }}</strong></td></tr>
+            {% for line in act.lines.all %}
+                <tr>
+                    <td>{{ line.movement_date|date:"d.m.Y" }}</td>
+                    <td>{{ line.description }}</td>
+                    <td><a href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small>{{ line.transportation.route }}</small></td>
+                    <td class="uk-text-right amount-cell">{% if line.debit %}{{ line.debit|floatformat:"2g" }}{% else %}—{% endif %}</td>
+                    <td class="uk-text-right amount-cell">{% if line.credit %}{{ line.credit|floatformat:"2g" }}{% else %}—{% endif %}</td>
+                    <td class="uk-text-right amount-cell"><strong>{{ line.balance|floatformat:"2g" }}</strong></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="empty-state">За выбранный период движений нет.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot><tr><th colspan="3">Итого за период</th><th class="uk-text-right">{{ act.debit_turnover|floatformat:"2g" }}</th><th class="uk-text-right">{{ act.credit_turnover|floatformat:"2g" }}</th><th class="uk-text-right">{{ act.closing_balance|floatformat:"2g" }}</th></tr></tfoot>
+    </table></div>
+</section>
+
+{% if act.notes %}<section class="panel uk-card uk-card-default uk-card-body"><h2>Комментарий</h2><p class="uk-margin-remove">{{ act.notes|linebreaksbr }}</p></section>{% endif %}
+{% endblock %}

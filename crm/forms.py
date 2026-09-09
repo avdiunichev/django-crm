@@ -32,6 +32,7 @@ from .models import (
     OrganizationRole,
     Payment,
     PlannerTask,
+    ReconciliationAct,
     Shipment,
     ShipmentDocument,
     TransportOrder,
@@ -3105,6 +3106,64 @@ class DocumentBatchForm(StyledModelForm):
             self.fields["owner_company"].initial = owner_queryset.first()
         if not self.instance.pk:
             self.fields["document_date"].initial = timezone.localdate()
+
+
+class ReconciliationActForm(StyledModelForm):
+    class Meta:
+        model = ReconciliationAct
+        fields = [
+            "document_date",
+            "owner_company",
+            "counterparty",
+            "period_from",
+            "period_to",
+            "currency",
+            "notes",
+        ]
+        widgets = {
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        owner_queryset = Organization.objects.filter(is_own_company=True, is_active=True)
+        if self.instance.pk:
+            owner_queryset = Organization.objects.filter(
+                Q(is_own_company=True, is_active=True)
+                | Q(pk=self.instance.owner_company_id)
+            )
+        self.fields["owner_company"].queryset = owner_queryset
+        self.fields["counterparty"].queryset = Organization.objects.filter(
+            is_active=True
+        ).order_by("name")
+        self.fields["counterparty"].widget.attrs.update(
+            {
+                "data-smart-select": "organization",
+                "data-create-url": reverse("quick-organization-create"),
+                "data-search-placeholder": "Название или ИНН контрагента",
+                "data-create-label": "Создать контрагента",
+            }
+        )
+        if not self.instance.pk:
+            today = timezone.localdate()
+            self.fields["document_date"].initial = today
+            self.fields["period_from"].initial = today.replace(day=1)
+            self.fields["period_to"].initial = today
+            if owner_queryset.count() == 1:
+                self.fields["owner_company"].initial = owner_queryset.first()
+
+    def clean(self):
+        cleaned = super().clean()
+        owner = cleaned.get("owner_company")
+        counterparty = cleaned.get("counterparty")
+        period_from = cleaned.get("period_from")
+        period_to = cleaned.get("period_to")
+        if owner and counterparty and owner == counterparty:
+            self.add_error("counterparty", "Контрагент не должен совпадать с нашей компанией.")
+        if period_from and period_to and period_to < period_from:
+            self.add_error("period_to", "Дата окончания периода не может быть раньше даты начала.")
+        return cleaned
 
 
 class CompanyProfileForm(StyledModelForm):
