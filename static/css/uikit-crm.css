@@ -720,7 +720,8 @@ a:hover {
 }
 
 .entity-form {
-    max-width: 1000px;
+    width: 100%;
+    max-width: none;
 }
 
 .entity-form.narrow {
@@ -2795,7 +2796,7 @@ a:hover {
 }
 
 .bank-statement-form {
-    max-width: 1280px;
+    max-width: none;
 }
 
 .bank-payment-picker {
@@ -4526,7 +4527,7 @@ html[data-theme="dark"] body.uikit-theme .driver-license-category-picker label:h
 /* Реестр водителей в духе рабочего окна Контур.Диадок: плотная таблица,
    командная панель и спокойные служебные статусы вместо крупных карточек. */
 .driver-register-page {
-    max-width: 1440px;
+    max-width: none;
 }
 
 .driver-commandbar {
@@ -5580,7 +5581,7 @@ html[data-theme="dark"] body.uikit-theme .order-route-stop.is-delivery {
 
 /* Водители используют общий UIkit-стандарт справочников. */
 .driver-form-workspace {
-    max-width: 1160px;
+    max-width: none;
 }
 
 .driver-form-page .entity-form {
