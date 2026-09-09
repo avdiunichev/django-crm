@@ -55,6 +55,8 @@
             <div class="onec-route-block">
                 <h3><span class="route-stop-index">1</span> Погрузка</h3>
                 <div class="form-grid">
+                    {% include "crm/includes/form_field.html" with field=form.pickup_organization wide=True %}
+                    {% include "crm/includes/form_field.html" with field=form.pickup_organization_text wide=True %}
                     {% include "crm/includes/form_field.html" with field=form.pickup_city %}
                     {% include "crm/includes/form_field.html" with field=form.pickup_date %}
                     {% include "crm/includes/form_field.html" with field=form.pickup_address wide=True %}
@@ -63,6 +65,8 @@
             <div class="onec-route-block">
                 <h3><span class="route-stop-index">2</span> Выгрузка</h3>
                 <div class="form-grid">
+                    {% include "crm/includes/form_field.html" with field=form.delivery_organization wide=True %}
+                    {% include "crm/includes/form_field.html" with field=form.delivery_organization_text wide=True %}
                     {% include "crm/includes/form_field.html" with field=form.delivery_city %}
                     {% include "crm/includes/form_field.html" with field=form.delivery_date %}
                     {% include "crm/includes/form_field.html" with field=form.delivery_address wide=True %}
@@ -145,6 +149,40 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("transportation-form");
+    const syncExclusiveStopOrganization = (selectId, textId) => {
+        const select = document.getElementById(selectId);
+        const text = document.getElementById(textId);
+        if (!select || !text) return;
+        const setDisabled = (element, disabled) => {
+            if (element.disabled === disabled) return;
+            element.disabled = disabled;
+            element.dispatchEvent(new Event("disabledchange", {bubbles: true}));
+        };
+        const sync = (source) => {
+            if (select.value) {
+                if (source === select && text.value) text.value = "";
+                setDisabled(text, true);
+                setDisabled(select, false);
+                return;
+            }
+            if (text.value.trim()) {
+                if (source === text && select.value) {
+                    select.value = "";
+                    select.dispatchEvent(new Event("change", {bubbles: true}));
+                }
+                setDisabled(select, true);
+                setDisabled(text, false);
+                return;
+            }
+            setDisabled(select, false);
+            setDisabled(text, false);
+        };
+        select.addEventListener("change", () => sync(select));
+        text.addEventListener("input", () => sync(text));
+        sync();
+    };
+    syncExclusiveStopOrganization("id_pickup_organization", "id_pickup_organization_text");
+    syncExclusiveStopOrganization("id_delivery_organization", "id_delivery_organization_text");
     const client = document.getElementById("id_client");
     const owner = document.getElementById("id_owner_company");
     const customerContract = document.getElementById("id_customer_contract");

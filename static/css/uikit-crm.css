@@ -6727,6 +6727,14 @@ body.uikit-theme {
     white-space: nowrap;
 }
 
+.uikit-theme .crm-smart-select.is-disabled,
+.uikit-theme .crm-smart-select.is-disabled .crm-smart-search,
+.uikit-theme .uk-input:disabled,
+.uikit-theme .uk-select:disabled {
+    cursor: not-allowed;
+    opacity: 0.68;
+}
+
 @media (max-width: 900px) {
     .uikit-theme .topbar {
         align-items: flex-start;

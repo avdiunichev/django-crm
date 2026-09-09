@@ -1104,12 +1104,34 @@ class TransportationDocumentForm(StyledModelForm):
     trailer_registration_number = forms.CharField(
         label="Номер прицепа / полуприцепа", max_length=20, required=False
     )
+    pickup_organization = OrganizationChoiceField(
+        label="Грузоотправитель",
+        queryset=Organization.objects.none(),
+        required=False,
+    )
+    pickup_organization_text = forms.CharField(
+        label="Грузоотправитель текстом",
+        max_length=255,
+        required=False,
+        help_text="Если контрагента нет в справочнике, можно просто вписать название.",
+    )
     pickup_city = forms.CharField(label="Город погрузки", max_length=120)
     pickup_address = forms.CharField(
         label="Адрес погрузки", max_length=255, required=False
     )
     pickup_date = forms.DateField(
         label="Дата погрузки", widget=forms.DateInput(attrs={"type": "date"})
+    )
+    delivery_organization = OrganizationChoiceField(
+        label="Грузополучатель",
+        queryset=Organization.objects.none(),
+        required=False,
+    )
+    delivery_organization_text = forms.CharField(
+        label="Грузополучатель текстом",
+        max_length=255,
+        required=False,
+        help_text="Если контрагента нет в справочнике, можно просто вписать название.",
     )
     delivery_city = forms.CharField(label="Город выгрузки", max_length=120)
     delivery_address = forms.CharField(
@@ -1165,6 +1187,16 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["actual_carrier"].queryset = Organization.objects.filter(
             is_active=True,
             roles__role=OrganizationRole.Role.CARRIER,
+            roles__is_active=True,
+        ).distinct()
+        self.fields["pickup_organization"].queryset = Organization.objects.filter(
+            is_active=True,
+            roles__role=OrganizationRole.Role.SHIPPER,
+            roles__is_active=True,
+        ).distinct()
+        self.fields["delivery_organization"].queryset = Organization.objects.filter(
+            is_active=True,
+            roles__role=OrganizationRole.Role.CONSIGNEE,
             roles__is_active=True,
         ).distinct()
         active_contracts = Contract.objects.exclude(
@@ -1245,7 +1277,13 @@ class TransportationDocumentForm(StyledModelForm):
 
         organization_role_map = {}
         organization_ids = set()
-        for field_name in ("client", "executor", "actual_carrier"):
+        for field_name in (
+            "client",
+            "executor",
+            "actual_carrier",
+            "pickup_organization",
+            "delivery_organization",
+        ):
             organization_ids.update(
                 self.fields[field_name].queryset.values_list("pk", flat=True)
             )
@@ -1256,7 +1294,13 @@ class TransportationDocumentForm(StyledModelForm):
             organization_role_map.setdefault(str(organization_id), []).append(
                 role_value
             )
-        for field_name in ("client", "executor", "actual_carrier"):
+        for field_name in (
+            "client",
+            "executor",
+            "actual_carrier",
+            "pickup_organization",
+            "delivery_organization",
+        ):
             self.fields[field_name].widget.role_map = organization_role_map
 
         if not self.is_bound and client_party:
@@ -1305,6 +1349,20 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-required-role": OrganizationRole.Role.CARRIER,
                 "data-search-placeholder": "Введите название или ИНН перевозчика",
                 "data-create-label": "Создать перевозчика",
+            },
+            "pickup_organization": {
+                "data-smart-select": "organization",
+                "data-create-url": organization_create_url,
+                "data-required-role": OrganizationRole.Role.SHIPPER,
+                "data-search-placeholder": "Название или ИНН грузоотправителя",
+                "data-create-label": "Создать грузоотправителя",
+            },
+            "delivery_organization": {
+                "data-smart-select": "organization",
+                "data-create-url": organization_create_url,
+                "data-required-role": OrganizationRole.Role.CONSIGNEE,
+                "data-search-placeholder": "Название или ИНН грузополучателя",
+                "data-create-label": "Создать грузополучателя",
             },
             "driver": {
                 "data-smart-select": "driver",
@@ -1363,6 +1421,8 @@ class TransportationDocumentForm(StyledModelForm):
                     assignment.trailer_registration_number if assignment else ""
                 ),
                 "pickup_city": pickup.city if pickup else "",
+                "pickup_organization": pickup.organization_id if pickup else None,
+                "pickup_organization_text": pickup.organization_text if pickup else "",
                 "pickup_address": pickup.address if pickup else "",
                 "pickup_address_meta": self._stop_address_meta(pickup),
                 "pickup_date": (
@@ -1371,6 +1431,8 @@ class TransportationDocumentForm(StyledModelForm):
                     else self.instance.planned_start_date
                 ),
                 "delivery_city": delivery.city if delivery else "",
+                "delivery_organization": delivery.organization_id if delivery else None,
+                "delivery_organization_text": delivery.organization_text if delivery else "",
                 "delivery_address": delivery.address if delivery else "",
                 "delivery_address_meta": self._stop_address_meta(delivery),
                 "delivery_date": (
@@ -1624,6 +1686,8 @@ class TransportationDocumentForm(StyledModelForm):
         ).order_by("sequence").first()
         pickup_values = {
             "kind": TransportationStop.Kind.PICKUP,
+            "organization": self.cleaned_data.get("pickup_organization"),
+            "organization_text": self.cleaned_data.get("pickup_organization_text", ""),
             "city": self.cleaned_data["pickup_city"],
             "address": self.cleaned_data.get("pickup_address", ""),
             "planned_from": self._planned_datetime(self.cleaned_data["pickup_date"]),
@@ -1645,6 +1709,8 @@ class TransportationDocumentForm(StyledModelForm):
         ).order_by("-sequence").first()
         delivery_values = {
             "kind": TransportationStop.Kind.DELIVERY,
+            "organization": self.cleaned_data.get("delivery_organization"),
+            "organization_text": self.cleaned_data.get("delivery_organization_text", ""),
             "city": self.cleaned_data["delivery_city"],
             "address": self.cleaned_data.get("delivery_address", ""),
             "planned_from": self._planned_datetime(self.cleaned_data["delivery_date"]),

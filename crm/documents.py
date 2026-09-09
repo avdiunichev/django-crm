@@ -186,6 +186,14 @@ def _organization_name_with_inn(organization):
     return f"{_full_organization_name(organization)}{suffix}"
 
 
+def _stop_organization_text(stop):
+    if not stop:
+        return "не указан"
+    if stop.organization_id:
+        return _organization_name_with_inn(stop.organization)
+    return stop.organization_text or "не указан"
+
+
 def _stop_address(stop):
     if not stop:
         return "не указан"
@@ -351,7 +359,7 @@ def build_executor_transportation_application_docx(transportation):
             spacer = route_table.add_row().cells
             spacer[0].merge(spacer[1]).merge(spacer[2])
             rows = (
-                (f"{kind_title} {index}", _organization_name_with_inn(stop.organization)),
+                (f"{kind_title} {index}", _stop_organization_text(stop)),
                 (f"Адрес {'погрузки' if stop.kind == stop.Kind.PICKUP else 'выгрузки'}", _stop_address(stop)),
                 ("Контакт / комментарий", " / ".join(part for part in (stop.contact_phone, stop.contact_name, stop.instructions) if part)),
                 (date_label, _datetime_window(stop.planned_from, stop.planned_to)),

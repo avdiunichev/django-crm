@@ -1970,6 +1970,9 @@ class TransportationStop(TimestampedModel):
         null=True,
         blank=True,
     )
+    organization_text = models.CharField(
+        "Наименование организации вручную", max_length=255, blank=True
+    )
     city = models.CharField("Город", max_length=120)
     address = models.CharField("Адрес", max_length=255, blank=True)
     # Structured address parts returned by DaData.  ``city``/``address`` are

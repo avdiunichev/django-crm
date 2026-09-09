@@ -67,6 +67,11 @@
             committedText = search.value;
             search.setCustomValidity(required && !select.value ? "Выберите значение из списка" : "");
         };
+        const syncDisabled = () => {
+            search.disabled = select.disabled;
+            wrapper.classList.toggle("is-disabled", select.disabled);
+            if (select.disabled) close();
+        };
         const choose = (option) => {
             select.value = option.value;
             syncFromSelect();
@@ -146,10 +151,12 @@
         });
         select.addEventListener("change", syncFromSelect);
         select.addEventListener("optionschange", syncFromSelect);
+        select.addEventListener("disabledchange", syncDisabled);
         document.addEventListener("mousedown", (event) => {
             if (!wrapper.contains(event.target)) close(true);
         });
         syncFromSelect();
+        syncDisabled();
     };
 
     const enhanceWithin = (root = document) => {
