@@ -5,9 +5,30 @@
     const MIN_QUERY_LENGTH = 2;
     const DELAY = 250;
 
+    const normalizePart = (value) => String(value || "").replace(/\s+/g, " ").trim();
+
+    const withoutType = (value) => normalizePart(value)
+        .replace(/^(г|город|поселок|посёлок|п|село|с|деревня|д|рп|рабочий поселок)\s+/i, "")
+        .replace(/\s+(г|город|поселок|посёлок|п|село|с|деревня|д|рп)$/i, "")
+        .trim();
+
+    const samePlace = (left, right) => {
+        const a = withoutType(left).toLocaleLowerCase("ru-RU");
+        const b = withoutType(right).toLocaleLowerCase("ru-RU");
+        return Boolean(a && b && a === b);
+    };
+
     const cityFromSuggestion = (suggestion) => {
-        const city = suggestion.city || suggestion.settlement || suggestion.area || suggestion.region || suggestion.value;
-        return city || "";
+        const settlement = normalizePart(suggestion.city || suggestion.settlement || "");
+        const parts = [];
+        [suggestion.region, suggestion.area, settlement].forEach((part) => {
+            const value = normalizePart(part);
+            if (!value) return;
+            if (parts.some((existing) => samePlace(existing, value))) return;
+            parts.push(value);
+        });
+        if (parts.length) return parts.join(", ");
+        return normalizePart(suggestion.value);
     };
 
     const enhance = (input) => {
@@ -65,10 +86,10 @@
             const unique = [];
             const seen = new Set();
             suggestions.forEach((suggestion) => {
-                const city = cityFromSuggestion(suggestion);
-                if (!city || seen.has(city.toLowerCase())) return;
-                seen.add(city.toLowerCase());
-                unique.push({...suggestion, city});
+                const displayCity = cityFromSuggestion(suggestion);
+                if (!displayCity || seen.has(displayCity.toLowerCase())) return;
+                seen.add(displayCity.toLowerCase());
+                unique.push({...suggestion, displayCity});
             });
             if (!unique.length) {
                 renderMessage("Город не найден. Можно продолжить ввод вручную.");
@@ -79,10 +100,11 @@
                 button.type = "button";
                 button.className = "crm-address-option";
                 const value = document.createElement("span");
-                value.textContent = suggestion.city;
+                value.textContent = suggestion.displayCity;
                 button.appendChild(value);
-                const details = [suggestion.region, suggestion.area]
-                    .filter((part, index, items) => part && items.indexOf(part) === index && part !== suggestion.city)
+                const details = [suggestion.region, suggestion.area, suggestion.city || suggestion.settlement]
+                    .map(normalizePart)
+                    .filter((part, index, items) => part && items.indexOf(part) === index && part !== suggestion.displayCity)
                     .join(" · ");
                 if (details) {
                     const meta = document.createElement("small");
