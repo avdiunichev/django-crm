@@ -34,8 +34,18 @@
     </form>
 
     <div class="table-wrap">
-        <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table">
-            <thead><tr><th>Заказ</th><th>Клиент</th><th>Маршрут</th><th>Груз</th><th>Ставка / оплата</th><th>Статус</th><th></th></tr></thead>
+        <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table" data-server-sort="true">
+            <thead>
+                <tr>
+                    <th><a class="server-sort-link {% if sort_columns.number.active %}is-active{% endif %}" href="{{ sort_columns.number.url }}">Заказ {% if sort_columns.number.active %}<span>{{ sort_columns.number.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.client.active %}is-active{% endif %}" href="{{ sort_columns.client.url }}">Клиент {% if sort_columns.client.active %}<span>{{ sort_columns.client.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.route.active %}is-active{% endif %}" href="{{ sort_columns.route.url }}">Маршрут {% if sort_columns.route.active %}<span>{{ sort_columns.route.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.cargo.active %}is-active{% endif %}" href="{{ sort_columns.cargo.url }}">Груз {% if sort_columns.cargo.active %}<span>{{ sort_columns.cargo.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.rate.active %}is-active{% endif %}" href="{{ sort_columns.rate.url }}">Ставка / оплата {% if sort_columns.rate.active %}<span>{{ sort_columns.rate.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.status.active %}is-active{% endif %}" href="{{ sort_columns.status.url }}">Статус {% if sort_columns.status.active %}<span>{{ sort_columns.status.label }}</span>{% endif %}</a></th>
+                    <th></th>
+                </tr>
+            </thead>
             <tbody>
             {% for order in orders %}
                 <tr>

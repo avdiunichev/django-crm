@@ -4789,6 +4789,27 @@ class TransportOrderListView(LoginRequiredMixin, ListView):
     template_name = "crm/order_list.html"
     context_object_name = "orders"
     paginate_by = 30
+    sort_options = {
+        "number": ("number", "pk"),
+        "date": ("document_date", "pk"),
+        "client": ("client__name", "client__short_name", "pk"),
+        "route": ("planned_start_date", "planned_end_date", "pk"),
+        "cargo": ("cargo_name", "pk"),
+        "rate": ("rate", "pk"),
+        "status": ("status", "pk"),
+    }
+
+    def get_sorting(self):
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options:
+            sort_key = "date"
+            descending = True
+        fields = self.sort_options[sort_key]
+        if descending:
+            fields = tuple(f"-{field}" for field in fields)
+        return sort_key, descending, fields
 
     def get_queryset(self):
         queryset = TransportOrder.objects.select_related(
@@ -4810,7 +4831,8 @@ class TransportOrderListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(status=status)
         if owner.isdigit():
             queryset = queryset.filter(owner_company_id=owner)
-        return queryset
+        _, _, ordering = self.get_sorting()
+        return queryset.order_by(*ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -4840,6 +4862,19 @@ class TransportOrderListView(LoginRequiredMixin, ListView):
                 or Decimal("0"),
             }
         )
+        current_sort_key, current_sort_desc, _ = self.get_sorting()
+        sort_columns = {}
+        for key in self.sort_options:
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if current_sort_key != key or current_sort_desc else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": current_sort_key == key,
+                "direction": "desc" if current_sort_desc else "asc",
+                "label": "↓" if current_sort_desc else "↑",
+            }
+        context["sort_columns"] = sort_columns
         return context
 
 

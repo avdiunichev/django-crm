@@ -6735,6 +6735,25 @@ body.uikit-theme {
     opacity: 0.68;
 }
 
+.uikit-theme .server-sort-link {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.uikit-theme .server-sort-link:hover,
+.uikit-theme .server-sort-link.is-active {
+    color: var(--primary-color, #1e87f0);
+    text-decoration: none;
+}
+
+.uikit-theme .server-sort-link span {
+    font-size: 12px;
+    line-height: 1;
+}
+
 @media (max-width: 900px) {
     .uikit-theme .topbar {
         align-items: flex-start;

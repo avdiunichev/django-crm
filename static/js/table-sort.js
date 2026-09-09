@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    const TABLE_SELECTOR = "table:not([data-sortable=\"false\"])";
+    const TABLE_SELECTOR = "table:not([data-sortable=\"false\"]):not([data-server-sort=\"true\"])";
     const DATE_PATTERN = /^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/;
 
     const cleanText = (value) => (value || "")
