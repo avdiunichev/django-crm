@@ -1733,9 +1733,10 @@ class TransportationDocumentForm(StyledModelForm):
                 **delivery_values,
             )
 
-        transportation.vehicle_assignments.update(
-            is_active=False, execution_link=None
-        )
+        for assignment in transportation.vehicle_assignments.filter(is_active=True):
+            assignment.is_active = False
+            assignment.execution_link = None
+            assignment.save(update_fields=["is_active", "execution_link", "updated_at"])
         for old_link in transportation.execution_links.order_by("-sequence"):
             old_link.delete()
         transportation.parties.filter(
@@ -1790,7 +1791,7 @@ class TransportationDocumentForm(StyledModelForm):
                 )
             driver = self.cleaned_data.get("driver")
             vehicle = self.cleaned_data.get("vehicle")
-            VehicleAssignment.objects.create(
+            new_assignment = VehicleAssignment(
                 transportation=transportation,
                 execution_link=final_link,
                 actual_carrier=actual_carrier,
@@ -1804,6 +1805,8 @@ class TransportationDocumentForm(StyledModelForm):
                 confirmed_by=user if driver and vehicle else None,
                 confirmed_at=timezone.now() if driver and vehicle else None,
             )
+            new_assignment.full_clean()
+            new_assignment.save()
         transportation.legacy_chain_sync = False
         transportation.save(update_fields=["legacy_chain_sync", "updated_at"])
         return transportation

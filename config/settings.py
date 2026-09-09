@@ -178,6 +178,8 @@ if not DEBUG:
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -218,6 +220,33 @@ KONTUR_DIADOC_API_URL = os.environ.get(
 ).strip()
 KONTUR_DIADOC_API_TOKEN = os.environ.get("KONTUR_DIADOC_API_TOKEN", "").strip()
 KONTUR_DIADOC_API_TIMEOUT = float(os.environ.get("KONTUR_DIADOC_API_TIMEOUT", "30"))
+
+if not DEBUG:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {name} {process:d} {thread:d} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "django_error_file": {
+                "level": "ERROR",
+                "class": "logging.FileHandler",
+                "filename": LOG_DIR / "django-errors.log",
+                "formatter": "verbose",
+            },
+        },
+        "loggers": {
+            "django.request": {
+                "handlers": ["django_error_file"],
+                "level": "ERROR",
+                "propagate": True,
+            },
+        },
+    }
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
