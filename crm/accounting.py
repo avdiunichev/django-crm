@@ -138,7 +138,7 @@ def _due_base(transportation):
 def post_transportation(transportation, user=None):
     transportation = (
         Transportation.objects.select_for_update()
-        .select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
+        .select_related("owner_company")
         .get(pk=transportation.pk)
     )
     client_party, executor_link, assignment = validate_transportation_for_posting(
@@ -341,7 +341,7 @@ def advance_transportation_status(transportation, target_status, user=None):
 
     transportation = (
         Transportation.objects.select_for_update()
-        .select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
+        .select_related("owner_company")
         .get(pk=transportation.pk)
     )
     errors = transportation.status_transition_issues(target_status)
