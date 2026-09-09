@@ -685,10 +685,10 @@ ACTIVE_SHIPMENT_STATUSES = [
 ]
 
 SHIPMENT_SCOPE_LABELS = {
-    "active": "Активные заявки",
+    "active": "Активные рейсы",
     "unassigned": "Без перевозчика",
-    "revenue": "Заявки с выручкой",
-    "margin": "Заявки с положительной маржой",
+    "revenue": "Рейсы с выручкой",
+    "margin": "Рейсы с положительной маржой",
     "receivables": "Дебиторская задолженность",
     "payables": "Кредиторская задолженность",
 }
@@ -1423,51 +1423,89 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         today = timezone.localdate()
         current_expeditor = get_expeditor_filter(self.request)
         current_currency = get_currency_filter(self.request, default="RUB")
-        shipments = Shipment.objects.select_related(
-            "expeditor", "customer", "carrier", "driver", "vehicle", "manager"
-        ).prefetch_related("payments")
+        transportations = (
+            Transportation.objects.select_related(
+                "owner_company", "manager", "legacy_shipment", "legacy_shipment__customer"
+            )
+            .prefetch_related(
+                "stops",
+                "settlement_movements",
+                Prefetch(
+                    "parties",
+                    queryset=TransportationParty.objects.filter(
+                        role=TransportationParty.Role.CLIENT, is_active=True
+                    ).select_related("organization"),
+                    to_attr="client_parties",
+                ),
+                Prefetch(
+                    "execution_links",
+                    queryset=TransportationLink.objects.filter(is_active=True)
+                    .select_related("contractor_party__organization", "contract")
+                    .order_by("sequence"),
+                ),
+                Prefetch(
+                    "vehicle_assignments",
+                    queryset=VehicleAssignment.objects.filter(is_active=True)
+                    .select_related(
+                        "actual_carrier", "driver", "vehicle", "trailer", "combination"
+                    )
+                    .order_by("-created_at"),
+                ),
+            )
+        )
         if current_expeditor:
-            shipments = shipments.filter(expeditor_id=current_expeditor)
-        financial_shipments = list(
-            shipments.exclude(status=Shipment.Status.CANCELLED).filter(
+            owner_id = CompanyProfile.objects.filter(pk=current_expeditor).values_list(
+                "organization_id", flat=True
+            ).first()
+            transportations = (
+                transportations.filter(owner_company_id=owner_id)
+                if owner_id
+                else transportations.none()
+            )
+        financial_transportations = list(
+            transportations.exclude(status=Transportation.Status.CANCELLED).filter(
                 currency=current_currency
             )
         )
         revenue = sum(
-            (shipment.customer_price for shipment in financial_shipments),
+            (transportation.revenue for transportation in financial_transportations),
             Decimal("0"),
         )
         costs = sum(
-            (shipment.carrier_price for shipment in financial_shipments),
+            (transportation.cost for transportation in financial_transportations),
             Decimal("0"),
         )
         receivables = sum(
             (
-                max(shipment.receivable_balance, Decimal("0"))
-                for shipment in financial_shipments
+                max(transportation.receivable_balance, Decimal("0"))
+                for transportation in financial_transportations
             ),
             Decimal("0"),
         )
         payables = sum(
             (
-                max(shipment.payable_balance, Decimal("0"))
-                for shipment in financial_shipments
+                max(transportation.payable_balance, Decimal("0"))
+                for transportation in financial_transportations
             ),
             Decimal("0"),
         )
         overdue_receivables = sum(
             (
-                max(shipment.receivable_balance, Decimal("0"))
-                for shipment in financial_shipments
-                if shipment.receivable_state == Shipment.PaymentStatus.OVERDUE
+                max(transportation.receivable_balance, Decimal("0"))
+                for transportation in financial_transportations
+                if max(transportation.receivable_balance, Decimal("0"))
+                and transportation.customer_payment_due_date
+                and transportation.customer_payment_due_date < today
             ),
             Decimal("0"),
         )
         overdue_payables = sum(
             (
-                max(shipment.payable_balance, Decimal("0"))
-                for shipment in financial_shipments
-                if shipment.payable_state == Shipment.PaymentStatus.OVERDUE
+                max(transportation.payable_balance, Decimal("0"))
+                for transportation in financial_transportations
+                if max(transportation.payable_balance, Decimal("0"))
+                and transportation.executor_payment_due_date
+                and transportation.executor_payment_due_date < today
             ),
             Decimal("0"),
         )
@@ -1507,17 +1545,25 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
         context.update(
             {
-                "active_count": shipments.filter(
-                    status__in=ACTIVE_SHIPMENT_STATUSES
+                "active_count": transportations.exclude(
+                    status__in=[Transportation.Status.CLOSED, Transportation.Status.CANCELLED]
                 ).count(),
-                "today_pickups": shipments.filter(pickup_date=today).count(),
-                "unassigned_count": shipments.filter(
-                    carrier__isnull=True, status__in=ACTIVE_SHIPMENT_STATUSES
+                "today_pickups": TransportationStop.objects.filter(
+                    transportation__in=transportations,
+                    kind=TransportationStop.Kind.PICKUP,
+                    planned_from__date=today,
                 ).count(),
+                "unassigned_count": sum(
+                    1
+                    for transportation in financial_transportations
+                    if not transportation.execution_links.all()
+                ),
                 "overdue_count": sum(
                     1
-                    for shipment in financial_shipments
-                    if shipment.receivable_state == Shipment.PaymentStatus.OVERDUE
+                    for transportation in financial_transportations
+                    if max(transportation.receivable_balance, Decimal("0"))
+                    and transportation.customer_payment_due_date
+                    and transportation.customer_payment_due_date < today
                 ),
                 "revenue": revenue,
                 "margin": revenue - costs,
@@ -1525,7 +1571,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "payables": payables,
                 "overdue_receivables": overdue_receivables,
                 "overdue_payables": overdue_payables,
-                "recent_shipments": shipments[:8],
+                "recent_transportations": transportations[:8],
                 "expeditors": CompanyProfile.objects.all(),
                 "current_expeditor": current_expeditor,
                 "current_currency": current_currency,
@@ -1534,16 +1580,47 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     {
                         "value": status.value,
                         "label": status.label,
-                        "count": shipments.filter(status=status.value).count(),
+                        "count": transportations.filter(status=status.value).count(),
                     }
-                    for status in Shipment.Status
-                    if status != Shipment.Status.CANCELLED
+                    for status in Transportation.Status
+                    if status != Transportation.Status.CANCELLED
                 ],
                 "dashboard_automatic_tasks": dashboard_automatic_tasks[:8],
                 "dashboard_notification_count": len(dashboard_automatic_tasks),
             }
         )
         return context
+
+
+class LegacyShipmentRedirectView(LoginRequiredMixin, View):
+    """Keep old shipment links working while the visible CRM uses transportations."""
+
+    target = "list"
+
+    def get(self, request, pk=None):
+        if self.target == "create":
+            return redirect("transportation-create")
+        if not pk:
+            return redirect("transportation-list")
+
+        transportation_id = Transportation.objects.filter(
+            legacy_shipment_id=pk
+        ).values_list("pk", flat=True).first()
+        if not transportation_id:
+            messages.info(
+                request,
+                "Старый блок заявок скрыт. Откройте или создайте документ в реестре рейсов.",
+            )
+            return redirect("transportation-list")
+
+        if self.target == "edit":
+            return redirect("transportation-update", pk=transportation_id)
+        if self.target == "delete":
+            return redirect("transportation-delete", pk=transportation_id)
+        return redirect("transportation-detail", pk=transportation_id)
+
+    def post(self, request, pk=None):
+        return self.get(request, pk=pk)
 
 
 class ShipmentListView(LoginRequiredMixin, ListView):

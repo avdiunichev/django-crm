@@ -409,11 +409,27 @@ urlpatterns = [
         "expeditors/<int:pk>/edit/", views.ExpeditorUpdateView.as_view(),
         name="expeditor-update",
     ),
-    path("shipments/", views.ShipmentListView.as_view(), name="shipment-list"),
-    path("shipments/new/", views.ShipmentCreateView.as_view(), name="shipment-create"),
-    path("shipments/<int:pk>/", views.ShipmentDetailView.as_view(), name="shipment-detail"),
-    path("shipments/<int:pk>/edit/", views.ShipmentUpdateView.as_view(), name="shipment-update"),
-    path("shipments/<int:pk>/delete/", views.ShipmentDeleteView.as_view(), name="shipment-delete"),
+    path("shipments/", views.LegacyShipmentRedirectView.as_view(), name="shipment-list"),
+    path(
+        "shipments/new/",
+        views.LegacyShipmentRedirectView.as_view(target="create"),
+        name="shipment-create",
+    ),
+    path(
+        "shipments/<int:pk>/",
+        views.LegacyShipmentRedirectView.as_view(target="detail"),
+        name="shipment-detail",
+    ),
+    path(
+        "shipments/<int:pk>/edit/",
+        views.LegacyShipmentRedirectView.as_view(target="edit"),
+        name="shipment-update",
+    ),
+    path(
+        "shipments/<int:pk>/delete/",
+        views.LegacyShipmentRedirectView.as_view(target="delete"),
+        name="shipment-delete",
+    ),
     path(
         "shipments/<int:pk>/payments/new/",
         views.PaymentCreateView.as_view(),
