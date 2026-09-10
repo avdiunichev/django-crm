@@ -6778,15 +6778,16 @@ body.uikit-theme {
 }
 
 .uikit-theme .transportation-register-header {
-    align-items: stretch;
+    align-items: center;
 }
 
 .uikit-theme .register-finance-totals {
     display: grid;
-    grid-template-columns: repeat(3, minmax(132px, 1fr));
-    gap: 10px;
-    margin-left: auto;
-    max-width: 560px;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 14px 22px;
+    border-bottom: 1px solid #e1e8f0;
+    background: #fff;
 }
 
 .uikit-theme .register-finance-totals article {
@@ -6811,7 +6812,7 @@ body.uikit-theme {
 }
 
 .uikit-theme .register-finance-totals strong {
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1.25;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -6950,8 +6951,7 @@ body.uikit-theme {
     }
 
     .uikit-theme .register-finance-totals {
-        margin-left: 0;
-        max-width: none;
-        width: 100%;
+        grid-template-columns: 1fr;
+        padding: 12px 14px;
     }
 }
