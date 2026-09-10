@@ -247,6 +247,7 @@ class CrmTestCase(TestCase):
             self.carrier.organization,
             form.fields["client"].queryset,
         )
+        self.assertEqual(form.fields["executor_amount"].widget.attrs["min"], "0")
 
     def test_order_form_supports_multiple_route_operations_and_registry(self):
         self.client.force_login(self.user)

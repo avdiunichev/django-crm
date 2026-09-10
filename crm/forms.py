@@ -1491,6 +1491,12 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_vat_rate"].queryset = self.fields[
             "executor_vat_rate"
         ].queryset.filter(is_active=True)
+        self.fields["customer_amount"].widget.attrs.update(
+            {"min": "0.01", "step": "0.01", "placeholder": "0,00"}
+        )
+        self.fields["executor_amount"].widget.attrs.update(
+            {"min": "0", "step": "0.01", "placeholder": "0,00"}
+        )
 
         if self.instance.pk and self.instance.owner_company_id:
             self.fields["owner_company"].queryset |= Organization.objects.filter(
