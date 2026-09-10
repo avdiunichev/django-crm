@@ -31,7 +31,7 @@
                 <tr>
                     <td>{{ line.movement_date|date:"d.m.Y" }}</td>
                     <td>{{ line.description }}</td>
-                    <td><a href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small>{{ line.transportation.route }}</small></td>
+                    <td><a href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ line.transportation.route }}">{{ line.transportation.route }}</small></td>
                     <td>{% if line.primary_document_numbers %}{{ line.primary_document_numbers }}{% else %}<span class="uk-text-muted">Не указаны</span>{% endif %}</td>
                     <td class="uk-text-right amount-cell">{% if line.debit %}{{ line.debit|floatformat:"2g" }}{% else %}—{% endif %}</td>
                     <td class="uk-text-right amount-cell">{% if line.credit %}{{ line.credit|floatformat:"2g" }}{% else %}—{% endif %}</td>

@@ -31,7 +31,7 @@
         <tbody>
         {% for line in document_batch.lines.all %}
             <tr>
-                <td><a class="primary-link" href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small>{{ line.transportation.route }}</small></td>
+                <td><a class="primary-link" href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ line.transportation.route }}">{{ line.transportation.route }}</small></td>
                 <td>{{ line.counterparty|default:"—" }}</td>
                 <td>{{ line.get_kind_display }}</td>
                 <td>{{ line.document_number|default:"Без номера" }}<small>{% if line.document_date %}{{ line.document_date|date:"d.m.Y" }}{% else %}{{ document_batch.document_date|date:"d.m.Y" }}{% endif %}</small></td>

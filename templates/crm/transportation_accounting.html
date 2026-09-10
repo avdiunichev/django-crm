@@ -42,7 +42,7 @@
         {% for transportation in transportations %}
             <tr>
                 <td><a class="primary-link" href="{{ transportation.get_absolute_url }}">{{ transportation.number|default:"Черновик" }}</a><small>{{ transportation.get_status_display }}</small></td>
-                <td>{{ transportation.route }}<small>{{ transportation.planned_start_date|date:"d.m.Y" }} → {{ transportation.planned_end_date|date:"d.m.Y" }}</small></td>
+                <td><div class="route-compact" title="{{ transportation.route }}">{{ transportation.route }}</div><small>{{ transportation.planned_start_date|date:"d.m.Y" }} → {{ transportation.planned_end_date|date:"d.m.Y" }}</small></td>
                 <td>{% with party=transportation.client_parties.0 %}{% if party %}{{ party.organization }}{% else %}—{% endif %}{% endwith %}<br>{% with link=transportation.execution_links.all.0 %}{% if link %}<small>{{ link.contractor_party.organization }} · {{ link.get_contractor_role_display }}</small>{% else %}<small class="uk-text-danger">Исполнитель не указан</small>{% endif %}{% endwith %}</td>
                 <td>{% for document in transportation.electronic_documents.all %}<div><span class="uk-label">{{ document.get_kind_display }}</span> <small>{{ document.get_status_display }}</small></div>{% empty %}<span class="uk-text-muted">Не подготовлены</span>{% endfor %}</td>
                 <td class="uk-text-right"><strong class="amount-income">{{ transportation.revenue|floatformat:"2g" }} {{ current_currency|currency_symbol }}</strong><small class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">маржа {{ transportation.margin|floatformat:"2g" }} {{ current_currency|currency_symbol }}</small></td>

@@ -35,7 +35,7 @@
         <tbody>
         {% for row in debt_rows %}
             <tr>
-                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small>{{ row.transportation.route }}</small></td>
+                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ row.transportation.route }}">{{ row.transportation.route }}</small></td>
                 <td>{{ row.owner_company.short_name|default:row.owner_company.name }}</td>
                 <td>{% if row.counterparty %}<a href="{{ row.counterparty.get_absolute_url }}">{{ row.counterparty.short_name|default:row.counterparty.name }}</a><small>ИНН {{ row.counterparty.tax_id|default:"не указан" }}</small>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
                 <td><span class="uk-label {% if row.side == 'receivable' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ row.side_label }}</span></td>

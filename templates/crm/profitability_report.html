@@ -37,7 +37,7 @@
         <tbody>
         {% for row in profit_rows %}
             <tr>
-                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small>{{ row.transportation.route }}</small></td>
+                <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ row.transportation.route }}">{{ row.transportation.route }}</small></td>
                 <td>{% if row.client %}<a href="{{ row.client.get_absolute_url }}">{{ row.client.short_name|default:row.client.name }}</a>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
                 <td>{% if row.executor %}<a href="{{ row.executor.get_absolute_url }}">{{ row.executor.short_name|default:row.executor.name }}</a>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
                 <td>{{ row.manager.get_full_name|default:row.manager.username }}</td>

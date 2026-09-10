@@ -6860,6 +6860,24 @@ body.uikit-theme {
     white-space: normal;
 }
 
+.uikit-theme .table-wrap .route-compact,
+.uikit-theme .uk-table .route-compact {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    line-height: 1.35;
+    max-width: min(420px, 100%);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    white-space: normal !important;
+}
+
+.uikit-theme .uk-table td:has(.route-compact),
+.uikit-theme .uk-table small.route-compact {
+    white-space: normal !important;
+}
+
 .uikit-theme .order-register-table {
     min-width: 1120px;
     table-layout: fixed;
