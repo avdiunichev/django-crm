@@ -3041,12 +3041,8 @@ class ShipmentDocumentForm(StyledModelForm):
             "notes",
         ]
         widgets = {
-            "document_date": forms.DateInput(
-                format="%Y-%m-%d", attrs={"type": "date"}
-            ),
-            "expected_date": forms.DateInput(
-                format="%Y-%m-%d", attrs={"type": "date"}
-            ),
+            "document_date": CRMDateInput(),
+            "expected_date": CRMDateInput(),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 

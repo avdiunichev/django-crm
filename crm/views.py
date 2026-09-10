@@ -2329,13 +2329,8 @@ class ShipmentDocumentListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
-        all_documents = ShipmentDocument.objects.all()
+        all_documents = self.object_list
         current_expeditor = get_expeditor_filter(self.request)
-        if current_expeditor:
-            all_documents = all_documents.filter(
-                Q(shipment__expeditor_id=current_expeditor)
-                | Q(transportation__owner_company_id=current_expeditor)
-            )
         context.update(
             {
                 "kind_choices": ShipmentDocument.Kind.choices,
@@ -2413,6 +2408,9 @@ class ShipmentDocumentCreateView(
         initial = super().get_initial()
         if self.shipment:
             initial["currency"] = self.shipment.currency
+        transportation_id = self.request.GET.get("transportation", "").strip()
+        if transportation_id.isdigit():
+            initial["transportation"] = transportation_id
         initial["direction"] = self.request.GET.get(
             "direction", ShipmentDocument.Direction.OUTGOING
         )
@@ -2429,6 +2427,8 @@ class ShipmentDocumentCreateView(
     def get_success_url(self):
         if self.shipment:
             return self.shipment.get_absolute_url()
+        if self.object.transportation_id:
+            return self.object.transportation.get_absolute_url()
         return reverse("shipment-document-list")
 
 
@@ -5233,10 +5233,8 @@ class TransportOrderListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        all_orders = TransportOrder.objects.all()
+        all_orders = self.object_list
         current_owner = self.request.GET.get("owner", "").strip()
-        if current_owner.isdigit():
-            all_orders = all_orders.filter(owner_company_id=current_owner)
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
@@ -5456,12 +5454,8 @@ class TransportationListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        all_transportations = Transportation.objects.all()
+        all_transportations = self.object_list
         current_owner = self.request.GET.get("owner", "").strip()
-        if current_owner.isdigit():
-            all_transportations = all_transportations.filter(
-                owner_company_id=current_owner
-            )
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
@@ -6822,6 +6816,11 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             queryset=TransportationElectronicDocument.objects.select_related("stop"),
         ),
         Prefetch(
+            "documents",
+            queryset=ShipmentDocument.objects.select_related("counterparty", "created_by")
+            .order_by("direction", "kind", "-document_date", "-created_at"),
+        ),
+        Prefetch(
             "incidents",
             queryset=TransportationIncident.objects.select_related(
                 "counterparty", "created_by"
@@ -6893,6 +6892,7 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             else:
                 posting_issues = list(error.messages)
         closing_issues = validate_transportation_for_closing(transportation)
+        transportation_documents = list(transportation.documents.all())
         context.update(
             {
                 "client_party": client_party,
@@ -6925,6 +6925,17 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                     if transportation.legacy_shipment_id
                     else []
                 ),
+                "transportation_documents": transportation_documents,
+                "outgoing_documents": [
+                    document
+                    for document in transportation_documents
+                    if document.direction == ShipmentDocument.Direction.OUTGOING
+                ],
+                "incoming_documents": [
+                    document
+                    for document in transportation_documents
+                    if document.direction == ShipmentDocument.Direction.INCOMING
+                ],
                 "charges": list(transportation.charges.all()),
                 "settlement_movements": list(
                     transportation.settlement_movements.all()
