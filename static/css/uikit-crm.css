@@ -6755,6 +6755,26 @@ body.uikit-theme {
     line-height: 1;
 }
 
+.uikit-theme .transportation-register-table th,
+.uikit-theme .transportation-register-table td {
+    vertical-align: top;
+}
+
+.uikit-theme .transportation-register-table .route-compact {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    line-height: 1.35;
+    max-width: 360px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.uikit-theme .transportation-register-table td small {
+    line-height: 1.35;
+}
+
 @media (max-width: 900px) {
     .uikit-theme .topbar {
         align-items: flex-start;

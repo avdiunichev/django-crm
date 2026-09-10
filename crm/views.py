@@ -2910,6 +2910,21 @@ def _reconciliation_description(movement):
     return f"{movement.get_kind_display()} · {side} · {trip_number}{payment_reference}"
 
 
+def _primary_document_numbers_for_reconciliation(transportation, counterparty):
+    if not transportation or not counterparty:
+        return ""
+    documents = ShipmentDocument.objects.filter(
+        transportation=transportation,
+        counterparty=counterparty,
+    ).exclude(number="").order_by("document_date", "kind", "number")
+    parts = []
+    for document in documents:
+        label = document.get_kind_display()
+        date_suffix = f" от {document.document_date:%d.%m.%Y}" if document.document_date else ""
+        parts.append(f"{label} № {document.number}{date_suffix}")
+    return "; ".join(parts)
+
+
 def _generate_reconciliation_act(act, user=None):
     movements = list(
         SettlementMovement.objects.filter(
@@ -3098,6 +3113,16 @@ class ReconciliationActDetailView(LoginRequiredMixin, FinanceAccessMixin, Detail
             )
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        act = self.object
+        for line in act.lines.all():
+            line.primary_document_numbers = _primary_document_numbers_for_reconciliation(
+                line.transportation,
+                act.counterparty,
+            )
+        return context
+
 
 class ReconciliationActRegenerateView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, pk):
@@ -3147,8 +3172,8 @@ class ReconciliationActExportView(LoginRequiredMixin, FinanceAccessMixin, View):
             ["Контрагент", act.counterparty.name],
             ["Валюта", act.currency],
             [],
-            ["Дата", "Операция", "Рейс", "Дебет", "Кредит", "Сальдо"],
-            ["", "Сальдо на начало", "", "", "", act.opening_balance],
+            ["Дата", "Операция", "Рейс", "Первичные документы", "Дебет", "Кредит", "Сальдо"],
+            ["", "Сальдо на начало", "", "", "", "", act.opening_balance],
         ]
         for line in act.lines.select_related("transportation").order_by(
             "movement_date", "created_at", "pk"
@@ -3158,6 +3183,7 @@ class ReconciliationActExportView(LoginRequiredMixin, FinanceAccessMixin, View):
                     line.movement_date,
                     line.description,
                     line.transportation.number or "Черновик",
+                    _primary_document_numbers_for_reconciliation(line.transportation, act.counterparty),
                     line.debit,
                     line.credit,
                     line.balance,
@@ -3166,8 +3192,8 @@ class ReconciliationActExportView(LoginRequiredMixin, FinanceAccessMixin, View):
         rows.extend(
             [
                 [],
-                ["", "Обороты за период", "", act.debit_turnover, act.credit_turnover, ""],
-                ["", "Сальдо на конец", "", "", "", act.closing_balance],
+                ["", "Обороты за период", "", "", act.debit_turnover, act.credit_turnover, ""],
+                ["", "Сальдо на конец", "", "", "", "", act.closing_balance],
             ]
         )
         return _xlsx_response(
@@ -5398,6 +5424,23 @@ class TransportationListView(LoginRequiredMixin, ListView):
     template_name = "crm/transportation_list.html"
     context_object_name = "transportations"
     paginate_by = 25
+    sort_options = {
+        "number": ("number", "pk"),
+        "date": ("planned_start_date", "planned_end_date", "pk"),
+        "route": ("planned_start_date", "planned_end_date", "pk"),
+        "client_rate": ("customer_amount", "pk"),
+        "executor_rate": ("executor_amount", "pk"),
+        "status": ("status", "pk"),
+    }
+
+    def get_sorting(self):
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options and sort_key != "net_profit":
+            sort_key = "date"
+            descending = True
+        return sort_key, descending
 
     def get_queryset(self):
         queryset = Transportation.objects.select_related(
@@ -5450,6 +5493,19 @@ class TransportationListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(posting_status=Transportation.PostingStatus.DRAFT)
         elif scope == "closed":
             queryset = queryset.filter(status=Transportation.Status.CLOSED)
+        sort_key, descending = self.get_sorting()
+        if sort_key == "net_profit":
+            expression = F("customer_amount") - F("executor_amount")
+            queryset = queryset.order_by(
+                expression.desc(nulls_last=True) if descending else expression.asc(nulls_last=True),
+                "-planned_start_date" if descending else "planned_start_date",
+                "pk",
+            )
+        else:
+            ordering = self.sort_options[sort_key]
+            if descending:
+                ordering = tuple(f"-{field}" for field in ordering)
+            queryset = queryset.order_by(*ordering)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -5482,6 +5538,19 @@ class TransportationListView(LoginRequiredMixin, ListView):
                 ),
             }
         )
+        current_sort_key, current_sort_desc = self.get_sorting()
+        sort_columns = {}
+        for key in (*self.sort_options.keys(), "net_profit"):
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if current_sort_key != key or current_sort_desc else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": current_sort_key == key,
+                "direction": "desc" if current_sort_desc else "asc",
+                "label": "↓" if current_sort_desc else "↑",
+            }
+        context["sort_columns"] = sort_columns
         return context
 
 
