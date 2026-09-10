@@ -67,7 +67,7 @@
                 <tr>
                     <td><a class="primary-link" href="{{ order.get_absolute_url }}">{{ order.number }}</a><small>{{ order.document_date|date:"d.m.Y" }} · {{ order.manager.get_full_name|default:order.manager.username }}</small></td>
                     <td><a href="{{ order.client.get_absolute_url }}">{{ order.client }}</a>{% if order.client.tax_id %}<small>ИНН {{ order.client.tax_id }}</small>{% endif %}</td>
-                    <td>{{ order.route }}<small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
+                    <td><div class="route-compact" title="{{ order.route }}">{{ order.route }}</div><small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
                     <td>{{ order.cargo_name }}<small>{{ order.weight_kg|floatformat:"0g" }} кг{% if order.volume_m3 %} · {{ order.volume_m3|floatformat:"2" }} м³{% endif %}</small></td>
                     <td><strong class="amount-income">{{ order.rate|floatformat:"2g" }} {{ order.currency|currency_symbol }}</strong><small>{{ order.get_payment_form_display }} · отсрочка {{ order.payment_term_days }} дн.</small></td>
                     <td><span class="badge uk-label {% if order.status == 'assigned' %}uk-label-success{% endif %}">{{ order.get_status_display }}</span>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% endif %}</td>
