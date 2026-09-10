@@ -21,6 +21,7 @@ from .forms import (
     TransportationDocumentForm,
     VehicleCombinationForm,
 )
+from .accounting import post_transportation
 from .epd import epd_validation_errors, prepare_documents
 from .models import (
     BankStatement,
@@ -1550,6 +1551,48 @@ class CrmTestCase(TestCase):
             transportation.net_profit,
         )
         self.assertContains(accounting_page, "Чистая прибыль")
+
+    def test_transportation_can_be_posted_with_zero_executor_amount(self):
+        transportation = self.shipment.transportation
+        transportation.customer_vat_rate = VATRate.objects.get(code="22")
+        transportation.executor_vat_rate = VATRate.objects.get(code="without_vat")
+        transportation.executor_amount = Decimal("0.00")
+        transportation.save(
+            update_fields=[
+                "customer_vat_rate",
+                "executor_vat_rate",
+                "executor_amount",
+                "updated_at",
+            ]
+        )
+        assignment = transportation.active_vehicle_assignment()
+        assignment.driver = self.driver
+        assignment.vehicle = self.vehicle
+        assignment.trailer_registration_number = "В456ВВ198"
+        assignment.save(
+            update_fields=[
+                "driver",
+                "vehicle",
+                "trailer_registration_number",
+                "updated_at",
+            ]
+        )
+        executor_contract = Contract.objects.create(
+            kind=Contract.Kind.CARRIER_TRANSPORT,
+            expeditor=self.company_profile,
+            carrier=self.carrier,
+            contract_date=date.today(),
+        )
+        execution_link = transportation.active_execution_link()
+        execution_link.contract = executor_contract
+        execution_link.save(update_fields=["contract", "updated_at"])
+
+        post_transportation(transportation, self.user)
+        transportation.refresh_from_db()
+        self.assertEqual(
+            transportation.posting_status, Transportation.PostingStatus.POSTED
+        )
+        self.assertEqual(transportation.payable_balance, Decimal("0.00"))
 
     def test_erp_transportation_form_and_unposting(self):
         self.client.force_login(self.user)

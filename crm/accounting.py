@@ -71,8 +71,8 @@ def validate_transportation_for_posting(transportation):
             errors["executor_contract"] = (
                 "Создайте и выберите договор с исполнителем перед проведением рейса."
             )
-        if transportation.executor_amount <= 0:
-            errors["executor_amount"] = "Сумма исполнителю должна быть больше нуля."
+        if transportation.executor_amount < 0:
+            errors["executor_amount"] = "Сумма исполнителю не может быть отрицательной."
         if not transportation.executor_vat_rate_id:
             errors["executor_vat_rate"] = "Выберите ставку НДС исполнителя."
         if not assignment:
