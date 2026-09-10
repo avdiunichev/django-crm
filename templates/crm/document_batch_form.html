@@ -24,7 +24,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default document-batch-picker">
-        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты. Отметьте те рейсы, которые нужно передать бухгалтерии.</p></div></div>
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты, по которым ещё нет документа выбранного типа и направления.</p></div></div>
         <div class="bank-picker-summary">
             <span>Отмечено рейсов: <strong data-document-selected-count>0</strong></span>
             <span>Сумма документов: <strong class="amount-income" data-document-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span>
@@ -39,7 +39,7 @@
                     <td>{% if item.counterparty %}{{ item.counterparty }}<small>ИНН {{ item.counterparty.tax_id|default:"—" }}</small>{% else %}<span class="uk-text-danger">Контрагент не определён</span>{% endif %}</td>
                     <td><select class="uk-select uk-form-small" name="kind_{{ item.transportation.pk }}">{% for value,label in document_kind_choices %}<option value="{{ value }}" {% if item.entered_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
                     <td><input class="uk-input uk-form-small" type="text" maxlength="100" name="number_{{ item.transportation.pk }}" value="{{ item.entered_number }}" placeholder="№ документа"></td>
-                    <td><input class="uk-input uk-form-small" type="text" name="date_{{ item.transportation.pk }}" value="{{ item.entered_date }}" placeholder="дд.мм.гггг"></td>
+                    <td><input class="uk-input uk-form-small" type="text" name="date_{{ item.transportation.pk }}" value="{{ item.entered_date }}" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date></td>
                     <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount|decimal_input }}" data-document-amount></td>
                     <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="vat_{{ item.transportation.pk }}" value="{{ item.entered_vat|decimal_input }}"></td>
                 </tr>
@@ -65,6 +65,19 @@
     const total = form.querySelector("[data-document-selected-total]");
     const selectAll = form.querySelector("[data-document-select-all]");
     const boxes = [...form.querySelectorAll("[data-document-select]")];
+    const reloadCandidateFields = ["direction", "owner_company", "default_kind", "currency"];
+    const reloadCandidates = () => {
+        const params = new URLSearchParams(window.location.search);
+        reloadCandidateFields.forEach((name) => {
+            const field = form.elements[name];
+            if (!field || !field.value) {
+                params.delete(name);
+                return;
+            }
+            params.set(name, field.value);
+        });
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    };
     const sync = () => {
         let selected = 0;
         let sum = 0;
@@ -86,7 +99,13 @@
         sync();
     });
     form.addEventListener("input", sync);
-    form.addEventListener("change", sync);
+    form.addEventListener("change", (event) => {
+        if (reloadCandidateFields.includes(event.target.name)) {
+            reloadCandidates();
+            return;
+        }
+        sync();
+    });
     sync();
 })();
 </script>

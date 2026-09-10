@@ -4047,6 +4047,39 @@ class CrmTestCase(TestCase):
         self.assertEqual(line.shipment_document.direction, ShipmentDocument.Direction.OUTGOING)
         self.assertEqual(line.shipment_document.amount, Decimal("100000.00"))
 
+    def test_document_batch_hides_transportations_with_existing_same_document_kind(self):
+        transportation = self.shipment.transportation
+        ShipmentDocument.objects.create(
+            transportation=transportation,
+            shipment=self.shipment,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="УПД-УЖЕ-ЕСТЬ",
+            document_date=date.today(),
+            amount=transportation.customer_amount,
+            vat_amount=transportation.customer_vat_amount,
+            currency=transportation.currency,
+            created_by=self.user,
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("document-batch-create"),
+            {
+                "direction": DocumentBatch.Direction.OUTGOING,
+                "owner_company": transportation.owner_company_id,
+                "default_kind": ShipmentDocument.Kind.UPD,
+                "currency": transportation.currency,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        candidate_ids = {
+            item["transportation"].pk
+            for item in response.context["document_batch_candidates"]
+        }
+        self.assertNotIn(transportation.pk, candidate_ids)
+
     def test_transportation_executor_application_download_creates_docx(self):
         transportation = self.shipment.transportation
         self.client.force_login(self.user)

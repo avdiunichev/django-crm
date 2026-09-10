@@ -2506,7 +2506,18 @@ class ShipmentDocumentDownloadView(LoginRequiredMixin, View):
         )
 
 
-def _document_batch_candidates(direction, owner_id=None, currency="RUB", delivered_only=False):
+def _format_crm_date(value):
+    return value.strftime("%d.%m.%Y") if value else ""
+
+
+def _document_batch_candidates(
+    direction,
+    owner_id=None,
+    currency="RUB",
+    delivered_only=False,
+    kind=None,
+    include_batch_id=None,
+):
     queryset = (
         Transportation.objects.all()
         .select_related("owner_company", "legacy_shipment")
@@ -2539,6 +2550,19 @@ def _document_batch_candidates(direction, owner_id=None, currency="RUB", deliver
         queryset = queryset.filter(owner_company_id=owner_id)
     if currency:
         queryset = queryset.filter(currency=currency)
+    if kind in ShipmentDocument.Kind.values:
+        existing_transportation_ids = ShipmentDocument.objects.filter(
+            transportation_id__isnull=False,
+            direction=direction,
+            kind=kind,
+        ).exclude(status=ShipmentDocument.Status.CANCELLED)
+        if include_batch_id:
+            existing_transportation_ids = existing_transportation_ids.exclude(
+                document_batch_line__batch_id=include_batch_id
+            )
+        queryset = queryset.exclude(
+            pk__in=existing_transportation_ids.values("transportation_id")
+        )
     candidates = []
     for transportation in queryset[:200]:
         parties = getattr(transportation, "document_batch_parties", ())
@@ -2641,6 +2665,15 @@ class DocumentBatchEditorMixin:
         direction = self.request.GET.get("direction", "").strip()
         if direction in DocumentBatch.Direction.values:
             initial["direction"] = direction
+        default_kind = self.request.GET.get("default_kind", "").strip()
+        if default_kind in ShipmentDocument.Kind.values:
+            initial["default_kind"] = default_kind
+        currency = self.request.GET.get("currency", "").strip().upper()
+        if currency in {"RUB", "USD", "EUR"}:
+            initial["currency"] = currency
+        owner_company = self.request.GET.get("owner_company", "").strip()
+        if owner_company.isdigit():
+            initial["owner_company"] = owner_company
         initial.setdefault("document_date", timezone.localdate())
         initial.setdefault("default_status", ShipmentDocument.Status.ISSUED)
         return initial
@@ -2664,7 +2697,7 @@ class DocumentBatchEditorMixin:
                 selected.add(raw_id)
                 values["kind"][raw_id] = line.kind
                 values["number"][raw_id] = line.document_number
-                values["date"][raw_id] = line.document_date.isoformat() if line.document_date else ""
+                values["date"][raw_id] = _format_crm_date(line.document_date)
                 values["amount"][raw_id] = str(line.amount)
                 values["vat"][raw_id] = str(line.vat_amount)
         return selected, values
@@ -2679,15 +2712,17 @@ class DocumentBatchEditorMixin:
         if currency not in {"RUB", "USD", "EUR"}:
             currency = "RUB"
         selected, values = self._selected_state()
+        default_kind = form.data.get("default_kind") if form.is_bound else form.initial.get("default_kind", ShipmentDocument.Kind.UPD)
         candidates = _document_batch_candidates(
             direction,
             owner_id=owner_id,
             currency=currency,
             delivered_only=self.is_primary_registry_mode(),
+            kind=default_kind,
+            include_batch_id=getattr(self.object, "pk", None),
         )
-        default_kind = form.data.get("default_kind") if form.is_bound else form.initial.get("default_kind", ShipmentDocument.Kind.UPD)
         default_date = form.data.get("document_date") if form.is_bound else form.initial.get("document_date", timezone.localdate())
-        default_date_value = default_date.isoformat() if hasattr(default_date, "isoformat") else str(default_date or "")
+        default_date_value = _format_crm_date(default_date) if hasattr(default_date, "strftime") else str(default_date or "")
         for candidate in candidates:
             raw_id = str(candidate["transportation"].pk)
             candidate["selected"] = raw_id in selected
@@ -2719,6 +2754,8 @@ class DocumentBatchEditorMixin:
                 owner_id,
                 currency,
                 delivered_only=self.is_primary_registry_mode(),
+                kind=form.cleaned_data["default_kind"],
+                include_batch_id=getattr(self.object, "pk", None),
             )
         }
         selected_ids = self.request.POST.getlist("transportation_ids")
