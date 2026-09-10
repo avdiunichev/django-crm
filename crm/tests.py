@@ -1,4 +1,4 @@
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from io import BytesIO
 import json
@@ -45,6 +45,8 @@ from .models import (
     OrganizationRole,
     Payment,
     PlannerTask,
+    ReconciliationAct,
+    ReconciliationActLine,
     SettlementMovement,
     Shipment,
     ShipmentDocument,
@@ -1600,6 +1602,65 @@ class CrmTestCase(TestCase):
         self.assertFalse(transportation.charges.exists())
         self.assertFalse(transportation.settlement_movements.exists())
 
+    def test_transportation_unpost_shows_message_when_accrual_is_in_reconciliation_act(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        transportation.customer_vat_rate = VATRate.objects.get(code="22")
+        transportation.executor_vat_rate = VATRate.objects.get(code="without_vat")
+        transportation.save(
+            update_fields=["customer_vat_rate", "executor_vat_rate", "updated_at"]
+        )
+        assignment = transportation.active_vehicle_assignment()
+        assignment.driver = self.driver
+        assignment.vehicle = self.vehicle
+        assignment.trailer_registration_number = "В456ВВ198"
+        assignment.save()
+        executor_contract = Contract.objects.create(
+            kind=Contract.Kind.CARRIER_TRANSPORT,
+            expeditor=self.company_profile,
+            carrier=self.carrier,
+            contract_date=date.today(),
+        )
+        execution_link = transportation.active_execution_link()
+        execution_link.contract = executor_contract
+        execution_link.save(update_fields=["contract", "updated_at"])
+        self.client.post(reverse("transportation-post", args=[transportation.pk]))
+        transportation.refresh_from_db()
+        accrual = transportation.settlement_movements.filter(
+            kind=SettlementMovement.Kind.ACCRUAL,
+            side=SettlementMovement.Side.RECEIVABLE,
+        ).get()
+        act = ReconciliationAct.objects.create(
+            owner_company=transportation.owner_company,
+            counterparty=self.customer.organization,
+            period_from=date.today(),
+            period_to=date.today(),
+            currency="RUB",
+        )
+        ReconciliationActLine.objects.create(
+            act=act,
+            movement=accrual,
+            transportation=transportation,
+            movement_date=accrual.movement_date,
+            description="Начисление по рейсу",
+            debit=accrual.amount,
+            credit=Decimal("0.00"),
+            balance=accrual.amount,
+        )
+
+        response = self.client.post(
+            reverse("transportation-unpost", args=[transportation.pk]),
+            follow=True,
+        )
+
+        transportation.refresh_from_db()
+        self.assertEqual(
+            transportation.posting_status,
+            Transportation.PostingStatus.POSTED,
+        )
+        self.assertContains(response, "Нельзя отменить проведение рейса")
+        self.assertContains(response, act.number)
+
     def test_bank_statement_mass_post_creates_payments_for_selected_trips(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation
@@ -1726,6 +1787,80 @@ class CrmTestCase(TestCase):
         self.assertFalse(BankStatement.objects.filter(pk=expense.pk).exists())
         transportation.refresh_from_db()
         self.assertEqual(transportation.payable_balance, Decimal("75000.00"))
+
+    def test_bank_statement_unpost_shows_message_when_payment_is_in_reconciliation_act(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        owner = self.company_profile.organization
+        transportation.posting_status = Transportation.PostingStatus.POSTED
+        transportation.save(update_fields=["posting_status", "updated_at"])
+        accrual = SettlementMovement.objects.create(
+            transportation=transportation,
+            side=SettlementMovement.Side.RECEIVABLE,
+            kind=SettlementMovement.Kind.ACCRUAL,
+            owner_company=owner,
+            counterparty=self.customer.organization,
+            amount=Decimal("100000.00"),
+            currency="RUB",
+            movement_date=date.today(),
+        )
+        response = self.client.post(
+            reverse("bank-statement-create"),
+            {
+                "direction": BankStatement.Direction.INCOME,
+                "statement_date": date.today().isoformat(),
+                "owner_company": owner.pk,
+                "bank_account": "",
+                "currency": "RUB",
+                "reference": "ВЫП-АС-001",
+                "notes": "",
+                "transportation_ids": str(transportation.pk),
+                f"reference_{transportation.pk}": "ПП-АС-001",
+                f"amount_{transportation.pk}": "40000.00",
+                "action": "post",
+            },
+        )
+        statement = BankStatement.objects.get(reference="ВЫП-АС-001")
+        self.assertRedirects(response, statement.get_absolute_url())
+        payment_movement = statement.lines.get().payment.settlement_movement
+        act = ReconciliationAct.objects.create(
+            owner_company=owner,
+            counterparty=self.customer.organization,
+            period_from=date.today(),
+            period_to=date.today(),
+            currency="RUB",
+        )
+        ReconciliationActLine.objects.create(
+            act=act,
+            movement=payment_movement,
+            transportation=transportation,
+            movement_date=payment_movement.movement_date,
+            description="Оплата по выписке",
+            debit=Decimal("0.00"),
+            credit=Decimal("40000.00"),
+            balance=Decimal("60000.00"),
+        )
+        ReconciliationActLine.objects.create(
+            act=act,
+            movement=accrual,
+            transportation=transportation,
+            movement_date=accrual.movement_date,
+            description="Начисление",
+            debit=Decimal("100000.00"),
+            credit=Decimal("0.00"),
+            balance=Decimal("100000.00"),
+        )
+
+        unpost_response = self.client.post(
+            reverse("bank-statement-unpost", args=[statement.pk]),
+            follow=True,
+        )
+
+        statement.refresh_from_db()
+        self.assertEqual(statement.status, BankStatement.Status.POSTED)
+        self.assertContains(unpost_response, "Нельзя отменить платёж")
+        self.assertContains(unpost_response, act.number)
+        self.assertTrue(Payment.objects.filter(reference="ПП-АС-001").exists())
 
     def test_pages_use_uikit_components(self):
         self.client.force_login(self.user)
@@ -2383,6 +2518,48 @@ class CrmTestCase(TestCase):
         )
         self.assertContains(edit_response, "data-employment-add")
         self.assertContains(edit_response, "data-license-add")
+
+    def test_driver_can_be_created_without_license_and_registry_prompts_to_add_it(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("driver-create"),
+            {
+                "last_name": "Безправов",
+                "first_name": "Павел",
+                "phone": "+7 900 444-55-66",
+                "tax_id": "",
+                "is_active": "on",
+                "employments-TOTAL_FORMS": "1",
+                "employments-INITIAL_FORMS": "0",
+                "employments-MIN_NUM_FORMS": "0",
+                "employments-MAX_NUM_FORMS": "1000",
+                "employments-0-carrier": str(self.carrier.pk),
+                "employments-0-is_primary": "on",
+                "licenses-TOTAL_FORMS": "1",
+                "licenses-INITIAL_FORMS": "0",
+                "licenses-MIN_NUM_FORMS": "0",
+                "licenses-MAX_NUM_FORMS": "1000",
+                "licenses-0-number": "",
+                "licenses-0-categories": "",
+                "licenses-0-issue_date": "",
+                "licenses-0-expiry_date": "",
+                "passports-TOTAL_FORMS": "0",
+                "passports-INITIAL_FORMS": "0",
+                "passports-MIN_NUM_FORMS": "0",
+                "passports-MAX_NUM_FORMS": "1000",
+            },
+        )
+
+        driver = Driver.objects.get(last_name="Безправов")
+        self.assertRedirects(response, driver.get_absolute_url())
+        self.assertEqual(driver.license_number, "")
+        self.assertIsNone(driver.license_expiry_date)
+        self.assertFalse(driver.licenses.exists())
+
+        listing = self.client.get(reverse("driver-list"), {"q": "Безправов"})
+        self.assertContains(listing, "Внесите ВУ")
+        detail = self.client.get(driver.get_absolute_url())
+        self.assertContains(detail, "Внесите ВУ")
 
     def test_driver_passport_history_keeps_one_current_and_syncs_legacy_fields(self):
         first = DriverPassport.objects.create(
@@ -3726,7 +3903,67 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("shipment-document-delete", args=[document_record.pk])
         )
-        self.assertRedirects(response, self.shipment.get_absolute_url())
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.shipment.get_absolute_url())
+        self.assertFalse(
+            ShipmentDocument.objects.filter(pk=document_record.pk).exists()
+        )
+
+    def test_transportation_document_update_redirects_to_transportation(self):
+        transportation = self.shipment.transportation
+        document_record = ShipmentDocument.objects.create(
+            transportation=transportation,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.DRAFT,
+            number="УПД-РЕЙС",
+            amount=Decimal("100000.00"),
+            currency="RUB",
+            created_by=self.user,
+        )
+        upload = SimpleUploadedFile("upd.xml", b"<xml></xml>", content_type="text/xml")
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("shipment-document-update", args=[document_record.pk]),
+            {
+                "shipment": "",
+                "transportation": transportation.pk,
+                "direction": ShipmentDocument.Direction.OUTGOING,
+                "kind": ShipmentDocument.Kind.UPD,
+                "party": ShipmentDocument.Party.CUSTOMER,
+                "status": ShipmentDocument.Status.ISSUED,
+                "number": "УПД-РЕЙС-1",
+                "document_date": date.today().isoformat(),
+                "expected_date": "",
+                "amount": "100000.00",
+                "vat_amount": "16666.67",
+                "currency": "RUB",
+                "notes": "Файл приложен",
+                "file": upload,
+            },
+        )
+        self.assertRedirects(response, transportation.get_absolute_url())
+        document_record.refresh_from_db()
+        self.assertEqual(document_record.number, "УПД-РЕЙС-1")
+        self.assertTrue(document_record.file.name.startswith(f"transportations/{transportation.pk}/documents/"))
+
+    def test_transportation_document_can_be_deleted(self):
+        transportation = self.shipment.transportation
+        document_record = ShipmentDocument.objects.create(
+            transportation=transportation,
+            direction=ShipmentDocument.Direction.INCOMING,
+            kind=ShipmentDocument.Kind.ACT,
+            party=ShipmentDocument.Party.CARRIER,
+            status=ShipmentDocument.Status.RECEIVED,
+            number="АКТ-РЕЙС-DEL",
+            created_by=self.user,
+        )
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("shipment-document-delete", args=[document_record.pk])
+        )
+        self.assertRedirects(response, transportation.get_absolute_url())
         self.assertFalse(
             ShipmentDocument.objects.filter(pk=document_record.pk).exists()
         )
@@ -3848,6 +4085,28 @@ class CrmTestCase(TestCase):
         self.assertContains(response, 'name="route_stops-TOTAL_FORMS" value="3"')
         self.assertContains(response, 'name="route_stops-1-city" value="Москва"')
         self.assertContains(response, 'name="route_stops-2-city" value="Нижний Новгород"')
+
+    def test_transportation_edit_form_renders_time_fields_as_text_masks(self):
+        transportation = self.shipment.transportation
+        stop = transportation.stops.order_by("sequence").first()
+        planned_date = date.today()
+        stop.planned_from = timezone.make_aware(
+            datetime.combine(planned_date, time(9, 0))
+        )
+        stop.planned_to = timezone.make_aware(
+            datetime.combine(planned_date, time(18, 30))
+        )
+        stop.save(update_fields=["planned_from", "planned_to", "updated_at"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("transportation-update", args=[transportation.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'placeholder="ЧЧ:ММ"')
+        self.assertContains(response, 'data-crm-time')
+        self.assertContains(response, 'value="09:00"')
+        self.assertContains(response, 'value="18:30"')
+        self.assertNotContains(response, 'type="time"')
 
     def test_attached_document_download_requires_login(self):
         with tempfile.TemporaryDirectory() as media_directory:

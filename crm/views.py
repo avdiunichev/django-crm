@@ -1107,9 +1107,14 @@ class QuickDriverCreateView(QuickCarrierResourceCreateView):
         return form
 
     def item_payload(self, driver):
+        license_label = (
+            f"В/У {driver.license_number}"
+            if driver.license_number
+            else "ВУ не внесено"
+        )
         return {
             "id": driver.pk,
-            "label": f"{driver.full_name} · В/У {driver.license_number}",
+            "label": f"{driver.full_name} · {license_label}",
         }
 
 
@@ -2438,11 +2443,13 @@ class ShipmentDocumentUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.object.shipment.get_absolute_url()
+        return self.object.source_absolute_url
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["shipment"] = self.object.shipment
+        context["transportation"] = self.object.transportation
+        context["source_object"] = self.object.transportation or self.object.shipment
         return context
 
 
@@ -2451,7 +2458,9 @@ class ShipmentDocumentDeleteView(LoginRequiredMixin, View):
 
     def get_object(self):
         return get_object_or_404(
-            ShipmentDocument.objects.select_related("shipment", "counterparty"),
+            ShipmentDocument.objects.select_related(
+                "shipment", "transportation", "counterparty"
+            ),
             pk=self.kwargs["pk"],
         )
 
@@ -2460,15 +2469,20 @@ class ShipmentDocumentDeleteView(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"document_record": document_record, "shipment": document_record.shipment},
+            {
+                "document_record": document_record,
+                "shipment": document_record.shipment,
+                "transportation": document_record.transportation,
+                "source_object": document_record.transportation or document_record.shipment,
+            },
         )
 
     def post(self, request, *args, **kwargs):
         document_record = self.get_object()
-        shipment = document_record.shipment
+        success_url = document_record.source_absolute_url
         document_record.delete()
         messages.success(request, "Документ удалён из реестра.")
-        return redirect(shipment.get_absolute_url())
+        return redirect(success_url)
 
 
 class ShipmentDocumentDownloadView(LoginRequiredMixin, View):
@@ -6013,7 +6027,19 @@ class BankStatementLineDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
                         }
                     },
                 )
-                payment.delete()
+                try:
+                    payment.delete()
+                except ProtectedError:
+                    messages.error(
+                        request,
+                        (
+                            "Нельзя удалить строку: созданный по ней платёж уже "
+                            "используется в связанных документах, например в акте "
+                            "сверки. Сначала удалите или аннулируйте связанный "
+                            "документ."
+                        ),
+                    )
+                    return redirect(statement.get_absolute_url())
             line.delete()
         messages.success(request, "Строка банковской выписки удалена.")
         return redirect(statement.get_absolute_url())
@@ -7527,10 +7553,16 @@ class DriverRegistersFormSetMixin:
         if form_valid and passport_valid and license_valid and employment_valid:
             current_license = license_formset.current_data()
             form.instance.carrier = employment_formset.primary_carrier()
-            form.instance.license_number = current_license["number"]
-            form.instance.license_categories = current_license["categories"]
-            form.instance.license_issue_date = current_license.get("issue_date")
-            form.instance.license_expiry_date = current_license["expiry_date"]
+            if current_license:
+                form.instance.license_number = current_license["number"]
+                form.instance.license_categories = current_license["categories"]
+                form.instance.license_issue_date = current_license.get("issue_date")
+                form.instance.license_expiry_date = current_license["expiry_date"]
+            else:
+                form.instance.license_number = ""
+                form.instance.license_categories = ""
+                form.instance.license_issue_date = None
+                form.instance.license_expiry_date = None
             with transaction.atomic():
                 self.object = form.save()
                 employment_formset.save_register(self.object)

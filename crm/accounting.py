@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 
 from .models import (
@@ -132,6 +133,20 @@ def _due_base(transportation):
     if transportation.payment_due_basis == Transportation.PaymentDueBasis.DOCUMENT_DATE:
         return transportation.document_date
     return transportation.planned_end_date or transportation.document_date
+
+
+def _reconciliation_blocker_message(movements, action):
+    act_numbers = []
+    for movement in movements.prefetch_related("reconciliation_lines__act"):
+        for line in movement.reconciliation_lines.all():
+            number = line.act.number or str(line.act)
+            if number not in act_numbers:
+                act_numbers.append(number)
+    linked = f" Связанные акты: {', '.join(act_numbers[:5])}." if act_numbers else ""
+    return (
+        f"Нельзя {action}: движения взаиморасчётов уже используются в актах "
+        f"сверки.{linked} Сначала удалите или аннулируйте связанные акты сверки."
+    )
 
 
 @transaction.atomic
@@ -297,10 +312,19 @@ def unpost_transportation(transportation, user=None):
         raise ValidationError(
             "Нельзя отменить проведение: по рейсу уже зарегистрированы платежи."
         )
-    transportation.charges.all().delete()
-    transportation.settlement_movements.filter(
+    accrual_movements = transportation.settlement_movements.filter(
         kind=SettlementMovement.Kind.ACCRUAL
-    ).delete()
+    )
+    blocked_movements = accrual_movements.filter(reconciliation_lines__isnull=False).distinct()
+    if blocked_movements.exists():
+        raise ValidationError(
+            _reconciliation_blocker_message(
+                blocked_movements,
+                "отменить проведение рейса",
+            )
+        )
+    transportation.charges.all().delete()
+    accrual_movements.delete()
     transportation.instructions.filter(generated_on_posting=True).delete()
     old_status = transportation.posting_status
     transportation.posting_status = Transportation.PostingStatus.DRAFT
@@ -517,6 +541,21 @@ def sync_payment_movement(payment):
     )
 
 
+def _protected_payment_message(payment, error):
+    protected_objects = list(getattr(error, "protected_objects", []) or [])
+    examples = []
+    for protected_object in protected_objects[:3]:
+        act = getattr(protected_object, "act", None)
+        examples.append(str(act or protected_object))
+    reference = payment.reference or f"ID {payment.pk}"
+    linked = f" Связанные документы: {', '.join(examples)}." if examples else ""
+    return (
+        f"Нельзя отменить платёж {reference}: он уже используется в связанных "
+        f"документах, например в акте сверки.{linked} Сначала удалите или "
+        "аннулируйте связанный документ, затем повторите операцию."
+    )
+
+
 @transaction.atomic
 def post_bank_statement(statement, user=None):
     """Провести групповую банковскую выписку по выбранным рейсам.
@@ -661,7 +700,10 @@ def unpost_bank_statement(statement, user=None):
                     }
                 },
             )
-            payment.delete()
+            try:
+                payment.delete()
+            except ProtectedError as error:
+                raise ValidationError(_protected_payment_message(payment, error)) from error
     statement.status = BankStatement.Status.DRAFT
     statement.posted_by = None
     statement.posted_at = None
@@ -696,5 +738,8 @@ def delete_bank_statement(statement, user=None):
                     }
                 },
             )
-            payment.delete()
+            try:
+                payment.delete()
+            except ProtectedError as error:
+                raise ValidationError(_protected_payment_message(payment, error)) from error
     statement.delete()

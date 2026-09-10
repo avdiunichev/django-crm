@@ -785,14 +785,18 @@ class Driver(TimestampedModel):
     passport_issue_date = models.DateField(
         "Дата выдачи паспорта", null=True, blank=True
     )
-    license_number = models.CharField("Номер водительского удостоверения", max_length=30)
+    license_number = models.CharField(
+        "Номер водительского удостоверения", max_length=30, blank=True
+    )
     license_categories = models.CharField(
-        "Категории", max_length=100, help_text="Например: B, C, CE"
+        "Категории", max_length=100, blank=True, help_text="Например: B, C, CE"
     )
     license_issue_date = models.DateField(
         "Дата выдачи удостоверения", null=True, blank=True
     )
-    license_expiry_date = models.DateField("Удостоверение действительно до")
+    license_expiry_date = models.DateField(
+        "Удостоверение действительно до", null=True, blank=True
+    )
     medical_certificate_expiry = models.DateField(
         "Медсправка действительна до", null=True, blank=True
     )
@@ -864,7 +868,10 @@ class Driver(TimestampedModel):
 
     @property
     def license_is_expired(self):
-        return self.license_expiry_date < timezone.localdate()
+        return bool(
+            self.license_expiry_date
+            and self.license_expiry_date < timezone.localdate()
+        )
 
     @property
     def current_passport(self):
@@ -3481,7 +3488,11 @@ class ForwardingOrder(TimestampedModel):
 
 def shipment_document_upload_path(instance, filename):
     safe_filename = Path(filename).name
-    return f"shipments/{instance.shipment_id}/documents/{safe_filename}"
+    if instance.transportation_id:
+        return f"transportations/{instance.transportation_id}/documents/{safe_filename}"
+    if instance.shipment_id:
+        return f"shipments/{instance.shipment_id}/documents/{safe_filename}"
+    return f"documents/unassigned/{safe_filename}"
 
 
 class ShipmentDocument(TimestampedModel):

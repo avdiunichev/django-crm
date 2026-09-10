@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Удалить документ — {{ document_record.shipment.number }}{% endblock %}
+{% block title %}Удалить документ — {{ document_record.source_number }}{% endblock %}
 {% block content %}
 <div class="page-heading">
     <div>
-        <a class="back-link" href="{{ document_record.shipment.get_absolute_url }}">← К заявке {{ document_record.shipment.number }}</a>
+        <a class="back-link" href="{{ document_record.source_absolute_url }}">← К основанию {{ document_record.source_number }}</a>
         <h1>Удалить документ?</h1>
-        <p>Документ будет удалён из реестра и из карточки заявки.</p>
+        <p>Документ будет удалён из реестра и из карточки основания.</p>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
         <p class="uk-margin-remove">Проверьте документ перед удалением. Если к нему был прикреплён файл, запись с файлом также будет удалена.</p>
     </div>
     <dl class="data-grid">
-        <div><dt>Заявка</dt><dd>{{ document_record.shipment.number }}</dd></div>
+        <div><dt>Основание</dt><dd>{{ document_record.source_number }}</dd></div>
         <div><dt>Тип</dt><dd>{{ document_record.get_kind_display }}</dd></div>
         <div><dt>Направление</dt><dd>{{ document_record.get_direction_display }}</dd></div>
         <div><dt>Контрагент</dt><dd>{{ document_record.counterparty_name }}</dd></div>
@@ -28,7 +28,7 @@
     </dl>
     <form method="post" class="form-actions">
         {% csrf_token %}
-        <a class="uk-button uk-button-default" href="{{ document_record.shipment.get_absolute_url }}">Отмена</a>
+        <a class="uk-button uk-button-default" href="{{ document_record.source_absolute_url }}">Отмена</a>
         <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить документ</button>
     </form>
 </div>

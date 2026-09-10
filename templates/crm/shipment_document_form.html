@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{% if object %}Изменить документ{% else %}Новый документ{% endif %}{% if shipment %} — {{ shipment.number }}{% else %} — Реестр документов{% endif %}{% endblock %}
+{% block title %}{% if object %}Изменить документ{% else %}Новый документ{% endif %}{% if source_object %} — {{ source_object.number|default:"Черновик" }}{% elif shipment %} — {{ shipment.number }}{% else %} — Реестр документов{% endif %}{% endblock %}
 {% block content %}
 <div class="page-heading">
     <div>
-        <a class="back-link" href="{% if shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">← {% if shipment %}К заявке {{ shipment.number }}{% else %}К реестру документов{% endif %}</a>
+        <a class="back-link" href="{% if source_object %}{{ source_object.get_absolute_url }}{% elif shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">← {% if source_object %}К основанию {{ source_object.number|default:"Черновик" }}{% elif shipment %}К заявке {{ shipment.number }}{% else %}К реестру документов{% endif %}</a>
         <h1>{% if object %}Изменить документ{% else %}Добавить документ{% endif %}</h1>
-        <p>{% if shipment %}{{ shipment.customer.name }} · {{ shipment.route }}{% else %}Присвойте входящий или исходящий документ конкретной заявке{% endif %}</p>
+        <p>{% if source_object %}{{ source_object.route }}{% elif shipment %}{{ shipment.customer.name }} · {{ shipment.route }}{% else %}Присвойте входящий или исходящий документ конкретной заявке или рейсу{% endif %}</p>
     </div>
 </div>
 <div class="detail-grid">
@@ -39,7 +39,7 @@
             <p class="uk-text-meta uk-margin-small-bottom">Поддерживаются PDF, XML, DOC/DOCX, XLS/XLSX, JPG/PNG и ZIP до 20 МБ.</p>
         </section>
         <div class="form-actions">
-            <a class="uk-button uk-button-default" href="{% if shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
+            <a class="uk-button uk-button-default" href="{% if source_object %}{{ source_object.get_absolute_url }}{% elif shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
             {% if object %}<a class="uk-button uk-button-danger" href="{% url 'shipment-document-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
             <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить документ</button>
         </div>

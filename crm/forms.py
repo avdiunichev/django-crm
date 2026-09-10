@@ -183,6 +183,15 @@ def configure_crm_date_fields(form):
             field.widget = CRMDateInput(attrs=field.widget.attrs)
 
 
+def configure_crm_time_fields(form):
+    """Apply one display and input format to every time field in a form."""
+
+    for field in form.fields.values():
+        if isinstance(field, forms.TimeField):
+            field.input_formats = ("%H:%M",)
+            field.widget = CRMTimeInput(attrs=field.widget.attrs)
+
+
 def configure_dadata_address_fields(form):
     """Enable server-proxied DaData suggestions for route address fields."""
 
@@ -220,6 +229,7 @@ class StyledModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         configure_crm_date_fields(self)
+        configure_crm_time_fields(self)
         for field in self.fields.values():
             if isinstance(
                 field.widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple)
@@ -2515,6 +2525,8 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field_name in ("number", "categories", "issue_date", "expiry_date"):
+            self.fields[field_name].required = False
         if not self.instance.pk:
             self.initial["is_current"] = False
             self.fields["is_current"].initial = False
@@ -2529,7 +2541,7 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         number = " ".join((self.cleaned_data.get("number") or "").split())
         identity = DriverLicense.identity_from_number(number)
         if not identity:
-            raise forms.ValidationError("Укажите номер водительского удостоверения.")
+            return ""
         duplicate = DriverLicense.objects.filter(identity_key=identity).exclude(
             pk=self.instance.pk
         ).select_related("driver").first()
@@ -2542,6 +2554,17 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        has_license_data = any(
+            cleaned.get(field_name)
+            for field_name in ("number", "categories", "issue_date", "expiry_date")
+        )
+        if has_license_data:
+            if not cleaned.get("number"):
+                self.add_error("number", "Укажите номер водительского удостоверения.")
+            if not cleaned.get("categories"):
+                self.add_error("categories", "Укажите категории.")
+            if not cleaned.get("expiry_date"):
+                self.add_error("expiry_date", "Укажите срок действия.")
         issued = cleaned.get("issue_date")
         expires = cleaned.get("expiry_date")
         if issued and expires and expires < issued:
@@ -2567,9 +2590,7 @@ class BaseDriverLicenseFormSet(BaseInlineFormSet):
             return
         forms_with_data = self.active_forms()
         if not forms_with_data:
-            raise forms.ValidationError(
-                "Добавьте хотя бы одно водительское удостоверение."
-            )
+            return
         identities = set()
         current_count = 0
         for form in forms_with_data:
@@ -2590,9 +2611,12 @@ class BaseDriverLicenseFormSet(BaseInlineFormSet):
 
     def current_data(self):
         return next(
-            form.cleaned_data
-            for form in self.active_forms()
-            if form.cleaned_data.get("is_current")
+            (
+                form.cleaned_data
+                for form in self.active_forms()
+                if form.cleaned_data.get("is_current")
+            ),
+            None,
         )
 
     def save_register(self, driver):
