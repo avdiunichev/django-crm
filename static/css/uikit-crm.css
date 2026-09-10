@@ -6775,6 +6775,46 @@ body.uikit-theme {
     vertical-align: top;
 }
 
+.uikit-theme .transportation-register-header {
+    align-items: stretch;
+}
+
+.uikit-theme .register-finance-totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(132px, 1fr));
+    gap: 10px;
+    margin-left: auto;
+    max-width: 560px;
+}
+
+.uikit-theme .register-finance-totals article {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #e1e8f0;
+    border-radius: 12px;
+    background: #fff;
+    text-align: right;
+}
+
+.uikit-theme .register-finance-totals span,
+.uikit-theme .register-finance-totals strong {
+    display: block;
+}
+
+.uikit-theme .register-finance-totals span {
+    margin-bottom: 4px;
+    color: #8996a4;
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+.uikit-theme .register-finance-totals strong {
+    font-size: 15px;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .uikit-theme .transportation-register-table {
     min-width: 1280px;
     table-layout: fixed;
@@ -6833,6 +6873,17 @@ body.uikit-theme {
 
     .uikit-theme .heading-actions {
         justify-content: flex-start;
+        width: 100%;
+    }
+
+    .uikit-theme .transportation-register-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .uikit-theme .register-finance-totals {
+        margin-left: 0;
+        max-width: none;
         width: 100%;
     }
 }

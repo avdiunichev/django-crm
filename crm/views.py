@@ -5512,6 +5512,14 @@ class TransportationListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         all_transportations = self.object_list
         current_owner = self.request.GET.get("owner", "").strip()
+        register_totals = all_transportations.aggregate(
+            customer_amount=Sum("customer_amount"),
+            executor_amount=Sum("executor_amount"),
+        )
+        total_net_profit = sum(
+            (transportation.net_profit for transportation in all_transportations),
+            Decimal("0.00"),
+        )
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
@@ -5536,6 +5544,10 @@ class TransportationListView(LoginRequiredMixin, ListView):
                 "chain_issue_count": sum(
                     1 for transportation in all_transportations if transportation.chain_issues()
                 ),
+                "register_total_customer_amount": register_totals["customer_amount"] or Decimal("0.00"),
+                "register_total_executor_amount": register_totals["executor_amount"] or Decimal("0.00"),
+                "register_total_net_profit": total_net_profit,
+                "register_currency": "RUB",
             }
         )
         current_sort_key, current_sort_desc = self.get_sorting()
