@@ -1974,12 +1974,28 @@ a:hover {
 }
 
 .onec-register-header {
-    min-height: 48px;
-    margin-bottom: 16px;
+    min-height: 64px;
+    margin-bottom: 0;
+    padding: 16px 22px;
+    border-bottom: 1px solid #e1e8f0;
+    border-radius: inherit;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    background: #fbfcfe;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
+}
+
+.onec-register-header > div {
+    min-width: 0;
+}
+
+.onec-register-header > .uk-text-meta,
+.onec-register-header > .uk-label {
+    margin-left: auto;
+    white-space: nowrap;
 }
 
 .onec-register-header h2 {
@@ -6373,7 +6389,6 @@ body.uikit-theme {
 
 .uikit-theme .panel-header,
 .uikit-theme .form-section-title,
-.uikit-theme .driver-register-panel .onec-register-header,
 .uikit-theme .vehicle-register-panel .panel-header {
     min-height: 64px;
     padding: 16px 18px;
