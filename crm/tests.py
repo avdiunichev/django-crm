@@ -1661,6 +1661,30 @@ class CrmTestCase(TestCase):
         self.assertContains(response, "Нельзя отменить проведение рейса")
         self.assertContains(response, act.number)
 
+        void_response = self.client.post(reverse("reconciliation-act-void", args=[act.pk]))
+        self.assertRedirects(void_response, reverse("reconciliation-act-list"))
+        act.refresh_from_db()
+        self.assertEqual(act.status, ReconciliationAct.Status.VOIDED)
+        self.assertFalse(act.lines.exists())
+        self.assertTrue(
+            PlannerTask.objects.filter(
+                title=f"Пересоздать акт сверки {act.number}",
+                status=PlannerTask.Status.TODO,
+            ).exists()
+        )
+
+        unpost_response = self.client.post(
+            reverse("transportation-unpost", args=[transportation.pk])
+        )
+        self.assertRedirects(
+            unpost_response, reverse("transportation-update", args=[transportation.pk])
+        )
+        transportation.refresh_from_db()
+        self.assertEqual(
+            transportation.posting_status,
+            Transportation.PostingStatus.DRAFT,
+        )
+
     def test_bank_statement_mass_post_creates_payments_for_selected_trips(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation
@@ -1861,6 +1885,28 @@ class CrmTestCase(TestCase):
         self.assertContains(unpost_response, "Нельзя отменить платёж")
         self.assertContains(unpost_response, act.number)
         self.assertTrue(Payment.objects.filter(reference="ПП-АС-001").exists())
+
+        void_response = self.client.post(reverse("reconciliation-act-void", args=[act.pk]))
+        self.assertRedirects(void_response, reverse("reconciliation-act-list"))
+        act.refresh_from_db()
+        self.assertEqual(act.status, ReconciliationAct.Status.VOIDED)
+        self.assertFalse(act.lines.exists())
+        self.assertTrue(
+            PlannerTask.objects.filter(
+                title=f"Пересоздать акт сверки {act.number}",
+                status=PlannerTask.Status.TODO,
+            ).exists()
+        )
+
+        unpost_after_void = self.client.post(
+            reverse("bank-statement-unpost", args=[statement.pk])
+        )
+        self.assertRedirects(
+            unpost_after_void, reverse("bank-statement-update", args=[statement.pk])
+        )
+        statement.refresh_from_db()
+        self.assertEqual(statement.status, BankStatement.Status.DRAFT)
+        self.assertFalse(Payment.objects.filter(reference="ПП-АС-001").exists())
 
     def test_pages_use_uikit_components(self):
         self.client.force_login(self.user)

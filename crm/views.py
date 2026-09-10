@@ -2975,6 +2975,25 @@ def _generate_reconciliation_act(act, user=None):
     return act
 
 
+def _create_reconciliation_regeneration_task(act, user=None):
+    title = f"Пересоздать акт сверки {act.number}"
+    description = (
+        f"Акт сверки {act.number} по контрагенту {act.counterparty} был аннулирован, "
+        "чтобы внести изменения в рейсы, платежи или банковские документы. "
+        f"После корректировок сформируйте новый акт за период "
+        f"{act.period_from:%d.%m.%Y} — {act.period_to:%d.%m.%Y}."
+    )
+    return PlannerTask.objects.create(
+        title=title,
+        description=description,
+        kind=PlannerTask.Kind.DOCUMENT,
+        status=PlannerTask.Status.TODO,
+        priority=PlannerTask.Priority.HIGH,
+        assignee=user if getattr(user, "is_authenticated", False) else None,
+        due_date=timezone.localdate(),
+    )
+
+
 class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, ListView):
     model = ReconciliationAct
     template_name = "crm/reconciliation_act_list.html"
@@ -3098,9 +3117,19 @@ class ReconciliationActVoidView(LoginRequiredMixin, FinanceAccessMixin, View):
             ReconciliationAct.objects.exclude(status=ReconciliationAct.Status.VOIDED),
             pk=pk,
         )
-        act.status = ReconciliationAct.Status.VOIDED
-        act.save(update_fields=["status", "updated_at"])
-        messages.success(request, f"Акт сверки {act.number} аннулирован.")
+        with transaction.atomic():
+            line_count = act.lines.count()
+            act.lines.all().delete()
+            act.status = ReconciliationAct.Status.VOIDED
+            act.save(update_fields=["status", "updated_at"])
+            task = _create_reconciliation_regeneration_task(act, request.user)
+        messages.success(
+            request,
+            (
+                f"Акт сверки {act.number} аннулирован, {line_count} строк удалено. "
+                f"Движения освобождены для изменений. Создана задача: {task.title}."
+            ),
+        )
         return redirect("reconciliation-act-list")
 
 
