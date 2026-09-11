@@ -4732,6 +4732,187 @@ html[data-theme="dark"] body.uikit-theme .row-action {
     color: #74b8ff !important;
 }
 
+/* EOF: grouped documents journal. */
+.uikit-theme .document-group-table {
+    min-width: 1180px;
+}
+
+.uikit-theme .document-group-table th:nth-child(1),
+.uikit-theme .document-group-table td:nth-child(1) {
+    width: 260px;
+}
+
+.uikit-theme .document-group-table th:nth-child(4),
+.uikit-theme .document-group-table td:nth-child(4) {
+    width: 150px;
+}
+
+.uikit-theme .document-stack {
+    display: grid;
+    gap: 8px;
+}
+
+.uikit-theme .document-chip {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #e1e8f0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.uikit-theme .document-chip > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.uikit-theme .document-chip strong,
+.uikit-theme .document-chip small {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.uikit-theme .document-chip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 4px;
+    font-size: 12px;
+}
+
+.uikit-theme .document-chip-actions a {
+    color: #1e87f0;
+}
+
+.uikit-theme .document-chip-actions a.danger {
+    color: #d14343;
+}
+
+.uikit-theme .empty-inline {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    color: #8996a4;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip {
+    border-color: #344257 !important;
+    background: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip small,
+html[data-theme="dark"] body.uikit-theme .empty-inline {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip-actions a {
+    color: #74b8ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip-actions a.danger {
+    color: #ff8f9f !important;
+}
+
+.uikit-theme .document-group-table {
+    min-width: 1180px;
+}
+
+.uikit-theme .document-group-table th:nth-child(1),
+.uikit-theme .document-group-table td:nth-child(1) {
+    width: 260px;
+}
+
+.uikit-theme .document-group-table th:nth-child(4),
+.uikit-theme .document-group-table td:nth-child(4) {
+    width: 150px;
+}
+
+.uikit-theme .document-stack {
+    display: grid;
+    gap: 8px;
+}
+
+.uikit-theme .document-chip {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #e1e8f0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.uikit-theme .document-chip > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.uikit-theme .document-chip strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.uikit-theme .document-chip small {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.uikit-theme .document-chip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 4px;
+    font-size: 12px;
+}
+
+.uikit-theme .document-chip-actions a {
+    color: #1e87f0;
+}
+
+.uikit-theme .document-chip-actions a.danger {
+    color: #d14343;
+}
+
+.uikit-theme .empty-inline {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    color: #8996a4;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip {
+    border-color: #344257 !important;
+    background: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip small,
+html[data-theme="dark"] body.uikit-theme .empty-inline {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip-actions a {
+    color: #74b8ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-chip-actions a.danger {
+    color: #ff8f9f !important;
+}
+
 /* Последний защитный слой тёмной темы.
    Всё, что является панелью, фильтром, чипом, итоговой карточкой или таблицей,
    в dark-mode не должно оставаться белым. */

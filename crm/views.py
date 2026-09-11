@@ -2353,6 +2353,14 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
             "shipment", "shipment__expeditor", "shipment__customer",
             "shipment__carrier", "transportation", "transportation__owner_company",
             "counterparty", "created_by"
+        ).prefetch_related(
+            Prefetch(
+                "transportation__parties",
+                queryset=TransportationParty.objects.filter(
+                    role=TransportationParty.Role.CLIENT, is_active=True
+                ).select_related("organization"),
+                to_attr="document_client_parties",
+            )
         )
         query = self.request.GET.get("q", "").strip()
         direction = self.request.GET.get("direction", "").strip()
@@ -2422,6 +2430,59 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
                 ).count(),
             }
         )
+        grouped_documents = {}
+        for document in context.get("documents", []):
+            if document.transportation_id:
+                group_key = f"transportation-{document.transportation_id}"
+                source = document.transportation
+                route = source.route
+                owner_company = source.owner_company
+                source_url = source.get_absolute_url()
+                source_number = source.number or "Черновик"
+                client_parties = getattr(source, "document_client_parties", [])
+                customer_name = (
+                    str(client_parties[0].organization)
+                    if client_parties
+                    else document.source_customer_name
+                )
+            elif document.shipment_id:
+                group_key = f"shipment-{document.shipment_id}"
+                source = document.shipment
+                route = source.route
+                owner_company = source.expeditor
+                source_url = source.get_absolute_url()
+                source_number = source.number
+                customer_name = source.customer.name
+            else:
+                group_key = f"document-{document.pk}"
+                route = document.source_route
+                owner_company = document.source_owner_company
+                source_url = document.source_absolute_url
+                source_number = document.source_number
+                customer_name = document.source_customer_name
+            group = grouped_documents.setdefault(
+                group_key,
+                {
+                    "source_number": source_number,
+                    "source_url": source_url,
+                    "route": route,
+                    "customer_name": customer_name,
+                    "owner_company": owner_company,
+                    "incoming": [],
+                    "outgoing": [],
+                    "total": 0,
+                    "has_problem": False,
+                },
+            )
+            direction_key = (
+                "incoming"
+                if document.direction == ShipmentDocument.Direction.INCOMING
+                else "outgoing"
+            )
+            group[direction_key].append(document)
+            group["total"] += 1
+            group["has_problem"] = group["has_problem"] or document.is_overdue
+        context["document_groups"] = list(grouped_documents.values())
         return context
 
 

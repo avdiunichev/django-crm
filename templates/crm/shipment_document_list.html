@@ -32,24 +32,61 @@
 </form>
 
 <section class="panel uk-card uk-card-default">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
-        <thead><tr><th>Документ</th><th>Основание</th><th>Наша компания</th><th>Направление</th><th>Контрагент</th><th>Дата / номер</th><th>Статус</th><th class="uk-text-right">Сумма / НДС</th><th>Файл</th><th></th></tr></thead>
+    <div class="onec-register-header"><div><h2>Документы по заявкам</h2><p>Одна строка — одна заявка/рейс и весь комплект первички по ней.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} документов</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle document-group-table">
+        <thead><tr><th>Заявка / рейс</th><th>Исходящие документы</th><th>Входящие документы</th><th>Статус комплекта</th></tr></thead>
         <tbody>
-        {% for document in documents %}
+        {% for group in document_groups %}
             <tr>
-                <td><strong>{{ document.get_kind_display }}</strong><small>{{ document.get_party_display }}</small></td>
-                <td><a class="primary-link" href="{{ document.source_absolute_url }}">{{ document.source_number }}</a><small>{{ document.source_customer_name }}</small></td>
-                <td>{% if document.source_owner_company %}<a href="{{ document.source_owner_company.get_absolute_url }}">{{ document.source_owner_company }}</a>{% else %}—{% endif %}</td>
-                <td><span class="uk-label {% if document.direction == 'incoming' %}uk-label-warning{% else %}uk-label-success{% endif %}">{{ document.get_direction_display }}</span></td>
-                <td>{{ document.counterparty_name }}{% if document.counterparty.tax_id %}<small>ИНН {{ document.counterparty.tax_id }}</small>{% endif %}</td>
-                <td>{{ document.document_date|date:"d.m.Y"|default:"—" }}<small>{{ document.number|default:"Без номера" }}</small></td>
-                <td><span class="badge uk-label {% if document.is_overdue %}uk-label-danger{% else %}document-status-{{ document.status }}{% endif %}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span>{% if document.expected_date %}<small>до {{ document.expected_date|date:"d.m.Y" }}</small>{% endif %}</td>
-                <td class="uk-text-right">{% if document.amount is not None %}<strong class="{% if document.is_overdue %}amount-problem{% elif document.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }}</strong><small>НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% else %}—{% endif %}</td>
-                <td>{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> {{ document.file_name }}</a>{% else %}<span class="uk-text-muted">Нет файла</span>{% endif %}</td>
-                <td><a class="row-action" href="{{ document.get_absolute_url }}">Изменить</a><a class="row-action danger" href="{% url 'shipment-document-delete' document.pk %}">Удалить</a></td>
+                <td>
+                    <a class="primary-link" href="{{ group.source_url }}">{{ group.source_number }}</a>
+                    <small>{{ group.customer_name }}</small>
+                    <small class="route-compact" title="{{ group.route }}">{{ group.route }}</small>
+                    {% if group.owner_company %}<small>Наша компания: {{ group.owner_company }}</small>{% endif %}
+                </td>
+                <td>
+                    <div class="document-stack">
+                        {% for document in group.outgoing %}
+                            <article class="document-chip">
+                                <div><strong>{{ document.get_kind_display }}</strong><span class="uk-label document-status-{{ document.status }}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span></div>
+                                <small>{{ document.number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                <small>{{ document.counterparty_name }}</small>
+                                {% if document.amount is not None %}<small class="uk-text-right">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }} · НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% endif %}
+                                <div class="document-chip-actions">{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> файл</a>{% endif %}<a href="{{ document.get_absolute_url }}">изменить</a><a class="danger" href="{% url 'shipment-document-delete' document.pk %}">удалить</a></div>
+                            </article>
+                        {% empty %}
+                            <span class="empty-inline">Нет исходящих документов</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    <div class="document-stack">
+                        {% for document in group.incoming %}
+                            <article class="document-chip">
+                                <div><strong>{{ document.get_kind_display }}</strong><span class="uk-label document-status-{{ document.status }}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span></div>
+                                <small>{{ document.number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                <small>{{ document.counterparty_name }}</small>
+                                {% if document.amount is not None %}<small class="uk-text-right">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }} · НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% endif %}
+                                <div class="document-chip-actions">{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> файл</a>{% endif %}<a href="{{ document.get_absolute_url }}">изменить</a><a class="danger" href="{% url 'shipment-document-delete' document.pk %}">удалить</a></div>
+                            </article>
+                        {% empty %}
+                            <span class="empty-inline">Нет входящих документов</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    {% if group.has_problem %}
+                        <span class="uk-label uk-label-danger">Есть проблема</span>
+                    {% elif group.incoming and group.outgoing %}
+                        <span class="uk-label uk-label-success">Комплект есть</span>
+                    {% else %}
+                        <span class="uk-label uk-label-warning">Комплект неполный</span>
+                    {% endif %}
+                    <small>{{ group.total }} док.</small>
+                </td>
             </tr>
         {% empty %}
-            <tr><td colspan="10" class="empty-state">Документов пока нет. Добавьте первый документ из реестра или карточки заявки.</td></tr>
+            <tr><td colspan="4" class="empty-state">Документов пока нет. Добавьте первый документ из реестра или карточки заявки.</td></tr>
         {% endfor %}
         </tbody>
     </table></div>
