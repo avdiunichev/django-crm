@@ -1108,7 +1108,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 
 .order-cancel-dialog {
     position: relative;
-    width: min(560px, 100%);
+    width: min(720px, 100%);
     padding: 22px;
     border: 1px solid #d9e1eb;
     border-radius: 10px;
