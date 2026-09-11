@@ -7740,8 +7740,7 @@ html[data-theme="dark"] body.uikit-theme .driver-history-facts div {
 }
 
 .order-route-stop.is-deleted {
-    opacity: .5;
-    border-style: dashed;
+    display: none;
 }
 
 .order-route-stop-head,
@@ -7762,6 +7761,41 @@ html[data-theme="dark"] body.uikit-theme .driver-history-facts div {
 
 .order-route-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.route-delete-input {
+    display: none;
+}
+
+.route-delete-button {
+    color: #df4e4e;
+    font-size: 13px;
+    text-transform: none;
+}
+
+.route-delete-button:hover {
+    color: #bd3232;
+}
+
+.route-delete-button:disabled,
+.route-delete-button:disabled:hover {
+    color: #9ba7b8;
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.route-city-address-grid,
+.route-schedule-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.route-city-address-grid {
+    grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr);
+}
+
+.route-schedule-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .order-route-actions {
@@ -7787,14 +7821,32 @@ html[data-theme="dark"] body.uikit-theme .order-route-stop.is-delivery {
     border-left-color: #55c879;
 }
 
+html[data-theme="dark"] body.uikit-theme .route-delete-button {
+    color: #ff8994;
+}
+
+html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled,
+html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
+    color: #718097;
+}
+
 @media (max-width: 1000px) {
     .order-route-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-schedule-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 560px) {
     .order-route-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .route-city-address-grid,
+    .route-schedule-grid {
         grid-template-columns: 1fr;
     }
 

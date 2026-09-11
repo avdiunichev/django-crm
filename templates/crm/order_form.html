@@ -75,28 +75,32 @@
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>04</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить любое количество операций.</p></div></div>
+        <div class="form-section-title"><span>04</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить любое количество точек.</p></div></div>
         {{ stop_formset.management_form }}
         {% if stop_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_formset.non_form_errors }}</div>{% endif %}
         <div class="order-route-list" data-order-route-list>
             {% for stop_form in stop_formset %}
                 <article class="order-route-stop" data-order-route-stop>
-                    {{ stop_form.id }}{{ stop_form.sequence }}
+                    {{ stop_form.id }}{{ stop_form.sequence }}{{ stop_form.kind }}
                     <div class="order-route-stop-head">
                         <div><span class="route-stop-index" data-route-number>{{ forloop.counter }}</span><strong data-route-title>{% if stop_form.instance.kind == 'delivery' or stop_form.initial.kind == 'delivery' %}Выгрузка{% else %}Погрузка{% endif %}</strong></div>
-                        <label class="passport-delete">{{ stop_form.DELETE }} Удалить точку</label>
+                        <span class="route-delete-input">{{ stop_form.DELETE }}</span>
+                        <button class="uk-button uk-button-text route-delete-button" type="button" data-route-delete>Удалить точку</button>
                     </div>
                     {% if stop_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_form.non_field_errors }}</div>{% endif %}
                     <div class="form-grid order-route-grid">
-                        {% include "crm/includes/form_field.html" with field=stop_form.kind %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.city %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.address wide=True %}
+                        <div class="route-city-address-grid field-wide">
+                            {% include "crm/includes/form_field.html" with field=stop_form.city %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.address %}
+                        </div>
                         {{ stop_form.address_meta }}
-                        {% include "crm/includes/form_field.html" with field=stop_form.planned_date %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_from %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.planned_time_to %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.contact_name %}
-                        {% include "crm/includes/form_field.html" with field=stop_form.contact_phone %}
+                        <div class="route-schedule-grid field-wide">
+                            {% include "crm/includes/form_field.html" with field=stop_form.planned_date %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.planned_time_from %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.planned_time_to %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.contact_phone %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.contact_name %}
+                        </div>
                         {% include "crm/includes/form_field.html" with field=stop_form.instructions wide=True %}
                     </div>
                 </article>
@@ -104,21 +108,25 @@
         </div>
         <template data-order-route-empty-form>
             <article class="order-route-stop" data-order-route-stop>
-                {{ stop_formset.empty_form.id }}{{ stop_formset.empty_form.sequence }}
+                {{ stop_formset.empty_form.id }}{{ stop_formset.empty_form.sequence }}{{ stop_formset.empty_form.kind }}
                 <div class="order-route-stop-head">
                     <div><span class="route-stop-index" data-route-number></span><strong data-route-title>Погрузка</strong></div>
-                    <label class="passport-delete">{{ stop_formset.empty_form.DELETE }} Удалить точку</label>
+                    <span class="route-delete-input">{{ stop_formset.empty_form.DELETE }}</span>
+                    <button class="uk-button uk-button-text route-delete-button" type="button" data-route-delete>Удалить точку</button>
                 </div>
                 <div class="form-grid order-route-grid">
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.kind %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address wide=True %}
+                    <div class="route-city-address-grid field-wide">
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address %}
+                    </div>
                     {{ stop_formset.empty_form.address_meta }}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_date %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_from %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_to %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_name %}
-                    {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_phone %}
+                    <div class="route-schedule-grid field-wide">
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_date %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_from %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.planned_time_to %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_phone %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.contact_name %}
+                    </div>
                     {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.instructions wide=True %}
                 </div>
             </article>

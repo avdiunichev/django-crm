@@ -1050,6 +1050,7 @@ class TransportOrderStopForm(StyledModelForm):
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
+            "kind": forms.HiddenInput(),
             "planned_time_from": CRMTimeInput(),
             "planned_time_to": CRMTimeInput(),
             "instructions": forms.Textarea(attrs={"rows": 2}),
