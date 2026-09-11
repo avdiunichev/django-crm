@@ -58,10 +58,12 @@
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.cargo_name wide=True %}
             {{ cargo_name_suggestions|json_script:"cargo-name-suggestions-data" }}
-            {% include "crm/includes/form_field.html" with field=form.weight_kg %}
-            {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
-            {% include "crm/includes/form_field.html" with field=form.package_count %}
-            {% include "crm/includes/form_field.html" with field=form.package_type %}
+            <div class="cargo-details-grid field-wide">
+                {% include "crm/includes/form_field.html" with field=form.weight_kg %}
+                {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
+                {% include "crm/includes/form_field.html" with field=form.package_count %}
+                {% include "crm/includes/form_field.html" with field=form.package_type %}
+            </div>
             {% include "crm/includes/form_field.html" with field=form.temperature_regime %}
             {% include "crm/includes/form_field.html" with field=form.adr_class %}
             {% include "crm/includes/form_field.html" with field=form.vehicle_requirements wide=True %}
