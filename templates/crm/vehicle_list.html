@@ -39,5 +39,5 @@
     </table></div>
     <div class="vehicle-register-footer"><span><i class="driver-legend-dot is-active"></i> Доступен для назначения</span><span><i class="driver-legend-dot is-warning"></i> Нет полного комплекта документов</span><span><i class="driver-legend-dot is-danger"></i> Срок документа истёк</span></div>
 </section>
-{% if is_paginated %}<nav class="pagination uk-pagination" aria-label="Пагинация автопарка">{% if page_obj.has_previous %}<a href="?q={{ current_q|urlencode }}&kind={{ current_kind }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}<span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href="?q={{ current_q|urlencode }}&kind={{ current_kind }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}</nav>{% endif %}
+{% include "crm/includes/pagination.html" %}
 {% endblock %}

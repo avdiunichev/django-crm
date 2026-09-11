@@ -51,11 +51,5 @@
     </div>
     <div class="driver-register-footer"><span><i class="driver-legend-dot is-active"></i> Активен — доступен при оформлении рейса</span><span><i class="driver-legend-dot is-warning"></i> Требует проверки документов</span></div>
 </section>
-{% if is_paginated %}
-<nav class="pagination uk-pagination" aria-label="Пагинация водителей">
-    {% if page_obj.has_previous %}<a href="?q={{ current_q|urlencode }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}
-    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?q={{ current_q|urlencode }}&active={{ current_active }}&carrier={{ current_carrier }}&page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}
-</nav>
-{% endif %}
+{% include "crm/includes/pagination.html" %}
 {% endblock %}

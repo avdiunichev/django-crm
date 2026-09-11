@@ -1,7 +1,16 @@
-{% if is_paginated %}
-<nav class="pagination uk-pagination">
-    {% if page_obj.has_previous %}<a href="?q={{ current_q }}&status={{ current_status }}&payment={{ current_payment }}&scope={{ current_scope }}&page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}
-    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?q={{ current_q }}&status={{ current_status }}&payment={{ current_payment }}&scope={{ current_scope }}&page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}
+{% load crm_format %}
+{% if page_obj %}
+<nav class="pagination uk-pagination register-pagination">
+    <div class="pagination-main">
+        {% if page_obj.has_previous %}<a href="?{% query_replace page=page_obj.previous_page_number %}">← Назад</a>{% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?{% query_replace page=page_obj.next_page_number %}">Вперёд →</a>{% endif %}
+    </div>
+    {% include "crm/includes/page_size_selector.html" %}
+</nav>
+{% elif current_per_page %}
+<nav class="pagination uk-pagination register-pagination">
+    <div class="pagination-main"><span>Показаны все строки</span></div>
+    {% include "crm/includes/page_size_selector.html" %}
 </nav>
 {% endif %}

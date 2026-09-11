@@ -78,6 +78,50 @@ class FinanceAccessMixin(AccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+class PersistentPageSizeMixin:
+    """Allow users to choose and persist register page size across CRM lists."""
+
+    page_size_choices = ("10", "25", "50", "all")
+    page_size_session_key = "crm_page_size"
+
+    def get_page_size_session_key(self):
+        return self.page_size_session_key
+
+    def get_paginate_by(self, queryset):
+        requested = self.request.GET.get("per_page", "").strip().lower()
+        session_key = self.get_page_size_session_key()
+        if requested in self.page_size_choices:
+            self.request.session[session_key] = requested
+            current = requested
+        else:
+            current = self.request.session.get(session_key, str(self.paginate_by or "25"))
+            if current not in self.page_size_choices:
+                current = str(self.paginate_by or "25")
+
+        self.current_per_page = current
+        if current == "all":
+            return None
+        try:
+            return int(current)
+        except (TypeError, ValueError):
+            return self.paginate_by
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page_size_choices"] = [
+            {"value": "10", "label": "10"},
+            {"value": "25", "label": "25"},
+            {"value": "50", "label": "50"},
+            {"value": "all", "label": "Все"},
+        ]
+        context["current_per_page"] = getattr(
+            self,
+            "current_per_page",
+            self.request.session.get(self.get_page_size_session_key(), str(self.paginate_by or "25")),
+        )
+        return context
+
+
 def _xlsx_cell_reference(row_index, column_index):
     letters = ""
     column = column_index
@@ -1632,7 +1676,7 @@ class LegacyShipmentRedirectView(LoginRequiredMixin, View):
         return self.get(request, pk=pk)
 
 
-class ShipmentListView(LoginRequiredMixin, ListView):
+class ShipmentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = Shipment
     template_name = "crm/shipment_list.html"
     context_object_name = "shipments"
@@ -2284,7 +2328,7 @@ class AccountingDocumentCreateView(LoginRequiredMixin, FormView):
         return context
 
 
-class ShipmentDocumentListView(LoginRequiredMixin, ListView):
+class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = ShipmentDocument
     template_name = "crm/shipment_document_list.html"
     context_object_name = "documents"
@@ -2829,7 +2873,7 @@ class DocumentBatchEditorMixin:
         return self.render_to_response(self.get_context_data(form=form))
 
 
-class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, ListView):
+class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView):
     model = DocumentBatch
     template_name = "crm/document_batch_list.html"
     context_object_name = "document_batches"
@@ -3047,7 +3091,7 @@ def _create_reconciliation_regeneration_task(act, user=None):
     )
 
 
-class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, ListView):
+class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView):
     model = ReconciliationAct
     template_name = "crm/reconciliation_act_list.html"
     context_object_name = "acts"
@@ -4712,7 +4756,7 @@ class PlannerTaskCompleteView(LoginRequiredMixin, View):
         return redirect(request.POST.get("next") or reverse("planner"))
 
 
-class SearchableDirectoryListView(LoginRequiredMixin, ListView):
+class SearchableDirectoryListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     paginate_by = 20
     search_fields = ()
     ordering_field = "name"
@@ -4860,7 +4904,7 @@ class VehicleCombinationDeleteView(SafeDeleteView):
     list_url_name = "vehicle-list"
 
 
-class OrganizationListView(LoginRequiredMixin, ListView):
+class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = Organization
     template_name = "crm/organization_list.html"
     context_object_name = "organizations"
@@ -5245,7 +5289,7 @@ class OrganizationUpdateView(
     success_message = "Карточка организации и её роли обновлены."
 
 
-class TransportOrderListView(LoginRequiredMixin, ListView):
+class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = TransportOrder
     template_name = "crm/order_list.html"
     context_object_name = "orders"
@@ -5457,7 +5501,7 @@ class TransportOrderAssignView(LoginRequiredMixin, View):
         return redirect("transportation-update", pk=transportation.pk)
 
 
-class TransportationListView(LoginRequiredMixin, ListView):
+class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = Transportation
     template_name = "crm/transportation_list.html"
     context_object_name = "transportations"
@@ -5973,7 +6017,7 @@ class BankStatementEditorMixin:
         )
 
 
-class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, ListView):
+class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView):
     model = BankStatement
     template_name = "crm/bank_statement_list.html"
     context_object_name = "bank_statements"
@@ -7303,7 +7347,7 @@ class TransportationChainUpdateView(LoginRequiredMixin, FormView):
         return context
 
 
-class ContractListView(LoginRequiredMixin, ListView):
+class ContractListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
     model = Contract
     template_name = "crm/contract_list.html"
     context_object_name = "contracts"

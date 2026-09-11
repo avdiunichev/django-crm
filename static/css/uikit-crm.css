@@ -4704,6 +4704,47 @@ html[data-theme="dark"] body.uikit-theme .metric-card .metric-icon.uk-icon-butto
     color: #c8d5e5;
 }
 
+.uikit-theme .register-pagination {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.uikit-theme .register-pagination .pagination-main {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.uikit-theme .page-size-selector {
+    margin: 0;
+}
+
+.uikit-theme .page-size-selector label {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+    margin: 0;
+}
+
+.uikit-theme .page-size-selector .uk-select {
+    min-width: 86px;
+    height: 34px;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-pagination {
+    color: #9aa8ba;
+}
+
+@media (max-width: 700px) {
+    .uikit-theme .register-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
 html[data-theme="dark"] body.uikit-theme .uk-modal-dialog,
 html[data-theme="dark"] body.uikit-theme .uk-dropdown {
     color: #dce4ef;

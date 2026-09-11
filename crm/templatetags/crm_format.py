@@ -46,3 +46,18 @@ def decimal_input(value, decimals=2):
     except (InvalidOperation, TypeError, ValueError):
         return value
     return f"{amount:.{places}f}"
+
+
+@register.simple_tag(takes_context=True)
+def query_replace(context, **kwargs):
+    """Return current query string with selected parameters replaced/removed."""
+    request = context.get("request")
+    if request is None:
+        return ""
+    query = request.GET.copy()
+    for key, value in kwargs.items():
+        if value is None or value == "":
+            query.pop(key, None)
+        else:
+            query[key] = value
+    return query.urlencode()
