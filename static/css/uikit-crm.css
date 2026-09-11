@@ -777,34 +777,11 @@ a:hover {
 }
 
 .order-command-title {
-    align-items: center;
     margin: 0;
-}
-
-.order-command-title > .order-command-icon {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    color: #fff;
-    background: #1e87f0;
-}
-
-.order-command-icon svg {
-    width: 20px;
-    height: 20px;
-}
-
-.order-command-title h1 {
-    margin: 0;
-    font-size: 25px;
-    font-weight: 500;
-}
-
-.order-command-title p {
-    margin-top: 3px;
 }
 
 .order-command-actions {
+    align-self: center;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
