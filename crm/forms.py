@@ -948,10 +948,8 @@ class TransportOrderForm(StyledModelForm):
                 "data-cargo-autocomplete": "",
             }
         )
-        self.fields["package_count"].label = "Количество мест / паллет"
-        self.fields["package_count"].help_text = (
-            "Единое количество грузовых мест. Старые значения мест и паллет объединяются."
-        )
+        self.fields["package_count"].label = "Количество мест"
+        self.fields["package_count"].help_text = ""
         self.fields["pallet_count"].required = False
         self.fields["pallet_count"].widget = forms.HiddenInput()
         if not self.is_bound and self.instance.pk:
