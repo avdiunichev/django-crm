@@ -4975,6 +4975,21 @@ class SafeDeleteView(LoginRequiredMixin, View):
     def get_object(self):
         return get_object_or_404(self.model, pk=self.kwargs["pk"])
 
+    @staticmethod
+    def get_counterparty_tax_id(instance):
+        counterparty = getattr(instance, "client", None) or getattr(
+            instance, "customer", None
+        )
+        if counterparty and hasattr(counterparty, "organization"):
+            counterparty = counterparty.organization
+        if not counterparty and hasattr(instance, "parties"):
+            party = instance.parties.filter(
+                role=TransportationParty.Role.CLIENT,
+                is_active=True,
+            ).select_related("organization").first()
+            counterparty = party.organization if party else None
+        return getattr(counterparty, "tax_id", "") or ""
+
     def get_context(self, instance, dependencies=None):
         dependencies = (
             deletion_dependencies(instance)
@@ -4985,6 +5000,7 @@ class SafeDeleteView(LoginRequiredMixin, View):
             "object": instance,
             "entity_label": self.entity_label,
             "delete_label": self.delete_label,
+            "counterparty_tax_id": self.get_counterparty_tax_id(instance),
             "dependencies": dependencies,
             "can_delete": not dependencies,
             "cancel_url": instance.get_absolute_url(),

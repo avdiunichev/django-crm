@@ -7,7 +7,7 @@
             <span class="safe-delete-heading-icon" uk-icon="trash"></span>
             <div>
                 <h2 id="safe-delete-title">Удаление {{ delete_label }}</h2>
-                <p>{{ object }}</p>
+                <p>{{ object }}{% if counterparty_tax_id %} · ИНН {{ counterparty_tax_id }}{% endif %}</p>
             </div>
         </header>
     {% if dependencies %}
