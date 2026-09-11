@@ -37,9 +37,9 @@
         <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
-            {% include "crm/includes/form_field.html" with field=form.document_date %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
-            {% include "crm/includes/form_field.html" with field=form.client wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.client %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
         </div>
     </section>
 
