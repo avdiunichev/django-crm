@@ -6905,7 +6905,7 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             "vehicle_assignments",
                 queryset=VehicleAssignment.objects.filter(is_active=True).select_related(
                     "actual_carrier", "driver", "vehicle", "trailer", "combination"
-                ),
+                ).prefetch_related("driver__passports", "driver__licenses"),
         ),
         Prefetch(
             "charges",
@@ -6964,6 +6964,7 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
         client_party = next(
             (p for p in parties if p.role == TransportationParty.Role.CLIENT), None
         )
+        stops = list(transportation.stops.all())
         chain_nodes = []
         if client_party:
             chain_nodes.append(
@@ -6997,6 +6998,98 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                     "link": None,
                 }
             )
+        route_chain_nodes = []
+        delivery_stop_ids = [stop.pk for stop in stops if stop.kind == TransportationStop.Kind.DELIVERY]
+        last_delivery_id = delivery_stop_ids[-1] if delivery_stop_ids else None
+        for stop in stops:
+            if stop.kind == TransportationStop.Kind.PICKUP:
+                role = "Грузоотправитель"
+            elif stop.kind == TransportationStop.Kind.DELIVERY and stop.pk == last_delivery_id:
+                role = "Грузополучатель"
+            elif stop.kind == TransportationStop.Kind.DELIVERY:
+                role = "Промежуточный грузополучатель"
+            else:
+                role = "Промежуточная точка"
+            route_chain_nodes.append(
+                {
+                    "role": role,
+                    "kind": stop.get_kind_display(),
+                    "organization": stop.organization,
+                    "organization_text": stop.organization_text,
+                    "city": stop.city,
+                    "address": stop.address,
+                    "planned_from": stop.planned_from,
+                    "planned_to": stop.planned_to,
+                    "contact_name": stop.contact_name,
+                    "contact_phone": stop.contact_phone,
+                }
+            )
+        driver_details = None
+        if assignment and assignment.driver_id:
+            driver = assignment.driver
+            passport = driver.current_passport
+            license_doc = driver.current_license
+            vehicle = assignment.vehicle
+            trailer = assignment.trailer
+            trailer_number = (
+                trailer.registration_number
+                if trailer
+                else assignment.trailer_registration_number
+                or (vehicle.trailer_registration_number if vehicle else "")
+            )
+            passport_text = ""
+            if passport:
+                passport_text = " ".join(
+                    part
+                    for part in (
+                        passport.series,
+                        passport.number,
+                        passport.issued_by,
+                        f"от {passport.issue_date:%d.%m.%Y}" if passport.issue_date else "",
+                    )
+                    if part
+                )
+            license_text = ""
+            if license_doc:
+                license_text = " ".join(
+                    part
+                    for part in (
+                        license_doc.number,
+                        f"от {license_doc.issue_date:%d.%m.%Y}" if license_doc.issue_date else "",
+                    )
+                    if part
+                )
+            vehicle_text = ""
+            if vehicle:
+                vehicle_text = " ".join(
+                    part
+                    for part in (
+                        vehicle.make,
+                        vehicle.registration_number,
+                        trailer_number,
+                    )
+                    if part
+                )
+            copy_text = " ".join(
+                part
+                for part in (
+                    driver.full_name,
+                    passport_text,
+                    license_text,
+                    driver.phone,
+                    vehicle_text,
+                )
+                if part
+            )
+            driver_details = {
+                "driver": driver,
+                "passport": passport,
+                "license": license_doc,
+                "vehicle": vehicle,
+                "trailer": trailer,
+                "trailer_number": trailer_number,
+                "copy_text": copy_text,
+            }
         posting_issues = []
         try:
             validate_transportation_for_posting(transportation)
@@ -7017,6 +7110,8 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 "execution_links": links,
                 "assignment": assignment,
                 "chain_nodes": chain_nodes,
+                "route_chain_nodes": route_chain_nodes,
+                "driver_details": driver_details,
                 "chain_issues": transportation.chain_issues(),
                 "posting_issues": posting_issues,
                 "can_post_transportation": not posting_issues,

@@ -914,6 +914,15 @@ a:hover {
     overflow-x: auto;
 }
 
+.transport-chain-group-title {
+    margin-top: 18px;
+    color: #7c8795;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
 .transport-chain-node {
     min-width: 205px;
     padding: 16px;
@@ -922,6 +931,12 @@ a:hover {
     display: flex;
     flex-direction: column;
     background: #fafafa;
+}
+
+.transport-route-chain .transport-chain-node {
+    min-width: 255px;
+    border-color: #dbeafe;
+    background: #f8fbff;
 }
 
 .transport-chain-node > span {
@@ -939,9 +954,18 @@ a:hover {
     font-weight: 600;
 }
 
+.transport-chain-node strong,
+.transport-chain-node strong a {
+    color: #222;
+    font-size: 15px;
+    font-weight: 700;
+}
+
 .transport-chain-node small {
     margin-top: 7px;
     color: #888;
+    line-height: 1.45;
+    white-space: normal;
 }
 
 .transport-chain-arrow {
@@ -1040,6 +1064,43 @@ a:hover {
 .transportation-finance-card dd {
     margin: 0;
     text-align: right;
+}
+
+.driver-copy-card {
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    background: #f8fbff;
+}
+
+.driver-copy-card > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.driver-copy-card dl {
+    margin-top: 14px;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 10px 14px;
+}
+
+.driver-copy-card dd {
+    text-align: left;
+}
+
+.driver-copy-card dd small {
+    display: block;
+    margin-top: 2px;
+    color: #8a95a3;
+    line-height: 1.4;
+}
+
+.driver-copy-card .copy-driver-data {
+    margin-top: 14px;
+    width: 100%;
+    justify-content: center;
 }
 
 .transportation-finance-card .eyebrow {
@@ -3934,6 +3995,23 @@ html[data-theme="dark"] body.uikit-theme .uk-table td small,
 html[data-theme="dark"] body.uikit-theme .uk-table small,
 html[data-theme="dark"] body.uikit-theme .safe-delete-dependencies ul {
     color: #8e9bb0;
+}
+
+html[data-theme="dark"] body.uikit-theme .transport-chain-group-title {
+    color: #91a0b5;
+}
+
+html[data-theme="dark"] body.uikit-theme .transport-route-chain .transport-chain-node,
+html[data-theme="dark"] body.uikit-theme .driver-copy-card {
+    border-color: #2e4767;
+    background: #142238;
+}
+
+html[data-theme="dark"] body.uikit-theme .transport-chain-node strong,
+html[data-theme="dark"] body.uikit-theme .transport-chain-node strong a,
+html[data-theme="dark"] body.uikit-theme .driver-copy-card strong,
+html[data-theme="dark"] body.uikit-theme .driver-copy-card strong a {
+    color: #eef3fa;
 }
 
 html[data-theme="dark"] body.uikit-theme .filters,

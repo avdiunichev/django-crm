@@ -73,13 +73,27 @@
 
 <section class="transport-chain-panel uk-card uk-card-default">
     <div class="section-title">
-        <div><span class="eyebrow">Цепочка перевозки</span><h2>Кто заказал → кому поручили → кто реально везёт</h2></div>
+        <div><span class="eyebrow">Цепочка перевозки</span><h2>Клиент → наша компания → исполнитель → маршрут</h2></div>
         <div class="transport-chain-actions">{% if not chain_issues %}<span class="chain-state is-ok"><span uk-icon="check"></span> Цепочка подтверждена</span>{% else %}<span class="chain-state is-danger"><span uk-icon="warning"></span> Требует внимания</span>{% endif %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="pencil"></span> Изменить цепочку</a></div>
     </div>
+    <div class="transport-chain-group-title">Коммерческая цепочка</div>
     <div class="transport-chain">
         {% for node in chain_nodes %}
             <article class="transport-chain-node"><span>{{ node.role }}</span><a href="{{ node.organization.get_absolute_url }}">{{ node.organization }}</a>{% if node.link %}<small>{% if node.link.contract %}Договор № {{ node.link.contract.number }}{% else %}Договор не выбран{% endif %}{% if node.link.instruction_number %}<br>Поручение / заявка № {{ node.link.instruction_number }}{% endif %}</small>{% endif %}</article>
             {% if not forloop.last %}<span class="transport-chain-arrow"><span uk-icon="arrow-right"></span></span>{% endif %}
+        {% endfor %}
+    </div>
+    <div class="transport-chain-group-title">Логистическая цепочка по точкам маршрута</div>
+    <div class="transport-chain transport-route-chain">
+        {% for node in route_chain_nodes %}
+            <article class="transport-chain-node route-party-node">
+                <span>{{ node.role }}</span>
+                <strong>{% if node.organization %}<a href="{{ node.organization.get_absolute_url }}">{{ node.organization }}</a>{% elif node.organization_text %}{{ node.organization_text }}{% else %}Организация не указана{% endif %}</strong>
+                <small>{{ node.kind }} · {{ node.city|default:"город не указан" }}{% if node.address %}<br>{{ node.address }}{% endif %}{% if node.planned_from %}<br>План: {{ node.planned_from|date:"d.m.Y H:i" }}{% if node.planned_to %} — {{ node.planned_to|date:"H:i" }}{% endif %}{% endif %}{% if node.contact_name or node.contact_phone %}<br>{{ node.contact_name|default:"Контакт" }}{% if node.contact_phone %}: {{ node.contact_phone }}{% endif %}{% endif %}</small>
+            </article>
+            {% if not forloop.last %}<span class="transport-chain-arrow"><span uk-icon="arrow-right"></span></span>{% endif %}
+        {% empty %}
+            <article class="transport-chain-node route-party-node"><span>Маршрут</span><strong>Точки не указаны</strong><small>Добавьте погрузку и выгрузку в рейсе.</small></article>
         {% endfor %}
     </div>
     {% if chain_issues %}<div class="chain-issues"><strong>Чтобы подтвердить машину, исправьте:</strong><ul>{% for issue in chain_issues %}<li>{{ issue }}</li>{% endfor %}</ul></div>{% endif %}
@@ -99,7 +113,7 @@
             </section>
             <section class="panel uk-card uk-card-default transportation-role-card">
                 <span class="eyebrow">Фактический перевозчик</span>
-                {% if assignment %}<h2><a href="{{ assignment.actual_carrier.get_absolute_url }}">{{ assignment.actual_carrier }}</a></h2><p>ИНН {{ assignment.actual_carrier.tax_id|default:"не указан" }}</p><dl>{% if assignment.combination %}<dt>Сцепка</dt><dd><a href="{{ assignment.combination.get_absolute_url }}">{{ assignment.combination }}</a></dd>{% endif %}<dt>Водитель</dt><dd>{% if assignment.driver %}<a href="{{ assignment.driver.get_absolute_url }}">{{ assignment.driver.full_name }}</a>{% else %}<span class="uk-text-danger">Не назначен</span>{% endif %}</dd><dt>Тягач / автомобиль</dt><dd>{% if assignment.vehicle %}<a href="{{ assignment.vehicle.get_absolute_url }}">{{ assignment.vehicle.registration_number }}</a>{% else %}<span class="uk-text-danger">Не назначен</span>{% endif %}</dd><dt>Прицеп</dt><dd>{% if assignment.trailer %}<a href="{{ assignment.trailer.get_absolute_url }}">{{ assignment.trailer.registration_number }}</a>{% else %}{{ assignment.trailer_registration_number|default:"—" }}{% endif %}</dd></dl>{% else %}<h2 class="uk-text-danger">Не указан</h2><p>Без фактического перевозчика рейс нельзя провести.</p>{% endif %}<a class="uk-button uk-button-default uk-button-small uk-margin-top" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="pencil"></span> Назначить водителя и ТС</a>
+                {% if assignment %}<h2><a href="{{ assignment.actual_carrier.get_absolute_url }}">{{ assignment.actual_carrier }}</a></h2><p>ИНН {{ assignment.actual_carrier.tax_id|default:"не указан" }}</p><dl>{% if assignment.combination %}<dt>Сцепка</dt><dd><a href="{{ assignment.combination.get_absolute_url }}">{{ assignment.combination }}</a></dd>{% endif %}<dt>Водитель</dt><dd>{% if assignment.driver %}<a href="{{ assignment.driver.get_absolute_url }}">{{ assignment.driver.full_name }}</a>{% else %}<span class="uk-text-danger">Не назначен</span>{% endif %}</dd><dt>Тягач / автомобиль</dt><dd>{% if assignment.vehicle %}<a href="{{ assignment.vehicle.get_absolute_url }}">{{ assignment.vehicle.registration_number }}</a>{% else %}<span class="uk-text-danger">Не назначен</span>{% endif %}</dd><dt>Прицеп</dt><dd>{% if assignment.trailer %}<a href="{{ assignment.trailer.get_absolute_url }}">{{ assignment.trailer.registration_number }}</a>{% else %}{{ assignment.trailer_registration_number|default:"—" }}{% endif %}</dd></dl>{% if driver_details %}<div class="driver-copy-card"><div><span class="eyebrow">Данные водителя</span><strong><a href="{{ driver_details.driver.get_absolute_url }}">{{ driver_details.driver.full_name }}</a></strong></div><dl><dt>Телефон</dt><dd>{{ driver_details.driver.phone|default:"—" }}</dd><dt>Паспорт</dt><dd>{% if driver_details.passport %}{{ driver_details.passport.series }} {{ driver_details.passport.number }}<small>{{ driver_details.passport.issued_by|default:"Кем выдан не указано" }}{% if driver_details.passport.issue_date %}, от {{ driver_details.passport.issue_date|date:"d.m.Y" }}{% endif %}</small>{% else %}<span class="uk-text-danger">Внесите паспорт</span>{% endif %}</dd><dt>Права</dt><dd>{% if driver_details.license %}{{ driver_details.license.number }}<small>{% if driver_details.license.issue_date %}от {{ driver_details.license.issue_date|date:"d.m.Y" }}{% endif %}{% if driver_details.license.categories %} · {{ driver_details.license.categories }}{% endif %}</small>{% else %}<span class="uk-text-danger">Внесите ВУ</span>{% endif %}</dd><dt>ТС</dt><dd>{% if driver_details.vehicle %}{{ driver_details.vehicle.make }} {{ driver_details.vehicle.registration_number }}{% if driver_details.trailer_number %}<small>Прицеп: {{ driver_details.trailer_number }}</small>{% endif %}{% else %}<span class="uk-text-danger">ТС не назначено</span>{% endif %}</dd></dl><button class="uk-button uk-button-default uk-button-small copy-driver-data" type="button" data-copy-text="{{ driver_details.copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные водителя</button></div>{% endif %}{% else %}<h2 class="uk-text-danger">Не указан</h2><p>Без фактического перевозчика рейс нельзя провести.</p>{% endif %}<a class="uk-button uk-button-default uk-button-small uk-margin-top" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="pencil"></span> Назначить водителя и ТС</a>
             </section>
             <section class="panel uk-card uk-card-primary uk-light transportation-finance-card">
                 <span class="eyebrow">Финансы рейса</span>
@@ -159,4 +173,36 @@
     </li>
 </ul>
 </div>
+{% endblock %}
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".copy-driver-data");
+    if (!button) return;
+    const text = button.dataset.copyText || "";
+    if (!text) return;
+    const originalHtml = button.innerHTML;
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+        }
+        button.innerHTML = "Скопировано";
+        setTimeout(() => { button.innerHTML = originalHtml; }, 1800);
+    } catch (error) {
+        button.innerHTML = "Не удалось скопировать";
+        setTimeout(() => { button.innerHTML = originalHtml; }, 2200);
+    }
+});
+</script>
 {% endblock %}
