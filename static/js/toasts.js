@@ -14,10 +14,7 @@
                 "click",
                 () => dismiss(toast),
             );
-            const timeout = toast.classList.contains("is-error")
-                || toast.classList.contains("is-warning")
-                ? 20000
-                : 12000;
+            const timeout = 3000;
             window.setTimeout(() => dismiss(toast), timeout);
         });
     };
