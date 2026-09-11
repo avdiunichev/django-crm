@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Удаление — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="page-heading">
-    <div>
-        <a class="back-link" href="{{ cancel_url }}">← Вернуться к карточке</a>
-        <span class="eyebrow">Контроль связей</span>
-        <h1>Удалить {{ entity_label }}?</h1>
-        <p>{{ object }}</p>
+<div class="page-heading safe-delete-heading">
+    <a class="back-link" href="{{ cancel_url }}">← Вернуться к карточке</a>
+    <div class="safe-delete-heading-copy">
+        <span class="safe-delete-heading-icon" uk-icon="trash"></span>
+        <div>
+            <span class="eyebrow">Подтверждение удаления</span>
+            <h1>Удалить {{ entity_label }}?</h1>
+            <p>{{ object }}</p>
+        </div>
     </div>
 </div>
 
 <section class="safe-delete-card uk-card uk-card-default uk-card-body">
     {% if dependencies %}
-        <div class="uk-alert-danger" uk-alert>
+        <div class="uk-alert-danger safe-delete-alert" uk-alert>
             <h2><span uk-icon="ban"></span> Удаление запрещено</h2>
             <p>Запись используется в учёте. Сначала отвяжите или удалите связанные документы.</p>
         </div>
@@ -29,7 +32,7 @@
             <a class="uk-button uk-button-default" href="{{ list_url }}">Открыть список</a>
         </div>
     {% else %}
-        <div class="uk-alert-warning" uk-alert>
+        <div class="uk-alert-warning safe-delete-alert" uk-alert>
             <h2><span uk-icon="warning"></span> Связанные документы не найдены</h2>
             {% if object.source_order %}
                 <p>Рейс будет удалён. Связанный <a href="{{ object.source_order.get_absolute_url }}">заказ {{ object.source_order.number }}</a> сохранится и будет возвращён в статус «Новый».</p>

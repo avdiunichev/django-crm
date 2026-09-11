@@ -584,12 +584,60 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 }
 
 .safe-delete-card {
-    max-width: 860px;
+    width: min(720px, 100%);
+    max-width: 720px;
+    padding: 26px !important;
 }
 
 .safe-delete-card h2 {
     margin: 0 0 8px;
     font-size: 20px;
+}
+
+.safe-delete-heading {
+    width: min(720px, 100%);
+    margin-bottom: 18px;
+}
+
+.safe-delete-heading .back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+}
+
+.safe-delete-heading-copy {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.safe-delete-heading-icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    color: #c74859;
+    background: #fff0f2;
+}
+
+.safe-delete-heading h1 {
+    margin: 3px 0 2px;
+}
+
+.safe-delete-alert {
+    margin: 0 !important;
+    padding: 18px 20px !important;
+    border-radius: 8px;
+}
+
+.safe-delete-alert p:last-child {
+    margin-bottom: 0;
+}
+
+.safe-delete-card .form-actions {
+    justify-content: flex-end;
+    margin-top: 22px;
 }
 
 .safe-delete-dependencies {
@@ -621,6 +669,22 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     align-items: center;
     gap: 5px;
     font-weight: 500;
+}
+
+html[data-theme="dark"] body.uikit-theme .safe-delete-heading-icon {
+    color: #fa91a0;
+    background: #4b2630;
+}
+
+@media (max-width: 560px) {
+    .safe-delete-card {
+        padding: 18px !important;
+    }
+
+    .safe-delete-card .form-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
 }
 
 .filters .uk-input,
