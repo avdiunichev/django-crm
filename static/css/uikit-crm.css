@@ -1081,6 +1081,12 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     padding-right: 2px;
 }
 
+/* Строгий вид кнопок в карточке заказа и её диалогах. */
+.onec-document-form .uk-button,
+.order-cancel-dialog .uk-button {
+    border-radius: 0 !important;
+}
+
 .order-cancel-modal {
     position: fixed;
     z-index: 2100;
