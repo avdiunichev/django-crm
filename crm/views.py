@@ -7420,6 +7420,17 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 posting_issues = list(error.messages)
         closing_issues = validate_transportation_for_closing(transportation)
         transportation_documents = list(transportation.documents.all())
+        payments = list(transportation.payments.all())
+        customer_payments = [
+            payment
+            for payment in payments
+            if payment.direction == Payment.Direction.INCOME
+        ]
+        executor_payments = [
+            payment
+            for payment in payments
+            if payment.direction == Payment.Direction.EXPENSE
+        ]
         context.update(
             {
                 "client_party": client_party,
@@ -7470,7 +7481,15 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                     transportation.settlement_movements.all()
                 ),
                 "status_events": list(transportation.status_events.all()),
-                "payments": list(transportation.payments.all()),
+                "payments": payments,
+                "customer_payments": customer_payments,
+                "executor_payments": executor_payments,
+                "customer_paid_total": sum(
+                    (payment.amount for payment in customer_payments), Decimal("0")
+                ),
+                "executor_paid_total": sum(
+                    (payment.amount for payment in executor_payments), Decimal("0")
+                ),
                 "instructions": list(transportation.instructions.all()),
                 "epd_documents": list(transportation.electronic_documents.all()),
                 "incidents": incidents,

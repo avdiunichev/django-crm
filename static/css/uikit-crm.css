@@ -4793,6 +4793,38 @@ body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
     background: #fff;
 }
 
+body.uikit-theme .transportation-finance-card .trip-finance-settlement-state {
+    display: grid;
+    gap: 3px;
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid #dbe5f1;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-settlement-state > strong {
+    font-size: 15px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-settlement-state.is-paid > strong {
+    color: #258c4b !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-settlement-state.is-paid > small {
+    color: #4e7e60 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-settlement-state {
+    border-top-color: #4a5870;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-settlement-state.is-paid > strong {
+    color: #7de0a5 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-settlement-state.is-paid > small {
+    color: #a8d8b8 !important;
+}
+
 body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
 body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
 body.uikit-theme .transportation-finance-card .trip-finance-debts span {
