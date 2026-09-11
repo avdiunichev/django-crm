@@ -4832,6 +4832,225 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Мобильный рабочий режим: интерфейс остаётся плотным, но без горизонтального
+   переполнения. Реестры намеренно прокручиваются внутри собственной области. */
+@media (max-width: 700px) {
+    .uikit-theme .app-shell-topnav .crm-topnav {
+        min-height: 0;
+        padding: 8px 12px 10px;
+        gap: 8px;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .uikit-theme .crm-topnav .brand {
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .uikit-theme .crm-topnav .brand > span {
+        display: none;
+    }
+
+    .uikit-theme .crm-topnav .brand img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .uikit-theme .crm-navbar {
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        gap: 4px;
+        min-width: 0;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        padding: 1px 0 4px;
+        scrollbar-width: none;
+    }
+
+    .uikit-theme .crm-navbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .uikit-theme .crm-navbar > li {
+        flex: 0 0 auto;
+    }
+
+    .uikit-theme .crm-navbar > li > a {
+        min-height: 36px;
+        padding: 0 9px;
+        font-size: 12px;
+    }
+
+    .uikit-theme .crm-topnav-tools {
+        align-items: center;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 1px;
+        scrollbar-width: none;
+    }
+
+    .uikit-theme .crm-topnav-tools::-webkit-scrollbar {
+        display: none;
+    }
+
+    .uikit-theme .crm-topnav .theme-switcher {
+        flex: 0 0 190px;
+        width: 190px;
+    }
+
+    .uikit-theme .crm-topnav-tools > .uk-button,
+    .uikit-theme .crm-topnav-tools form {
+        flex: 0 0 auto;
+    }
+
+    .uikit-theme .crm-topnav-tools .uk-button,
+    .uikit-theme .topnav-logout-button {
+        min-height: 34px;
+        font-size: 12px;
+    }
+
+    .uikit-theme .page-heading {
+        margin-bottom: 18px;
+    }
+
+    .uikit-theme .page-heading h1,
+    .uikit-theme .onec-titlebar h1 {
+        font-size: clamp(26px, 8vw, 32px);
+        line-height: 1.12;
+    }
+
+    .uikit-theme .page-heading.with-action {
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .uikit-theme .page-heading.with-action > .uk-button,
+    .uikit-theme .page-heading.with-action > .btn {
+        width: 100%;
+    }
+
+    .uikit-theme .metrics-grid,
+    .uikit-theme .dashboard-metrics,
+    .uikit-theme .register-finance-totals,
+    .uikit-theme .trip-finance-mini-grid,
+    .uikit-theme .trip-finance-debts,
+    .uikit-theme .onec-sidepanels,
+    .uikit-theme .driver-sidepanels,
+    .uikit-theme .vehicle-sidepanels {
+        grid-template-columns: 1fr;
+    }
+
+    .uikit-theme .metric-card {
+        min-height: 0;
+        padding: 18px !important;
+    }
+
+    .uikit-theme .filters,
+    .uikit-theme .driver-register-filters,
+    .uikit-theme .vehicle-register-filters {
+        align-items: stretch;
+        padding: 12px;
+    }
+
+    .uikit-theme .filters > *,
+    .uikit-theme .driver-register-filters > *,
+    .uikit-theme .vehicle-register-filters > * {
+        flex: 1 1 100%;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .uikit-theme .filters .uk-button,
+    .uikit-theme .driver-register-filters .uk-button,
+    .uikit-theme .vehicle-register-filters .uk-button,
+    .uikit-theme .form-actions .uk-button,
+    .uikit-theme .heading-actions .uk-button {
+        width: 100%;
+    }
+
+    .uikit-theme .onec-commandbar,
+    .uikit-theme .onec-command-bar {
+        align-items: stretch;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .uikit-theme .onec-commandbar > *,
+    .uikit-theme .onec-command-bar > * {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .uikit-theme .onec-commandbar .uk-button,
+    .uikit-theme .onec-command-bar .uk-button {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .uikit-theme .transportation-finance-card .trip-finance-hero {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 14px;
+        padding: 18px;
+    }
+
+    .uikit-theme .transportation-finance-card .trip-finance-hero strong {
+        font-size: 30px;
+        text-align: left;
+    }
+
+    .uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+        min-height: 0;
+    }
+
+    .uikit-theme .table-wrap {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+    }
+
+    .uikit-theme .table-wrap .uk-table {
+        font-size: 13px;
+    }
+
+    .uikit-theme .uk-modal-dialog,
+    .uikit-theme .crm-transportation-dialog {
+        width: calc(100vw - 24px);
+        margin: 12px auto;
+    }
+}
+
+@media (max-width: 420px) {
+    .uikit-theme .app-shell-topnav .content {
+        padding: 14px 10px 28px;
+    }
+
+    .uikit-theme .crm-topnav .theme-switcher {
+        flex-basis: 178px;
+        width: 178px;
+    }
+
+    .uikit-theme .theme-switcher-options button {
+        font-size: 11px;
+        padding: 0 8px;
+    }
+
+    .uikit-theme .uk-card-body,
+    .uikit-theme .panel {
+        padding: 16px;
+    }
+}
+
 /* EOF: карточка финансов рейса — единый читаемый стиль для светлой и тёмной темы. */
 body.uikit-theme .transportation-finance-card {
     border: 1px solid #dbe5f1 !important;
@@ -8702,4 +8921,3 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
     border-top-color: #3a475d !important;
 }
-
