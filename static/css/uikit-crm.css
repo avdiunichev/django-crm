@@ -4597,6 +4597,44 @@ html[data-theme="dark"] body.uikit-theme .amount-problem {
     color: #ff8f9f !important;
 }
 
+/* Финальный фикс тёмной темы: все KPI-карточки, включая primary/active,
+   должны оставаться тёмными и читаемыми. */
+html[data-theme="dark"] body.uikit-theme .metric-card,
+html[data-theme="dark"] body.uikit-theme .metric-card.uk-card-default,
+html[data-theme="dark"] body.uikit-theme .metric-card.uk-card-primary,
+html[data-theme="dark"] body.uikit-theme .metric-card.uk-card-primary:hover,
+html[data-theme="dark"] body.uikit-theme .metric-link.metric-card,
+html[data-theme="dark"] body.uikit-theme .metric-link.metric-card:hover {
+    border-color: #29364a;
+    background: #141e2f;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .metric-link.metric-card:hover {
+    border-color: #3a4960;
+    background: #192537;
+}
+
+html[data-theme="dark"] body.uikit-theme .metric-card > strong,
+html[data-theme="dark"] body.uikit-theme .metric-card .amount-income,
+html[data-theme="dark"] body.uikit-theme .metric-card .amount-expense {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .metric-card small,
+html[data-theme="dark"] body.uikit-theme .metric-card small span,
+html[data-theme="dark"] body.uikit-theme .metric-card .metric-top > span:first-child,
+html[data-theme="dark"] body.uikit-theme .metric-card.uk-card-primary small,
+html[data-theme="dark"] body.uikit-theme .metric-card.uk-card-primary .metric-top > span:first-child {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .metric-card .metric-icon.uk-icon-button {
+    background: #1d2b40;
+    color: #c8d5e5;
+}
+
 html[data-theme="dark"] body.uikit-theme .uk-modal-dialog,
 html[data-theme="dark"] body.uikit-theme .uk-dropdown {
     color: #dce4ef;
