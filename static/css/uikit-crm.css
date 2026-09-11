@@ -629,8 +629,8 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     place-items: center;
     width: 34px;
     height: 34px;
-    color: #c74859;
-    background: #fff0f2;
+    color: #d23f56 !important;
+    background: #fdebed !important;
     font-size: 12px;
 }
 
@@ -697,8 +697,8 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 }
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header.form-section-title > .safe-delete-heading-icon {
-    color: #fa91a0;
-    background: #4b2630;
+    color: #ff9dab !important;
+    background: #4b2630 !important;
 }
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog {
