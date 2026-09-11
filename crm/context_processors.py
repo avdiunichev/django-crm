@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from .models import ChatMessage, UserProfile
+from .navbar_notifications import get_navbar_notifications
 
 
 def crm_access(request):
@@ -46,3 +47,11 @@ def chat_unread(request):
         read_at__isnull=True,
     ).exclude(sender=request.user).count()
     return {"chat_unread_count": unread_count}
+
+
+def navbar_notifications(request):
+    items = get_navbar_notifications(request.user)
+    return {
+        "navbar_notifications": items[:8],
+        "navbar_notification_count": sum(not item["is_read"] for item in items),
+    }

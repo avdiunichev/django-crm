@@ -3343,6 +3343,28 @@ class PlannerTask(TimestampedModel):
         return self._status_label(self.new_status) if self.new_status else ""
 
 
+class NotificationRead(TimestampedModel):
+    """Marks a calculated navigation notification as read for one user."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Пользователь",
+        related_name="crm_notification_reads",
+        on_delete=models.CASCADE,
+    )
+    notification_key = models.CharField("Ключ уведомления", max_length=255)
+    read_at = models.DateTimeField("Прочитано", default=timezone.now)
+
+    class Meta:
+        verbose_name = "прочитанное уведомление"
+        verbose_name_plural = "прочитанные уведомления"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "notification_key"),
+                name="unique_user_notification_read",
+            )
+        ]
+
 class TransportationElectronicDocument(TimestampedModel):
     """Electronic transport document prepared for an EPD operator.
 

@@ -72,12 +72,8 @@
         emptyState.hidden = changes.length > 0;
         confirmLink.href = cancelButton.dataset.orderCancelUrl;
         modal.hidden = false;
-        modal.querySelector("[data-order-cancel-dismiss]")?.focus();
     });
 
     modal.querySelectorAll("[data-order-cancel-dismiss]").forEach((button) => button.addEventListener("click", closeModal));
-    modal.addEventListener("click", (event) => { if (event.target === modal) closeModal(); });
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !modal.hidden) closeModal(); });
-
     rememberInitialValues();
 })();

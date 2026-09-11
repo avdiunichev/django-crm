@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-safe-delete-icon-red">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-navbar-notifications">
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260911-users">
     {% block extra_head %}{% endblock %}
 </head>
@@ -79,6 +79,15 @@
             </ul>
         </div>
         <div class="uk-navbar-right crm-topnav-tools">
+            <div class="navbar-notification-center" data-navbar-notifications>
+                <button class="navbar-notification-toggle" type="button" aria-label="Уведомления" aria-expanded="false" data-navbar-notification-toggle><span uk-icon="bell"></span>{% if navbar_notification_count %}<span class="navbar-notification-count">{{ navbar_notification_count }}</span>{% endif %}</button>
+                <section class="navbar-notification-menu" hidden data-navbar-notification-menu>
+                    <header><div><strong>Уведомления</strong><small>{% if navbar_notification_count %}{{ navbar_notification_count }} непрочитанных{% else %}Новых нет{% endif %}</small></div>{% if navbar_notification_count %}<form method="post" action="{% url 'navbar-notifications-mark-read' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit">Прочитать все</button></form>{% endif %}</header>
+                    <div class="navbar-notification-list">
+                        {% for item in navbar_notifications %}<a class="navbar-notification-item {% if item.is_read %}is-read{% endif %}" href="{{ item.url }}"><span class="navbar-notification-item-icon" uk-icon="{% if item.priority == 'urgent' %}warning{% elif item.priority == 'high' %}bell{% else %}info{% endif %}"></span><span><strong>{{ item.title }}</strong><small>{{ item.description|truncatechars:90 }}{% if item.due_date %} · до {{ item.due_date|date:'d.m.Y' }}{% endif %}</small></span></a>{% empty %}<p class="navbar-notification-empty">Уведомлений нет.</p>{% endfor %}
+                    </div>
+                </section>
+            </div>
             <div class="theme-switcher" role="group" aria-label="Тема оформления">
                 <span class="theme-switcher-label">Оформление</span>
                 <div class="theme-switcher-options">
@@ -129,8 +138,9 @@
 <script src="{% static 'js/order-route.js' %}?v=20260911-order-route-layout"></script>
 <script src="{% static 'js/order-form-enhancements.js' %}?v=20260911-quantity-decimals"></script>
 <script src="{% static 'js/toasts.js' %}?v=20260912-toast-3s"></script>
-<script src="{% static 'js/order-cancel-confirm.js' %}?v=20260912-order-cancel-confirm"></script>
+<script src="{% static 'js/order-cancel-confirm.js' %}?v=20260912-order-cancel-modal"></script>
 <script src="{% static 'js/safe-delete-modal.js' %}?v=20260912-safe-delete-no-focus"></script>
+<script src="{% static 'js/navbar-notifications.js' %}?v=20260912-navbar-notifications"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -141,19 +141,18 @@
 </form>
 <div class="order-cancel-modal" data-order-cancel-modal hidden>
     <section class="order-cancel-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="order-cancel-title">
-        <button class="order-cancel-close" type="button" aria-label="Закрыть" data-order-cancel-dismiss>&times;</button>
-        <div class="uk-alert-warning">
-            <h2 id="order-cancel-title"><span uk-icon="warning"></span> Закрыть без сохранения?</h2>
-            <p>Перечисленные изменения будут потеряны.</p>
-        </div>
+        <header class="form-section-title order-cancel-dialog-header">
+            <span class="order-cancel-dialog-icon" uk-icon="close"></span>
+            <div><h2 id="order-cancel-title">Закрыть без сохранения</h2><p>Изменения текущего сеанса будут потеряны.</p></div>
+        </header>
         <div class="order-cancel-changes">
-            <p class="uk-text-meta">Несохранённые изменения:</p>
+            <p class="uk-text-meta">Изменения в этой форме:</p>
             <ul data-order-cancel-changes></ul>
             <p class="uk-text-meta" data-order-cancel-empty hidden>Несохранённых изменений нет.</p>
         </div>
         <div class="form-actions order-cancel-actions">
+            <a class="uk-button order-cancel-confirm-button" href="{% url 'order-list' %}" data-order-cancel-confirm>Закрыть без сохранения</a>
             <button class="uk-button uk-button-default" type="button" data-order-cancel-dismiss>Продолжить редактирование</button>
-            <a class="uk-button uk-button-danger" href="{% url 'order-list' %}" data-order-cancel-confirm>Закрыть без сохранения</a>
         </div>
     </section>
 </div>

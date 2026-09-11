@@ -248,6 +248,7 @@ from .deletion import (
     deletion_example,
     perform_safe_delete,
 )
+from .navbar_notifications import mark_all_navbar_notifications_read
 from .forms import (
     AccountingDocumentForm,
     BankStatementForm,
@@ -4963,6 +4964,12 @@ class SuccessMessageMixin:
     def form_valid(self, form):
         messages.success(self.request, self.success_message)
         return super().form_valid(form)
+
+
+class NavbarNotificationsMarkReadView(LoginRequiredMixin, View):
+    def post(self, request):
+        mark_all_navbar_notifications_read(request.user)
+        return redirect(request.POST.get("next") or "dashboard")
 
 
 class SafeDeleteView(LoginRequiredMixin, View):
