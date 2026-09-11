@@ -105,6 +105,7 @@
             previous.className = "crm-date-nav";
             previous.textContent = "‹";
             previous.setAttribute("aria-label", "Предыдущий месяц");
+            previous.addEventListener("mousedown", (event) => event.preventDefault());
             previous.addEventListener("click", () => { viewDate = new Date(year, month - 1, 1); render(); });
             const title = document.createElement("strong");
             title.textContent = monthTitle.format(viewDate).replace(/^./, (letter) => letter.toUpperCase());
@@ -113,6 +114,7 @@
             next.className = "crm-date-nav";
             next.textContent = "›";
             next.setAttribute("aria-label", "Следующий месяц");
+            next.addEventListener("mousedown", (event) => event.preventDefault());
             next.addEventListener("click", () => { viewDate = new Date(year, month + 1, 1); render(); });
             header.append(previous, title, next);
             const weekdays = document.createElement("div");
