@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Удаление — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="page-heading safe-delete-heading">
-    <a class="back-link" href="{{ cancel_url }}">← Вернуться к карточке</a>
-    <div class="safe-delete-heading-copy">
-        <span class="safe-delete-heading-icon" uk-icon="trash"></span>
-        <div>
-            <span class="eyebrow">Подтверждение удаления</span>
-            <h1>Удалить {{ entity_label }}?</h1>
-            <p>{{ object }}</p>
-        </div>
-    </div>
-</div>
-
-<section class="safe-delete-card uk-card uk-card-default uk-card-body">
+<div class="safe-delete-modal" data-safe-delete-modal>
+    <section class="safe-delete-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="safe-delete-title">
+        <button class="safe-delete-close" type="button" aria-label="Закрыть" data-safe-delete-dismiss>&times;</button>
+        <header class="safe-delete-dialog-header">
+            <span class="safe-delete-heading-icon" uk-icon="trash"></span>
+            <div>
+                <span class="eyebrow">Подтверждение удаления</span>
+                <h1 id="safe-delete-title">Удалить {{ entity_label }}?</h1>
+                <p>{{ object }}</p>
+            </div>
+        </header>
     {% if dependencies %}
         <div class="uk-alert-danger safe-delete-alert" uk-alert>
             <h2><span uk-icon="ban"></span> Удаление запрещено</h2>
@@ -27,7 +25,7 @@
             </article>
             {% endfor %}
         </div>
-        <div class="form-actions">
+        <div class="form-actions safe-delete-actions">
             <a class="uk-button uk-button-primary" href="{{ cancel_url }}">Вернуться к карточке</a>
             <a class="uk-button uk-button-default" href="{{ list_url }}">Открыть список</a>
         </div>
@@ -42,11 +40,12 @@
         </div>
         <form method="post">
             {% csrf_token %}
-            <div class="form-actions">
-                <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
+            <div class="form-actions safe-delete-actions">
+                <a class="uk-button uk-button-default" href="{{ cancel_url }}" data-safe-delete-dismiss>Отмена</a>
                 <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить</button>
             </div>
         </form>
     {% endif %}
-</section>
+    </section>
+</div>
 {% endblock %}

@@ -594,20 +594,36 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     font-size: 20px;
 }
 
-.safe-delete-heading {
+.safe-delete-modal {
+    position: fixed;
+    z-index: 2100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(20, 32, 48, .38);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.safe-delete-dialog {
+    position: relative;
+    box-sizing: border-box;
     width: min(720px, 100%);
-    margin-bottom: 18px;
+    max-height: min(760px, calc(100vh - 48px));
+    overflow: auto;
+    padding: 26px;
+    border: 1px solid #d9e1eb;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 20px 52px rgba(20, 35, 54, .28);
 }
 
-.safe-delete-heading .back-link {
-    display: inline-block;
-    margin-bottom: 14px;
-}
-
-.safe-delete-heading-copy {
+.safe-delete-dialog-header {
     display: flex;
     align-items: center;
     gap: 13px;
+    margin: 0 34px 20px 0;
 }
 
 .safe-delete-heading-icon {
@@ -621,9 +637,32 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     background: #fff0f2;
 }
 
-.safe-delete-heading h1 {
+.safe-delete-dialog h1 {
     margin: 3px 0 2px;
 }
+
+.safe-delete-dialog-header p {
+    margin: 0;
+    color: #7c899a;
+}
+
+.safe-delete-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    color: #738197;
+    background: transparent;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 26px;
+}
+
+.safe-delete-close:hover { color: #2f3d50; background: #edf2f7; }
 
 .safe-delete-alert {
     margin: 0 !important;
@@ -635,7 +674,7 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     margin-bottom: 0;
 }
 
-.safe-delete-card .form-actions {
+.safe-delete-actions {
     justify-content: flex-end;
     margin-top: 22px;
 }
@@ -676,12 +715,28 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-heading-icon {
     background: #4b2630;
 }
 
+html[data-theme="dark"] body.uikit-theme .safe-delete-dialog {
+    border-color: #30445e;
+    color: #dce4ef;
+    background: #17263a;
+    box-shadow: 0 20px 52px rgba(0, 0, 0, .48);
+}
+
+html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header p { color: #9ba9bd; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-close:hover { color: #e5edf8; background: #293b52; }
+
 @media (max-width: 560px) {
-    .safe-delete-card {
-        padding: 18px !important;
+    .safe-delete-modal {
+        align-items: end;
+        padding: 12px;
     }
 
-    .safe-delete-card .form-actions {
+    .safe-delete-dialog {
+        max-height: calc(100vh - 24px);
+        padding: 20px 18px;
+    }
+
+    .safe-delete-actions {
         display: grid;
         grid-template-columns: 1fr;
     }
