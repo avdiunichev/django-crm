@@ -20,14 +20,14 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-top-navigation">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-newproject-brand">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
     <header class="crm-topnav uk-navbar-container uk-navbar-transparent" uk-navbar>
         <div class="uk-navbar-left">
-            <a class="brand uk-logo" href="{% url 'dashboard' %}"><span><strong>CRM ЭКСПЕДИТОР</strong></span></a>
+            <a class="brand uk-logo" href="{% url 'dashboard' %}"><span><strong>NewProject</strong></span></a>
             <ul class="uk-navbar-nav crm-navbar">
                 <li class="{% if request.resolver_match.url_name == 'dashboard' %}uk-active{% endif %}"><a href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a></li>
                 <li class="{% if 'order' in request.resolver_match.url_name or 'transportation' in request.resolver_match.url_name or 'planner' in request.resolver_match.url_name %}uk-active{% endif %}">

@@ -3263,6 +3263,11 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     white-space: nowrap;
 }
 
+.uikit-theme .crm-topnav .brand > span:first-child > strong {
+    font-size: 16px;
+    letter-spacing: .01em;
+}
+
 .uikit-theme .crm-navbar {
     gap: 4px;
 }
