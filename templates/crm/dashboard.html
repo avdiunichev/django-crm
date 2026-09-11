@@ -23,10 +23,10 @@
         <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle"><thead><tr><th>Рейс</th><th>Маршрут / даты</th><th>Клиент</th><th>Статус</th><th class="uk-text-right">Маржа</th></tr></thead><tbody>{% for transportation in recent_transportations %}<tr><td><a class="primary-link" href="{{ transportation.get_absolute_url }}">{{ transportation.number|default:"Черновик" }}</a><small>{{ transportation.cargo_name|default:"груз не указан" }}</small></td><td><div class="route-compact" title="{{ transportation.route }}">{{ transportation.route }}</div><small>{{ transportation.planned_start_date|date:"d.m.Y" }} → {{ transportation.planned_end_date|date:"d.m.Y" }}</small></td><td>{% with party=transportation.client_parties.0 %}{% if party %}<a href="{{ party.organization.get_absolute_url }}">{{ party.organization }}</a>{% else %}—{% endif %}{% endwith %}</td><td><span class="badge uk-label">{{ transportation.get_status_display }}</span></td><td class="uk-text-right"><strong class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"0g" }} {{ transportation.currency|currency_symbol }}</strong></td></tr>{% empty %}<tr><td colspan="5" class="empty-state">Рейсов пока нет.</td></tr>{% endfor %}</tbody></table></div>
     </section>
     <section class="panel status-panel uk-card uk-card-default">
-        <div class="panel-header"><div><h2>По статусам</h2><p>Распределение работы</p></div></div>
+        <div class="panel-header"><div><h2>Заказы по статусам</h2><p>Входящие заявки клиентов</p></div><a href="{% url 'order-list' %}">Все заказы →</a></div>
         <div class="status-list">
             {% for item in status_stats %}
-            <a href="{% url 'transportation-list' %}?status={{ item.value }}"><span class="status-dot status-{{ item.value }}"></span><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a>
+            <a href="{% url 'order-list' %}?status={{ item.value }}"><span class="status-dot status-{{ item.value }}"></span><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a>
             {% endfor %}
         </div>
     </section>

@@ -1516,6 +1516,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 if owner_id
                 else transportations.none()
             )
+        orders = TransportOrder.objects.select_related(
+            "owner_company", "client", "manager", "transportation"
+        ).filter(currency=current_currency)
+        if current_expeditor:
+            orders = orders.filter(owner_company_id=owner_id) if owner_id else orders.none()
         financial_transportations = list(
             transportations.exclude(status=Transportation.Status.CANCELLED).filter(
                 currency=current_currency
@@ -1634,10 +1639,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     {
                         "value": status.value,
                         "label": status.label,
-                        "count": transportations.filter(status=status.value).count(),
+                        "count": orders.filter(status=status.value).count(),
                     }
-                    for status in Transportation.Status
-                    if status != Transportation.Status.CANCELLED
+                    for status in TransportOrder.Status
                 ],
                 "dashboard_automatic_tasks": dashboard_automatic_tasks[:8],
                 "dashboard_notification_count": len(dashboard_automatic_tasks),
