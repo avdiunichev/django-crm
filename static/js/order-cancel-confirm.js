@@ -26,6 +26,14 @@
         return field.value.trim();
     };
 
+    const displayValue = (field, value) => {
+        if (field.type === "checkbox" || field.type === "radio") return value === "1" ? "Да" : "Нет";
+        if (field.tagName === "SELECT") {
+            return field.querySelector(`option[value="${CSS.escape(value)}"]`)?.textContent?.trim() || value || "Не заполнено";
+        }
+        return value || "Не заполнено";
+    };
+
     const labelFor = (field) => {
         const label = field.closest(".field")?.querySelector("label")?.textContent?.replace(/\*/g, "").trim();
         const routeStop = field.closest("[data-order-route-stop]");
@@ -45,8 +53,22 @@
         const changes = [];
         form.querySelectorAll("input, select, textarea").forEach((field) => {
             if (!isTrackable(field)) return;
-            if (!snapshot.has(field) || snapshot.get(field) !== valueOf(field)) {
-                changes.push(`Изменено: ${labelFor(field)}`);
+            const routeStop = field.closest("[data-order-route-stop]");
+            if (!snapshot.has(field)) {
+                if (!routeStop) changes.push(`Изменено: ${labelFor(field)} — было: Не заполнено → стало: ${displayValue(field, valueOf(field))}`);
+                return;
+            }
+            const oldValue = snapshot.get(field);
+            const newValue = valueOf(field);
+            if (oldValue !== newValue) {
+                changes.push(`Изменено: ${labelFor(field)} — было: ${displayValue(field, oldValue)} → стало: ${displayValue(field, newValue)}`);
+            }
+        });
+        form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
+            const fields = [...row.querySelectorAll("input, select, textarea")].filter(isTrackable);
+            if (fields.length && fields.every((field) => !snapshot.has(field))) {
+                const title = row.querySelector("[data-route-title]")?.textContent?.trim() || "Точка маршрута";
+                changes.push(`Добавлена: ${title}`);
             }
         });
         form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
