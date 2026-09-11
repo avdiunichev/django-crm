@@ -624,26 +624,33 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     align-items: center;
     gap: 13px;
     margin: 0 34px 20px 0;
+    padding-bottom: 17px;
+    border-bottom: 1px solid #e5e5e5;
 }
 
 .safe-delete-heading-icon {
     display: grid;
     flex: 0 0 auto;
     place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 8px;
+    width: 34px;
+    height: 34px;
     color: #c74859;
     background: #fff0f2;
+    font-size: 12px;
 }
 
 .safe-delete-dialog h1 {
-    margin: 3px 0 2px;
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.25;
 }
 
 .safe-delete-dialog-header p {
-    margin: 0;
-    color: #7c899a;
+    margin: 2px 0 0;
+    color: #999;
+    font-size: 13px;
 }
 
 .safe-delete-close {
@@ -660,16 +667,30 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     cursor: pointer;
     font-size: 24px;
     line-height: 26px;
+    outline: 0;
 }
 
 .safe-delete-close:hover { color: #2f3d50; background: #edf2f7; }
+.safe-delete-close:focus-visible { outline: 2px solid #1e87f0; outline-offset: 2px; }
 
 .safe-delete-alert {
     margin: 0 !important;
     padding: 18px 20px !important;
+    border: 1px solid #f3d6db;
     border-radius: 8px;
+    color: #9e3544;
+    background: #fff1f3 !important;
 }
 
+.safe-delete-alert h2 {
+    margin: 0 0 7px;
+    color: #b63e50;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.safe-delete-alert h2 .uk-icon { color: #c74859; }
+.safe-delete-alert p { margin: 0; font-size: 14px; }
 .safe-delete-alert p:last-child {
     margin-bottom: 0;
 }
@@ -724,6 +745,9 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-dialog {
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header p { color: #9ba9bd; }
 html[data-theme="dark"] body.uikit-theme .safe-delete-close:hover { color: #e5edf8; background: #293b52; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header { border-color: #30445e; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-alert { border-color: #633542; color: #ffc0c8; background: #42252e !important; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4; }
 
 @media (max-width: 560px) {
     .safe-delete-modal {
