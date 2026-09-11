@@ -205,9 +205,9 @@ a:hover {
     color: #253246;
     background: rgba(255, 255, 255, .96);
     box-shadow: 0 14px 32px rgba(28, 44, 66, .18);
-    opacity: 0;
+    opacity: 1;
     pointer-events: auto;
-    transform: translateX(18px);
+    transform: translateX(0);
     transition: opacity .2s ease, transform .2s ease, max-height .2s ease, margin .2s ease, padding .2s ease;
 }
 

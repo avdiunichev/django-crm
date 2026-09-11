@@ -8,9 +8,8 @@
         window.setTimeout(() => toast.remove(), 240);
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
+    const initialize = () => {
         document.querySelectorAll("[data-crm-toast]").forEach((toast) => {
-            window.requestAnimationFrame(() => toast.classList.add("is-visible"));
             toast.querySelector("[data-crm-toast-close]")?.addEventListener(
                 "click",
                 () => dismiss(toast),
@@ -21,5 +20,11 @@
                 : 5500;
             window.setTimeout(() => dismiss(toast), timeout);
         });
-    });
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize, {once: true});
+    } else {
+        initialize();
+    }
 })();
