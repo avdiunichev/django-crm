@@ -16,8 +16,9 @@ from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Count, F, Prefetch, Q, Sum
+from django.db.models import Count, DecimalField, F, Prefetch, Q, Sum, Value
 from django.db.models.deletion import ProtectedError
+from django.db.models.functions import Coalesce
 from django.forms import HiddenInput
 from django.http import FileResponse, Http404, JsonResponse
 from django.http import HttpResponse
@@ -5482,6 +5483,23 @@ class TransportationListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = Transportation.objects.select_related(
             "owner_company", "manager", "legacy_shipment", "legacy_shipment__customer"
+        ).annotate(
+            receivable_balance_list=Coalesce(
+                Sum(
+                    "settlement_movements__amount",
+                    filter=Q(settlement_movements__side=SettlementMovement.Side.RECEIVABLE),
+                ),
+                Value(Decimal("0.00")),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            ),
+            payable_balance_list=Coalesce(
+                Sum(
+                    "settlement_movements__amount",
+                    filter=Q(settlement_movements__side=SettlementMovement.Side.PAYABLE),
+                ),
+                Value(Decimal("0.00")),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            ),
         ).prefetch_related(
             "stops",
             Prefetch(
@@ -5557,6 +5575,26 @@ class TransportationListView(LoginRequiredMixin, ListView):
             (transportation.net_profit for transportation in all_transportations),
             Decimal("0.00"),
         )
+        total_receivable = sum(
+            (
+                max(
+                    getattr(transportation, "receivable_balance_list", Decimal("0.00")),
+                    Decimal("0.00"),
+                )
+                for transportation in all_transportations
+            ),
+            Decimal("0.00"),
+        )
+        total_payable = sum(
+            (
+                max(
+                    getattr(transportation, "payable_balance_list", Decimal("0.00")),
+                    Decimal("0.00"),
+                )
+                for transportation in all_transportations
+            ),
+            Decimal("0.00"),
+        )
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
@@ -5584,6 +5622,8 @@ class TransportationListView(LoginRequiredMixin, ListView):
                 "register_total_customer_amount": register_totals["customer_amount"] or Decimal("0.00"),
                 "register_total_executor_amount": register_totals["executor_amount"] or Decimal("0.00"),
                 "register_total_net_profit": total_net_profit,
+                "register_total_receivable": total_receivable,
+                "register_total_payable": total_payable,
                 "register_currency": "RUB",
             }
         )

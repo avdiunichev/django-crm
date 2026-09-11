@@ -7084,7 +7084,7 @@ body.uikit-theme {
 
 .uikit-theme .register-finance-totals {
     display: grid;
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
     padding: 14px 22px;
     border-bottom: 1px solid #e1e8f0;
