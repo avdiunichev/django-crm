@@ -39,11 +39,12 @@
         if (!suggestions.length) return;
         input.dataset.cargoReady = "true";
         const wrapper = document.createElement("div");
-        wrapper.className = "cargo-autocomplete";
+        wrapper.className = "crm-smart-select crm-universal-select cargo-autocomplete";
+        input.classList.add("crm-smart-search");
         input.parentNode.insertBefore(wrapper, input);
         wrapper.appendChild(input);
         const menu = document.createElement("div");
-        menu.className = "cargo-autocomplete-menu";
+        menu.className = "crm-smart-dropdown cargo-autocomplete-menu";
         menu.hidden = true;
         menu.setAttribute("role", "listbox");
         wrapper.appendChild(menu);
@@ -56,9 +57,10 @@
             menu.replaceChildren(...matches.map((name) => {
                 const option = document.createElement("button");
                 option.type = "button";
-                option.className = "cargo-autocomplete-option";
+                option.className = "crm-smart-option cargo-autocomplete-option";
                 option.textContent = name;
                 option.setAttribute("role", "option");
+                if (name === input.value.trim()) option.classList.add("is-selected");
                 option.addEventListener("mousedown", (event) => {
                     event.preventDefault();
                     input.value = name;
