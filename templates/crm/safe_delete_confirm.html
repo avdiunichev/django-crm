@@ -29,7 +29,7 @@
         </div>
     {% else %}
         <div class="uk-alert-warning safe-delete-alert" uk-alert>
-            <h2><span uk-icon="warning"></span> Связанные документы не найдены</h2>
+                <h2>Связанные документы не найдены</h2>
             {% if object.source_order %}
                 <p>Рейс будет удалён. Связанный <a href="{{ object.source_order.get_absolute_url }}">заказ {{ object.source_order.number }}</a> сохранится и будет возвращён в статус «Новый».</p>
             {% else %}
