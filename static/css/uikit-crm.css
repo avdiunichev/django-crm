@@ -1330,16 +1330,12 @@ a:hover {
 
 .login-card {
     width: min(420px, calc(100% - 32px));
-}
-
-.login-brand {
-    margin-bottom: 32px;
+    padding: 32px;
 }
 
 .login-form {
-    margin-top: 24px;
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
 .login-form label {
