@@ -4,10 +4,10 @@
 <div class="safe-delete-modal" data-safe-delete-modal>
     <section class="safe-delete-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="safe-delete-title">
         <button class="safe-delete-close" type="button" aria-label="Закрыть" data-safe-delete-dismiss>&times;</button>
-        <header class="safe-delete-dialog-header">
+        <header class="form-section-title safe-delete-dialog-header">
             <span class="safe-delete-heading-icon" uk-icon="trash"></span>
             <div>
-                <h1 id="safe-delete-title">Подтвердите удаление</h1>
+                <h2 id="safe-delete-title">Удаление {{ delete_label }}</h2>
                 <p>{{ object }}</p>
             </div>
         </header>

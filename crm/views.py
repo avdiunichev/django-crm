@@ -4968,6 +4968,7 @@ class SuccessMessageMixin:
 class SafeDeleteView(LoginRequiredMixin, View):
     model = None
     entity_label = "запись"
+    delete_label = "записи"
     list_url_name = None
     template_name = "crm/safe_delete_confirm.html"
 
@@ -4983,6 +4984,7 @@ class SafeDeleteView(LoginRequiredMixin, View):
         return {
             "object": instance,
             "entity_label": self.entity_label,
+            "delete_label": self.delete_label,
             "dependencies": dependencies,
             "can_delete": not dependencies,
             "cancel_url": instance.get_absolute_url(),
@@ -5041,42 +5043,49 @@ class SafeDeleteView(LoginRequiredMixin, View):
 class ShipmentDeleteView(SafeDeleteView):
     model = Shipment
     entity_label = "заявку"
+    delete_label = "заявки"
     list_url_name = "shipment-list"
 
 
 class TransportationDeleteView(SafeDeleteView):
     model = Transportation
     entity_label = "заявку / рейс"
+    delete_label = "заявки / рейса"
     list_url_name = "transportation-list"
 
 
 class TransportOrderDeleteView(SafeDeleteView):
     model = TransportOrder
     entity_label = "заказ"
+    delete_label = "заказа"
     list_url_name = "order-list"
 
 
 class OrganizationDeleteView(SafeDeleteView):
     model = Organization
     entity_label = "контрагента"
+    delete_label = "контрагента"
     list_url_name = "organization-list"
 
 
 class DriverDeleteView(SafeDeleteView):
     model = Driver
     entity_label = "водителя"
+    delete_label = "водителя"
     list_url_name = "driver-list"
 
 
 class VehicleDeleteView(SafeDeleteView):
     model = Vehicle
     entity_label = "транспорт"
+    delete_label = "транспорта"
     list_url_name = "vehicle-list"
 
 
 class VehicleCombinationDeleteView(SafeDeleteView):
     model = VehicleCombination
     entity_label = "сцепку"
+    delete_label = "сцепки"
     list_url_name = "vehicle-list"
 
 
