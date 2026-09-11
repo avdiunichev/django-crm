@@ -3344,9 +3344,9 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
 
 .uikit-theme .topnav-logout-button {
     min-height: 36px;
-    padding: 0 18px;
-    border: 1px solid #d9e2ec;
-    border-radius: 10px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 0;
     background: transparent;
     color: #5f6b7a;
     font: inherit;
@@ -3360,9 +3360,8 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
 
 .uikit-theme .topnav-logout-button:hover,
 .uikit-theme .topnav-logout-button:focus {
-    border-color: #bdd7f0;
-    background: rgba(30, 135, 240, .08);
     color: #1e87f0;
+    background: transparent;
     outline: none;
 }
 
@@ -3387,15 +3386,13 @@ html[data-theme="dark"] body.uikit-theme .crm-navbar > li.uk-active > a {
 }
 
 html[data-theme="dark"] body.uikit-theme .topnav-logout-button {
-    border-color: #344257;
     background: transparent;
     color: #cbd5e1;
 }
 
 html[data-theme="dark"] body.uikit-theme .topnav-logout-button:hover,
 html[data-theme="dark"] body.uikit-theme .topnav-logout-button:focus {
-    border-color: #58708e;
-    background: #192c47;
+    background: transparent;
     color: #ffffff;
 }
 
