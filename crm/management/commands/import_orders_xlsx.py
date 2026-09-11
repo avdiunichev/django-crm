@@ -331,7 +331,7 @@ class Command(BaseCommand):
                     manager=manager,
                     rate=amount,
                     currency="RUB",
-                    payment_form=TransportOrder.PaymentForm.BANK_WITH_VAT,
+                    payment_form=TransportOrder.PaymentForm.BANK_VAT_22,
                     cargo_name="Услуги по перевозке (импорт из реестра)",
                     notes="\n".join(note_lines),
                 )

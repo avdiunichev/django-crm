@@ -18,14 +18,15 @@ from django.utils import timezone
 
 
 ORDER_PAYMENT_FORM_CHOICES = (
-    ("bank_vat_5", "Безналичный расчёт · НДС 5%"),
-    ("bank_vat_7", "Безналичный расчёт · НДС 7%"),
-    ("bank_vat_10", "Безналичный расчёт · НДС 10%"),
-    ("bank_vat_20", "Безналичный расчёт · НДС 20%"),
-    ("bank_vat_22", "Безналичный расчёт · НДС 22%"),
-    ("bank_with_vat", "Безналичный расчёт · НДС"),
-    ("bank_without_vat", "Безналичный расчёт · Без НДС"),
-    ("cash", "Наличный расчёт"),
+    ("bank_vat_0", "НДС 0%"),
+    ("bank_vat_5", "НДС 5%"),
+    ("bank_vat_7", "НДС 7%"),
+    ("bank_vat_10", "НДС 10%"),
+    ("bank_vat_18", "НДС 18%"),
+    ("bank_vat_20", "НДС 20%"),
+    ("bank_vat_22", "НДС 22%"),
+    ("bank_not_taxable", "НДС не облагается"),
+    ("cash", "Наличные"),
 )
 
 
@@ -2077,14 +2078,15 @@ class TransportOrder(TimestampedModel):
         CANCELLED = "cancelled", "Отменён"
 
     class PaymentForm(models.TextChoices):
-        BANK_VAT_5 = "bank_vat_5", "Безналичный расчёт · НДС 5%"
-        BANK_VAT_7 = "bank_vat_7", "Безналичный расчёт · НДС 7%"
-        BANK_VAT_10 = "bank_vat_10", "Безналичный расчёт · НДС 10%"
-        BANK_VAT_20 = "bank_vat_20", "Безналичный расчёт · НДС 20%"
-        BANK_VAT_22 = "bank_vat_22", "Безналичный расчёт · НДС 22%"
-        BANK_WITH_VAT = "bank_with_vat", "Безналичный расчёт · НДС"
-        BANK_WITHOUT_VAT = "bank_without_vat", "Безналичный расчёт · Без НДС"
-        CASH = "cash", "Наличный расчёт"
+        BANK_VAT_0 = "bank_vat_0", "НДС 0%"
+        BANK_VAT_5 = "bank_vat_5", "НДС 5%"
+        BANK_VAT_7 = "bank_vat_7", "НДС 7%"
+        BANK_VAT_10 = "bank_vat_10", "НДС 10%"
+        BANK_VAT_18 = "bank_vat_18", "НДС 18%"
+        BANK_VAT_20 = "bank_vat_20", "НДС 20%"
+        BANK_VAT_22 = "bank_vat_22", "НДС 22%"
+        BANK_NOT_TAXABLE = "bank_not_taxable", "НДС не облагается"
+        CASH = "cash", "Наличные"
 
     class ADRClass(models.TextChoices):
         NONE = "", "Не относится к опасным грузам"
@@ -2108,17 +2110,19 @@ class TransportOrder(TimestampedModel):
     def payment_form_for_vat_rate(cls, vat_rate):
         """Choose the visible payment form from a customer's default VAT rate."""
         if not vat_rate:
-            return cls.PaymentForm.BANK_WITH_VAT
+            return cls.PaymentForm.BANK_VAT_22
         if vat_rate.is_without_vat:
-            return cls.PaymentForm.BANK_WITHOUT_VAT
+            return cls.PaymentForm.BANK_NOT_TAXABLE
         rate_key = str(vat_rate.rate).rstrip("0").rstrip(".")
         return {
+            "0": cls.PaymentForm.BANK_VAT_0,
             "5": cls.PaymentForm.BANK_VAT_5,
             "7": cls.PaymentForm.BANK_VAT_7,
             "10": cls.PaymentForm.BANK_VAT_10,
+            "18": cls.PaymentForm.BANK_VAT_18,
             "20": cls.PaymentForm.BANK_VAT_20,
             "22": cls.PaymentForm.BANK_VAT_22,
-        }.get(rate_key, cls.PaymentForm.BANK_WITH_VAT)
+        }.get(rate_key, cls.PaymentForm.BANK_VAT_22)
 
     number = models.CharField("Номер заказа", max_length=40, unique=True, blank=True)
     number_year = models.PositiveSmallIntegerField(
@@ -2162,7 +2166,7 @@ class TransportOrder(TimestampedModel):
         "Форма оплаты",
         max_length=30,
         choices=PaymentForm.choices,
-        default=PaymentForm.BANK_WITH_VAT,
+        default=PaymentForm.BANK_VAT_22,
     )
     payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка, дней", default=0
