@@ -8,25 +8,18 @@
         document.body.classList.remove("has-safe-delete-modal");
     };
 
-    const activateModal = (modal) => {
-        document.body.append(modal);
+    const activateModal = (modal, embedded = false) => {
+        if (embedded) document.body.append(modal);
         document.body.classList.add("has-safe-delete-modal");
         modal.querySelector("[data-safe-delete-dismiss]")?.focus();
         modal.querySelectorAll("[data-safe-delete-dismiss]").forEach((control) => {
             control.addEventListener("click", (event) => {
-                event.preventDefault();
-                closeModal(modal);
+                if (embedded) {
+                    event.preventDefault();
+                    closeModal(modal);
+                }
             });
         });
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) closeModal(modal);
-        });
-        const closeOnEscape = (event) => {
-            if (event.key !== "Escape") return;
-            closeModal(modal);
-            document.removeEventListener("keydown", closeOnEscape);
-        };
-        document.addEventListener("keydown", closeOnEscape);
     };
 
     document.addEventListener("click", async (event) => {
@@ -43,7 +36,7 @@
                 window.location.assign(link.href);
                 return;
             }
-            activateModal(modal);
+            activateModal(modal, true);
         } catch (error) {
             window.location.assign(link.href);
         }
