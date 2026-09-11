@@ -17,6 +17,18 @@ from django.urls import reverse
 from django.utils import timezone
 
 
+ORDER_PAYMENT_FORM_CHOICES = (
+    ("bank_vat_5", "Безналичный расчёт · НДС 5%"),
+    ("bank_vat_7", "Безналичный расчёт · НДС 7%"),
+    ("bank_vat_10", "Безналичный расчёт · НДС 10%"),
+    ("bank_vat_20", "Безналичный расчёт · НДС 20%"),
+    ("bank_vat_22", "Безналичный расчёт · НДС 22%"),
+    ("bank_with_vat", "Безналичный расчёт · НДС"),
+    ("bank_without_vat", "Безналичный расчёт · Без НДС"),
+    ("cash", "Наличный расчёт"),
+)
+
+
 class TimestampedModel(models.Model):
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
@@ -206,6 +218,12 @@ class Organization(TimestampedModel):
     )
     payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка оплаты, дней", default=0
+    )
+    default_payment_form = models.CharField(
+        "Форма оплаты по умолчанию",
+        max_length=30,
+        choices=ORDER_PAYMENT_FORM_CHOICES,
+        blank=True,
     )
     credit_limit = models.DecimalField(
         "Кредитный лимит",
@@ -1751,6 +1769,9 @@ class Transportation(TimestampedModel):
     temperature_regime = models.CharField(
         "Температурный режим", max_length=100, blank=True
     )
+    adr_class = models.CharField(
+        "Класс опасности ADR", max_length=3, blank=True
+    )
     vehicle_requirements = models.CharField(
         "Требования к транспорту", max_length=255, blank=True
     )
@@ -2056,9 +2077,48 @@ class TransportOrder(TimestampedModel):
         CANCELLED = "cancelled", "Отменён"
 
     class PaymentForm(models.TextChoices):
-        BANK_WITH_VAT = "bank_with_vat", "Безналичная, с НДС"
-        BANK_WITHOUT_VAT = "bank_without_vat", "Безналичная, без НДС"
-        CASH = "cash", "Наличная"
+        BANK_VAT_5 = "bank_vat_5", "Безналичный расчёт · НДС 5%"
+        BANK_VAT_7 = "bank_vat_7", "Безналичный расчёт · НДС 7%"
+        BANK_VAT_10 = "bank_vat_10", "Безналичный расчёт · НДС 10%"
+        BANK_VAT_20 = "bank_vat_20", "Безналичный расчёт · НДС 20%"
+        BANK_VAT_22 = "bank_vat_22", "Безналичный расчёт · НДС 22%"
+        BANK_WITH_VAT = "bank_with_vat", "Безналичный расчёт · НДС"
+        BANK_WITHOUT_VAT = "bank_without_vat", "Безналичный расчёт · Без НДС"
+        CASH = "cash", "Наличный расчёт"
+
+    class ADRClass(models.TextChoices):
+        NONE = "", "Не относится к опасным грузам"
+        CLASS_1 = "1", "Класс 1 — Взрывчатые вещества и изделия"
+        CLASS_2_1 = "2.1", "Класс 2.1 — Воспламеняющиеся газы"
+        CLASS_2_2 = "2.2", "Класс 2.2 — Невоспламеняющиеся нетоксичные газы"
+        CLASS_2_3 = "2.3", "Класс 2.3 — Токсичные газы"
+        CLASS_3 = "3", "Класс 3 — Легковоспламеняющиеся жидкости"
+        CLASS_4_1 = "4.1", "Класс 4.1 — Легковоспламеняющиеся твёрдые вещества"
+        CLASS_4_2 = "4.2", "Класс 4.2 — Самовозгорающиеся вещества"
+        CLASS_4_3 = "4.3", "Класс 4.3 — Вещества, выделяющие горючие газы при контакте с водой"
+        CLASS_5_1 = "5.1", "Класс 5.1 — Окисляющие вещества"
+        CLASS_5_2 = "5.2", "Класс 5.2 — Органические пероксиды"
+        CLASS_6_1 = "6.1", "Класс 6.1 — Токсичные вещества"
+        CLASS_6_2 = "6.2", "Класс 6.2 — Инфекционные вещества"
+        CLASS_7 = "7", "Класс 7 — Радиоактивные материалы"
+        CLASS_8 = "8", "Класс 8 — Коррозионные вещества"
+        CLASS_9 = "9", "Класс 9 — Прочие опасные вещества и изделия"
+
+    @classmethod
+    def payment_form_for_vat_rate(cls, vat_rate):
+        """Choose the visible payment form from a customer's default VAT rate."""
+        if not vat_rate:
+            return cls.PaymentForm.BANK_WITH_VAT
+        if vat_rate.is_without_vat:
+            return cls.PaymentForm.BANK_WITHOUT_VAT
+        rate_key = str(vat_rate.rate).rstrip("0").rstrip(".")
+        return {
+            "5": cls.PaymentForm.BANK_VAT_5,
+            "7": cls.PaymentForm.BANK_VAT_7,
+            "10": cls.PaymentForm.BANK_VAT_10,
+            "20": cls.PaymentForm.BANK_VAT_20,
+            "22": cls.PaymentForm.BANK_VAT_22,
+        }.get(rate_key, cls.PaymentForm.BANK_WITH_VAT)
 
     number = models.CharField("Номер заказа", max_length=40, unique=True, blank=True)
     number_year = models.PositiveSmallIntegerField(
@@ -2142,7 +2202,10 @@ class TransportOrder(TimestampedModel):
     def total_package_count(self):
         return (self.package_count or 0) + (self.pallet_count or 0) or None
     temperature_regime = models.CharField(
-        "Температурный режим", max_length=100, blank=True
+        "Температурный режим", max_length=100, blank=True, default="Отсутствует"
+    )
+    adr_class = models.CharField(
+        "Класс опасности ADR", max_length=3, choices=ADRClass.choices, blank=True
     )
     vehicle_requirements = models.CharField(
         "Требования к транспорту", max_length=255, blank=True

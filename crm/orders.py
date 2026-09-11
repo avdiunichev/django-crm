@@ -28,6 +28,16 @@ def _planned_datetime(route_stop, time_value=None, *, default_time=None):
 
 def _customer_vat_rate(order):
     rates = VATRate.objects.filter(is_active=True)
+    payment_form_rates = {
+        TransportOrder.PaymentForm.BANK_VAT_5: "5",
+        TransportOrder.PaymentForm.BANK_VAT_7: "7",
+        TransportOrder.PaymentForm.BANK_VAT_10: "10",
+        TransportOrder.PaymentForm.BANK_VAT_20: "20",
+        TransportOrder.PaymentForm.BANK_VAT_22: "22",
+    }
+    rate_value = payment_form_rates.get(order.payment_form)
+    if rate_value:
+        return rates.filter(is_without_vat=False, rate=rate_value).first()
     if order.payment_form == TransportOrder.PaymentForm.BANK_WITH_VAT:
         return rates.filter(is_without_vat=False).order_by("-rate", "pk").first()
     return rates.filter(is_without_vat=True).order_by("pk").first()
@@ -63,6 +73,7 @@ def assign_order_to_transportation(order, user):
         pallet_count=order.pallet_count,
         package_type=order.package_type,
         temperature_regime=order.temperature_regime,
+        adr_class=order.adr_class,
         vehicle_requirements=order.vehicle_requirements,
         special_requirements=order.special_requirements,
         planned_start_date=order.planned_start_date,

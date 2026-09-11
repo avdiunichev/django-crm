@@ -269,6 +269,11 @@ class OrganizationChoiceField(forms.ModelChoiceField):
         return f"{organization}{tax_id}"
 
 
+class UserDisplayChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, user):
+        return user.get_full_name().strip() or user.username
+
+
 class DriverChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, driver):
         license_number = (
@@ -335,7 +340,7 @@ class OrganizationForm(StyledModelForm):
             "legal_address", "director_name", "contact_name", "phone", "email",
             "bank_name", "bik", "settlement_account", "correspondent_account",
             "is_own_company", "profit_tax_rate", "verification_status", "fns_status",
-            "default_vat_rate", "payment_term_days", "credit_limit", "edo_operator", "edo_id",
+            "default_vat_rate", "default_payment_form", "payment_term_days", "credit_limit", "edo_operator", "edo_id",
             "originals_handling", "notes", "is_active",
         ]
         widgets = {
@@ -361,6 +366,7 @@ class OrganizationForm(StyledModelForm):
         self.fields["profit_tax_rate"].required = False
         self.fields["default_vat_rate"].queryset = VATRate.objects.filter(is_active=True)
         self.fields["default_vat_rate"].required = False
+        self.fields["default_payment_form"].required = False
         self.fields["fns_status"].required = False
         self.fields["payment_term_days"].required = False
         self.fields["credit_limit"].required = False
@@ -876,9 +882,22 @@ class TransportationChainForm(forms.Form):
 
 
 class TransportOrderForm(StyledModelForm):
+    owner_company = OrganizationChoiceField(
+        label="Наша компания",
+        queryset=Organization.objects.none(),
+    )
     client = OrganizationChoiceField(
         label="Клиент",
         queryset=Organization.objects.none(),
+    )
+    manager = UserDisplayChoiceField(
+        label="Ответственный менеджер",
+        queryset=get_user_model().objects.none(),
+    )
+    adr_class = forms.ChoiceField(
+        label="Класс опасности ADR",
+        choices=TransportOrder.ADRClass.choices,
+        required=False,
     )
 
     class Meta:
@@ -888,7 +907,7 @@ class TransportOrderForm(StyledModelForm):
             "rate", "currency", "payment_form", "payment_term_days",
             "cargo_name", "cargo_description", "weight_kg", "volume_m3",
             "package_count", "pallet_count", "package_type",
-            "temperature_regime", "vehicle_requirements",
+            "temperature_regime", "adr_class", "vehicle_requirements",
             "special_requirements", "notes",
         ]
         widgets = {
@@ -903,6 +922,12 @@ class TransportOrderForm(StyledModelForm):
         self.fields["owner_company"].queryset = Organization.objects.filter(
             is_own_company=True, is_active=True
         )
+        manager_filter = Q(is_active=True)
+        if self.instance.pk:
+            manager_filter |= Q(pk=self.instance.manager_id)
+        self.fields["manager"].queryset = get_user_model().objects.filter(
+            manager_filter
+        ).order_by("first_name", "last_name", "username")
         client_filter = Q(
             is_active=True,
             roles__role=OrganizationRole.Role.CLIENT,
@@ -918,9 +943,9 @@ class TransportOrderForm(StyledModelForm):
         ).distinct()
         self.fields["cargo_name"].widget.attrs.update(
             {
-                "list": "cargo-name-suggestions",
                 "autocomplete": "off",
                 "placeholder": "Начните вводить наименование груза",
+                "data-cargo-autocomplete": "",
             }
         )
         self.fields["package_count"].label = "Количество мест / паллет"
@@ -953,7 +978,15 @@ class TransportOrderForm(StyledModelForm):
         if not self.instance.pk and user and user.is_authenticated:
             self.fields["manager"].initial = user
         self.fields["rate"].widget.attrs.update(
-            {"min": "0", "step": "0.01", "placeholder": "0,00"}
+            {"inputmode": "decimal", "placeholder": "0,00", "data-money-input": ""}
+        )
+        self.fields["rate"].widget = forms.TextInput(
+            attrs={
+                "class": "form-control uk-input",
+                "inputmode": "decimal",
+                "placeholder": "0,00",
+                "data-money-input": "",
+            }
         )
         self.fields["payment_term_days"].widget.attrs.update(
             {"min": "0", "placeholder": "0"}
@@ -961,9 +994,18 @@ class TransportOrderForm(StyledModelForm):
         if not self.is_bound:
             client_id = self.initial.get("client") or self.instance.client_id
             if client_id:
-                client_org = Organization.objects.filter(pk=client_id).first()
-                if client_org and client_org.payment_term_days:
+                client_org = Organization.objects.select_related(
+                    "default_vat_rate"
+                ).filter(pk=client_id).first()
+                if client_org:
                     self.initial.setdefault("payment_term_days", client_org.payment_term_days)
+                    self.initial.setdefault(
+                        "payment_form",
+                        client_org.default_payment_form
+                        or TransportOrder.payment_form_for_vat_rate(client_org.default_vat_rate),
+                    )
+        if not self.instance.pk and not self.is_bound:
+            self.initial.setdefault("temperature_regime", "Отсутствует")
 
     def clean(self):
         cleaned = super().clean()
@@ -1449,7 +1491,7 @@ class TransportationDocumentForm(StyledModelForm):
             "executor_payment_term_days", "payment_due_basis", "cargo_name",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
-            "unloading_method", "temperature_regime", "vehicle_requirements",
+            "unloading_method", "temperature_regime", "adr_class", "vehicle_requirements",
             "special_requirements", "notes",
         ]
         widgets = {

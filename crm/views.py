@@ -776,6 +776,8 @@ def organization_defaults(request, pk):
         "vat_rate_id": organization.default_vat_rate_id,
         "vat_rate_label": str(organization.default_vat_rate) if organization.default_vat_rate_id else "",
         "payment_term_days": organization.payment_term_days,
+        "payment_form": organization.default_payment_form
+        or TransportOrder.payment_form_for_vat_rate(organization.default_vat_rate),
         "contract_id": None,
         "contract_label": "",
     }
@@ -794,6 +796,9 @@ def organization_defaults(request, pk):
         if contract.vat_rate_id and not payload["vat_rate_id"]:
             payload["vat_rate_id"] = contract.vat_rate_id
             payload["vat_rate_label"] = str(contract.vat_rate)
+            payload["payment_form"] = TransportOrder.payment_form_for_vat_rate(
+                contract.vat_rate
+            )
         if contract.payment_term_days and not payload["payment_term_days"]:
             payload["payment_term_days"] = contract.payment_term_days
     return JsonResponse(payload)
