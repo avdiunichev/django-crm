@@ -927,6 +927,62 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     padding-right: 2px;
 }
 
+.order-cancel-modal {
+    position: fixed;
+    z-index: 2100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(20, 32, 48, .36);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.order-cancel-modal[hidden] { display: none; }
+
+.order-cancel-dialog {
+    position: relative;
+    width: min(560px, 100%);
+    padding: 22px;
+    border: 1px solid #d9e1eb;
+    border-radius: 10px;
+    box-shadow: 0 20px 52px rgba(20, 35, 54, .28);
+}
+
+.order-cancel-dialog .uk-alert-warning { margin: 0 0 18px; }
+.order-cancel-dialog .uk-alert-warning h2 { margin: 0 0 7px; font-size: 20px; }
+.order-cancel-dialog .uk-alert-warning p { margin: 0; }
+
+.order-cancel-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    color: #738197;
+    background: transparent;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 26px;
+}
+
+.order-cancel-close:hover { color: #2f3d50; background: #edf2f7; }
+.order-cancel-changes ul { max-height: 240px; margin: 7px 0 0; overflow: auto; }
+.order-cancel-changes li { margin: 5px 0; }
+.order-cancel-actions { margin-top: 20px; }
+
+html[data-theme="dark"] body.uikit-theme .order-cancel-dialog {
+    border-color: #30445e;
+    background: #17263a;
+    box-shadow: 0 20px 52px rgba(0, 0, 0, .48);
+}
+
+html[data-theme="dark"] body.uikit-theme .order-cancel-close:hover { color: #e5edf8; background: #293b52; }
+
 html[data-theme="dark"] body.uikit-theme .order-command-header.uk-card {
     background: rgba(20, 30, 47, .64);
 }
@@ -976,6 +1032,10 @@ html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-ti
     .order-command-header {
         padding: 16px;
     }
+
+    .order-cancel-modal { align-items: end; padding: 12px; }
+    .order-cancel-dialog { padding: 18px; }
+    .order-cancel-actions { display: grid; grid-template-columns: 1fr; }
 }
 
 .form-grid {

@@ -16,8 +16,8 @@
             );
             const timeout = toast.classList.contains("is-error")
                 || toast.classList.contains("is-warning")
-                ? 9000
-                : 5500;
+                ? 20000
+                : 12000;
             window.setTimeout(() => dismiss(toast), timeout);
         });
     };
