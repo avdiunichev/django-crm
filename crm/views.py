@@ -1635,13 +1635,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "current_expeditor": current_expeditor,
                 "current_currency": current_currency,
                 "currency_choices": ("RUB", "USD", "EUR"),
-                "status_stats": [
+                "order_status_stats": [
                     {
                         "value": status.value,
                         "label": status.label,
                         "count": orders.filter(status=status.value).count(),
                     }
                     for status in TransportOrder.Status
+                ],
+                "transportation_status_stats": [
+                    {
+                        "value": status.value,
+                        "label": status.label,
+                        "count": transportations.filter(status=status.value).count(),
+                    }
+                    for status in Transportation.Status
+                    if status != Transportation.Status.CANCELLED
                 ],
                 "dashboard_automatic_tasks": dashboard_automatic_tasks[:8],
                 "dashboard_notification_count": len(dashboard_automatic_tasks),

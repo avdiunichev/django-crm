@@ -25,8 +25,16 @@
     <section class="panel status-panel uk-card uk-card-default">
         <div class="panel-header"><div><h2>Заказы по статусам</h2><p>Входящие заявки клиентов</p></div><a href="{% url 'order-list' %}">Все заказы →</a></div>
         <div class="status-list">
-            {% for item in status_stats %}
+            {% for item in order_status_stats %}
             <a href="{% url 'order-list' %}?status={{ item.value }}"><span class="status-dot status-{{ item.value }}"></span><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="panel status-panel uk-card uk-card-default">
+        <div class="panel-header"><div><h2>Рейсы по статусам</h2><p>Операционная работа</p></div><a href="{% url 'transportation-list' %}">Все рейсы →</a></div>
+        <div class="status-list">
+            {% for item in transportation_status_stats %}
+            <a href="{% url 'transportation-list' %}?status={{ item.value }}"><span class="status-dot status-{{ item.value }}"></span><span>{{ item.label }}</span><strong>{{ item.count }}</strong></a>
             {% endfor %}
         </div>
     </section>
