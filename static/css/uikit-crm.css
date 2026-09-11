@@ -4770,8 +4770,19 @@ body.uikit-theme .transportation-finance-card .trip-finance-hero strong {
 }
 
 body.uikit-theme .transportation-finance-card .trip-finance-mini-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
     gap: 12px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-vat,
+body.uikit-theme .transportation-finance-card .trip-finance-profit-tax {
+    grid-column: span 3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-customer,
+body.uikit-theme .transportation-finance-card .trip-finance-executor,
+body.uikit-theme .transportation-finance-card .trip-finance-margin {
+    grid-column: span 2 !important;
 }
 
 body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
@@ -5009,6 +5020,18 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .chain-state.is-da
 }
 
 @media (max-width: 700px) {
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-mini-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-vat,
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-profit-tax,
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-customer,
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-executor,
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-margin {
+        grid-column: 1 !important;
+    }
+
     body.uikit-theme .transportation-card {
         gap: 14px;
     }
