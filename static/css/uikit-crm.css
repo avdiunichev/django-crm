@@ -4597,6 +4597,75 @@ html[data-theme="dark"] body.uikit-theme .amount-problem {
     color: #ff8f9f !important;
 }
 
+/* Финальный слой читаемости тёмной темы для реестров и табличных частей. */
+html[data-theme="dark"] body.uikit-theme .table-wrap,
+html[data-theme="dark"] body.uikit-theme .uk-table,
+html[data-theme="dark"] body.uikit-theme .uk-table tbody,
+html[data-theme="dark"] body.uikit-theme .uk-table tr,
+html[data-theme="dark"] body.uikit-theme .uk-table td {
+    color: #dce4ef !important;
+    background-color: transparent;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table th,
+html[data-theme="dark"] body.uikit-theme .table-wrap .uk-table th {
+    border-color: #344257 !important;
+    color: #b8c4d6 !important;
+    background: #1b283b !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td,
+html[data-theme="dark"] body.uikit-theme .table-wrap .uk-table td {
+    border-color: #263449 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td small,
+html[data-theme="dark"] body.uikit-theme .uk-table td .uk-text-muted,
+html[data-theme="dark"] body.uikit-theme .uk-table td div,
+html[data-theme="dark"] body.uikit-theme .uk-table td span:not(.uk-label):not(.badge),
+html[data-theme="dark"] body.uikit-theme .table-wrap .uk-table small {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td strong,
+html[data-theme="dark"] body.uikit-theme .uk-table td b,
+html[data-theme="dark"] body.uikit-theme .uk-table td a:not(.row-action) {
+    color: #74b8ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table-hover tbody tr:hover,
+html[data-theme="dark"] body.uikit-theme .uk-table tbody tr:hover {
+    background: #17263b !important;
+}
+
+html[data-theme="dark"] body.uikit-theme a.row-action,
+html[data-theme="dark"] body.uikit-theme .driver-row-actions .row-action,
+html[data-theme="dark"] body.uikit-theme .vehicle-row-actions .row-action,
+html[data-theme="dark"] body.uikit-theme .uk-table .uk-icon-button,
+html[data-theme="dark"] body.uikit-theme .table-wrap .uk-table .uk-icon-button {
+    border-color: #3a4960 !important;
+    background: #1b283b !important;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme a.row-action:hover,
+html[data-theme="dark"] body.uikit-theme .driver-row-actions .row-action:hover,
+html[data-theme="dark"] body.uikit-theme .vehicle-row-actions .row-action:hover,
+html[data-theme="dark"] body.uikit-theme .uk-table .uk-icon-button:hover,
+html[data-theme="dark"] body.uikit-theme .table-wrap .uk-table .uk-icon-button:hover {
+    border-color: #58708e !important;
+    background: #263850 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme a.row-action.danger,
+html[data-theme="dark"] body.uikit-theme .driver-row-actions .row-action.danger,
+html[data-theme="dark"] body.uikit-theme .vehicle-row-actions .row-action.danger {
+    border-color: rgba(255, 143, 159, .45) !important;
+    color: #ff8f9f !important;
+}
+
 /* Финальный фикс тёмной темы: все KPI-карточки, включая primary/active,
    должны оставаться тёмными и читаемыми. */
 html[data-theme="dark"] body.uikit-theme .metric-card,
