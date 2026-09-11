@@ -334,7 +334,9 @@ a:hover {
 
 .uk-table td,
 .uk-table th {
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .uk-table td small {
@@ -6559,6 +6561,22 @@ body.uikit-theme {
 
 .uikit-theme .uk-table td {
     color: #2f3846;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.uikit-theme .table-wrap .uk-table th {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.uikit-theme .table-wrap .uk-table a,
+.uikit-theme .table-wrap .uk-table small,
+.uikit-theme .table-wrap .uk-table div {
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .uikit-theme .uk-table-hover tbody tr:hover {
@@ -6627,6 +6645,18 @@ body.uikit-theme {
 .uikit-theme .crm-money-cell {
     font-variant-numeric: tabular-nums;
     text-align: right !important;
+    white-space: nowrap;
+}
+
+.uikit-theme .table-wrap .uk-table .uk-text-right,
+.uikit-theme .table-wrap .uk-table .amount-income,
+.uikit-theme .table-wrap .uk-table .amount-expense,
+.uikit-theme .table-wrap .uk-table .amount-problem,
+.uikit-theme .table-wrap .uk-table .uk-label,
+.uikit-theme .table-wrap .uk-table .badge,
+.uikit-theme .table-wrap .uk-table .row-action,
+.uikit-theme .table-wrap .uk-table .uk-icon-button {
+    overflow-wrap: normal;
     white-space: nowrap;
 }
 
