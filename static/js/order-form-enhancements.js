@@ -17,13 +17,25 @@
         }).format(number);
     };
 
+    const formatMoneyWhileTyping = (value) => {
+        const normalized = normalizeMoney(value);
+        if (!normalized || normalized === "-" || normalized === ".") return normalized === "." ? "," : normalized;
+        const [integerPart, ...fractionParts] = normalized.split(".");
+        const integer = integerPart || "0";
+        const grouped = new Intl.NumberFormat("ru-RU", {
+            maximumFractionDigits: 0,
+        }).format(Number(integer));
+        if (!fractionParts.length) return grouped;
+        return `${grouped},${fractionParts.join("").slice(0, 2)}`;
+    };
+
     const enhanceMoneyInput = (input) => {
         if (input.dataset.moneyReady === "true") return;
         input.dataset.moneyReady = "true";
         input.value = formatMoney(input.value);
         input.addEventListener("input", () => {
             const cursorAtEnd = input.selectionStart === input.value.length;
-            const formatted = formatMoney(input.value);
+            const formatted = formatMoneyWhileTyping(input.value);
             if (formatted && formatted !== input.value) input.value = formatted;
             if (cursorAtEnd) input.setSelectionRange(input.value.length, input.value.length);
         });
