@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-page-size">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-logout-button">
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260911-users">
     {% block extra_head %}{% endblock %}
 </head>
@@ -90,7 +90,7 @@
             {% if user.is_staff %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'admin:index' %}">Админ</a>{% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button class="uk-button uk-button-default uk-button-small" type="submit">Выйти</button>
+                <button class="topnav-logout-button" type="submit">Выйти</button>
             </form>
         </div>
     </header>
