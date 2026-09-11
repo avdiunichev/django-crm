@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="onec-document-heading">
-    <div>
-        <h1 class="order-document-title">Новый заказ</h1>
-    </div>
-</div>
-
 <form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
-    <div class="onec-command-bar">
-        <button class="uk-button uk-button-primary" type="submit" name="action" value="save"><span uk-icon="check"></span> Сохранить</button>
-        {% if object.transportation_id %}
-            <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
-        {% else %}
-            <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign"><span uk-icon="forward"></span> Назначить</button>
-        {% endif %}
-        {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть и отменить</a>
-    </div>
+    <section class="form-section uk-card uk-card-default order-command-header">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="file-edit"></span>
+            <div><h1>Новый заказ</h1><p>Заполните форму</p></div>
+            <div class="order-command-actions">
+                <button class="uk-button uk-button-primary" type="submit" name="action" value="save"><span uk-icon="check"></span> Сохранить</button>
+                {% if object.transportation_id %}
+                    <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
+                {% else %}
+                    <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign"><span uk-icon="forward"></span> Назначить</button>
+                {% endif %}
+                {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть и отменить</a>
+            </div>
+        </div>
+    </section>
 
     {% if missing_client_contract %}
     <div class="uk-alert-warning" uk-alert>
@@ -30,7 +30,6 @@
     {% endif %}
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
@@ -138,15 +137,6 @@
         <div class="form-grid">{% include "crm/includes/form_field.html" with field=form.notes wide=True %}</div>
     </section>
 
-    <div class="form-actions onec-bottom-actions">
-        <button class="uk-button uk-button-primary" type="submit" name="action" value="save">Сохранить</button>
-        {% if object.transportation_id %}
-            <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}">Открыть рейс</a>
-        {% else %}
-            <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign">Назначить</button>
-        {% endif %}
-        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Отмена</a>
-    </div>
 </form>
 <script>
 document.addEventListener("DOMContentLoaded", () => {

@@ -767,6 +767,92 @@ a:hover {
     font-size: 13px;
 }
 
+.order-command-header {
+    position: sticky;
+    top: 86px;
+    z-index: 24;
+    padding: 0;
+    box-shadow: 0 8px 20px rgba(35, 55, 80, .12);
+}
+
+.order-command-title {
+    align-items: center;
+    min-height: 72px;
+    margin: 0;
+    padding: 16px 24px;
+}
+
+.order-command-title > .order-command-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    color: #fff;
+    background: #1e87f0;
+}
+
+.order-command-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.order-command-title h1 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 500;
+}
+
+.order-command-title p {
+    margin-top: 3px;
+}
+
+.order-command-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+    padding-right: 2px;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-command-header {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
+}
+
+@media (max-width: 900px) {
+    .order-command-header {
+        top: 74px;
+    }
+
+    .order-command-title {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .order-command-actions {
+        width: 100%;
+        margin: 6px 0 0;
+        padding: 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .order-command-header {
+        position: static;
+    }
+
+    .order-command-title {
+        padding: 14px 16px;
+    }
+
+    .order-command-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .order-command-actions .uk-button {
+        justify-content: center;
+    }
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2982,19 +3068,6 @@ a:hover {
     margin: 2px 0 2px;
     font-size: 25px;
     font-weight: 500;
-}
-
-.onec-document-heading .order-document-title {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: -.02em;
-}
-
-@media (max-width: 560px) {
-    .onec-document-heading .order-document-title {
-        font-size: 26px;
-    }
 }
 
 .onec-document-heading p {
