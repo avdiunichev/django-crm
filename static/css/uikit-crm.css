@@ -4832,6 +4832,201 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Карточка рейса: все разделы используют один визуальный язык с финансами. */
+body.uikit-theme .transportation-card {
+    display: grid;
+    gap: 18px;
+}
+
+body.uikit-theme .transportation-card .transportation-titlebar {
+    padding: 6px 4px 2px;
+}
+
+body.uikit-theme .transportation-card .transportation-commandbar {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%);
+    box-shadow: 0 12px 28px rgba(24, 39, 75, .06);
+}
+
+body.uikit-theme .transportation-card .transportation-status-progress,
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel,
+body.uikit-theme .transportation-card .panel {
+    border: 1px solid #dbe5f1 !important;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%) !important;
+    box-shadow: 0 18px 42px rgba(24, 39, 75, .08);
+}
+
+body.uikit-theme .transportation-card .transportation-status-progress {
+    padding: 20px 22px;
+    border-left: 4px solid #2b86f6 !important;
+}
+
+body.uikit-theme .transportation-card .transportation-summary {
+    padding: 22px 24px;
+}
+
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+    padding: 14px 16px;
+    border: 1px solid #dbe5f1;
+    border-radius: 14px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-card .transportation-summary .uk-text-meta,
+body.uikit-theme .transportation-card .transportation-role-card > p,
+body.uikit-theme .transportation-card .transportation-role-card dt,
+body.uikit-theme .transportation-card .transportation-role-card dd small,
+body.uikit-theme .transportation-card .panel .section-title p,
+body.uikit-theme .transportation-card .route-stop-list p,
+body.uikit-theme .transportation-card .route-stop-list small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-card .transportation-summary strong,
+body.uikit-theme .transportation-card .transportation-role-card h2,
+body.uikit-theme .transportation-card .transportation-role-card dd,
+body.uikit-theme .transportation-card .panel .section-title h2,
+body.uikit-theme .transportation-card .route-stop-list h3 {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-card .transport-chain-panel {
+    padding: 24px;
+}
+
+body.uikit-theme .transportation-card .transport-chain-node,
+body.uikit-theme .transportation-card .transport-route-chain .transport-chain-node,
+body.uikit-theme .transportation-card .transportation-role-card,
+body.uikit-theme .transportation-card .driver-copy-card,
+body.uikit-theme .transportation-card .route-stop-list article,
+body.uikit-theme .transportation-card .onec-details-grid > div,
+body.uikit-theme .transportation-card .trip-finance-card,
+body.uikit-theme .transportation-card .trip-finance-flow,
+body.uikit-theme .transportation-card .trip-finance-settlements article {
+    border: 1px solid #dbe5f1 !important;
+    border-radius: 16px;
+    background: #fff !important;
+}
+
+body.uikit-theme .transportation-card .transport-chain-node > span,
+body.uikit-theme .transportation-card .transport-chain-node small,
+body.uikit-theme .transportation-card .driver-copy-card dd small,
+body.uikit-theme .transportation-card .onec-details-grid dt,
+body.uikit-theme .transportation-card .trip-finance-card span,
+body.uikit-theme .transportation-card .trip-finance-card small,
+body.uikit-theme .transportation-card .trip-finance-flow span,
+body.uikit-theme .transportation-card .trip-finance-settlements span,
+body.uikit-theme .transportation-card .trip-finance-settlements small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-card .transport-chain-node > a,
+body.uikit-theme .transportation-card .transport-chain-node strong,
+body.uikit-theme .transportation-card .transport-chain-node strong a,
+body.uikit-theme .transportation-card .trip-finance-card strong,
+body.uikit-theme .transportation-card .trip-finance-flow strong,
+body.uikit-theme .transportation-card .trip-finance-settlements strong {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-card .transportation-tabs {
+    margin: 0;
+    padding: 0 4px;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-commandbar,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-status-progress,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-panel,
+html[data-theme="dark"] body.uikit-theme .transportation-card .panel {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary .uk-grid > div,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-route-chain .transport-chain-node,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card,
+html[data-theme="dark"] body.uikit-theme .transportation-card .driver-copy-card,
+html[data-theme="dark"] body.uikit-theme .transportation-card .route-stop-list article,
+html[data-theme="dark"] body.uikit-theme .transportation-card .onec-details-grid > div,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-card,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-flow,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-settlements article {
+    border-color: #3a475d !important;
+    background: #354052 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary strong,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card h2,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card dd,
+html[data-theme="dark"] body.uikit-theme .transportation-card .panel .section-title h2,
+html[data-theme="dark"] body.uikit-theme .transportation-card .route-stop-list h3,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node > a,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node strong,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node strong a,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-card strong,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-flow strong,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-settlements strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary .uk-text-meta,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card > p,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card dt,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-role-card dd small,
+html[data-theme="dark"] body.uikit-theme .transportation-card .panel .section-title p,
+html[data-theme="dark"] body.uikit-theme .transportation-card .route-stop-list p,
+html[data-theme="dark"] body.uikit-theme .transportation-card .route-stop-list small,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node > span,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-node small,
+html[data-theme="dark"] body.uikit-theme .transportation-card .driver-copy-card dd small,
+html[data-theme="dark"] body.uikit-theme .transportation-card .onec-details-grid dt,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-card span,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-card small,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-flow span,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-settlements span,
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-finance-settlements small {
+    color: #b3becd !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .chain-state.is-ok {
+    border: 1px solid #356b5c;
+    color: #a8e5d1;
+    background: #193b34;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .chain-state.is-danger {
+    border: 1px solid #794253;
+    color: #ffb8c4;
+    background: #402331;
+}
+
+@media (max-width: 700px) {
+    body.uikit-theme .transportation-card {
+        gap: 14px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-commandbar,
+    body.uikit-theme .transportation-card .transportation-status-progress,
+    body.uikit-theme .transportation-card .transportation-summary,
+    body.uikit-theme .transportation-card .transport-chain-panel,
+    body.uikit-theme .transportation-card .panel {
+        border-radius: 14px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary,
+    body.uikit-theme .transportation-card .transport-chain-panel {
+        padding: 18px;
+    }
+}
+
 /* Мобильный рабочий режим: интерфейс остаётся плотным, но без горизонтального
    переполнения. Реестры намеренно прокручиваются внутри собственной области. */
 @media (max-width: 700px) {
