@@ -3,9 +3,9 @@
 {% block content %}
 <div class="onec-document-heading">
     <div>
-        <h1>{% if object %}Новый заказ №{{ object.number }} от {{ object.document_date|date:"d.m.Y" }}{% else %}Новый заказ от {{ form.document_date.value|default:"—" }}{% endif %}</h1>
+        <h1 class="order-document-title">Новый заказ</h1>
     </div>
-    <span class="badge uk-label transportation-status order-header-status">{% if object %}{{ object.get_status_display }}{% else %}Новый{% endif %}</span>
+    <span class="uk-button uk-button-primary order-header-status">{% if object %}{{ object.get_status_display }}{% else %}Новый{% endif %}</span>
 </div>
 
 <form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>

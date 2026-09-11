@@ -2984,19 +2984,27 @@ a:hover {
     font-weight: 500;
 }
 
-.order-header-status {
-    min-height: 30px;
-    padding: 0 14px;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 30px;
-    background: #1e87f0;
+.onec-document-heading .order-document-title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -.02em;
 }
 
-html[data-theme="dark"] body.uikit-theme .order-header-status {
-    color: #fff;
-    background: #2d8ee9;
+.order-header-status {
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 48px;
+    pointer-events: none;
+}
+
+@media (max-width: 560px) {
+    .onec-document-heading .order-document-title {
+        font-size: 26px;
+    }
 }
 
 .onec-document-heading p {
