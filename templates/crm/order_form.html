@@ -16,7 +16,7 @@
                     <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign"><span uk-icon="forward"></span> Назначить</button>
                 {% endif %}
                 {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть и отменить</a>
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}" onclick="return confirm('Закрыть форму и отменить несохранённые изменения?');">Закрыть и отменить</a>
             </div>
         </div>
     </section>
