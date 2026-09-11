@@ -4704,6 +4704,23 @@ html[data-theme="dark"] body.uikit-theme .metric-card .metric-icon.uk-icon-butto
     color: #c8d5e5;
 }
 
+.uikit-theme .planner-event {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.uikit-theme .planner-event-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.uikit-theme .planner-event form {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
 .uikit-theme .register-pagination {
     align-items: center;
     display: flex;

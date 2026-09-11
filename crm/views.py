@@ -332,6 +332,7 @@ from .accounting import (
     post_transportation,
     unpost_bank_statement,
     unpost_transportation,
+    update_transportation_document_status,
     validate_transportation_for_closing,
     validate_transportation_for_posting,
 )
@@ -2645,6 +2646,7 @@ def _document_batch_candidates(
 
 
 def _post_document_batch(batch, user):
+    affected_transportations = set()
     for line in batch.lines.select_related("transportation__legacy_shipment", "counterparty"):
         document = line.shipment_document or ShipmentDocument()
         document.shipment = line.transportation.legacy_shipment
@@ -2670,10 +2672,13 @@ def _post_document_batch(batch, user):
         if line.shipment_document_id != document.pk:
             line.shipment_document = document
             line.save(update_fields=["shipment_document", "updated_at"])
+        affected_transportations.add(line.transportation_id)
     batch.status = DocumentBatch.Status.POSTED
     batch.posted_by = user
     batch.posted_at = timezone.now()
     batch.save(update_fields=["status", "posted_by", "posted_at", "updated_at"])
+    for transportation in Transportation.objects.filter(pk__in=affected_transportations):
+        update_transportation_document_status(transportation, user)
     return batch
 
 
@@ -4548,8 +4553,24 @@ class PlannerView(LoginRequiredMixin, TemplateView):
         automatic_tasks = automatic_planner_tasks(transportations)
         event_items = []
 
+        def workflow_index(transportation):
+            try:
+                return Transportation.WORKFLOW_STATUSES.index(transportation.status)
+            except ValueError:
+                return -1
+
+        in_transit_index = Transportation.WORKFLOW_STATUSES.index(Transportation.Status.IN_TRANSIT)
+        delivered_index = Transportation.WORKFLOW_STATUSES.index(Transportation.Status.DELIVERED)
+
         def add_event(event_date, kind, label, transportation, title):
             if not event_date or not date_from <= event_date <= date_to:
+                return
+            current_index = workflow_index(transportation)
+            if current_index >= delivered_index and kind in {"loading", "unloading", "stop"}:
+                return
+            if current_index >= in_transit_index and kind == "loading":
+                return
+            if current_index < in_transit_index and kind == "unloading":
                 return
             event_items.append(
                 {
@@ -4559,6 +4580,20 @@ class PlannerView(LoginRequiredMixin, TemplateView):
                     "title": title,
                     "transportation": transportation,
                     "url": transportation.get_absolute_url(),
+                    "action": (
+                        "loaded"
+                        if kind in {"loading", "stop"} and label in {"Погрузка", "Промежуточная точка"}
+                        else "unloaded"
+                        if kind in {"unloading", "stop"} and label == "Выгрузка"
+                        else ""
+                    ),
+                    "action_label": (
+                        "Загрузился"
+                        if kind in {"loading", "stop"} and label in {"Погрузка", "Промежуточная точка"}
+                        else "Выгрузился"
+                        if kind in {"unloading", "stop"} and label == "Выгрузка"
+                        else ""
+                    ),
                 }
             )
 
@@ -4593,6 +4628,10 @@ class PlannerView(LoginRequiredMixin, TemplateView):
                 f"Срок оплаты исполнителю · {transportation.number or 'Черновик'}",
             )
             for stop in transportation.stops.all():
+                if stop.kind == TransportationStop.Kind.PICKUP and workflow_index(transportation) >= in_transit_index:
+                    continue
+                if stop.kind == TransportationStop.Kind.DELIVERY and workflow_index(transportation) < in_transit_index:
+                    continue
                 stop_date = (
                     timezone.localtime(stop.planned_from).date()
                     if stop.planned_from and timezone.is_aware(stop.planned_from)
@@ -4753,6 +4792,41 @@ class PlannerTaskCompleteView(LoginRequiredMixin, View):
         task.completed_by = request.user
         task.save(update_fields=["status", "completed_at", "completed_by", "updated_at"])
         messages.success(request, "Задача отмечена выполненной.")
+        return redirect(request.POST.get("next") or reverse("planner"))
+
+
+class PlannerTransportationControlView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        transportation = get_object_or_404(Transportation, pk=pk)
+        action = request.POST.get("action", "").strip()
+        if action == "loaded":
+            target_status = Transportation.Status.IN_TRANSIT
+            success = "Рейс отмечен как загруженный и переведён в путь."
+        elif action == "unloaded":
+            target_status = Transportation.Status.DELIVERED
+            success = "Рейс отмечен как выгруженный и доставленный."
+        else:
+            messages.error(request, "Неизвестное действие контроля рейса.")
+            return redirect(request.POST.get("next") or reverse("planner"))
+        old_status = transportation.status
+        if old_status != target_status:
+            transportation.status = target_status
+            transportation.save(update_fields=["status", "updated_at"])
+            TransportationStatusEvent.objects.create(
+                transportation=transportation,
+                old_status=old_status,
+                new_status=target_status,
+                changed_by=request.user,
+                comment=success,
+                source=TransportationStatusEvent.Source.MANUAL,
+                changes={
+                    "Статус": {
+                        "old": dict(Transportation.Status.choices).get(old_status, old_status),
+                        "new": dict(Transportation.Status.choices).get(target_status, target_status),
+                    }
+                },
+            )
+        messages.success(request, success)
         return redirect(request.POST.get("next") or reverse("planner"))
 
 
@@ -5334,6 +5408,8 @@ class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
             ).distinct()
         if status in TransportOrder.Status.values:
             queryset = queryset.filter(status=status)
+        else:
+            queryset = queryset.filter(status=TransportOrder.Status.NEW)
         if owner.isdigit():
             queryset = queryset.filter(owner_company_id=owner)
         _, _, ordering = self.get_sorting()
@@ -5579,6 +5655,8 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
             ).distinct()
         if status in Transportation.Status.values:
             queryset = queryset.filter(status=status)
+        else:
+            queryset = queryset.exclude(status=Transportation.Status.CANCELLED)
         if owner.isdigit():
             queryset = queryset.filter(owner_company_id=owner)
         scope = self.request.GET.get("scope", "").strip()
@@ -6532,6 +6610,61 @@ class TransportationStatusAdvanceView(LoginRequiredMixin, View):
         return redirect(transportation.get_absolute_url())
 
 
+class TransportationCancelExecutorView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        transportation = get_object_or_404(
+            Transportation.objects.select_related("source_order"), pk=pk
+        )
+        order = getattr(transportation, "source_order", None)
+        if not order:
+            messages.error(request, "Вернуть в заказ можно только рейс, созданный из заказа.")
+            return redirect(transportation.get_absolute_url())
+        blockers = []
+        if transportation.posting_status == Transportation.PostingStatus.POSTED:
+            blockers.append("рейс уже проведён")
+        if transportation.documents.exclude(status=ShipmentDocument.Status.CANCELLED).exists():
+            blockers.append("по рейсу уже есть документы")
+        if transportation.payments.exists():
+            blockers.append("по рейсу уже есть оплаты")
+        if transportation.settlement_movements.exists():
+            blockers.append("по рейсу уже есть движения взаиморасчётов")
+        if blockers:
+            messages.error(
+                request,
+                "Нельзя отменить исполнителя: " + ", ".join(blockers) + ".",
+            )
+            return redirect(transportation.get_absolute_url())
+        with transaction.atomic():
+            old_status = transportation.status
+            transportation.status = Transportation.Status.CANCELLED
+            transportation.save(update_fields=["status", "updated_at"])
+            order.transportation = None
+            order.status = TransportOrder.Status.NEW
+            order.assigned_at = None
+            order.assigned_by = None
+            order.save(update_fields=["transportation", "status", "assigned_at", "assigned_by", "updated_at"])
+            TransportationStatusEvent.objects.create(
+                transportation=transportation,
+                old_status=old_status,
+                new_status=Transportation.Status.CANCELLED,
+                changed_by=request.user,
+                comment=f"Исполнитель отменён. Заказ {order.number} возвращён в журнал заказов.",
+                source=TransportationStatusEvent.Source.ORDER,
+                changes={
+                    "Статус": {
+                        "old": dict(Transportation.Status.choices).get(old_status, old_status),
+                        "new": dict(Transportation.Status.choices).get(
+                            Transportation.Status.CANCELLED,
+                            Transportation.Status.CANCELLED,
+                        ),
+                    },
+                    "Заказ": {"old": "Назначен в рейс", "new": "Новый"},
+                },
+            )
+        messages.success(request, f"Исполнитель отменён. Заказ {order.number} снова в статусе «Новый».")
+        return redirect("order-list")
+
+
 class TransportationCloseView(LoginRequiredMixin, View):
     def post(self, request, pk):
         transportation = get_object_or_404(Transportation, pk=pk)
@@ -7324,6 +7457,29 @@ class TransportationChainUpdateView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         changes = _form_audit_changes(form)
         form.save(self.request.user)
+        self.transportation.refresh_from_db()
+        audit_old_status = self.transportation.status
+        audit_new_status = self.transportation.status
+        if (
+            self.transportation.status
+            in {Transportation.Status.NEW, Transportation.Status.EXECUTOR_SEARCH}
+            and self.transportation.active_execution_link()
+        ):
+            old_status = self.transportation.status
+            self.transportation.status = Transportation.Status.EXECUTOR_SELECTED
+            self.transportation.save(update_fields=["status", "updated_at"])
+            audit_old_status = old_status
+            audit_new_status = self.transportation.status
+            changes.setdefault(
+                "Статус",
+                {
+                    "old": dict(Transportation.Status.choices).get(old_status, old_status),
+                    "new": dict(Transportation.Status.choices).get(
+                        Transportation.Status.EXECUTOR_SELECTED,
+                        Transportation.Status.EXECUTOR_SELECTED,
+                    ),
+                },
+            )
         if changes:
             _record_transportation_audit(
                 self.transportation,
@@ -7331,6 +7487,8 @@ class TransportationChainUpdateView(LoginRequiredMixin, FormView):
                 comment="Цепочка исполнения изменена",
                 source="chain",
                 changes=changes,
+                old_status=audit_old_status,
+                new_status=audit_new_status,
             )
         messages.success(
             self.request,

@@ -49,7 +49,7 @@ def assign_order_to_transportation(order, user):
         owner_company=order.owner_company,
         manager=order.manager,
         document_date=order.document_date,
-        status=Transportation.Status.EXECUTOR_SEARCH,
+        status=Transportation.Status.EXECUTOR_SELECTED,
         customer_amount=order.rate,
         customer_vat_rate=_customer_vat_rate(order),
         currency=order.currency,

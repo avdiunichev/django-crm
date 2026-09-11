@@ -11,6 +11,7 @@ from .models import (
     BankStatementLine,
     Payment,
     SettlementMovement,
+    ShipmentDocument,
     Transportation,
     TransportationInstruction,
     TransportationLink,
@@ -456,10 +457,11 @@ def validate_transportation_for_closing(transportation):
         errors.append("Груз должен быть доставлен.")
 
     if transportation.status not in {
+        Transportation.Status.DOCUMENT_FLOW_COMPLETED,
         Transportation.Status.CUSTOMER_INVOICED,
         Transportation.Status.CLOSED,
     }:
-        errors.append("Клиентские документы должны быть выставлены.")
+        errors.append("Документооборот по рейсу должен быть завершён.")
 
     if not transportation.instructions.exists() and not transportation.electronic_documents.exists():
         errors.append("По рейсу должны быть сформированы документы или ЭПД.")
@@ -554,6 +556,82 @@ def _protected_payment_message(payment, error):
         f"документах, например в акте сверки.{linked} Сначала удалите или "
         "аннулируйте связанный документ, затем повторите операцию."
     )
+
+
+def _set_transportation_status(transportation, target_status, user=None, *, comment, source):
+    if not transportation or transportation.status == target_status:
+        return transportation
+    old_status = transportation.status
+    transportation.status = target_status
+    transportation.save(update_fields=["status", "updated_at"])
+    TransportationStatusEvent.objects.create(
+        transportation=transportation,
+        old_status=old_status,
+        new_status=target_status,
+        changed_by=user,
+        comment=comment,
+        source=source,
+        changes={
+            "Статус": {
+                "old": dict(Transportation.Status.choices).get(old_status, old_status),
+                "new": dict(Transportation.Status.choices).get(target_status, target_status),
+            }
+        },
+    )
+    return transportation
+
+
+def update_transportation_document_status(transportation, user=None):
+    if not transportation or transportation.status in {
+        Transportation.Status.CLOSED,
+        Transportation.Status.CANCELLED,
+    }:
+        return transportation
+    documents = transportation.documents.exclude(status=ShipmentDocument.Status.CANCELLED)
+    has_incoming = documents.filter(direction=ShipmentDocument.Direction.INCOMING).exists()
+    has_outgoing = documents.filter(direction=ShipmentDocument.Direction.OUTGOING).exists()
+    if has_incoming and has_outgoing:
+        target = Transportation.Status.DOCUMENT_FLOW_COMPLETED
+        comment = "Документооборот по рейсу завершён"
+    elif has_outgoing:
+        target = Transportation.Status.DOCUMENTS_SENT
+        comment = "По рейсу отправлены исходящие документы"
+    elif has_incoming:
+        target = Transportation.Status.DOCUMENTS_RECEIVED
+        comment = "По рейсу получены входящие документы"
+    else:
+        return transportation
+    transportation = _set_transportation_status(
+        transportation,
+        target,
+        user,
+        comment=comment,
+        source=TransportationStatusEvent.Source.DOCUMENT,
+    )
+    if target == Transportation.Status.DOCUMENT_FLOW_COMPLETED:
+        return update_transportation_payment_status(transportation, user)
+    return transportation
+
+
+def update_transportation_payment_status(transportation, user=None):
+    if not transportation or transportation.status in {
+        Transportation.Status.CLOSED,
+        Transportation.Status.CANCELLED,
+    }:
+        return transportation
+    if transportation.posting_status != Transportation.PostingStatus.POSTED:
+        return transportation
+    if transportation.status != Transportation.Status.DOCUMENT_FLOW_COMPLETED:
+        return transportation
+    if transportation.receivable_balance <= 0 and transportation.payable_balance <= 0:
+        return _set_transportation_status(
+            transportation,
+            Transportation.Status.CLOSED,
+            user,
+            comment="Рейс закрыт автоматически после полного расчёта",
+            source=TransportationStatusEvent.Source.PAYMENT,
+        )
+    return transportation
 
 
 @transaction.atomic
@@ -663,6 +741,7 @@ def post_bank_statement(statement, user=None):
                 }
             },
         )
+        update_transportation_payment_status(transportation, user)
 
     statement.status = BankStatement.Status.POSTED
     statement.posted_by = user

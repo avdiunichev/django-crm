@@ -1558,7 +1558,7 @@ class Transportation(TimestampedModel):
             "Поручение клиента получено",
         )
         EXECUTOR_SEARCH = "executor_search", "Поиск исполнителя"
-        EXECUTOR_SELECTED = "executor_selected", "Исполнитель найден"
+        EXECUTOR_SELECTED = "executor_selected", "Назначен исполнитель"
         EXECUTOR_DOCUMENTS_VERIFIED = (
             "executor_documents_verified",
             "Документы исполнителя проверены",
@@ -1569,6 +1569,8 @@ class Transportation(TimestampedModel):
         UNLOADING = "unloading", "На выгрузке"
         DELIVERED = "delivered", "Доставлено"
         DOCUMENTS_RECEIVED = "documents_received", "Документы получены"
+        DOCUMENTS_SENT = "documents_sent", "Документы отправлены"
+        DOCUMENT_FLOW_COMPLETED = "document_flow_completed", "Документооборот завершён"
         CUSTOMER_INVOICED = "customer_invoiced", "Выставлено клиенту"
         CLOSED = "closed", "Закрыто"
         ON_HOLD = "on_hold", "Приостановлено"
@@ -1586,6 +1588,8 @@ class Transportation(TimestampedModel):
         Status.UNLOADING,
         Status.DELIVERED,
         Status.DOCUMENTS_RECEIVED,
+        Status.DOCUMENTS_SENT,
+        Status.DOCUMENT_FLOW_COMPLETED,
         Status.CUSTOMER_INVOICED,
         Status.CLOSED,
     )

@@ -50,11 +50,14 @@
                     <header><strong>{{ day.label }}</strong><span>{{ day.weekday }}</span></header>
                     <div class="planner-day-events">
                         {% for event in day.events %}
-                            <a class="planner-event planner-event-{{ event.kind }}" href="{{ event.url }}">
-                                <span class="planner-event-kind">{{ event.label }}</span>
-                                <strong>{{ event.title }}</strong>
-                                <small>{{ event.transportation.get_status_display }}{% if event.transportation.manager %} · {{ event.transportation.manager.get_full_name|default:event.transportation.manager.username }}{% endif %}</small>
-                            </a>
+                            <article class="planner-event planner-event-{{ event.kind }}">
+                                <a class="planner-event-body" href="{{ event.url }}">
+                                    <span class="planner-event-kind">{{ event.label }}</span>
+                                    <strong>{{ event.title }}</strong>
+                                    <small>{{ event.transportation.get_status_display }}{% if event.transportation.manager %} · {{ event.transportation.manager.get_full_name|default:event.transportation.manager.username }}{% endif %}</small>
+                                </a>
+                                {% if event.action %}<form method="post" action="{% url 'transportation-planner-control' event.transportation.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><input type="hidden" name="action" value="{{ event.action }}"><button class="uk-button uk-button-small uk-button-primary" type="submit">{{ event.action_label }}</button></form>{% endif %}
+                            </article>
                         {% endfor %}
                     </div>
                 </article>

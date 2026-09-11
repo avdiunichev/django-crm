@@ -273,6 +273,16 @@ urlpatterns = [
         name="transportation-advance-status",
     ),
     path(
+        "transportations/<int:pk>/planner-control/",
+        views.PlannerTransportationControlView.as_view(),
+        name="transportation-planner-control",
+    ),
+    path(
+        "transportations/<int:pk>/cancel-executor/",
+        views.TransportationCancelExecutorView.as_view(),
+        name="transportation-cancel-executor",
+    ),
+    path(
         "transportations/<int:pk>/close/",
         views.TransportationCloseView.as_view(),
         name="transportation-close",
