@@ -2,9 +2,9 @@
     "use strict";
 
     const form = document.querySelector("[data-order-form]");
-    const cancelButton = document.querySelector("[data-order-cancel]");
+    const cancelButtons = document.querySelectorAll("[data-order-cancel]");
     const modal = document.querySelector("[data-order-cancel-modal]");
-    if (!form || !cancelButton || !modal) return;
+    if (!form || !cancelButtons.length || !modal) return;
 
     const confirmLink = modal.querySelector("[data-order-cancel-confirm]");
     const saveButton = document.querySelector("[data-order-save]");
@@ -62,10 +62,10 @@
         modal.hidden = false;
     };
 
-    cancelButton.addEventListener("click", (event) => {
+    cancelButtons.forEach((cancelButton) => cancelButton.addEventListener("click", (event) => {
         event.preventDefault();
         requestLeave(cancelButton.dataset.orderCancelUrl);
-    });
+    }));
 
     document.querySelectorAll(".crm-topnav a[href]").forEach((link) => {
         link.addEventListener("click", (event) => {

@@ -1065,22 +1065,11 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 }
 
 .uikit-theme .order-command-header.uk-card {
-    position: sticky;
-    top: 86px;
-    z-index: 24;
-    padding: 24px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, .62);
-    overflow: hidden;
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
-    backdrop-filter: blur(18px) saturate(125%);
+    position: static;
 }
 
 .uikit-theme .order-command-header .order-command-title {
     margin: 0;
-    background: rgba(251, 252, 254, .58);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
-    backdrop-filter: blur(18px) saturate(125%);
 }
 
 .order-command-actions {
@@ -1138,19 +1127,7 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-dialog-header.form-sectio
 html[data-theme="dark"] body.uikit-theme .order-cancel-alert { border-color: #28547e; color: #b8dcff; background: #1a3551 !important; }
 html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff; }
 
-html[data-theme="dark"] body.uikit-theme .order-command-header.uk-card {
-    background: rgba(20, 30, 47, .64);
-}
-
-html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-title {
-    background: rgba(25, 37, 55, .6);
-}
-
 @media (max-width: 900px) {
-    .order-command-header {
-        top: 74px;
-    }
-
     .order-command-title {
         align-items: flex-start;
         flex-wrap: wrap;
@@ -1176,10 +1153,6 @@ html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-ti
 }
 
 @media (max-width: 560px) {
-    .order-command-header {
-        position: static;
-    }
-
     .order-command-title {
         padding: 14px 16px;
     }
