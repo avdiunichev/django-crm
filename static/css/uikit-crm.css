@@ -820,15 +820,7 @@ html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-ti
     }
 }
 
-@media (max-width: 560px) {
-    .order-command-header {
-        position: static;
-    }
-
-    .order-command-title {
-        padding: 14px 16px;
-    }
-
+@media (max-width: 720px) {
     .order-command-actions {
         display: grid;
         grid-template-columns: 1fr;
@@ -836,6 +828,17 @@ html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-ti
 
     .order-command-actions .uk-button {
         justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .order-command-header {
+        position: static;
+    }
+
+    .order-command-title {
+        padding: 14px 16px;
     }
 
     .order-command-header {
