@@ -7724,6 +7724,7 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        driver = self.object
         context["shipments"] = self.object.shipments.select_related(
             "customer", "carrier", "vehicle", "manager"
         ).order_by("-pickup_date", "-created_at")[:12]
@@ -7746,8 +7747,58 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
         ).count()
         context["passport_count"] = self.object.passports.count()
         context["license_count"] = self.object.licenses.count()
-        context["current_passport"] = self.object.current_passport
-        context["current_license"] = self.object.current_license
+        current_passport = self.object.current_passport
+        current_license = self.object.current_license
+        context["current_passport"] = current_passport
+        context["current_license"] = current_license
+        active_assignment = context["transportation_assignments"][0] if context["transportation_assignments"] else None
+        vehicle = active_assignment.vehicle if active_assignment else None
+        trailer = active_assignment.trailer if active_assignment else None
+        trailer_number = trailer.registration_number if trailer else ""
+        passport_text = ""
+        if current_passport:
+            passport_text = " ".join(
+                part
+                for part in (
+                    current_passport.series,
+                    current_passport.number,
+                    current_passport.issued_by,
+                    f"от {current_passport.issue_date:%d.%m.%Y}" if current_passport.issue_date else "",
+                )
+                if part
+            )
+        license_text = ""
+        if current_license:
+            license_text = " ".join(
+                part
+                for part in (
+                    current_license.number,
+                    f"от {current_license.issue_date:%d.%m.%Y}" if current_license.issue_date else "",
+                )
+                if part
+            )
+        vehicle_text = ""
+        if vehicle:
+            vehicle_text = " ".join(
+                part
+                for part in (
+                    vehicle.make,
+                    vehicle.registration_number,
+                    trailer_number,
+                )
+                if part
+            )
+        context["driver_copy_text"] = " ".join(
+            part
+            for part in (
+                driver.full_name,
+                passport_text,
+                license_text,
+                driver.phone,
+                vehicle_text,
+            )
+            if part
+        )
         history = [
             {
                 "created_at": self.object.created_at,

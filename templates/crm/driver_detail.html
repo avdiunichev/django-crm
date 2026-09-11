@@ -14,6 +14,7 @@
 
     <div class="onec-commandbar">
         <a class="onec-save-close uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal><span uk-icon="pencil"></span> Изменить</a>
+        <button class="onec-command uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные</button>
         <a class="onec-command uk-button uk-button-default" href="{% url 'transportation-create' %}"><span uk-icon="plus"></span> Новый рейс</a>
         <a class="onec-command uk-button uk-button-default" href="{% url 'vehicle-list' %}"><span uk-icon="truck"></span> Автопарк</a>
         <a class="onec-command uk-button uk-button-danger" href="{% url 'driver-delete' driver.pk %}"><span uk-icon="trash"></span> Удалить</a>
@@ -90,4 +91,36 @@
         </li>
     </ul>
 </div>
+{% endblock %}
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".copy-driver-data");
+    if (!button) return;
+    const text = button.dataset.copyText || "";
+    if (!text) return;
+    const originalHtml = button.innerHTML;
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+        }
+        button.innerHTML = "Скопировано";
+        setTimeout(() => { button.innerHTML = originalHtml; }, 1800);
+    } catch (error) {
+        button.innerHTML = "Не удалось скопировать";
+        setTimeout(() => { button.innerHTML = originalHtml; }, 2200);
+    }
+});
+</script>
 {% endblock %}
