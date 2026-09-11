@@ -986,8 +986,23 @@ class TransportOrderForm(StyledModelForm):
                 "data-money-input": "",
             }
         )
+        for field_name, placeholder in (
+            ("weight_kg", "0,00"),
+            ("volume_m3", "0,00"),
+        ):
+            self.fields[field_name].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control uk-input",
+                    "inputmode": "decimal",
+                    "placeholder": placeholder,
+                    "data-decimal-input": "",
+                }
+            )
+        self.fields["package_count"].widget.attrs.update(
+            {"min": "0", "step": "1", "inputmode": "numeric"}
+        )
         self.fields["payment_term_days"].widget.attrs.update(
-            {"min": "0", "placeholder": "0"}
+            {"min": "0", "step": "1", "inputmode": "numeric", "placeholder": "0"}
         )
         if not self.is_bound:
             client_id = self.initial.get("client") or self.instance.client_id

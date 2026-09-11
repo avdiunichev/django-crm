@@ -8944,6 +8944,7 @@ body.uikit-theme {
 /* Числовые поля бывают не только денежными (вес, объём, количество мест).
    Вправо выравниваем именно суммы и ставки, а не все подряд числа. */
 .uikit-theme [data-money-input],
+.uikit-theme [data-decimal-input],
 .uikit-theme .bank-amount-input,
 .uikit-theme [name^="amount_"],
 .uikit-theme input[name="amount"],
