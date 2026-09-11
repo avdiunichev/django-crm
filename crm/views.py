@@ -5001,6 +5001,7 @@ class SafeDeleteView(LoginRequiredMixin, View):
             "entity_label": self.entity_label,
             "delete_label": self.delete_label,
             "counterparty_tax_id": self.get_counterparty_tax_id(instance),
+            "delete_url": self.request.path,
             "dependencies": dependencies,
             "can_delete": not dependencies,
             "cancel_url": instance.get_absolute_url(),

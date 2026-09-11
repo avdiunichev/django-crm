@@ -36,7 +36,7 @@
                 <p>После подтверждения запись будет удалена без возможности восстановления.</p>
             {% endif %}
         </div>
-            <form method="post">
+            <form method="post" action="{{ delete_url }}">
                 {% csrf_token %}
                 <div class="form-actions safe-delete-actions">
                     <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить</button>
