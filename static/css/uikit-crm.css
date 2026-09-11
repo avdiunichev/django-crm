@@ -2984,6 +2984,21 @@ a:hover {
     font-weight: 500;
 }
 
+.order-header-status {
+    min-height: 30px;
+    padding: 0 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 30px;
+    background: #1e87f0;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-header-status {
+    color: #fff;
+    background: #2d8ee9;
+}
+
 .onec-document-heading p {
     margin: 0;
     color: #676767;

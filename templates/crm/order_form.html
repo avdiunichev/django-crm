@@ -3,12 +3,9 @@
 {% block content %}
 <div class="onec-document-heading">
     <div>
-        <a class="back-link" href="{% url 'order-list' %}">← Заказы</a>
-        <span class="eyebrow">Документ клиента</span>
-        <h1>{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %}</h1>
-        <p>Ставка, условия оплаты, характеристики груза и маршрут до назначения исполнителя.</p>
+        <h1>{% if object %}Новый заказ №{{ object.number }} от {{ object.document_date|date:"d.m.Y" }}{% else %}Новый заказ от {{ form.document_date.value|default:"—" }}{% endif %}</h1>
     </div>
-    <div class="onec-document-state"><span>Статус</span><strong>{% if object %}{{ object.get_status_display }}{% else %}Новый{% endif %}</strong></div>
+    <span class="badge uk-label transportation-status order-header-status">{% if object %}{{ object.get_status_display }}{% else %}Новый{% endif %}</span>
 </div>
 
 <form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>
@@ -22,7 +19,7 @@
             <button class="uk-button uk-button-secondary" type="submit" name="action" value="assign"><span uk-icon="forward"></span> Назначить</button>
         {% endif %}
         {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
+        <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть и отменить</a>
     </div>
 
     {% if missing_client_contract %}
