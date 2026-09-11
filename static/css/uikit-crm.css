@@ -8849,10 +8849,19 @@ body.uikit-theme {
     width: 100%;
 }
 
-.uikit-theme input[type="number"],
+/* Числовые поля бывают не только денежными (вес, объём, количество мест).
+   Вправо выравниваем именно суммы и ставки, а не все подряд числа. */
+.uikit-theme [data-money-input],
 .uikit-theme .bank-amount-input,
 .uikit-theme [name^="amount_"],
-.uikit-theme [name^="vat_"] {
+.uikit-theme input[name="amount"],
+.uikit-theme input[name="rate"],
+.uikit-theme input[name$="_amount"],
+.uikit-theme input[name$="_price"],
+.uikit-theme input[name$="_balance"],
+.uikit-theme input[name$="_limit"],
+.uikit-theme input[name="credit_limit"],
+.uikit-theme input[name="debt_limit"] {
     font-variant-numeric: tabular-nums;
     text-align: right;
 }
@@ -8886,6 +8895,23 @@ body.uikit-theme {
     text-align: right !important;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+}
+
+/* Все денежные ячейки таблиц держат одну правую линию. */
+.uikit-theme .table-wrap .uk-table td:has(.amount-income),
+.uikit-theme .table-wrap .uk-table td:has(.amount-expense),
+.uikit-theme .table-wrap .uk-table td:has(.amount-problem),
+.uikit-theme .table-wrap .uk-table td:has(.crm-money-cell),
+.uikit-theme .table-wrap .uk-table td.amount-cell,
+.uikit-theme .table-wrap .uk-table td.crm-money-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.uikit-theme .table-wrap .uk-table td:has(.amount-income) small,
+.uikit-theme .table-wrap .uk-table td:has(.amount-expense) small,
+.uikit-theme .table-wrap .uk-table td:has(.amount-problem) small {
+    text-align: right;
 }
 
 .uikit-theme .crm-smart-select.is-disabled,
