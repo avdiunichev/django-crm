@@ -773,24 +773,13 @@ a:hover {
     z-index: 24;
     padding: 24px;
     border-radius: 8px;
-    background: transparent;
-    isolation: isolate;
+    background: rgba(255, 255, 255, .82);
     overflow: hidden;
-}
-
-.order-command-header::before {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    content: "";
-    background: rgba(248, 250, 253, .64);
-    -webkit-backdrop-filter: blur(22px) saturate(135%);
-    backdrop-filter: blur(22px) saturate(135%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(125%);
 }
 
 .uikit-theme .order-command-header .order-command-title {
-    position: relative;
-    z-index: 1;
     background: rgba(251, 252, 254, .72);
 }
 
@@ -808,11 +797,7 @@ a:hover {
 }
 
 html[data-theme="dark"] body.uikit-theme .order-command-header {
-    background: transparent;
-}
-
-html[data-theme="dark"] body.uikit-theme .order-command-header::before {
-    background: rgba(15, 25, 40, .7);
+    background: rgba(20, 30, 47, .84);
 }
 
 html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-title {
