@@ -112,10 +112,10 @@
         <div class="form-section-title"><span>04</span><div><h2>Груз</h2><p>Параметры груза, упаковки и требования к обработке</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.cargo_name wide=True %}
+            <datalist id="cargo-name-suggestions">{% for cargo_name in cargo_name_suggestions %}<option value="{{ cargo_name }}"></option>{% endfor %}</datalist>
             {% include "crm/includes/form_field.html" with field=form.weight_kg %}
             {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
             {% include "crm/includes/form_field.html" with field=form.package_count %}
-            {% include "crm/includes/form_field.html" with field=form.pallet_count %}
             {% include "crm/includes/form_field.html" with field=form.package_type %}
             {% include "crm/includes/form_field.html" with field=form.loading_method %}
             {% include "crm/includes/form_field.html" with field=form.unloading_method %}

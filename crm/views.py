@@ -915,6 +915,29 @@ def get_currency_filter(request, default=""):
     return currency if currency in {"RUB", "USD", "EUR"} else default
 
 
+def cargo_name_suggestions(limit=80):
+    names = []
+    seen = set()
+    sources = (
+        Transportation.objects.exclude(cargo_name="").values_list(
+            "cargo_name", flat=True
+        ),
+        TransportOrder.objects.exclude(cargo_name="").values_list(
+            "cargo_name", flat=True
+        ),
+    )
+    for source in sources:
+        for raw_name in source.order_by("cargo_name").distinct()[:limit]:
+            name = (raw_name or "").strip()
+            key = name.casefold()
+            if name and key not in seen:
+                seen.add(key)
+                names.append(name)
+            if len(names) >= limit:
+                return names
+    return names
+
+
 @login_required
 def carrier_resources(request):
     carrier_id = request.GET.get("carrier")
@@ -5593,6 +5616,7 @@ class TransportOrderEditMixin:
             {
                 "missing_client_contract": missing_client_contract,
                 "client_contract_create_url": client_contract_create_url,
+                "cargo_name_suggestions": cargo_name_suggestions(),
             }
         )
         return context
@@ -6507,6 +6531,7 @@ class TransportationDocumentEditMixin:
                 is_own_company=True, is_active=True
             )
         }
+        context["cargo_name_suggestions"] = cargo_name_suggestions()
         return context
 
     def post(self, request, *args, **kwargs):

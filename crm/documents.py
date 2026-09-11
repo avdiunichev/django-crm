@@ -377,10 +377,8 @@ def build_executor_transportation_application_docx(transportation):
         _set_cell_text(cargo_table.cell(0, index), heading, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     package_type = transportation.package_type.name if transportation.package_type_id else ""
     quantity = []
-    if transportation.package_count:
-        quantity.append(f"{transportation.package_count} мест")
-    if transportation.pallet_count:
-        quantity.append(f"{transportation.pallet_count} паллет")
+    if transportation.total_package_count:
+        quantity.append(f"{transportation.total_package_count} мест / паллет")
     _set_cell_text(cargo_table.cell(1, 0), transportation.cargo_name)
     _set_cell_text(
         cargo_table.cell(1, 1),

@@ -1728,6 +1728,10 @@ class Transportation(TimestampedModel):
         null=True,
         blank=True,
     )
+
+    @property
+    def total_package_count(self):
+        return (self.package_count or 0) + (self.pallet_count or 0) or None
     loading_method = models.ForeignKey(
         CargoHandlingMethod,
         verbose_name="Способ погрузки",
@@ -2133,6 +2137,10 @@ class TransportOrder(TimestampedModel):
         null=True,
         blank=True,
     )
+
+    @property
+    def total_package_count(self):
+        return (self.package_count or 0) + (self.pallet_count or 0) or None
     temperature_regime = models.CharField(
         "Температурный режим", max_length=100, blank=True
     )

@@ -916,6 +916,22 @@ class TransportOrderForm(StyledModelForm):
         self.fields["client"].queryset = Organization.objects.filter(
             client_filter
         ).distinct()
+        self.fields["cargo_name"].widget.attrs.update(
+            {
+                "list": "cargo-name-suggestions",
+                "autocomplete": "off",
+                "placeholder": "Начните вводить наименование груза",
+            }
+        )
+        self.fields["package_count"].label = "Количество мест / паллет"
+        self.fields["package_count"].help_text = (
+            "Единое количество грузовых мест. Старые значения мест и паллет объединяются."
+        )
+        self.fields["pallet_count"].required = False
+        self.fields["pallet_count"].widget = forms.HiddenInput()
+        if not self.is_bound and self.instance.pk:
+            self.initial["package_count"] = self.instance.total_package_count
+            self.initial["pallet_count"] = ""
         self.fields["client"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
@@ -957,6 +973,11 @@ class TransportOrderForm(StyledModelForm):
             self.add_error("client", "Наша компания не может быть клиентом заказа.")
         if cleaned.get("rate") is not None and cleaned["rate"] <= 0:
             self.add_error("rate", "Ставка клиента должна быть больше нуля.")
+        package_count = cleaned.get("package_count") or 0
+        pallet_count = cleaned.get("pallet_count") or 0
+        total_package_count = package_count + pallet_count
+        cleaned["package_count"] = total_package_count or None
+        cleaned["pallet_count"] = None
         return cleaned
 
 
@@ -1497,6 +1518,22 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_amount"].widget.attrs.update(
             {"min": "0", "step": "0.01", "placeholder": "0,00"}
         )
+        self.fields["cargo_name"].widget.attrs.update(
+            {
+                "list": "cargo-name-suggestions",
+                "autocomplete": "off",
+                "placeholder": "Начните вводить наименование груза",
+            }
+        )
+        self.fields["package_count"].label = "Количество мест / паллет"
+        self.fields["package_count"].help_text = (
+            "Единое количество грузовых мест. Старые значения мест и паллет объединяются."
+        )
+        self.fields["pallet_count"].required = False
+        self.fields["pallet_count"].widget = forms.HiddenInput()
+        if not self.is_bound and self.instance.pk:
+            self.initial["package_count"] = self.instance.total_package_count
+            self.initial["pallet_count"] = ""
 
         if self.instance.pk and self.instance.owner_company_id:
             self.fields["owner_company"].queryset |= Organization.objects.filter(
@@ -1884,6 +1921,11 @@ class TransportationDocumentForm(StyledModelForm):
                 self.add_error(
                     "executor_contract", "Договор относится к другой нашей компании."
                 )
+        package_count = cleaned.get("package_count") or 0
+        pallet_count = cleaned.get("pallet_count") or 0
+        total_package_count = package_count + pallet_count
+        cleaned["package_count"] = total_package_count or None
+        cleaned["pallet_count"] = None
         return cleaned
 
     @staticmethod
@@ -1897,6 +1939,8 @@ class TransportationDocumentForm(StyledModelForm):
         if not getattr(self, "use_route_formset", False):
             self.instance.planned_start_date = self.cleaned_data.get("pickup_date")
             self.instance.planned_end_date = self.cleaned_data.get("delivery_date")
+        self.instance.package_count = self.cleaned_data.get("package_count")
+        self.instance.pallet_count = None
         return super().save(commit=commit)
 
     def save_related(self, user):
