@@ -6299,6 +6299,89 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     color: #7b8794;
 }
 
+/* Единый календарь: та же выпадающая панель, что у поисковых списков. */
+.crm-date-picker {
+    position: relative;
+    min-width: 0;
+}
+
+.crm-date-input {
+    padding-right: 40px !important;
+    background-image: linear-gradient(#64748b, #64748b), linear-gradient(#64748b, #64748b), linear-gradient(#64748b, #64748b) !important;
+    background-position: calc(100% - 20px) 13px, calc(100% - 20px) 20px, calc(100% - 20px) 27px !important;
+    background-size: 14px 2px, 14px 1px, 14px 1px !important;
+    background-repeat: no-repeat !important;
+}
+
+.crm-date-dropdown {
+    width: 290px;
+    max-width: calc(100vw - 32px);
+    padding: 10px;
+}
+
+.crm-date-header {
+    display: grid;
+    grid-template-columns: 32px 1fr 32px;
+    align-items: center;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.crm-date-header strong {
+    color: #263445;
+    font-size: 14px;
+}
+
+.crm-date-nav,
+.crm-date-day {
+    border: 0;
+    background: transparent;
+    color: #263445;
+    cursor: pointer;
+}
+
+.crm-date-nav {
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    font-size: 25px;
+    line-height: 1;
+}
+
+.crm-date-nav:hover,
+.crm-date-day:hover,
+.crm-date-day:focus {
+    outline: 0;
+    background: #edf6ff;
+    color: #0b69b7;
+}
+
+.crm-date-weekdays,
+.crm-date-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.crm-date-weekdays {
+    margin-bottom: 4px;
+    color: #7b8794;
+    font-size: 11px;
+    text-align: center;
+}
+
+.crm-date-day {
+    height: 32px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.crm-date-day.is-outside { color: #a8b3c2; }
+.crm-date-day.is-today { box-shadow: inset 0 0 0 1px #7fb8eb; }
+.crm-date-day.is-selected { color: #fff; background: #1e87f0; }
+.crm-date-day.is-selected:hover,
+.crm-date-day.is-selected:focus { color: #fff; background: #1675d1; }
+
 .crm-address-suggest {
     position: relative;
     min-width: 0;
@@ -6469,6 +6552,24 @@ html[data-theme="dark"] body.uikit-theme .crm-smart-option.is-active,
 html[data-theme="dark"] body.uikit-theme .crm-smart-option.is-selected {
     color: #8dc5fc;
     background: #17283d;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-date-header strong,
+html[data-theme="dark"] body.uikit-theme .crm-date-nav,
+html[data-theme="dark"] body.uikit-theme .crm-date-day {
+    color: #dce4ef;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-date-weekdays,
+html[data-theme="dark"] body.uikit-theme .crm-date-day.is-outside {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-date-nav:hover,
+html[data-theme="dark"] body.uikit-theme .crm-date-day:hover,
+html[data-theme="dark"] body.uikit-theme .crm-date-day:focus {
+    background: #17283d;
+    color: #8dc5fc;
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-address-option {
