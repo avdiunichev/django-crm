@@ -45,10 +45,16 @@
         return changed;
     };
 
+    const isEmptyOrder = () => {
+        const client = form.querySelector("#id_client");
+        const cargoName = form.querySelector("#id_cargo_name");
+        return !client?.value.trim() && !cargoName?.value.trim();
+    };
+
     const closeModal = () => { modal.hidden = true; };
 
     const requestLeave = (url) => {
-        if (!hasUnsavedChanges()) {
+        if (isEmptyOrder() || !hasUnsavedChanges()) {
             window.location.assign(url);
             return;
         }
