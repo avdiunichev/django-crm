@@ -767,17 +767,23 @@ a:hover {
     font-size: 13px;
 }
 
-.order-command-header {
+.uikit-theme .order-command-header.uk-card {
     position: sticky;
     top: 86px;
     z-index: 24;
     padding: 24px;
     border-radius: 8px;
+    background: rgba(255, 255, 255, .62);
     overflow: hidden;
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    backdrop-filter: blur(18px) saturate(125%);
 }
 
-.order-command-title {
+.uikit-theme .order-command-header .order-command-title {
     margin: 0;
+    background: rgba(251, 252, 254, .58);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    backdrop-filter: blur(18px) saturate(125%);
 }
 
 .order-command-actions {
@@ -787,6 +793,14 @@ a:hover {
     gap: 8px;
     margin-left: auto;
     padding-right: 2px;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-command-header.uk-card {
+    background: rgba(20, 30, 47, .64);
+}
+
+html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-title {
+    background: rgba(25, 37, 55, .6);
 }
 
 @media (max-width: 900px) {
