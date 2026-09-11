@@ -9,7 +9,7 @@
             <span class="order-command-icon" uk-icon="file-edit"></span>
             <div><h2>Новый заказ</h2><p>Заполните форму заказа</p></div>
             <div class="order-command-actions">
-                <button class="uk-button uk-button-primary" type="submit" name="action" value="save"><span uk-icon="check"></span> Сохранить</button>
+                <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Сохранить</button>
                 {% if object.transportation_id %}
                     <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
                 {% else %}
@@ -143,16 +143,12 @@
     <section class="order-cancel-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="order-cancel-title">
         <header class="form-section-title order-cancel-dialog-header">
             <span class="order-cancel-dialog-icon" uk-icon="close"></span>
-            <div><h2 id="order-cancel-title">Закрыть без сохранения</h2><p>Изменения текущего сеанса будут потеряны.</p></div>
+            <div><h2 id="order-cancel-title">Есть несохранённые изменения</h2><p>При закрытии или переходе без сохранения данные будут утеряны.</p></div>
         </header>
-        <div class="order-cancel-changes">
-            <p class="uk-text-meta">Изменения в этой форме:</p>
-            <ul data-order-cancel-changes></ul>
-            <p class="uk-text-meta" data-order-cancel-empty hidden>Несохранённых изменений нет.</p>
-        </div>
         <div class="form-actions order-cancel-actions">
             <a class="uk-button order-cancel-confirm-button" href="{% url 'order-list' %}" data-order-cancel-confirm>Закрыть без сохранения</a>
             <button class="uk-button uk-button-default" type="button" data-order-cancel-dismiss>Продолжить редактирование</button>
+            <button class="uk-button uk-button-primary" type="button" data-order-cancel-save>Сохранить</button>
         </div>
     </section>
 </div>

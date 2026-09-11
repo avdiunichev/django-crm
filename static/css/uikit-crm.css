@@ -1118,9 +1118,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 .order-cancel-dialog-header { margin: 0 0 20px; }
 .order-cancel-dialog-header.form-section-title > .order-cancel-dialog-icon { color: #586879 !important; background: #eef1f4 !important; }
 .order-cancel-dialog-header p { line-height: 1.3; }
-.order-cancel-changes ul { max-height: 240px; margin: 7px 0 0; overflow: auto; }
-.order-cancel-changes li { margin: 5px 0; }
-.order-cancel-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; margin-top: 20px; }
+.order-cancel-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; margin-top: 4px; }
 .order-cancel-confirm-button { color: #fff !important; background: #586879 !important; }
 .order-cancel-confirm-button:hover { background: #445260 !important; }
 
@@ -1184,8 +1182,8 @@ html[data-theme="dark"] body.uikit-theme .order-command-header .order-command-ti
 
     .order-cancel-modal { align-items: end; padding: 12px; }
     .order-cancel-dialog { padding: 18px; }
-    .order-cancel-actions { display: flex; gap: 8px; }
-    .order-cancel-actions .uk-button { flex: 1 1 0; min-width: 0; padding-right: 10px; padding-left: 10px; font-size: 11px; }
+    .order-cancel-actions { display: grid; gap: 8px; }
+    .order-cancel-actions .uk-button { width: 100%; }
 }
 
 .form-grid {

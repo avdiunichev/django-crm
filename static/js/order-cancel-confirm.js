@@ -6,10 +6,11 @@
     const modal = document.querySelector("[data-order-cancel-modal]");
     if (!form || !cancelButton || !modal) return;
 
-    const changesList = modal.querySelector("[data-order-cancel-changes]");
-    const emptyState = modal.querySelector("[data-order-cancel-empty]");
     const confirmLink = modal.querySelector("[data-order-cancel-confirm]");
+    const saveButton = document.querySelector("[data-order-save]");
+    const modalSaveButton = modal.querySelector("[data-order-cancel-save]");
     const snapshot = new Map();
+    const routeDeletionSnapshot = new Map();
 
     const isTrackable = (field) => (
         field.matches("input, select, textarea")
@@ -26,76 +27,54 @@
         return field.value.trim();
     };
 
-    const displayValue = (field, value) => {
-        if (field.type === "checkbox" || field.type === "radio") return value === "1" ? "Да" : "Нет";
-        if (field.tagName === "SELECT") {
-            return field.querySelector(`option[value="${CSS.escape(value)}"]`)?.textContent?.trim() || value || "Не заполнено";
-        }
-        return value || "Не заполнено";
-    };
-
-    const labelFor = (field) => {
-        const label = field.closest(".field")?.querySelector("label")?.textContent?.replace(/\*/g, "").trim();
-        const routeStop = field.closest("[data-order-route-stop]");
-        if (!routeStop) return label || "Поле формы";
-        const routeTitle = routeStop.querySelector("[data-route-title]")?.textContent?.trim() || "Точка маршрута";
-        const routeNumber = routeStop.querySelector("[data-route-number]")?.textContent?.trim();
-        return `${routeTitle}${routeNumber ? ` №${routeNumber}` : ""}: ${label || "поле"}`;
-    };
-
     const rememberInitialValues = () => {
         form.querySelectorAll("input, select, textarea").forEach((field) => {
             if (isTrackable(field)) snapshot.set(field, valueOf(field));
         });
+        form.querySelectorAll("input[name$='-DELETE']").forEach((field) => routeDeletionSnapshot.set(field, field.checked));
     };
 
-    const collectChanges = () => {
-        const changes = [];
+    const hasUnsavedChanges = () => {
+        let changed = false;
         form.querySelectorAll("input, select, textarea").forEach((field) => {
-            if (!isTrackable(field)) return;
-            const routeStop = field.closest("[data-order-route-stop]");
-            if (!snapshot.has(field)) {
-                if (!routeStop) changes.push(`Изменено: ${labelFor(field)} — было: Не заполнено → стало: ${displayValue(field, valueOf(field))}`);
-                return;
-            }
-            const oldValue = snapshot.get(field);
-            const newValue = valueOf(field);
-            if (oldValue !== newValue) {
-                changes.push(`Изменено: ${labelFor(field)} — было: ${displayValue(field, oldValue)} → стало: ${displayValue(field, newValue)}`);
-            }
+            if (isTrackable(field) && (!snapshot.has(field) || snapshot.get(field) !== valueOf(field))) changed = true;
         });
-        form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
-            const fields = [...row.querySelectorAll("input, select, textarea")].filter(isTrackable);
-            if (fields.length && fields.every((field) => !snapshot.has(field))) {
-                const title = row.querySelector("[data-route-title]")?.textContent?.trim() || "Точка маршрута";
-                changes.push(`Добавлена: ${title}`);
-            }
+        form.querySelectorAll("input[name$='-DELETE']").forEach((field) => {
+            if (!routeDeletionSnapshot.has(field) || routeDeletionSnapshot.get(field) !== field.checked) changed = true;
         });
-        form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
-            const deleteInput = row.querySelector("input[name$='-DELETE']");
-            if (!deleteInput?.checked) return;
-            const title = row.querySelector("[data-route-title]")?.textContent?.trim() || "Точка маршрута";
-            const number = row.querySelector("[data-route-number]")?.textContent?.trim();
-            changes.push(`Удалена: ${title}${number ? ` №${number}` : ""}`);
-        });
-        return [...new Set(changes)];
+        return changed;
     };
 
     const closeModal = () => { modal.hidden = true; };
 
+    const requestLeave = (url) => {
+        if (!hasUnsavedChanges()) {
+            window.location.assign(url);
+            return;
+        }
+        confirmLink.href = url;
+        modal.hidden = false;
+    };
+
     cancelButton.addEventListener("click", (event) => {
         event.preventDefault();
-        const changes = collectChanges();
-        changesList.replaceChildren(...changes.map((change) => {
-            const item = document.createElement("li");
-            item.textContent = change;
-            return item;
-        }));
-        emptyState.hidden = changes.length > 0;
-        confirmLink.href = cancelButton.dataset.orderCancelUrl;
-        modal.hidden = false;
+        requestLeave(cancelButton.dataset.orderCancelUrl);
+    });
+
+    document.querySelectorAll(".crm-topnav a[href]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            const url = link.href;
+            if (!url || link.getAttribute("href") === "#" || url === window.location.href) return;
+            event.preventDefault();
+            requestLeave(url);
+        });
     });
 
     modal.querySelectorAll("[data-order-cancel-dismiss]").forEach((button) => button.addEventListener("click", closeModal));
+    modalSaveButton?.addEventListener("click", () => {
+        closeModal();
+        if (form.requestSubmit && saveButton) form.requestSubmit(saveButton);
+        else form.submit();
+    });
     rememberInitialValues();
 })();
