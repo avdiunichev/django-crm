@@ -4732,6 +4732,306 @@ html[data-theme="dark"] body.uikit-theme .row-action {
     color: #74b8ff !important;
 }
 
+/* EOF: карточка финансов рейса — единый читаемый стиль для светлой и тёмной темы. */
+body.uikit-theme .transportation-finance-card {
+    border: 1px solid #dbe5f1 !important;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%) !important;
+    color: #2f3846 !important;
+    box-shadow: 0 18px 42px rgba(24, 39, 75, .08);
+}
+
+body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #2b86f6 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px 24px;
+    margin-top: 18px;
+    padding: 22px 24px;
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+body.uikit-theme .transportation-finance-card .trip-finance-hero small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero strong {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: #2f3846 !important;
+    font-size: 34px;
+    text-align: right;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    min-height: 96px;
+    padding: 16px 18px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #dbe5f1;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #9cc9ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    border-color: #3a475d !important;
+    background: #354052 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #b3becd !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #3a475d !important;
+}
+
+/* EOF: карточка финансов рейса — единый читаемый стиль для светлой и тёмной темы. */
+body.uikit-theme .transportation-finance-card {
+    border: 1px solid #dbe5f1 !important;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%) !important;
+    color: #2f3846 !important;
+    box-shadow: 0 18px 42px rgba(24, 39, 75, .08);
+}
+
+body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #2b86f6 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px 24px;
+    margin-top: 18px;
+    padding: 22px 24px;
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+body.uikit-theme .transportation-finance-card .trip-finance-hero small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero strong {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: #2f3846 !important;
+    font-size: 34px;
+    text-align: right;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    min-height: 96px;
+    padding: 16px 18px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #dbe5f1;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #9cc9ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    border-color: #3a475d !important;
+    background: #354052 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #b3becd !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #3a475d !important;
+}
+
+/* EOF: карточка финансов рейса — единый читаемый стиль для светлой и тёмной темы. */
+body.uikit-theme .transportation-finance-card {
+    border: 1px solid #dbe5f1 !important;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%) !important;
+    color: #2f3846 !important;
+    box-shadow: 0 18px 42px rgba(24, 39, 75, .08);
+}
+
+body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #2b86f6 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px 24px;
+    margin-top: 18px;
+    padding: 22px 24px;
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+body.uikit-theme .transportation-finance-card .trip-finance-hero small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero strong {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: #2f3846 !important;
+    font-size: 34px;
+    text-align: right;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    min-height: 96px;
+    padding: 16px 18px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #dbe5f1;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #9cc9ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    border-color: #3a475d !important;
+    background: #354052 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #b3becd !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #3a475d !important;
+}
+
 /* EOF: grouped documents journal. */
 .uikit-theme .document-group-table {
     min-width: 1180px;
@@ -8302,3 +8602,104 @@ html[data-theme="dark"] body.uikit-theme .primary-link,
 html[data-theme="dark"] body.uikit-theme .row-action {
     color: #74b8ff !important;
 }
+
+/* EOF FINAL: карточка финансов рейса — единый читаемый стиль для светлой и тёмной темы. */
+body.uikit-theme .transportation-finance-card {
+    border: 1px solid #dbe5f1 !important;
+    background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%) !important;
+    color: #2f3846 !important;
+    box-shadow: 0 18px 42px rgba(24, 39, 75, .08);
+}
+
+body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #2b86f6 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px 24px;
+    margin-top: 18px;
+    padding: 22px 24px;
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+body.uikit-theme .transportation-finance-card .trip-finance-hero small {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-hero strong {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: #2f3846 !important;
+    font-size: 34px;
+    text-align: right;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    min-height: 96px;
+    padding: 16px 18px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: #fff;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #8a95a3 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #2f3846 !important;
+}
+
+body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #dbe5f1;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .eyebrow {
+    color: #9cc9ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid article {
+    border-color: #3a475d !important;
+    background: #354052 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid strong,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts strong {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-hero small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid span,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-mini-grid small,
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts span {
+    color: #b3becd !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
+    border-top-color: #3a475d !important;
+}
+

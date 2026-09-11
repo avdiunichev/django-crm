@@ -128,6 +128,7 @@
                     <article><span>Исполнителю</span><strong class="amount-expense">{{ transportation.executor_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.executor_vat_rate|default:"НДС не указан" }}</small></article>
                     <article><span>Валовая маржа</span><strong class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.margin_percent }}%</small></article>
                     <article><span>НДС к уплате</span><strong class="amount-expense">{{ transportation.vat_payable|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>продажа − закупка</small></article>
+                    <article><span>Налог на прибыль</span><strong class="amount-expense">{{ transportation.profit_tax_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.owner_company.profit_tax_rate }}%</small></article>
                 </div>
                 <div class="trip-finance-debts">
                     <div><span>Клиент должен</span><strong class="{% if transportation.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.receivable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
