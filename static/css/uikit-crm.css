@@ -3225,6 +3225,190 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     }
 }
 
+/* Top grouped navigation layout. */
+.uikit-theme .app-shell.app-shell-topnav {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.uikit-theme .app-shell-topnav .crm-topnav {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    box-sizing: border-box;
+    min-height: 72px;
+    padding: 10px 24px;
+    border-bottom: 1px solid #e1e8f0;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 10px 30px rgba(24, 39, 75, .06);
+    backdrop-filter: blur(14px);
+}
+
+.uikit-theme .app-shell-topnav .main {
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.uikit-theme .app-shell-topnav .content {
+    padding: 26px 30px 40px;
+}
+
+.uikit-theme .crm-topnav .brand {
+    margin-right: 18px;
+    padding-right: 20px;
+    border-right: 1px solid #e1e8f0;
+    white-space: nowrap;
+}
+
+.uikit-theme .crm-navbar {
+    gap: 4px;
+}
+
+.uikit-theme .crm-navbar > li > a {
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #5f6b7a;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.uikit-theme .crm-navbar > li > a:hover,
+.uikit-theme .crm-navbar > li.uk-active > a {
+    color: #1e87f0;
+    background: rgba(30, 135, 240, .09);
+}
+
+.uikit-theme .crm-topnav .uk-navbar-dropdown {
+    min-width: 240px;
+    padding: 10px;
+    border: 1px solid #e1e8f0;
+    border-radius: 14px;
+    box-shadow: 0 18px 45px rgba(24, 39, 75, .13);
+}
+
+.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a {
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+}
+
+.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a:hover {
+    color: #1e87f0;
+    background: #f3f8ff;
+}
+
+.uikit-theme .crm-topnav-tools {
+    gap: 10px;
+}
+
+.uikit-theme .crm-topnav-tools,
+.uikit-theme .crm-topnav-tools form {
+    display: flex;
+    align-items: center;
+}
+
+.uikit-theme .crm-topnav .theme-switcher {
+    width: 184px;
+}
+
+.uikit-theme .crm-topnav .theme-switcher-label {
+    display: none;
+}
+
+.uikit-theme .crm-topnav .theme-switcher-options {
+    min-height: 36px;
+}
+
+html[data-theme="dark"] body.uikit-theme .app-shell-topnav .crm-topnav {
+    border-color: #29364a;
+    background: rgba(17, 27, 44, .94);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .24);
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .brand {
+    border-color: #29364a;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-navbar > li > a {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-navbar > li > a:hover,
+html[data-theme="dark"] body.uikit-theme .crm-navbar > li.uk-active > a {
+    color: #8dc5fc;
+    background: #192c47;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .uk-navbar-dropdown {
+    border-color: #29364a;
+    background: #111b2c;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, .35);
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a {
+    color: #dce4ef;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a:hover {
+    color: #8dc5fc;
+    background: #192c47;
+}
+
+@media (max-width: 1180px) {
+    .uikit-theme .app-shell-topnav .crm-topnav {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left,
+    .uikit-theme .crm-topnav .uk-navbar-right {
+        width: 100%;
+    }
+
+    .uikit-theme .crm-navbar {
+        flex-wrap: wrap;
+    }
+
+    .uikit-theme .crm-topnav-tools {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 700px) {
+    .uikit-theme .app-shell-topnav .content {
+        padding: 18px 14px 32px;
+    }
+
+    .uikit-theme .crm-topnav .brand {
+        margin-right: 0;
+        padding-right: 0;
+        border-right: 0;
+    }
+
+    .uikit-theme .crm-navbar > li > a {
+        min-height: 38px;
+        padding: 0 9px;
+        font-size: 12px;
+    }
+
+    .uikit-theme .crm-topnav .theme-switcher {
+        width: 100%;
+    }
+}
+
 /* Единая тема CRM: плотный рабочий интерфейс в логике 1С */
 .onec-theme {
     --crm-accent: #ffd91a;

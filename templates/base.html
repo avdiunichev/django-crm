@@ -20,37 +20,65 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-trip-register-debts">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260911-top-navigation">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
-<div class="app-shell">
-    <aside class="sidebar uk-background-default">
-        <a class="brand uk-logo" href="{% url 'dashboard' %}">
-            <span><strong>CRM ЭКСПЕДИТОР</strong></span>
-        </a>
-        <nav class="nav">
-            <ul class="uk-nav uk-nav-default">
-                <li class="{% if request.resolver_match.url_name == 'dashboard' %}uk-active{% endif %}"><a href="{% url 'dashboard' %}"><span class="uk-margin-small-right" uk-icon="home"></span> Dashboard</a></li>
-                <li class="{% if 'chat' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'chat' %}"><span class="uk-margin-small-right" uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a></li>
-                <li class="{% if 'order' in request.resolver_match.url_name and 'forwarding-order' not in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'order-list' %}"><span class="uk-margin-small-right" uk-icon="cart"></span> Заказы</a></li>
-                <li class="{% if 'transportation' in request.resolver_match.url_name and request.resolver_match.url_name != 'transportation-accounting' %}uk-active{% endif %}"><a href="{% url 'transportation-list' %}"><span class="uk-margin-small-right" uk-icon="git-fork"></span> Рейсы</a></li>
-                <li class="{% if request.resolver_match.url_name == 'transportation-accounting' %}uk-active{% endif %}"><a href="{% url 'transportation-accounting' %}"><span class="uk-margin-small-right" uk-icon="database"></span> Учёт перевозок</a></li>
-                {% if crm_access.can_access_finance %}<li class="{% if 'bank-statement' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'bank-statement-list' %}"><span class="uk-margin-small-right" uk-icon="credit-card"></span> Приходы / расходы</a></li>{% endif %}
-                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'reports' %}uk-active{% endif %}"><a href="{% url 'reports' %}"><span class="uk-margin-small-right" uk-icon="table"></span> Отчёты</a></li>{% endif %}
-                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'debt-report' %}uk-active{% endif %}"><a href="{% url 'debt-report' %}"><span class="uk-margin-small-right" uk-icon="warning"></span> Задолженность</a></li>{% endif %}
-                {% if crm_access.can_access_finance %}<li class="{% if 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'reconciliation-act-list' %}"><span class="uk-margin-small-right" uk-icon="future"></span> Акты сверки</a></li>{% endif %}
-                {% if crm_access.can_access_finance %}<li class="{% if request.resolver_match.url_name == 'profitability-report' %}uk-active{% endif %}"><a href="{% url 'profitability-report' %}"><span class="uk-margin-small-right" uk-icon="triangle-up"></span> Прибыльность</a></li>{% endif %}
-                <li class="{% if 'planner' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'planner' %}"><span class="uk-margin-small-right" uk-icon="calendar"></span> Планировщик</a></li>
-                <li class="{% if 'shipment-document' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}"><a href="{% url 'shipment-document-list' %}"><span class="uk-margin-small-right" uk-icon="file-text"></span> Документы</a></li>
-                {% if crm_access.can_access_finance %}<li class="{% if 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'primary-document-registry-list' %}"><span class="uk-margin-small-right" uk-icon="folder"></span> Первичка</a></li>{% endif %}
-                <li class="{% if 'contract' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'contract-list' %}"><span class="uk-margin-small-right" uk-icon="album"></span> Договоры</a></li>
-                <li class="{% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'organization-list' %}"><span class="uk-margin-small-right" uk-icon="users"></span> Контрагенты</a></li>
-                <li class="{% if 'driver' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'driver-list' %}"><span class="uk-margin-small-right" uk-icon="user"></span> Водители</a></li>
-                <li class="{% if 'vehicle' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'vehicle-list' %}"><span class="uk-margin-small-right" uk-icon="nut"></span> Автопарк</a></li>
+<div class="app-shell app-shell-topnav">
+    <header class="crm-topnav uk-navbar-container uk-navbar-transparent" uk-navbar>
+        <div class="uk-navbar-left">
+            <a class="brand uk-logo" href="{% url 'dashboard' %}"><span><strong>CRM ЭКСПЕДИТОР</strong></span></a>
+            <ul class="uk-navbar-nav crm-navbar">
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}uk-active{% endif %}"><a href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a></li>
+                <li class="{% if 'order' in request.resolver_match.url_name or 'transportation' in request.resolver_match.url_name or 'planner' in request.resolver_match.url_name %}uk-active{% endif %}">
+                    <a href="#"><span uk-icon="git-fork"></span> Операции <span uk-navbar-parent-icon></span></a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li><a href="{% url 'order-list' %}"><span uk-icon="cart"></span> Заказы</a></li>
+                            <li><a href="{% url 'transportation-list' %}"><span uk-icon="git-fork"></span> Рейсы</a></li>
+                            <li><a href="{% url 'transportation-accounting' %}"><span uk-icon="database"></span> Учёт перевозок</a></li>
+                            <li><a href="{% url 'planner' %}"><span uk-icon="calendar"></span> Планировщик</a></li>
+                        </ul>
+                    </div>
+                </li>
+                {% if crm_access.can_access_finance %}
+                <li class="{% if 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
+                    <a href="#"><span uk-icon="credit-card"></span> Финансы <span uk-navbar-parent-icon></span></a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Приходы / расходы</a></li>
+                            <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
+                            <li><a href="{% url 'profitability-report' %}"><span uk-icon="triangle-up"></span> Прибыльность</a></li>
+                            <li><a href="{% url 'reconciliation-act-list' %}"><span uk-icon="future"></span> Акты сверки</a></li>
+                            <li><a href="{% url 'reports' %}"><span uk-icon="table"></span> Отчёты</a></li>
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+                <li class="{% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}">
+                    <a href="#"><span uk-icon="file-text"></span> Документы <span uk-navbar-parent-icon></span></a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li><a href="{% url 'shipment-document-list' %}"><span uk-icon="file-text"></span> Документы</a></li>
+                            {% if crm_access.can_access_finance %}<li><a href="{% url 'primary-document-registry-list' %}"><span uk-icon="folder"></span> Первичка</a></li>{% endif %}
+                            <li><a href="{% url 'contract-list' %}"><span uk-icon="album"></span> Договоры</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="{% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name or 'driver' in request.resolver_match.url_name or 'vehicle' in request.resolver_match.url_name %}uk-active{% endif %}">
+                    <a href="#"><span uk-icon="users"></span> Справочники <span uk-navbar-parent-icon></span></a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li><a href="{% url 'organization-list' %}"><span uk-icon="users"></span> Контрагенты</a></li>
+                            <li><a href="{% url 'driver-list' %}"><span uk-icon="user"></span> Водители</a></li>
+                            <li><a href="{% url 'vehicle-list' %}"><span uk-icon="nut"></span> Автопарк</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="{% if 'chat' in request.resolver_match.url_name %}uk-active{% endif %}"><a href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a></li>
             </ul>
-        </nav>
-        <div class="sidebar-footer">
+        </div>
+        <div class="uk-navbar-right crm-topnav-tools">
             <div class="theme-switcher" role="group" aria-label="Тема оформления">
                 <span class="theme-switcher-label">Оформление</span>
                 <div class="theme-switcher-options">
@@ -58,13 +86,13 @@
                     <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
                 </div>
             </div>
-            {% if user.is_staff %}<a href="{% url 'admin:index' %}">Администрирование</a>{% endif %}
+            {% if user.is_staff %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'admin:index' %}">Админ</a>{% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button class="link-button" type="submit">Выйти</button>
+                <button class="uk-button uk-button-default uk-button-small" type="submit">Выйти</button>
             </form>
         </div>
-    </aside>
+    </header>
     <main class="main">
         <div class="content">
             {% if messages %}
