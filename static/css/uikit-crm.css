@@ -4631,6 +4631,348 @@ html[data-theme="dark"] body.uikit-theme .amount-problem {
     color: #ff8f9f !important;
 }
 
+/* EOF dark override: реестры и таблицы в тёмной теме не должны наследовать белые карточки. */
+html[data-theme="dark"] body.uikit-theme .panel,
+html[data-theme="dark"] body.uikit-theme .uk-card-default,
+html[data-theme="dark"] body.uikit-theme section.panel.uk-card.uk-card-default,
+html[data-theme="dark"] body.uikit-theme .filters,
+html[data-theme="dark"] body.uikit-theme .filter-summary,
+html[data-theme="dark"] body.uikit-theme .active-filter,
+html[data-theme="dark"] body.uikit-theme .table-wrap,
+html[data-theme="dark"] body.uikit-theme .uk-table,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table,
+html[data-theme="dark"] body.uikit-theme .order-register-table {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header,
+html[data-theme="dark"] body.uikit-theme .panel-header,
+html[data-theme="dark"] body.uikit-theme .uk-table th,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table th,
+html[data-theme="dark"] body.uikit-theme .order-register-table th {
+    border-color: #344257 !important;
+    background-color: #1b283b !important;
+    color: #9fb3cb !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table td,
+html[data-theme="dark"] body.uikit-theme .order-register-table td {
+    border-color: #29364a !important;
+    background-color: transparent !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel h1,
+html[data-theme="dark"] body.uikit-theme .panel h2,
+html[data-theme="dark"] body.uikit-theme .panel h3,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h1,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h2,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h3,
+html[data-theme="dark"] body.uikit-theme .onec-register-header h2,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header h2 {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel p,
+html[data-theme="dark"] body.uikit-theme .panel small,
+html[data-theme="dark"] body.uikit-theme .uk-card-default p,
+html[data-theme="dark"] body.uikit-theme .uk-card-default small,
+html[data-theme="dark"] body.uikit-theme .onec-register-header p,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header p,
+html[data-theme="dark"] body.uikit-theme .uk-text-meta,
+html[data-theme="dark"] body.uikit-theme .route-compact {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals article {
+    border-color: #344257 !important;
+    background-color: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals span,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals small {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals strong,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-income,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-expense {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a,
+html[data-theme="dark"] body.uikit-theme .active-filter {
+    border-color: #344257 !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a.is-active,
+html[data-theme="dark"] body.uikit-theme .metric-link.is-selected {
+    border-color: #3d74bd !important;
+    background-color: #1b3354 !important;
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .active-filter a,
+html[data-theme="dark"] body.uikit-theme .clear-link,
+html[data-theme="dark"] body.uikit-theme .server-sort-link,
+html[data-theme="dark"] body.uikit-theme .primary-link,
+html[data-theme="dark"] body.uikit-theme .row-action {
+    color: #74b8ff !important;
+}
+
+/* Последний защитный слой тёмной темы.
+   Всё, что является панелью, фильтром, чипом, итоговой карточкой или таблицей,
+   в dark-mode не должно оставаться белым. */
+html[data-theme="dark"] body.uikit-theme .panel,
+html[data-theme="dark"] body.uikit-theme .uk-card-default,
+html[data-theme="dark"] body.uikit-theme section.panel.uk-card.uk-card-default,
+html[data-theme="dark"] body.uikit-theme .filters,
+html[data-theme="dark"] body.uikit-theme .filter-summary,
+html[data-theme="dark"] body.uikit-theme .active-filter,
+html[data-theme="dark"] body.uikit-theme .table-wrap,
+html[data-theme="dark"] body.uikit-theme .uk-table,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table,
+html[data-theme="dark"] body.uikit-theme .order-register-table {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header,
+html[data-theme="dark"] body.uikit-theme .panel-header,
+html[data-theme="dark"] body.uikit-theme .uk-table th,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table th,
+html[data-theme="dark"] body.uikit-theme .order-register-table th {
+    border-color: #344257 !important;
+    background-color: #1b283b !important;
+    color: #9fb3cb !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table td,
+html[data-theme="dark"] body.uikit-theme .order-register-table td {
+    border-color: #29364a !important;
+    background-color: transparent !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel h1,
+html[data-theme="dark"] body.uikit-theme .panel h2,
+html[data-theme="dark"] body.uikit-theme .panel h3,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h1,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h2,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h3,
+html[data-theme="dark"] body.uikit-theme .onec-register-header h2,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header h2 {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel p,
+html[data-theme="dark"] body.uikit-theme .panel small,
+html[data-theme="dark"] body.uikit-theme .uk-card-default p,
+html[data-theme="dark"] body.uikit-theme .uk-card-default small,
+html[data-theme="dark"] body.uikit-theme .onec-register-header p,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header p,
+html[data-theme="dark"] body.uikit-theme .uk-text-meta,
+html[data-theme="dark"] body.uikit-theme .route-compact {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals article {
+    border-color: #344257 !important;
+    background-color: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals span,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals small {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals strong,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-income,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-expense {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a,
+html[data-theme="dark"] body.uikit-theme .active-filter {
+    border-color: #344257 !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a.is-active,
+html[data-theme="dark"] body.uikit-theme .metric-link.is-selected {
+    border-color: #3d74bd !important;
+    background-color: #1b3354 !important;
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .active-filter a,
+html[data-theme="dark"] body.uikit-theme .clear-link,
+html[data-theme="dark"] body.uikit-theme .server-sort-link,
+html[data-theme="dark"] body.uikit-theme .primary-link,
+html[data-theme="dark"] body.uikit-theme .row-action {
+    color: #74b8ff !important;
+}
+
+/* Финальный слой тёмной темы для реестров, фильтров и табличных блоков.
+   Держим его в конце файла, чтобы поздние светлые правила не пробивали фон. */
+html[data-theme="dark"] body.uikit-theme .panel,
+html[data-theme="dark"] body.uikit-theme .uk-card-default,
+html[data-theme="dark"] body.uikit-theme section.panel.uk-card.uk-card-default {
+    border-color: #29364a !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel h1,
+html[data-theme="dark"] body.uikit-theme .panel h2,
+html[data-theme="dark"] body.uikit-theme .panel h3,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h1,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h2,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h3 {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel p,
+html[data-theme="dark"] body.uikit-theme .panel small,
+html[data-theme="dark"] body.uikit-theme .uk-card-default p,
+html[data-theme="dark"] body.uikit-theme .uk-card-default small,
+html[data-theme="dark"] body.uikit-theme .uk-text-meta {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header,
+html[data-theme="dark"] body.uikit-theme .panel-header {
+    border-color: #29364a !important;
+    background: #192537 !important;
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header h2,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header h2,
+html[data-theme="dark"] body.uikit-theme .panel-header h2 {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header p,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header p,
+html[data-theme="dark"] body.uikit-theme .panel-header p {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .filters,
+html[data-theme="dark"] body.uikit-theme .filter-summary,
+html[data-theme="dark"] body.uikit-theme .active-filter,
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a {
+    border-color: #29364a !important;
+    background: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a.is-active,
+html[data-theme="dark"] body.uikit-theme .metric-link.is-selected {
+    border-color: #3d74bd !important;
+    background: #1b3354 !important;
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .active-filter span,
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a span {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .active-filter a,
+html[data-theme="dark"] body.uikit-theme .clear-link {
+    color: #74b8ff !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals {
+    border-color: #29364a !important;
+    background: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals article {
+    border-color: #344257 !important;
+    background: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals span,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals small {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals strong,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-income,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-expense {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .table-wrap,
+html[data-theme="dark"] body.uikit-theme .uk-table,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table,
+html[data-theme="dark"] body.uikit-theme .order-register-table {
+    background: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table thead,
+html[data-theme="dark"] body.uikit-theme .uk-table th,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table th,
+html[data-theme="dark"] body.uikit-theme .order-register-table th {
+    border-color: #344257 !important;
+    background: #1b283b !important;
+    color: #9fb3cb !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table tbody tr,
+html[data-theme="dark"] body.uikit-theme .uk-table td,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table td,
+html[data-theme="dark"] body.uikit-theme .order-register-table td {
+    border-color: #29364a !important;
+    background: transparent !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table tbody tr:hover {
+    background: rgba(116, 184, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td small,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table td small,
+html[data-theme="dark"] body.uikit-theme .order-register-table td small,
+html[data-theme="dark"] body.uikit-theme .route-compact {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .server-sort-link,
+html[data-theme="dark"] body.uikit-theme .primary-link,
+html[data-theme="dark"] body.uikit-theme .row-action {
+    color: #74b8ff !important;
+}
+
 /* Финальный слой читаемости тёмной темы для реестров и табличных частей. */
 html[data-theme="dark"] body.uikit-theme .table-wrap,
 html[data-theme="dark"] body.uikit-theme .uk-table,
@@ -7677,4 +8019,105 @@ html[data-theme="dark"] body.uikit-theme .amount-expense {
 
 html[data-theme="dark"] body.uikit-theme .amount-problem {
     color: #ff8f9f !important;
+}
+
+/* EOF dark override: реестры и таблицы в тёмной теме не должны наследовать белые карточки. */
+html[data-theme="dark"] body.uikit-theme .panel,
+html[data-theme="dark"] body.uikit-theme .uk-card-default,
+html[data-theme="dark"] body.uikit-theme section.panel.uk-card.uk-card-default,
+html[data-theme="dark"] body.uikit-theme .filters,
+html[data-theme="dark"] body.uikit-theme .filter-summary,
+html[data-theme="dark"] body.uikit-theme .active-filter,
+html[data-theme="dark"] body.uikit-theme .table-wrap,
+html[data-theme="dark"] body.uikit-theme .uk-table,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table,
+html[data-theme="dark"] body.uikit-theme .order-register-table {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .onec-register-header,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header,
+html[data-theme="dark"] body.uikit-theme .panel-header,
+html[data-theme="dark"] body.uikit-theme .uk-table th,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table th,
+html[data-theme="dark"] body.uikit-theme .order-register-table th {
+    border-color: #344257 !important;
+    background-color: #1b283b !important;
+    color: #9fb3cb !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .uk-table td,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table td,
+html[data-theme="dark"] body.uikit-theme .order-register-table td {
+    border-color: #29364a !important;
+    background-color: transparent !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel h1,
+html[data-theme="dark"] body.uikit-theme .panel h2,
+html[data-theme="dark"] body.uikit-theme .panel h3,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h1,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h2,
+html[data-theme="dark"] body.uikit-theme .uk-card-default h3,
+html[data-theme="dark"] body.uikit-theme .onec-register-header h2,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header h2 {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .panel p,
+html[data-theme="dark"] body.uikit-theme .panel small,
+html[data-theme="dark"] body.uikit-theme .uk-card-default p,
+html[data-theme="dark"] body.uikit-theme .uk-card-default small,
+html[data-theme="dark"] body.uikit-theme .onec-register-header p,
+html[data-theme="dark"] body.uikit-theme .transportation-register-header p,
+html[data-theme="dark"] body.uikit-theme .uk-text-meta,
+html[data-theme="dark"] body.uikit-theme .route-compact {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals {
+    border-color: #29364a !important;
+    background-color: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals article {
+    border-color: #344257 !important;
+    background-color: #111b2c !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals span,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals small {
+    color: #9aa8ba !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-finance-totals strong,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-income,
+html[data-theme="dark"] body.uikit-theme .register-finance-totals .amount-expense {
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a,
+html[data-theme="dark"] body.uikit-theme .active-filter {
+    border-color: #344257 !important;
+    background-color: #141e2f !important;
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .register-quick-filters a.is-active,
+html[data-theme="dark"] body.uikit-theme .metric-link.is-selected {
+    border-color: #3d74bd !important;
+    background-color: #1b3354 !important;
+    color: #eef3fa !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .active-filter a,
+html[data-theme="dark"] body.uikit-theme .clear-link,
+html[data-theme="dark"] body.uikit-theme .server-sort-link,
+html[data-theme="dark"] body.uikit-theme .primary-link,
+html[data-theme="dark"] body.uikit-theme .row-action {
+    color: #74b8ff !important;
 }
