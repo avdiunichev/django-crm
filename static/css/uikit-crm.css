@@ -7452,3 +7452,30 @@ body.uikit-theme {
         padding: 12px 14px;
     }
 }
+
+/* Финальный стандарт денежных сумм: спокойно и едино по всей CRM.
+   Доходы/расходы/ставки больше не раскрашиваются в зелёный и жёлтый;
+   красный оставляем только для проблемных показателей и просрочек. */
+.uikit-theme .amount-income,
+.uikit-theme .amount-expense,
+.uikit-theme .uk-card-primary .amount-income,
+.uikit-theme .uk-card-primary .amount-expense,
+html[data-theme="dark"] body.uikit-theme .amount-income,
+html[data-theme="dark"] body.uikit-theme .amount-expense {
+    color: #2f3846 !important;
+}
+
+.uikit-theme .amount-problem,
+.uikit-theme .uk-card-primary .amount-problem,
+html[data-theme="dark"] body.uikit-theme .amount-problem {
+    color: #d14343 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .amount-income,
+html[data-theme="dark"] body.uikit-theme .amount-expense {
+    color: #dce4ef !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .amount-problem {
+    color: #ff8f9f !important;
+}
