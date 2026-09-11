@@ -143,12 +143,11 @@
     <section class="order-cancel-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="order-cancel-title">
         <header class="form-section-title order-cancel-dialog-header">
             <span class="order-cancel-dialog-icon" uk-icon="close"></span>
-            <div><h2 id="order-cancel-title">Есть несохранённые изменения</h2><p>При закрытии или переходе без сохранения данные будут утеряны.</p></div>
+            <div><h2 id="order-cancel-title">Заказ не сохранён</h2><p>При закрытии или переходе без сохранения данные будут утеряны.</p></div>
         </header>
         <div class="form-actions order-cancel-actions">
-            <a class="uk-button order-cancel-confirm-button" href="{% url 'order-list' %}" data-order-cancel-confirm>Закрыть без сохранения</a>
-            <button class="uk-button uk-button-default" type="button" data-order-cancel-dismiss>Продолжить редактирование</button>
             <button class="uk-button uk-button-primary" type="button" data-order-cancel-save>Сохранить</button>
+            <a class="uk-button order-cancel-confirm-button" href="{% url 'order-list' %}" data-order-cancel-confirm>Закрыть без сохранения</a>
         </div>
     </section>
 </div>
