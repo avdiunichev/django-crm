@@ -771,17 +771,14 @@ a:hover {
     position: sticky;
     top: 86px;
     z-index: 24;
-    padding: 0;
+    padding: 24px;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(35, 55, 80, .12);
 }
 
 .order-command-title {
     align-items: center;
-    min-height: 72px;
     margin: 0;
-    padding: 16px 24px;
 }
 
 .order-command-title > .order-command-icon {
@@ -813,10 +810,6 @@ a:hover {
     gap: 8px;
     margin-left: auto;
     padding-right: 2px;
-}
-
-html[data-theme="dark"] body.uikit-theme .order-command-header {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
 }
 
 @media (max-width: 900px) {
@@ -852,6 +845,10 @@ html[data-theme="dark"] body.uikit-theme .order-command-header {
 
     .order-command-actions .uk-button {
         justify-content: center;
+    }
+
+    .order-command-header {
+        padding: 16px;
     }
 }
 
