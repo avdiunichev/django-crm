@@ -11,7 +11,6 @@
     const activateModal = (modal, embedded = false) => {
         if (embedded) document.body.append(modal);
         document.body.classList.add("has-safe-delete-modal");
-        modal.querySelector("[data-safe-delete-dismiss]")?.focus();
         modal.querySelectorAll("[data-safe-delete-dismiss]").forEach((control) => {
             control.addEventListener("click", (event) => {
                 if (embedded) {
