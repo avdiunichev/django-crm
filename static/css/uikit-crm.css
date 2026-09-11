@@ -7919,14 +7919,23 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 720px) {
     .order-route-grid {
         grid-template-columns: 1fr;
     }
 
-    .route-city-address-grid,
-    .route-schedule-grid {
+    .route-city-address-grid {
         grid-template-columns: 1fr;
+    }
+
+    .route-schedule-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-schedule-grid > :nth-child(1),
+    .route-schedule-grid > :nth-child(4),
+    .route-schedule-grid > :nth-child(5) {
+        grid-column: 1 / -1;
     }
 
     .order-route-stop-head {
