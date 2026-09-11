@@ -3,7 +3,6 @@
 {% block content %}
 <div class="safe-delete-modal" data-safe-delete-modal>
     <section class="safe-delete-dialog uk-card uk-card-default" role="dialog" aria-modal="true" aria-labelledby="safe-delete-title">
-        <button class="safe-delete-close" type="button" aria-label="Закрыть" data-safe-delete-dismiss>&times;</button>
         <header class="form-section-title safe-delete-dialog-header">
             <span class="safe-delete-heading-icon" uk-icon="trash"></span>
             <div>
@@ -37,12 +36,12 @@
                 <p>После подтверждения запись будет удалена без возможности восстановления.</p>
             {% endif %}
         </div>
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-actions safe-delete-actions">
-                <a class="uk-button uk-button-default" href="{{ cancel_url }}" data-safe-delete-dismiss>Отмена</a>
-                <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить</button>
-            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions safe-delete-actions">
+                    <button class="uk-button uk-button-danger" type="submit"><span uk-icon="trash"></span> Удалить</button>
+                    <a class="uk-button uk-button-default" href="{{ cancel_url }}" data-safe-delete-dismiss>Отмена</a>
+                </div>
         </form>
     {% endif %}
     </section>
