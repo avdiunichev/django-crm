@@ -1121,6 +1121,75 @@ a:hover {
     margin: 2px 0 9px;
 }
 
+.trip-finance-hero {
+    margin-top: 14px;
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .14);
+}
+
+.trip-finance-hero span,
+.trip-finance-hero strong,
+.trip-finance-hero small {
+    display: block;
+}
+
+.trip-finance-hero span,
+.trip-finance-hero small,
+.trip-finance-mini-grid span,
+.trip-finance-mini-grid small,
+.trip-finance-debts span {
+    color: rgba(255, 255, 255, .78);
+}
+
+.trip-finance-hero strong {
+    margin: 4px 0;
+    font-size: 32px;
+    line-height: 1.12;
+    font-weight: 600;
+}
+
+.trip-finance-mini-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.trip-finance-mini-grid article {
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .1);
+}
+
+.trip-finance-mini-grid span,
+.trip-finance-mini-grid strong,
+.trip-finance-mini-grid small,
+.trip-finance-debts span,
+.trip-finance-debts strong {
+    display: block;
+}
+
+.trip-finance-mini-grid strong {
+    margin: 3px 0;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.trip-finance-debts {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.trip-finance-debts strong {
+    margin-top: 3px;
+    font-size: 18px;
+}
+
 .route-stop-list article {
     padding: 18px 0;
     border-bottom: 1px solid #e5e5e5;
@@ -1220,6 +1289,122 @@ a:hover {
 .finance-tax-result small {
     margin-top: 6px;
     color: #999;
+}
+
+.trip-finance-dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.trip-finance-card {
+    padding: 20px;
+    border: 1px solid #e2e9f2;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(24, 39, 75, .05);
+}
+
+.trip-finance-card span,
+.trip-finance-card strong,
+.trip-finance-card small {
+    display: block;
+}
+
+.trip-finance-card span {
+    color: #8a95a3;
+    font-size: 12px;
+}
+
+.trip-finance-card strong {
+    margin: 8px 0 5px;
+    font-size: 24px;
+    line-height: 1.12;
+    font-weight: 650;
+}
+
+.trip-finance-card small {
+    color: #9aa4b2;
+    line-height: 1.35;
+}
+
+.trip-finance-card.is-income {
+    border-left: 4px solid #32d296;
+}
+
+.trip-finance-card.is-expense {
+    border-left: 4px solid #faa05a;
+}
+
+.trip-finance-card.is-profit,
+.trip-finance-card.is-net {
+    border-left: 4px solid #1e87f0;
+}
+
+.trip-finance-card.is-problem {
+    border-left: 4px solid #f0506e;
+}
+
+.trip-finance-breakdown {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.trip-finance-flow,
+.trip-finance-settlements article {
+    padding: 18px;
+    border: 1px solid #e2e9f2;
+    border-radius: 18px;
+    background: #f8fbff;
+}
+
+.trip-finance-flow div {
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e9f2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.trip-finance-flow div:first-child {
+    padding-top: 0;
+}
+
+.trip-finance-flow div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.trip-finance-flow span,
+.trip-finance-settlements span {
+    color: #8a95a3;
+}
+
+.trip-finance-flow strong {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.trip-finance-settlements {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.trip-finance-settlements strong,
+.trip-finance-settlements small {
+    display: block;
+}
+
+.trip-finance-settlements strong {
+    margin: 6px 0;
+    font-size: 24px;
+}
+
+.trip-finance-settlements small {
+    color: #9aa4b2;
 }
 
 .tax-report-body {
@@ -2288,7 +2473,12 @@ a:hover {
     .contract-parties,
     .transportation-overview-grid,
     .finance-summary,
-    .finance-tax-result {
+    .finance-tax-result,
+    .trip-finance-dashboard,
+    .trip-finance-breakdown,
+    .trip-finance-settlements,
+    .trip-finance-mini-grid,
+    .trip-finance-debts {
         grid-template-columns: 1fr;
     }
 
@@ -4035,11 +4225,18 @@ html[data-theme="dark"] body.uikit-theme .transport-chain-node,
 html[data-theme="dark"] body.uikit-theme .transportation-summary,
 html[data-theme="dark"] body.uikit-theme .finance-summary article,
 html[data-theme="dark"] body.uikit-theme .finance-tax-result article,
+html[data-theme="dark"] body.uikit-theme .trip-finance-card,
+html[data-theme="dark"] body.uikit-theme .trip-finance-flow,
+html[data-theme="dark"] body.uikit-theme .trip-finance-settlements article,
 html[data-theme="dark"] body.uikit-theme .contract-parties article,
 html[data-theme="dark"] body.uikit-theme .tax-metrics-grid article {
     border-color: #29364a;
     color: #dce4ef;
     background: #172235;
+}
+
+html[data-theme="dark"] body.uikit-theme .trip-finance-flow div {
+    border-color: #29364a;
 }
 
 html[data-theme="dark"] body.uikit-theme .transportation-summary strong {

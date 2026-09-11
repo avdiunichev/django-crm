@@ -117,8 +117,21 @@
             </section>
             <section class="panel uk-card uk-card-primary uk-light transportation-finance-card">
                 <span class="eyebrow">Финансы рейса</span>
-                <dl><dt>Продажа клиенту</dt><dd class="amount-income">{{ transportation.revenue|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Закупка</dt><dd class="amount-expense">{{ transportation.cost|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Маржа</dt><dd class="finance-total {% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Доп. доход / расход</dt><dd><span class="amount-income">+{{ incident_income|floatformat:"2g" }}</span> / <span class="amount-expense">−{{ incident_expense|floatformat:"2g" }}</span> {{ transportation.currency|currency_symbol }}</dd><dt>Маржа с учётом событий</dt><dd class="finance-total {% if adjusted_margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ adjusted_margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Маржинальность</dt><dd class="finance-total {% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin_percent }}%</dd><dt>НДС к уплате</dt><dd class="finance-total amount-expense">{{ transportation.vat_payable|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Прибыль без НДС</dt><dd class="finance-total {% if transportation.profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Расчётный налог {{ transportation.owner_company.profit_tax_rate }}%</dt><dd class="amount-expense">{{ transportation.profit_tax_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd><dt>Чистая прибыль</dt><dd class="finance-total {% if transportation.net_profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.net_profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</dd></dl>
-                <hr><small>Дебиторская задолженность</small><strong class="{% if transportation.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.receivable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Кредиторская задолженность</small><strong class="{% if transportation.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ transportation.payable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong>
+                <div class="trip-finance-hero">
+                    <span>Чистая прибыль</span>
+                    <strong class="{% if transportation.net_profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.net_profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong>
+                    <small>после НДС и расчётного налога</small>
+                </div>
+                <div class="trip-finance-mini-grid">
+                    <article><span>Клиент платит</span><strong class="amount-income">{{ transportation.customer_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.customer_vat_rate|default:"НДС не указан" }}</small></article>
+                    <article><span>Исполнителю</span><strong class="amount-expense">{{ transportation.executor_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.executor_vat_rate|default:"НДС не указан" }}</small></article>
+                    <article><span>Валовая маржа</span><strong class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.margin_percent }}%</small></article>
+                    <article><span>НДС к уплате</span><strong class="amount-expense">{{ transportation.vat_payable|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>продажа − закупка</small></article>
+                </div>
+                <div class="trip-finance-debts">
+                    <div><span>Клиент должен</span><strong class="{% if transportation.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.receivable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                    <div><span>Мы должны</span><strong class="{% if transportation.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ transportation.payable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                </div>
             </section>
         </div>
     </li>
@@ -137,25 +150,28 @@
     </li>
     <li>
         <section class="panel uk-card uk-card-default">
-            <div class="section-title"><h2>Управленческий результат</h2></div>
-            <div class="finance-summary">
-                <article><span>Выручка</span><strong class="amount-income">{{ transportation.revenue|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
-                <article><span>Себестоимость</span><strong class="amount-expense">{{ transportation.cost|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
-                <article><span>Маржа</span><strong class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
-                <article><span>Маржа с учётом событий</span><strong class="{% if adjusted_margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ adjusted_margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
-                <article><span>Маржинальность</span><strong>{{ transportation.margin_percent }}%</strong></article>
+            <div class="section-title"><div><span class="eyebrow">Финансовый результат</span><h2>Деньги по рейсу простым языком</h2><p>Отдельно показываем валовую экономику, НДС, налог и взаиморасчёты.</p></div></div>
+            <div class="trip-finance-dashboard">
+                <article class="trip-finance-card is-income"><span>Клиент платит</span><strong>{{ transportation.customer_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.customer_vat_rate|default:"НДС не указан" }} · НДС {{ transportation.customer_vat_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</small></article>
+                <article class="trip-finance-card is-expense"><span>Исполнителю</span><strong>{{ transportation.executor_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>{{ transportation.executor_vat_rate|default:"НДС не указан" }} · НДС {{ transportation.executor_vat_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</small></article>
+                <article class="trip-finance-card {% if transportation.margin < 0 %}is-problem{% else %}is-profit{% endif %}"><span>Валовая маржа</span><strong>{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Доход − расход · {{ transportation.margin_percent }}%</small></article>
+                <article class="trip-finance-card {% if transportation.net_profit < 0 %}is-problem{% else %}is-net{% endif %}"><span>Чистая прибыль</span><strong>{{ transportation.net_profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>после НДС и налога</small></article>
             </div>
-            <div class="finance-tax-result uk-margin-top">
-                <article><span>НДС к уплате</span><strong class="amount-expense">{{ transportation.vat_payable|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>НДС продажи − НДС закупки</small></article>
-                <article><span>Прибыль рейса без НДС</span><strong class="{% if transportation.profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Доход без НДС − расход без НДС</small></article>
-                <article><span>Расчётный налог на прибыль</span><strong class="amount-expense">{{ transportation.profit_tax_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Ставка нашей компании: {{ transportation.owner_company.profit_tax_rate }}%</small></article>
-                <article class="is-net-profit"><span>Чистая прибыль</span><strong class="{% if transportation.net_profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.net_profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Прибыль без НДС − расчётный налог</small></article>
+            <div class="trip-finance-breakdown uk-margin-top">
+                <div class="trip-finance-flow">
+                    <div><span>Валовая маржа</span><strong class="{% if transportation.margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                    <div><span>Доп. доходы / расходы</span><strong><span class="amount-income">+{{ incident_income|floatformat:"2g" }}</span> / <span class="amount-expense">−{{ incident_expense|floatformat:"2g" }}</span> {{ transportation.currency|currency_symbol }}</strong></div>
+                    <div><span>Маржа с событиями</span><strong class="{% if adjusted_margin < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ adjusted_margin|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                </div>
+                <div class="trip-finance-flow">
+                    <div><span>Прибыль без НДС</span><strong class="{% if transportation.profit < 0 %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.profit|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                    <div><span>НДС к уплате</span><strong class="amount-expense">{{ transportation.vat_payable|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                    <div><span>Налог на прибыль {{ transportation.owner_company.profit_tax_rate }}%</span><strong class="amount-expense">{{ transportation.profit_tax_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></div>
+                </div>
             </div>
-            <div class="finance-summary uk-margin-top">
-                <article><span>Дебиторская задолженность</span><strong class="{% if transportation.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.receivable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Оплата до {{ transportation.customer_payment_due_date|date:"d.m.Y"|default:"—" }}</small></article>
-                <article><span>Кредиторская задолженность</span><strong class="{% if transportation.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ transportation.payable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>Оплата до {{ transportation.executor_payment_due_date|date:"d.m.Y"|default:"—" }}</small></article>
-                <article><span>НДС продажи</span><strong class="amount-income">{{ transportation.customer_vat_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
-                <article><span>НДС закупки</span><strong class="amount-expense">{{ transportation.executor_vat_amount|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong></article>
+            <div class="trip-finance-settlements uk-margin-top">
+                <article><span>Клиент должен нам</span><strong class="{% if transportation.receivable_state == 'overdue' %}amount-problem{% else %}amount-income{% endif %}">{{ transportation.receivable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>срок оплаты: {{ transportation.customer_payment_due_date|date:"d.m.Y"|default:"—" }}</small></article>
+                <article><span>Мы должны исполнителю</span><strong class="{% if transportation.payable_state == 'overdue' %}amount-problem{% else %}amount-expense{% endif %}">{{ transportation.payable_balance|floatformat:"2g" }} {{ transportation.currency|currency_symbol }}</strong><small>срок оплаты: {{ transportation.executor_payment_due_date|date:"d.m.Y"|default:"—" }}</small></article>
             </div>
             <section class="panel uk-card uk-card-default uk-margin-top finance-payments-card">
                 <div class="section-title"><div><span class="eyebrow">Банк и взаиморасчёты</span><h2>Оплачено</h2><p>Платёжные поручения, проведённые по этому рейсу.</p></div></div>
