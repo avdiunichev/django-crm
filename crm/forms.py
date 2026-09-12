@@ -998,6 +998,9 @@ class TransportOrderForm(StyledModelForm):
                     "data-decimal-input": "",
                 }
             )
+        if not self.is_bound and not self.instance.pk:
+            self.initial["weight_kg"] = ""
+            self.initial["volume_m3"] = ""
         self.fields["package_count"].widget.attrs.update(
             {"min": "0", "step": "1", "inputmode": "numeric"}
         )
