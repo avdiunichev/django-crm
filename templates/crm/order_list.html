@@ -27,7 +27,7 @@
                     <th><a class="server-sort-link {% if sort_columns.client.active %}is-active{% endif %}" href="{{ sort_columns.client.url }}">Клиент {% if sort_columns.client.active %}<span>{{ sort_columns.client.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.route.active %}is-active{% endif %}" href="{{ sort_columns.route.url }}">Маршрут {% if sort_columns.route.active %}<span>{{ sort_columns.route.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.cargo.active %}is-active{% endif %}" href="{{ sort_columns.cargo.url }}">Груз {% if sort_columns.cargo.active %}<span>{{ sort_columns.cargo.label }}</span>{% endif %}</a></th>
-                    <th><a class="server-sort-link {% if sort_columns.rate.active %}is-active{% endif %}" href="{{ sort_columns.rate.url }}">Ставка / оплата {% if sort_columns.rate.active %}<span>{{ sort_columns.rate.label }}</span>{% endif %}</a></th>
+                    <th><a class="server-sort-link {% if sort_columns.rate.active %}is-active{% endif %}" href="{{ sort_columns.rate.url }}">Ставка {% if sort_columns.rate.active %}<span>{{ sort_columns.rate.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.status.active %}is-active{% endif %}" href="{{ sort_columns.status.url }}">Статус {% if sort_columns.status.active %}<span>{{ sort_columns.status.label }}</span>{% endif %}</a></th>
                 </tr>
             </thead>
@@ -38,7 +38,7 @@
                     <td data-label="Клиент">{{ order.client }}{% if order.client.tax_id %}<small>ИНН {{ order.client.tax_id }}</small>{% endif %}</td>
                     <td data-label="Маршрут"><div class="route-compact" title="{{ order.route }}">{{ order.route }}</div><small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
                     <td data-label="Груз">{{ order.cargo_name }}<small>{{ order.weight_kg|floatformat:"0g" }} кг{% if order.volume_m3 %} · {{ order.volume_m3|floatformat:"2" }} м³{% endif %}</small></td>
-                    <td data-label="Ставка / оплата"><strong class="amount-income">{{ order.rate|floatformat:"2g" }} {{ order.currency|currency_symbol }}</strong><small>{{ order.get_payment_form_display }} · {{ order.vat_amount|floatformat:"2g" }} {{ order.currency|currency_symbol }}</small></td>
+                    <td data-label="Ставка"><strong class="amount-income">{{ order.rate|floatformat:"2g" }} {{ order.currency|currency_symbol }}</strong><small>{{ order.get_payment_form_display }} · {{ order.vat_amount|floatformat:"2g" }} {{ order.currency|currency_symbol }}</small></td>
                     <td data-label="Статус"><span class="order-status order-status--{{ order.status }}">{{ order.get_status_display }}</span>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% endif %}</td>
                 </tr>
             {% empty %}

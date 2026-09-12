@@ -5698,7 +5698,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         text-align: right !important;
     }
 
-    .uikit-theme .order-register-table td[data-label="Ставка / оплата"] .amount-income {
+    .uikit-theme .order-register-table td[data-label="Ставка"] .amount-income {
         display: block !important;
         min-height: 20px;
         color: #228b3b !important;
@@ -5730,7 +5730,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         color: #9aa8ba;
     }
 
-    html[data-theme="dark"] body.uikit-theme .order-register-table td[data-label="Ставка / оплата"] .amount-income {
+    html[data-theme="dark"] body.uikit-theme .order-register-table td[data-label="Ставка"] .amount-income {
         color: #6ee7a8 !important;
     }
 }
