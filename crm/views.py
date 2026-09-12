@@ -5782,27 +5782,27 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
             "OrderTitle", parent=styles["Heading1"], fontName=bold_font,
-            fontSize=18, leading=23, textColor=colors.HexColor("#263445"), spaceAfter=3,
+            fontSize=15, leading=18, textColor=colors.HexColor("#263445"), spaceAfter=2,
         )
         meta_style = ParagraphStyle(
             "OrderMeta", parent=styles["Normal"], fontName=regular_font,
-            fontSize=9, leading=13, textColor=colors.HexColor("#667085"),
+            fontSize=8, leading=10, textColor=colors.HexColor("#667085"),
         )
         section_style = ParagraphStyle(
             "OrderSection", parent=styles["Heading2"], fontName=bold_font,
-            fontSize=11, leading=14, textColor=colors.HexColor("#1e87f0"),
-            spaceBefore=12, spaceAfter=7,
+            fontSize=9, leading=11, textColor=colors.HexColor("#1e87f0"),
+            spaceBefore=7, spaceAfter=4,
         )
         value_style = ParagraphStyle(
             "OrderValue", parent=styles["Normal"], fontName=regular_font,
-            fontSize=9, leading=13, textColor=colors.HexColor("#263445"),
+            fontSize=8, leading=10, textColor=colors.HexColor("#263445"),
         )
         label_style = ParagraphStyle(
             "OrderLabel", parent=value_style, fontName=bold_font,
-            fontSize=8, leading=12, textColor=colors.HexColor("#667085"),
+            fontSize=7, leading=9, textColor=colors.HexColor("#667085"),
         )
         note_style = ParagraphStyle(
-            "OrderNote", parent=value_style, fontSize=8, leading=12,
+            "OrderNote", parent=value_style, fontSize=7, leading=9,
             textColor=colors.HexColor("#667085"),
         )
 
@@ -5811,21 +5811,21 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
                 [Paragraph(text(label), label_style), Paragraph(text(value), value_style)]
                 for label, value in rows
             ]
-            table = Table(table_rows, colWidths=(48 * mm, 122 * mm), hAlign="LEFT")
+            table = Table(table_rows, colWidths=(40 * mm, 146 * mm), hAlign="LEFT")
             table.setStyle(TableStyle([
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#dfe6ee")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
             ]))
             return table
 
         buffer = BytesIO()
         document = SimpleDocTemplate(
-            buffer, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm,
-            topMargin=16 * mm, bottomMargin=17 * mm,
+            buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
+            topMargin=11 * mm, bottomMargin=12 * mm,
             title=f"Заказ {order.number}", author="CRM • НОВЫЙ ПРОЕКТ",
         )
         story = [
@@ -5835,25 +5835,19 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
                 f"Дата заказа: {date_value(order.document_date)} · Статус: {text(order.get_status_display())}",
                 meta_style,
             ),
-            Spacer(1, 4 * mm),
+            Spacer(1, 2 * mm),
             Paragraph("Основные данные", section_style),
             field_table([
-                ("Наша компания", f"{order.owner_company} · ИНН {order.owner_company.tax_id or 'не указан'}"),
-                ("Ответственный менеджер", order.manager.get_full_name() or order.manager.username),
+                ("Наша компания", f"{order.owner_company} · ИНН {order.owner_company.tax_id or 'не указан'} · менеджер: {order.manager.get_full_name() or order.manager.username}"),
                 ("Клиент", f"{order.client} · ИНН {order.client.tax_id or 'не указан'}"),
-                ("Ставка клиента", amount(order.rate)),
-                ("Форма оплаты", order.get_payment_form_display()),
-                ("Отсрочка", f"{order.payment_term_days} дн."),
+                ("Ставка", f"{amount(order.rate)} · {order.get_payment_form_display()} · отсрочка {order.payment_term_days} дн."),
             ]),
             Paragraph("Груз", section_style),
             field_table([
                 ("Наименование", order.cargo_name),
-                ("Вес / объём", f"{order.weight_kg or 0} кг / {order.volume_m3 or 0} м³"),
-                ("Количество мест", order.total_package_count or "не указано"),
-                ("Вид упаковки", order.package_type or "не указан"),
-                ("Температурный режим", order.temperature_regime or "Отсутствует"),
-                ("Класс опасности ADR", order.get_adr_class_display() or "Не относится к опасным грузам"),
-                ("Требования к транспорту", order.vehicle_requirements),
+                ("Параметры", f"{order.weight_kg or 0} кг · {order.volume_m3 or 0} м³ · {order.total_package_count or 'места не указаны'} · {order.package_type or 'упаковка не указана'}"),
+                ("Условия", f"Температура: {order.temperature_regime or 'Отсутствует'} · ADR: {order.get_adr_class_display() or 'не относится к опасным грузам'}"),
+                ("Транспорт", order.vehicle_requirements),
                 ("Характеристики груза", order.cargo_description),
                 ("Особые требования", order.special_requirements),
             ]),
@@ -5867,12 +5861,11 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
                 story.extend([
                     Paragraph(f"{index}. {text(stop.get_kind_display())}", ParagraphStyle(
                         f"StopTitle{index}", parent=value_style, fontName=bold_font,
-                        spaceBefore=6, spaceAfter=2,
+                        fontSize=8, leading=10, spaceBefore=4, spaceAfter=1,
                     )),
                     field_table([
                         ("Дата и время", f"{date_value(stop.planned_date)} · {time_window}"),
-                        ("Город", stop.city),
-                        ("Адрес", stop.address),
+                        ("Адрес", f"{stop.city or '—'} · {stop.address or '—'}"),
                         ("Контакт", f"{stop.contact_name or '—'} · {stop.contact_phone or '—'}"),
                         ("Инструкции", stop.instructions),
                     ]),
@@ -5889,10 +5882,10 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
         story.extend([
             Paragraph("Заметки для работы с исполнителем", section_style),
             Paragraph("Поле предназначено для ручных пометок при подборе и согласовании исполнителя.", note_style),
-            Spacer(1, 3 * mm),
+            Spacer(1, 2 * mm),
         ])
         note_lines = Table(
-            [[""]] * 9, colWidths=(170 * mm,), rowHeights=[10 * mm] * 9,
+            [[""]] * 6, colWidths=(186 * mm,), rowHeights=[7 * mm] * 6,
             hAlign="LEFT",
         )
         note_lines.setStyle(TableStyle([
@@ -5907,8 +5900,8 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
             canvas.saveState()
             canvas.setFont(regular_font, 7)
             canvas.setFillColor(colors.HexColor("#7b8797"))
-            canvas.drawString(18 * mm, 10 * mm, "CRM • НОВЫЙ ПРОЕКТ · Печатная форма заказа")
-            canvas.drawRightString(A4[0] - 18 * mm, 10 * mm, f"Страница {doc.page}")
+            canvas.drawString(12 * mm, 7 * mm, "CRM • НОВЫЙ ПРОЕКТ · Печатная форма заказа")
+            canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
             canvas.restoreState()
 
         document.build(story, onFirstPage=page_footer, onLaterPages=page_footer)
