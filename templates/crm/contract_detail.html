@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Договор № {{ contract.number }} — Экспедитор CRM{% endblock %}
+{% block title %}Договор № {{ contract.number }} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
     <div><a class="back-link" href="{% url 'contract-list' %}">← Договоры</a><span class="eyebrow">{{ contract.get_kind_display }}</span><h1>Договор № {{ contract.number }}</h1><p>{{ contract.contract_date|date:"d.m.Y" }} · {{ contract.expeditor }} и {{ contract.counterparty_name }}</p></div>

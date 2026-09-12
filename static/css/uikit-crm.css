@@ -1367,6 +1367,16 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     border-radius: 0 !important;
 }
 
+/* Карточка заказа строится на строгих прямоугольных блоках. */
+[data-order-form] .form-section,
+[data-order-form] .order-route-stop,
+[data-order-form] .form-section-title > span,
+[data-order-form] .uk-alert,
+[data-order-form] .crm-smart-dropdown,
+[data-order-form] .crm-smart-option {
+    border-radius: 0 !important;
+}
+
 .order-cancel-modal {
     position: fixed;
     z-index: 2100;

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}{{ shipment.number }} — Экспедитор CRM{% endblock %}
+{% block title %}{{ shipment.number }} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action"><div><a class="back-link" href="{% url 'shipment-list' %}">← Все заявки</a><h1>{{ shipment.number }}</h1><p>{{ shipment.customer.name }} · {{ shipment.cargo_name }}</p></div><div class="heading-actions"><span class="badge large uk-label status-{{ shipment.status }}">{{ shipment.get_status_display }}</span>{% if shipment.transportation %}<a class="btn btn-primary uk-button uk-button-primary" href="{{ shipment.transportation.get_absolute_url }}"><span uk-icon="git-fork"></span> Новая карточка рейса</a>{% endif %}<a class="btn btn-secondary uk-button uk-button-default" href="{% url 'forwarding-order' shipment.pk %}"><span uk-icon="download"></span> Экспедиторское поручение</a><a class="btn btn-secondary uk-button uk-button-default" href="{% url 'shipment-update' shipment.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="uk-button uk-button-danger" href="{% url 'shipment-delete' shipment.pk %}"><span uk-icon="trash"></span> Удалить</a></div></div>
 <div class="detail-grid">

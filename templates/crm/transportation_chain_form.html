@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Цепочка {{ transportation.number }} — Экспедитор CRM{% endblock %}
+{% block title %}Цепочка {{ transportation.number }} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← Рейс {{ transportation.number }}</a><h1>Исполнитель и фактический перевозчик</h1><p>Эти участники учитываются отдельно. Для исполнителя-экспедитора фактический перевозчик обязателен.</p></div></div>
 <form method="post" class="entity-form uk-form-stacked" id="chain-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}?return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}">{% csrf_token %}{% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}

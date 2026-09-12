@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ carrier.name }} — Экспедитор CRM{% endblock %}
+{% block title %}{{ carrier.name }} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action"><div><a class="back-link" href="{% url 'organization-list' %}">← Контрагенты</a><h1>{{ carrier.name }}</h1><p>ИНН {{ carrier.tax_id|default:"не указан" }} · <span class="rating">★ {{ carrier.rating }}</span></p></div><div class="heading-actions">{% if carrier.organization %}<a class="btn btn-primary uk-button uk-button-primary" href="{{ carrier.organization.get_absolute_url }}"><span uk-icon="users"></span> Карточка контрагента</a>{% endif %}<a class="btn btn-secondary uk-button uk-button-default" href="{% url 'carrier-update' carrier.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="btn btn-secondary uk-button uk-button-default" href="{% url 'contract-create' %}?kind=carrier_transport&carrier={{ carrier.pk }}"><span uk-icon="album"></span> Новый договор</a>{% if carrier.organization %}<a class="uk-button uk-button-danger" href="{% url 'organization-delete' carrier.organization.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}</div></div>
 <div class="detail-grid">

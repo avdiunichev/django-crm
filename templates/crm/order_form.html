@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>
     {% csrf_token %}

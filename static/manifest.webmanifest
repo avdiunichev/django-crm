@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "NewProject — Экспедитор CRM",
-  "short_name": "NewProject",
+  "name": "CRM • НОВЫЙ ПРОЕКТ",
+  "short_name": "CRM • НОВЫЙ ПРОЕКТ",
   "description": "CRM для работы с заказами, рейсами, документами и финансами.",
   "lang": "ru",
   "start_url": "/",

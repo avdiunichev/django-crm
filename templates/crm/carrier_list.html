@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Перевозчики — Экспедитор CRM{% endblock %}
+{% block title %}Перевозчики — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action"><div><span class="eyebrow">Справочник</span><h1>Перевозчики</h1><p>Партнёры, контакты и доступный транспорт.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'carrier-create' %}"><span uk-icon="plus"></span> Добавить перевозчика</a></div>
 <form class="filters" method="get"><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН, контакт или транспорт"><button class="btn btn-secondary uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>{% if current_q %}<a class="clear-link" href="{% url 'carrier-list' %}">Сбросить</a>{% endif %}</form>

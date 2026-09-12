@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if object %}{{ object.number }}{% else %}Новый акт сверки{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}{{ object.number }}{% else %}Новый акт сверки{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
     <div><a class="back-link" href="{% url 'reconciliation-act-list' %}">← К актам сверки</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить акт сверки{% else %}Создать акт сверки{% endif %}</h1><p>Система сформирует строки по движениям взаиморасчётов за выбранный период.</p></div>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Экспедитор CRM{% endblock %}</title>
+    <title>{% block title %}CRM • НОВЫЙ ПРОЕКТ{% endblock %}</title>
     <script>
         (() => {
             const storageKey = "crm-color-theme";
@@ -20,21 +20,21 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-delete-modal-strict">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-order-strict-brand">
     <link rel="icon" type="image/png" href="{% static 'img/newproject-logo.png' %}?v=20260912-red-logo">
-    <link rel="manifest" href="{% static 'manifest.webmanifest' %}?v=20260912-red-logo">
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}?v=20260912-crm-new-project">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}?v=20260912-apple-light-logo">
     <meta name="theme-color" content="#1e87f0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="NewProject">
+    <meta name="apple-mobile-web-app-title" content="CRM • НОВЫЙ ПРОЕКТ">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
     <header class="crm-topnav uk-navbar-container uk-navbar-transparent" uk-navbar>
         <div class="uk-navbar-left">
-            <a class="brand uk-logo" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип NewProject" width="28" height="28"><span><strong>NewProject</strong></span></a>
+            <a class="brand uk-logo" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип CRM • НОВЫЙ ПРОЕКТ" width="28" height="28"><span><strong>CRM • НОВЫЙ ПРОЕКТ</strong></span></a>
             <ul class="uk-navbar-nav crm-navbar">
                 <li class="{% if request.resolver_match.url_name == 'dashboard' %}uk-active{% endif %}"><a href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a></li>
                 <li class="{% if 'order' in request.resolver_match.url_name or request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' or 'planner' in request.resolver_match.url_name %}uk-active{% endif %}">
@@ -112,7 +112,7 @@
     <aside id="crm-mobile-navigation" class="mobile-navigation-overlay" hidden data-mobile-nav>
         <div class="crm-mobile-navigation" role="dialog" aria-modal="true" aria-label="Основное меню">
             <button class="mobile-nav-close" type="button" aria-label="Закрыть меню" data-mobile-nav-close><span uk-icon="close"></span></button>
-            <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип NewProject" width="28" height="28"><span><strong>NewProject</strong><small>Экспедитор CRM</small></span></a>
+            <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип CRM • НОВЫЙ ПРОЕКТ" width="28" height="28"><span><strong>CRM • НОВЫЙ ПРОЕКТ</strong><small>Управление перевозками</small></span></a>
             <nav class="mobile-nav-list" aria-label="Основная навигация">
                 <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a>
                 <span class="mobile-nav-group"><span uk-icon="git-fork"></span> Операции</span>

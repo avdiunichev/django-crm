@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}{% if object %}Изменить реестр{% else %}Новый реестр первички{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}Изменить реестр{% else %}Новый реестр первички{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
     <div><a class="back-link" href="{{ cancel_url }}">← К реестрам первички</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить реестр документов{% else %}Создать реестр первички{% endif %}</h1><p>Выберите рейсы галочками и заполните табличную часть. Для реализации показываются только рейсы, которые уже доставлены или находятся дальше по цепочке закрытия.</p></div>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Заявки — Экспедитор CRM{% endblock %}
+{% block title %}Заявки — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action"><div><span class="eyebrow">Перевозки</span><h1>Заявки</h1><p>Контроль всех перевозок в одном месте.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'shipment-create' %}"><span uk-icon="plus"></span> Новая заявка</a></div>
 {% if current_scope %}<div class="active-filter"><span>Фильтр дашборда</span><strong>{{ current_scope_label }}</strong><a href="{% url 'shipment-list' %}{% if current_expeditor %}?expeditor={{ current_expeditor }}{% if current_currency %}&amp;currency={{ current_currency }}{% endif %}{% elif current_currency %}?currency={{ current_currency }}{% endif %}" aria-label="Сбросить фильтр">×</a></div>{% endif %}

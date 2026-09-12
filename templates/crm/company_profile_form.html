@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if object %}{{ object }}{% else %}Новый экспедитор{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}{{ object }}{% else %}Новый экспедитор{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading">
     <div><a class="back-link" href="{% url 'expeditor-list' %}">← Экспедиторы</a><h1>{% if object %}Реквизиты {{ object }}{% else %}Новый экспедитор{% endif %}</h1><p>Юридическое лицо, от имени которого оформляются заявки и бухгалтерские документы.</p></div>

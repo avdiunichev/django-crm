@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if object %}Изменить {{ object.number }}{% else %}Новая заявка{% endif %} — Экспедитор CRM{% endblock %}
+{% block title %}{% if object %}Изменить {{ object.number }}{% else %}Новая заявка{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading"><div><a class="back-link" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'shipment-list' %}{% endif %}">← Назад</a><h1>{% if object %}Изменить {{ object.number }}{% else %}Новая заявка{% endif %}</h1><p>Заполните основные условия перевозки.</p></div></div>
 <form method="post" class="entity-form uk-form-stacked">{% csrf_token %}

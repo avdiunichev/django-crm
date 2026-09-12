@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Экспедиторы — Экспедитор CRM{% endblock %}
+{% block title %}Экспедиторы — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="page-heading with-action"><div><span class="eyebrow">Наши компании</span><h1>Экспедиторы</h1><p>Юридические лица, от имени которых ведутся заявки, расчёты и документы.</p></div><a class="btn btn-primary uk-button uk-button-primary" href="{% url 'expeditor-create' %}"><span uk-icon="plus"></span> Добавить экспедитора</a></div>
 <form class="filters" method="get"><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН, КПП или адрес"><button class="btn btn-secondary uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>{% if current_q %}<a class="clear-link" href="{% url 'expeditor-list' %}">Сбросить</a>{% endif %}</form>
