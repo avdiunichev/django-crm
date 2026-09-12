@@ -59,7 +59,6 @@
                     <th><a class="server-sort-link {% if sort_columns.cargo.active %}is-active{% endif %}" href="{{ sort_columns.cargo.url }}">Груз {% if sort_columns.cargo.active %}<span>{{ sort_columns.cargo.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.rate.active %}is-active{% endif %}" href="{{ sort_columns.rate.url }}">Ставка / оплата {% if sort_columns.rate.active %}<span>{{ sort_columns.rate.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.status.active %}is-active{% endif %}" href="{{ sort_columns.status.url }}">Статус {% if sort_columns.status.active %}<span>{{ sort_columns.status.label }}</span>{% endif %}</a></th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -70,17 +69,10 @@
                     <td><div class="route-compact" title="{{ order.route }}">{{ order.route }}</div><small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
                     <td>{{ order.cargo_name }}<small>{{ order.weight_kg|floatformat:"0g" }} кг{% if order.volume_m3 %} · {{ order.volume_m3|floatformat:"2" }} м³{% endif %}</small></td>
                     <td><strong class="amount-income">{{ order.rate|floatformat:"2g" }} {{ order.currency|currency_symbol }}</strong><small>{{ order.get_payment_form_display }} · отсрочка {{ order.payment_term_days }} дн.</small></td>
-                    <td><span class="badge uk-label {% if order.status == 'assigned' %}uk-label-success{% endif %}">{{ order.get_status_display }}</span>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% endif %}</td>
-                    <td class="order-register-actions">
-                        {% if order.transportation_id %}
-                            <a class="uk-button uk-button-small uk-button-default" href="{% url 'transportation-update' order.transportation_id %}">Открыть рейс</a>
-                        {% else %}
-                            <form method="post" action="{% url 'order-assign' order.pk %}">{% csrf_token %}<button class="uk-button uk-button-small uk-button-primary" type="submit">Назначить</button></form>
-                        {% endif %}
-                    </td>
+                    <td><span class="order-status order-status--{{ order.status }}">{{ order.get_status_display }}</span>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% endif %}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="7" class="empty-state">Заказов пока нет. Создайте первый заказ клиента.</td></tr>
+                <tr><td colspan="6" class="empty-state">Заказов пока нет. Создайте первый заказ клиента.</td></tr>
             {% endfor %}
             </tbody>
         </table>

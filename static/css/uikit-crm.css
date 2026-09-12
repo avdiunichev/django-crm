@@ -9692,9 +9692,9 @@ body.uikit-theme {
     width: 160px;
 }
 
-.uikit-theme .order-register-table th:nth-child(7),
-.uikit-theme .order-register-table td:nth-child(7) {
-    width: 120px;
+.uikit-theme .order-register-table th:nth-child(6),
+.uikit-theme .order-register-table td:nth-child(6) {
+    width: 170px;
 }
 
 .uikit-theme .order-register-table .route-compact {
@@ -9715,6 +9715,60 @@ body.uikit-theme {
 
 .uikit-theme .order-register-table td small {
     line-height: 1.35;
+}
+
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid #b9d9f5;
+    border-radius: 0;
+    color: #1c6eaf;
+    background: #edf7ff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.order-status::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+}
+
+.order-status--assigned {
+    border-color: #a8dbbc;
+    color: #237946;
+    background: #edf9f1;
+}
+
+.order-status--cancelled {
+    border-color: #efbec7;
+    color: #b63c4d;
+    background: #fff0f2;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-status {
+    border-color: #2c6393;
+    color: #a9d6ff;
+    background: #17395a;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-status--assigned {
+    border-color: #347654;
+    color: #a9e6bd;
+    background: #173c2a;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-status--cancelled {
+    border-color: #7c3947;
+    color: #ffadb9;
+    background: #492630;
 }
 
 @media (max-width: 900px) {
