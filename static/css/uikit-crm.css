@@ -7249,7 +7249,26 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     max-width: none;
     max-height: calc(100vh - 44px);
     overflow: auto;
-    border-radius: 8px;
+    border-radius: 0;
+}
+
+/* В модальном редакторе рейса применяем строгую геометрию ко всем элементам
+   интерфейса, не меняя остальные модальные формы CRM. */
+.crm-transportation-dialog,
+.crm-transportation-dialog .uk-card,
+.crm-transportation-dialog .form-section,
+.crm-transportation-dialog .uk-input,
+.crm-transportation-dialog .uk-select,
+.crm-transportation-dialog .uk-textarea,
+.crm-transportation-dialog .uk-button,
+.crm-transportation-dialog .crm-smart-select,
+.crm-transportation-dialog .crm-smart-trigger,
+.crm-transportation-dialog .crm-smart-dropdown,
+.crm-transportation-dialog .crm-smart-option,
+.crm-transportation-dialog .crm-address-dropdown,
+.crm-transportation-dialog .crm-address-option,
+.crm-transportation-dialog .uk-modal-close-default {
+    border-radius: 0 !important;
 }
 
 .crm-transportation-dialog .onec-document-heading {
