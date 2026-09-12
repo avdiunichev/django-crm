@@ -9733,6 +9733,85 @@ body.uikit-theme {
     white-space: nowrap;
 }
 
+/* Реестр заказов использует те же размеры шрифта и строгую геометрию,
+   что и форма самого заказа. */
+.uikit-theme .order-register-filters {
+    margin-bottom: 18px;
+    padding: 24px;
+    border: 1px solid #d5dfe8;
+    background: #fff;
+    gap: 12px;
+}
+
+.uikit-theme .order-register-filters .uk-input,
+.uikit-theme .order-register-filters .uk-select,
+.uikit-theme .order-register-filters .form-control,
+.uikit-theme .order-register-filters .form-select,
+.uikit-theme .order-register-filters .crm-smart-search {
+    min-height: 40px;
+    border-radius: 0 !important;
+    font-size: 14px;
+}
+
+.uikit-theme .order-register-filters .uk-button {
+    min-height: 40px;
+    border-radius: 0 !important;
+    font-size: 14px;
+}
+
+.uikit-theme .order-register-filters .crm-smart-dropdown,
+.uikit-theme .order-register-filters .crm-smart-option {
+    border-radius: 0 !important;
+    font-size: 14px;
+}
+
+.uikit-theme .order-register-panel .onec-register-header {
+    min-height: 0;
+    padding: 20px 24px;
+}
+
+.uikit-theme .order-register-panel .onec-register-header h2 {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.uikit-theme .order-register-panel .onec-register-header p,
+.uikit-theme .order-register-panel .onec-register-header > .uk-text-meta {
+    color: #999;
+    font-size: 13px;
+}
+
+.uikit-theme .order-register-panel .onec-register-header .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.uikit-theme .order-register-table {
+    font-size: 14px;
+}
+
+.uikit-theme .order-register-table th {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.uikit-theme .order-register-table td small {
+    margin-top: 3px;
+    color: #8993a1;
+    font-size: 13px;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-register-filters {
+    border-color: #29364a;
+    background: #141e2f;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-register-panel .onec-register-header p,
+html[data-theme="dark"] body.uikit-theme .order-register-panel .onec-register-header > .uk-text-meta,
+html[data-theme="dark"] body.uikit-theme .order-register-table td small {
+    color: #9aa8ba;
+}
+
 .order-status--assigned {
     border-color: #2684e9;
     color: #fff;
