@@ -373,6 +373,14 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     }
 }
 
+/* Выбор количества строк — такой же строгий элемент управления, как поля реестров. */
+.uikit-theme .page-size-selector .uk-select,
+.uikit-theme .page-size-selector .crm-smart-search,
+.uikit-theme .page-size-selector .crm-smart-dropdown,
+.uikit-theme .page-size-selector .crm-smart-option {
+    border-radius: 0 !important;
+}
+
 .metrics-grid {
     margin-bottom: 20px;
     display: grid;
