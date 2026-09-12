@@ -5969,6 +5969,193 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
     }
 }
 
+/* Мобильная карточка рейса: последовательная рабочая форма без сжатых колонок. */
+@media (max-width: 700px) {
+    body.uikit-theme .transportation-card {
+        min-width: 0;
+        gap: 14px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-titlebar {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-titlebar > div {
+        min-width: 0;
+    }
+
+    body.uikit-theme .transportation-card .transportation-titlebar h1 {
+        overflow-wrap: anywhere;
+    }
+
+    body.uikit-theme .transportation-card .transportation-titlebar p {
+        line-height: 1.45;
+    }
+
+    body.uikit-theme .transportation-card .transportation-commandbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-commandbar > .inline-form,
+    body.uikit-theme .transportation-card .transportation-commandbar > .uk-button,
+    body.uikit-theme .transportation-card .transportation-commandbar > .onec-primary-command {
+        width: 100%;
+        margin: 0;
+    }
+
+    body.uikit-theme .transportation-card .transportation-commandbar .inline-form .uk-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    body.uikit-theme .transportation-card .transportation-commandbar .onec-posting-badge,
+    body.uikit-theme .transportation-card .transportation-commandbar .transportation-status {
+        justify-self: start;
+    }
+
+    body.uikit-theme .transportation-card .transportation-status-progress,
+    body.uikit-theme .transportation-card .transportation-summary,
+    body.uikit-theme .transportation-card .transport-chain-panel,
+    body.uikit-theme .transportation-card .panel {
+        padding: 16px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid {
+        margin-top: 12px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+        padding: 10px 0;
+        border-bottom: 1px solid #e1e8f0;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid > div:last-child {
+        border-bottom: 0;
+    }
+
+    body.uikit-theme .transportation-card .transport-chain {
+        padding: 14px 0 4px;
+        flex-direction: column;
+        align-items: stretch;
+        overflow: visible;
+    }
+
+    body.uikit-theme .transportation-card .transport-chain-node,
+    body.uikit-theme .transportation-card .transport-route-chain .transport-chain-node {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: 14px;
+    }
+
+    body.uikit-theme .transportation-card .transport-chain-arrow {
+        width: 100%;
+        min-height: 20px;
+        transform: rotate(90deg);
+    }
+
+    body.uikit-theme .transportation-card .transport-chain-actions,
+    body.uikit-theme .transportation-card .heading-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    body.uikit-theme .transportation-card .transport-chain-actions .uk-button,
+    body.uikit-theme .transportation-card .heading-actions .uk-button {
+        width: 100%;
+    }
+
+    body.uikit-theme .transportation-card .transportation-tabs {
+        display: flex;
+        width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+    }
+
+    body.uikit-theme .transportation-card .transportation-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    body.uikit-theme .transportation-card .transportation-tabs > li {
+        flex: 0 0 auto;
+    }
+
+    body.uikit-theme .transportation-card .transportation-tabs > li > a {
+        padding: 10px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    body.uikit-theme .transportation-card .transportation-role-card h2 {
+        overflow-wrap: anywhere;
+        font-size: 18px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-role-card dl,
+    body.uikit-theme .transportation-card .transportation-finance-card dl {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-role-card dd,
+    body.uikit-theme .transportation-card .transportation-finance-card dd {
+        margin: 0 0 10px;
+        text-align: left;
+    }
+
+    body.uikit-theme .transportation-card .driver-copy-card {
+        padding: 14px;
+    }
+
+    body.uikit-theme .transportation-card .driver-copy-card .uk-button {
+        width: 100%;
+    }
+
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-hero {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 16px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-hero strong {
+        grid-row: auto;
+        grid-column: auto;
+        font-size: 28px;
+        text-align: left;
+    }
+
+    body.uikit-theme .transportation-card .trip-finance-card,
+    body.uikit-theme .transportation-card .trip-finance-flow,
+    body.uikit-theme .transportation-card .trip-finance-settlements article {
+        padding: 14px;
+    }
+
+    body.uikit-theme .transportation-card .trip-finance-card strong,
+    body.uikit-theme .transportation-card .trip-finance-flow strong,
+    body.uikit-theme .transportation-card .trip-finance-settlements strong {
+        overflow-wrap: anywhere;
+    }
+
+    body.uikit-theme .transportation-card .route-stop-list article {
+        padding: 14px 0;
+        gap: 12px;
+    }
+
+    body.uikit-theme .transportation-card .route-stop-list h3,
+    body.uikit-theme .transportation-card .route-stop-list p {
+        overflow-wrap: anywhere;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+        border-color: #30445e;
+    }
+}
+
 /* Финальное правило мобильного навбара: перекрывает ранние стили старой
    горизонтальной навигации. */
 @media (max-width: 700px) {
