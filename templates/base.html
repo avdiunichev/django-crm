@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-mobile-navigation">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-mobile-navigation-fix">
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260911-users">
     {% block extra_head %}{% endblock %}
 </head>
@@ -100,12 +100,12 @@
                 {% csrf_token %}
                 <button class="topnav-logout-button" type="submit">Выйти</button>
             </form>
-            <button class="mobile-nav-toggle" type="button" uk-toggle="target: #crm-mobile-navigation" aria-label="Открыть меню"><span uk-icon="menu"></span></button>
+            <button class="mobile-nav-toggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="crm-mobile-navigation" data-mobile-nav-toggle><span uk-icon="menu"></span></button>
         </div>
     </header>
-    <aside id="crm-mobile-navigation" uk-offcanvas="flip: true; overlay: true">
-        <div class="uk-offcanvas-bar crm-mobile-navigation">
-            <button class="uk-offcanvas-close" type="button" uk-close aria-label="Закрыть меню"></button>
+    <aside id="crm-mobile-navigation" class="mobile-navigation-overlay" hidden data-mobile-nav>
+        <div class="crm-mobile-navigation" role="dialog" aria-modal="true" aria-label="Основное меню">
+            <button class="mobile-nav-close" type="button" aria-label="Закрыть меню" data-mobile-nav-close><span uk-icon="close"></span></button>
             <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/favicon.svg' %}" alt="" width="28" height="28"><span><strong>NewProject</strong><small>Экспедитор CRM</small></span></a>
             <nav class="mobile-nav-list" aria-label="Основная навигация">
                 <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a>
@@ -184,6 +184,7 @@
 <script src="{% static 'js/order-cancel-confirm.js' %}?v=20260912-route-validity"></script>
 <script src="{% static 'js/safe-delete-modal.js' %}?v=20260912-safe-delete-no-focus"></script>
 <script src="{% static 'js/navbar-notifications.js' %}?v=20260912-navbar-notifications"></script>
+<script src="{% static 'js/mobile-navigation.js' %}?v=20260912-mobile-menu"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

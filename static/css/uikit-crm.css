@@ -384,6 +384,16 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 /* Компактная навигация на телефоне: в шапке остаются бренд, уведомления и меню,
    а все разделы собраны в вертикальную панель без горизонтальной прокрутки. */
 @media (max-width: 700px) {
+    .uikit-theme .mobile-navigation-overlay:not([hidden]) {
+        position: fixed;
+        z-index: 300;
+        inset: 0;
+        display: block;
+        background: rgba(20, 32, 48, .38);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
     .uikit-theme .app-shell-topnav .crm-topnav {
         align-items: center;
         flex-direction: row;
@@ -464,10 +474,31 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 
     .uikit-theme .crm-mobile-navigation {
         display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        overflow-y: auto;
         box-sizing: border-box;
         width: min(330px, calc(100vw - 32px));
         padding: 20px 0 16px;
         background: #fff;
+    }
+
+    .uikit-theme .mobile-nav-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        color: #5f6b7a;
+        background: transparent;
+        cursor: pointer;
     }
 
     .uikit-theme .mobile-nav-brand {
@@ -571,6 +602,10 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 
     html[data-theme="dark"] body.uikit-theme .crm-mobile-navigation {
         background: #141e2f;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-close {
+        color: #dce4ef;
     }
 
     html[data-theme="dark"] body.uikit-theme .mobile-nav-brand,
@@ -4087,9 +4122,11 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     outline: none;
 }
 
-.uikit-theme .mobile-nav-toggle,
-.uikit-theme .crm-mobile-navigation {
-    display: none;
+@media (min-width: 701px) {
+    .uikit-theme .mobile-nav-toggle,
+    .uikit-theme .crm-mobile-navigation {
+        display: none;
+    }
 }
 
 html[data-theme="dark"] body.uikit-theme .app-shell-topnav .crm-topnav {
@@ -5606,6 +5643,70 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 
 html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-finance-debts {
     border-top-color: #3a475d !important;
+}
+
+/* Финальное правило мобильного навбара: перекрывает ранние стили старой
+   горизонтальной навигации. */
+@media (max-width: 700px) {
+    .uikit-theme .app-shell-topnav .crm-topnav {
+        align-items: center !important;
+        flex-direction: row !important;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: 8px 12px;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left,
+    .uikit-theme .crm-topnav .uk-navbar-right {
+        width: auto !important;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left {
+        flex: 1 1 auto;
+    }
+
+    .uikit-theme .crm-topnav .brand > span {
+        display: block !important;
+    }
+
+    .uikit-theme .crm-navbar {
+        display: none !important;
+    }
+
+    .uikit-theme .crm-topnav-tools {
+        flex: 0 0 auto;
+        width: auto !important;
+        gap: 4px;
+        overflow: visible;
+        padding: 0;
+    }
+
+    .uikit-theme .crm-topnav-tools > .theme-switcher,
+    .uikit-theme .crm-topnav-tools > .uk-button,
+    .uikit-theme .crm-topnav-tools > form {
+        display: none !important;
+    }
+
+    .uikit-theme .mobile-nav-toggle {
+        display: grid !important;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        color: #5f6b7a;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .uikit-theme .crm-mobile-navigation {
+        display: block !important;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-toggle {
+        color: #cbd5e1;
+    }
 }
 
 /* На телефоне строки реестра заказов становятся самостоятельными карточками,
