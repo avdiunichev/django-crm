@@ -1384,7 +1384,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     overflow: auto;
     padding: 26px;
     border: 1px solid #d9e1eb;
-    border-radius: 10px;
+    border-radius: 0;
     background: #fff;
     box-shadow: 0 20px 52px rgba(20, 35, 54, .28);
 }
@@ -1392,7 +1392,14 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 .order-cancel-dialog-header { margin: 0 0 20px; }
 .order-cancel-dialog-header.form-section-title > .order-cancel-dialog-icon { color: #287fdb !important; background: #eaf4ff !important; }
 .order-cancel-dialog-header p { line-height: 1.3; }
-.order-cancel-alert { margin: 0 !important; padding: 18px 20px !important; border-color: #cfe4fb; color: #226db7; background: #edf7ff !important; }
+.order-cancel-alert {
+    margin: 0 !important;
+    padding: 18px 20px !important;
+    border-color: #cfe4fb;
+    border-radius: 0 !important;
+    color: #226db7;
+    background: #edf7ff !important;
+}
 .order-cancel-alert h2 { color: #287fdb; }
 .order-cancel-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; margin-top: 22px; }
 .order-cancel-confirm-button { color: #fff !important; background: #586879 !important; }
