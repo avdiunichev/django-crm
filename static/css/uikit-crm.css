@@ -5843,8 +5843,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         line-height: 1.35;
     }
 
-    .uikit-theme .order-register-table .mobile-order-rate-value,
-    .uikit-theme .order-register-table .mobile-order-rate-value::before {
+    .uikit-theme .order-register-table .mobile-order-rate-value {
         display: block !important;
         color: #2f3846 !important;
         font-size: 16px;
@@ -5852,10 +5851,6 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         line-height: 1.35;
         text-align: right;
         visibility: visible !important;
-    }
-
-    .uikit-theme .order-register-table .mobile-order-rate-value::before {
-        content: attr(data-value);
     }
 
     .uikit-theme .order-register-table .mobile-order-rate-block > small {
@@ -5897,8 +5892,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         color: #9aa8ba;
     }
 
-    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-value,
-    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-value::before {
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-value {
         color: #dce4ef !important;
     }
 }
