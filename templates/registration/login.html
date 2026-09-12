@@ -6,10 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Вход — CRM • НОВЫЙ ПРОЕКТ</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-login-brand">
 </head>
 <body class="login-page">
     <main class="login-card uk-card uk-card-default uk-card-body">
+        <header class="login-brand">
+            <img src="{% static 'img/newproject-logo.png' %}" alt="Логотип CRM • НОВЫЙ ПРОЕКТ" width="48" height="48">
+            <div><h1>CRM • НОВЫЙ ПРОЕКТ</h1><p>Вход в систему</p></div>
+        </header>
         {% if form.errors %}<div class="form-errors uk-alert-danger" uk-alert>Неверный логин или пароль.</div>{% endif %}
         <form method="post" class="login-form uk-form-stacked">
             {% csrf_token %}

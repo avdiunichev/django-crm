@@ -2326,6 +2326,37 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 .login-card {
     width: min(420px, calc(100% - 32px));
     padding: 32px;
+    border-radius: 0;
+}
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e1e8f0;
+}
+
+.login-brand img {
+    display: block;
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.login-brand h1 {
+    margin: 0;
+    color: #263445;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+.login-brand p {
+    margin: 3px 0 0;
+    color: #748196;
+    font-size: 13px;
 }
 
 .login-form {
@@ -2339,6 +2370,14 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 
 .login-form .uk-button {
     margin-top: 14px;
+}
+
+.login-card,
+.login-card .uk-input,
+.login-card .form-control,
+.login-card .uk-button,
+.login-card .uk-alert {
+    border-radius: 0 !important;
 }
 
 .nav-unread {
