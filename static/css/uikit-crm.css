@@ -4013,7 +4013,7 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     width: 28px;
     height: 28px;
     flex: 0 0 28px;
-    border-radius: 8px;
+    border-radius: 0;
 }
 
 .uikit-theme .crm-topnav .brand > span:first-child > strong {
@@ -4145,6 +4145,11 @@ html[data-theme="dark"] body.uikit-theme .app-shell-topnav .crm-topnav {
 
 html[data-theme="dark"] body.uikit-theme .crm-topnav .brand {
     border-color: #29364a;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .brand img,
+html[data-theme="dark"] body.uikit-theme .mobile-nav-brand img {
+    filter: invert(1) brightness(1.9);
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-navbar > li > a {
