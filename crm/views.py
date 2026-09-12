@@ -46,6 +46,18 @@ def _crm_profile(user):
     return getattr(user, "crm_profile", None)
 
 
+@require_GET
+def pwa_service_worker(request):
+    """Register a root-scoped worker without caching private CRM responses."""
+    response = HttpResponse(
+        "self.addEventListener('install', () => self.skipWaiting());\n"
+        "self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));\n",
+        content_type="application/javascript",
+    )
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+
+
 def user_can_access_finance(user):
     if user.is_staff or user.is_superuser:
         return True

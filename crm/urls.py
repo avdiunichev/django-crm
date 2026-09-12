@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("service-worker.js", views.pwa_service_worker, name="pwa-service-worker"),
     path("notifications/mark-read/", views.NavbarNotificationsMarkReadView.as_view(), name="navbar-notifications-mark-read"),
     path("api/carrier-resources/", views.carrier_resources, name="carrier-resources"),
     path(

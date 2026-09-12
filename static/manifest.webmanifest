@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "NewProject — Экспедитор CRM",
+  "short_name": "NewProject",
+  "description": "CRM для работы с заказами, рейсами, документами и финансами.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#1e87f0",
+  "icons": [
+    {
+      "src": "/static/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
