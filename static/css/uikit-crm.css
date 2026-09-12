@@ -3741,7 +3741,7 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
 .uikit-theme .crm-navbar > li > a {
     min-height: 44px;
     padding: 0 12px;
-    border-radius: 10px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     gap: 7px;
@@ -3761,13 +3761,13 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     min-width: 240px;
     padding: 10px;
     border: 1px solid #e1e8f0;
-    border-radius: 14px;
+    border-radius: 0;
     box-shadow: 0 18px 45px rgba(24, 39, 75, .13);
 }
 
 .uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a {
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -3799,6 +3799,25 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
 
 .uikit-theme .crm-topnav .theme-switcher-options {
     min-height: 36px;
+    border-radius: 0;
+}
+
+.uikit-theme .crm-topnav .theme-switcher-options button {
+    border-radius: 0;
+}
+
+.uikit-theme .crm-topnav .navbar-notification-toggle {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.uikit-theme .crm-topnav .navbar-notification-toggle:hover {
+    background: transparent;
+}
+
+.uikit-theme .crm-topnav .navbar-notification-menu {
+    border-radius: 0;
 }
 
 .uikit-theme .topnav-logout-button {
@@ -3868,6 +3887,12 @@ html[data-theme="dark"] body.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > l
 html[data-theme="dark"] body.uikit-theme .crm-topnav .uk-navbar-dropdown-nav > li > a:hover {
     color: #8dc5fc;
     background: #192c47;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-topnav .navbar-notification-toggle,
+html[data-theme="dark"] body.uikit-theme .crm-topnav .navbar-notification-toggle:hover {
+    border: 0;
+    background: transparent;
 }
 
 @media (max-width: 1180px) {
