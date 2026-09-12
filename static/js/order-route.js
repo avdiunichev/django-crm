@@ -78,6 +78,7 @@
             refresh();
         });
         form.addEventListener("submit", refresh);
+        form.addEventListener("crm:route-refresh", refresh);
         form.querySelectorAll("[data-order-route-add]").forEach((button) => {
             button.addEventListener("click", () => add(button.dataset.orderRouteAdd));
         });
