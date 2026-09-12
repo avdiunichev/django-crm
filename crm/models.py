@@ -2124,6 +2124,30 @@ class TransportOrder(TimestampedModel):
             "22": cls.PaymentForm.BANK_VAT_22,
         }.get(rate_key, cls.PaymentForm.BANK_VAT_22)
 
+    @property
+    def vat_rate_percent(self):
+        """VAT rate embedded in the selected customer payment form."""
+        return {
+            self.PaymentForm.BANK_VAT_0: Decimal("0"),
+            self.PaymentForm.BANK_VAT_5: Decimal("5"),
+            self.PaymentForm.BANK_VAT_7: Decimal("7"),
+            self.PaymentForm.BANK_VAT_10: Decimal("10"),
+            self.PaymentForm.BANK_VAT_18: Decimal("18"),
+            self.PaymentForm.BANK_VAT_20: Decimal("20"),
+            self.PaymentForm.BANK_VAT_22: Decimal("22"),
+        }.get(self.payment_form, Decimal("0"))
+
+    @property
+    def vat_amount(self):
+        """VAT included in the order's customer rate."""
+        if not self.vat_rate_percent:
+            return Decimal("0.00")
+        return (
+            Decimal(self.rate or 0)
+            * self.vat_rate_percent
+            / (Decimal("100") + self.vat_rate_percent)
+        ).quantize(Decimal("0.01"))
+
     number = models.CharField("Номер заказа", max_length=40, unique=True, blank=True)
     number_year = models.PositiveSmallIntegerField(
         "Год нумерации", null=True, blank=True, editable=False
