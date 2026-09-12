@@ -3513,6 +3513,13 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 /* Реестр заявок повторяет структуру банковского регистра и использует строгие элементы управления. */
 .order-register-panel {
     overflow: hidden;
+    border-radius: 0 !important;
+}
+
+.order-register-panel .onec-register-header,
+.order-register-panel .table-wrap,
+.order-register-panel .order-register-table {
+    border-radius: 0 !important;
 }
 
 .order-register-heading .uk-button,
