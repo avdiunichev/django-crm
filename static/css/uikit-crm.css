@@ -381,6 +381,221 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     border-radius: 0 !important;
 }
 
+/* Компактная навигация на телефоне: в шапке остаются бренд, уведомления и меню,
+   а все разделы собраны в вертикальную панель без горизонтальной прокрутки. */
+@media (max-width: 700px) {
+    .uikit-theme .app-shell-topnav .crm-topnav {
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: 8px 12px;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left,
+    .uikit-theme .crm-topnav .uk-navbar-right {
+        width: auto;
+    }
+
+    .uikit-theme .crm-topnav .uk-navbar-left {
+        flex: 1 1 auto;
+    }
+
+    .uikit-theme .crm-topnav .brand > span {
+        display: block;
+    }
+
+    .uikit-theme .crm-topnav .brand > span strong {
+        font-size: 15px;
+    }
+
+    .uikit-theme .crm-topnav .brand img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .uikit-theme .crm-navbar {
+        display: none;
+    }
+
+    .uikit-theme .crm-topnav-tools {
+        flex: 0 0 auto;
+        width: auto;
+        gap: 4px;
+        overflow: visible;
+        padding: 0;
+    }
+
+    .uikit-theme .crm-topnav-tools > .theme-switcher,
+    .uikit-theme .crm-topnav-tools > .uk-button,
+    .uikit-theme .crm-topnav-tools > form {
+        display: none;
+    }
+
+    .uikit-theme .crm-topnav .navbar-notification-toggle,
+    .uikit-theme .mobile-nav-toggle {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        color: #5f6b7a;
+        background: transparent;
+    }
+
+    .uikit-theme .mobile-nav-toggle {
+        cursor: pointer;
+    }
+
+    .uikit-theme .mobile-nav-toggle:hover,
+    .uikit-theme .mobile-nav-toggle:focus {
+        color: #1e87f0;
+        outline: none;
+    }
+
+    .uikit-theme .crm-topnav .navbar-notification-menu {
+        position: fixed;
+        top: 58px;
+        right: 10px;
+        width: min(390px, calc(100vw - 20px));
+    }
+
+    .uikit-theme .crm-mobile-navigation {
+        display: block;
+        box-sizing: border-box;
+        width: min(330px, calc(100vw - 32px));
+        padding: 20px 0 16px;
+        background: #fff;
+    }
+
+    .uikit-theme .mobile-nav-brand {
+        margin: 0 48px 20px 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #e1e8f0;
+    }
+
+    .uikit-theme .mobile-nav-brand img {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+    }
+
+    .uikit-theme .mobile-nav-brand > span small {
+        display: block;
+        margin-top: 2px;
+        color: #8993a1;
+        font-size: 11px;
+        letter-spacing: normal;
+    }
+
+    .uikit-theme .mobile-nav-list {
+        display: grid;
+        padding: 0 12px;
+    }
+
+    .uikit-theme .mobile-nav-list a,
+    .uikit-theme .mobile-nav-group {
+        min-height: 42px;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #4b596a;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .uikit-theme .mobile-nav-list a.is-active {
+        color: #1e87f0;
+        background: #eef6fe;
+        font-weight: 600;
+    }
+
+    .uikit-theme .mobile-nav-list .mobile-nav-group {
+        min-height: 36px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #edf1f5;
+        color: #748399;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .uikit-theme .mobile-nav-list .mobile-nav-subitem {
+        padding-left: 38px;
+    }
+
+    .uikit-theme .mobile-nav-footer {
+        margin: 18px 20px 0;
+        padding-top: 18px;
+        border-top: 1px solid #e1e8f0;
+        display: grid;
+        gap: 14px;
+    }
+
+    .uikit-theme .mobile-nav-footer .theme-switcher {
+        width: 100%;
+    }
+
+    .uikit-theme .mobile-nav-footer .theme-switcher-label {
+        display: block;
+    }
+
+    .uikit-theme .mobile-nav-footer .theme-switcher-options,
+    .uikit-theme .mobile-nav-footer .theme-switcher-options button {
+        border-radius: 0;
+    }
+
+    .uikit-theme .mobile-nav-footer .topnav-logout-button,
+    .uikit-theme .mobile-nav-admin {
+        width: max-content;
+        min-height: 32px;
+        padding: 0;
+        border: 0;
+        color: #5f6b7a;
+        background: transparent;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-toggle,
+    html[data-theme="dark"] body.uikit-theme .crm-topnav .navbar-notification-toggle {
+        color: #cbd5e1;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .crm-mobile-navigation {
+        background: #141e2f;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-brand,
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-footer,
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-list .mobile-nav-group {
+        border-color: #29364a;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-list a,
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-footer .topnav-logout-button,
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-admin {
+        color: #dce4ef;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-list a.is-active {
+        color: #8dc5fc;
+        background: #192c47;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-list .mobile-nav-group,
+    html[data-theme="dark"] body.uikit-theme .mobile-nav-brand > span small {
+        color: #9aa8ba;
+    }
+}
+
 .metrics-grid {
     margin-bottom: 20px;
     display: grid;
@@ -3870,6 +4085,11 @@ html[data-theme="dark"] body.uikit-theme .bank-statement-overview strong {
     color: #1e87f0;
     background: transparent;
     outline: none;
+}
+
+.uikit-theme .mobile-nav-toggle,
+.uikit-theme .crm-mobile-navigation {
+    display: none;
 }
 
 html[data-theme="dark"] body.uikit-theme .app-shell-topnav .crm-topnav {

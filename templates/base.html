@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-mobile-order-rate">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260912-mobile-navigation">
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}?v=20260911-users">
     {% block extra_head %}{% endblock %}
 </head>
@@ -100,8 +100,50 @@
                 {% csrf_token %}
                 <button class="topnav-logout-button" type="submit">Выйти</button>
             </form>
+            <button class="mobile-nav-toggle" type="button" uk-toggle="target: #crm-mobile-navigation" aria-label="Открыть меню"><span uk-icon="menu"></span></button>
         </div>
     </header>
+    <aside id="crm-mobile-navigation" uk-offcanvas="flip: true; overlay: true">
+        <div class="uk-offcanvas-bar crm-mobile-navigation">
+            <button class="uk-offcanvas-close" type="button" uk-close aria-label="Закрыть меню"></button>
+            <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/favicon.svg' %}" alt="" width="28" height="28"><span><strong>NewProject</strong><small>Экспедитор CRM</small></span></a>
+            <nav class="mobile-nav-list" aria-label="Основная навигация">
+                <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}"><span uk-icon="home"></span> Dashboard</a>
+                <span class="mobile-nav-group"><span uk-icon="git-fork"></span> Операции</span>
+                <a class="mobile-nav-subitem {% if 'order' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'order-list' %}">Заказы</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' %}is-active{% endif %}" href="{% url 'transportation-list' %}">Рейсы</a>
+                <a class="mobile-nav-subitem {% if 'planner' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'planner' %}">Планировщик</a>
+                {% if crm_access.can_access_finance %}
+                <span class="mobile-nav-group"><span uk-icon="credit-card"></span> Финансы</span>
+                <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
+                <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
+                {% endif %}
+                <span class="mobile-nav-group"><span uk-icon="file-text"></span> Документы</span>
+                <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Документы</a>
+                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if 'primary-document-registry' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-list' %}">Первичка</a>{% endif %}
+                <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
+                <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
+                <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
+                <a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>
+                <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
+                <a class="{% if 'chat' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a>
+            </nav>
+            <div class="mobile-nav-footer">
+                <div class="theme-switcher" role="group" aria-label="Оформление">
+                    <span class="theme-switcher-label">Оформление</span>
+                    <div class="theme-switcher-options">
+                        <button type="button" data-theme-choice="light" aria-pressed="false"><span uk-icon="sun"></span><span>Светлая</span></button>
+                        <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
+                    </div>
+                </div>
+                {% if user.is_staff %}<a class="mobile-nav-admin" href="{% url 'admin:index' %}">Админ</a>{% endif %}
+                <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="topnav-logout-button" type="submit">Выйти</button></form>
+            </div>
+        </div>
+    </aside>
     <main class="main">
         <div class="content">
             {% if messages %}
