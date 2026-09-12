@@ -9,6 +9,7 @@
     const confirmLink = modal.querySelector("[data-order-cancel-confirm]");
     const saveButton = document.querySelector("[data-order-save]");
     const modalSaveButton = modal.querySelector("[data-order-cancel-save]");
+    const assignButtons = form.querySelectorAll("[data-order-assign]");
     const snapshot = new Map();
     const routeDeletionSnapshot = new Map();
 
@@ -51,6 +52,15 @@
         return !client?.value.trim() && !cargoName?.value.trim();
     };
 
+    const updateAssignmentAvailability = () => {
+        const ready = form.checkValidity();
+        assignButtons.forEach((button) => {
+            button.disabled = !ready;
+            button.setAttribute("aria-disabled", String(!ready));
+            button.title = ready ? "" : "Заполните обязательные поля";
+        });
+    };
+
     const closeModal = () => { modal.hidden = true; };
 
     const requestLeave = (url) => {
@@ -83,4 +93,8 @@
         else form.submit();
     });
     rememberInitialValues();
+    form.addEventListener("input", updateAssignmentAvailability);
+    form.addEventListener("change", updateAssignmentAvailability);
+    new MutationObserver(updateAssignmentAvailability).observe(form, {childList: true, subtree: true});
+    updateAssignmentAvailability();
 })();
