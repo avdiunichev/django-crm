@@ -5527,7 +5527,7 @@ class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
 
     def get_queryset(self):
         queryset = TransportOrder.objects.select_related(
-            "owner_company", "client", "manager", "transportation"
+            "owner_company", "client", "manager", "transportation", "package_type"
         ).prefetch_related("stops")
         query = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "").strip()
