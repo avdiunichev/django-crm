@@ -4147,11 +4147,6 @@ html[data-theme="dark"] body.uikit-theme .crm-topnav .brand {
     border-color: #29364a;
 }
 
-html[data-theme="dark"] body.uikit-theme .crm-topnav .brand img,
-html[data-theme="dark"] body.uikit-theme .mobile-nav-brand img {
-    filter: invert(1) brightness(1.9);
-}
-
 html[data-theme="dark"] body.uikit-theme .crm-navbar > li > a {
     color: #cbd5e1;
 }
