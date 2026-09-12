@@ -385,6 +385,10 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     display: none;
 }
 
+.mobile-order-rate-block {
+    display: none;
+}
+
 /* Компактная навигация на телефоне: в шапке остаются бренд, уведомления и меню,
    а все разделы собраны в вертикальную панель без горизонтальной прокрутки. */
 @media (max-width: 700px) {
@@ -5819,6 +5823,37 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         visibility: visible !important;
     }
 
+    .uikit-theme .order-register-table td[data-label="Ставка"] {
+        display: none !important;
+    }
+
+    .uikit-theme .order-register-table .mobile-order-rate-block {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 3px 12px;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #dfe6ee;
+    }
+
+    .uikit-theme .order-register-table .mobile-order-rate-block > span,
+    .uikit-theme .order-register-table .mobile-order-rate-block > small {
+        color: #77869a;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .uikit-theme .order-register-table .mobile-order-rate-block strong {
+        color: #2f3846;
+        font-size: 16px;
+        line-height: 1.35;
+        text-align: right;
+    }
+
+    .uikit-theme .order-register-table .mobile-order-rate-block > small {
+        grid-column: 1 / -1;
+    }
+
     .uikit-theme .order-register-table .route-compact {
         -webkit-line-clamp: unset;
         display: block;
@@ -5843,6 +5878,19 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 
     html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate {
         color: #dce4ef !important;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-block {
+        border-color: #29364a;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-block > span,
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-block > small {
+        color: #9aa8ba;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate-block strong {
+        color: #dce4ef;
     }
 }
 
