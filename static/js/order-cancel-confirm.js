@@ -52,12 +52,23 @@
         return !client?.value.trim() && !cargoName?.value.trim();
     };
 
+    const hasRequiredRoutePoints = () => {
+        const kinds = new Set();
+        form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
+            if (row.querySelector("input[name$='-DELETE']")?.checked) return;
+            const city = row.querySelector("input[name$='-city']")?.value.trim();
+            const kind = row.querySelector("input[name$='-kind']")?.value;
+            if (city && (kind === "pickup" || kind === "delivery")) kinds.add(kind);
+        });
+        return kinds.has("pickup") && kinds.has("delivery");
+    };
+
     const updateAssignmentAvailability = () => {
-        const ready = form.checkValidity();
+        const ready = form.checkValidity() && hasRequiredRoutePoints();
         assignButtons.forEach((button) => {
             button.disabled = !ready;
             button.setAttribute("aria-disabled", String(!ready));
-            button.title = ready ? "" : "Заполните обязательные поля";
+            button.title = ready ? "" : "Заполните обязательные поля, погрузку и выгрузку";
         });
     };
 
@@ -95,6 +106,9 @@
     rememberInitialValues();
     form.addEventListener("input", updateAssignmentAvailability);
     form.addEventListener("change", updateAssignmentAvailability);
+    form.addEventListener("click", (event) => {
+        if (event.target.closest("[data-route-delete]")) queueMicrotask(updateAssignmentAvailability);
+    });
     new MutationObserver(updateAssignmentAvailability).observe(form, {childList: true, subtree: true});
     updateAssignmentAvailability();
 })();
