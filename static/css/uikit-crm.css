@@ -381,6 +381,10 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     border-radius: 0 !important;
 }
 
+.mobile-order-rate {
+    display: none;
+}
+
 /* Компактная навигация на телефоне: в шапке остаются бренд, уведомления и меню,
    а все разделы собраны в вертикальную панель без горизонтальной прокрутки. */
 @media (max-width: 700px) {
@@ -5800,12 +5804,18 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     }
 
     .uikit-theme .order-register-table td[data-label="Ставка"] .amount-income {
+        display: none !important;
+    }
+
+    .uikit-theme .order-register-table .mobile-order-rate {
         display: block !important;
-        min-height: 20px;
-        color: #228b3b !important;
+        min-height: 22px;
+        margin-left: auto;
+        color: #2f3846 !important;
         font-size: 16px;
+        font-weight: 700;
         line-height: 1.35;
-        opacity: 1 !important;
+        text-align: right;
         visibility: visible !important;
     }
 
@@ -5831,8 +5841,8 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
         color: #9aa8ba;
     }
 
-    html[data-theme="dark"] body.uikit-theme .order-register-table td[data-label="Ставка"] .amount-income {
-        color: #6ee7a8 !important;
+    html[data-theme="dark"] body.uikit-theme .order-register-table .mobile-order-rate {
+        color: #dce4ef !important;
     }
 }
 
