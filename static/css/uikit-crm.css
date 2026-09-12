@@ -9722,10 +9722,10 @@ body.uikit-theme {
     align-items: center;
     min-height: 26px;
     padding: 0 16px 0 10px;
-    border: 1px solid #9fd6ae;
+    border: 1px solid #b7df55;
     border-radius: 0;
-    color: #287b43;
-    background: #edf8f0;
+    color: #517a08;
+    background: #f2facf;
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
@@ -9734,9 +9734,9 @@ body.uikit-theme {
 }
 
 .order-status--assigned {
-    border-color: #76bd8f;
-    color: #176b36;
-    background: #dff3e5;
+    border-color: #9fc73a;
+    color: #426b00;
+    background: #e7f8ae;
 }
 
 .order-status--cancelled {
@@ -9746,15 +9746,15 @@ body.uikit-theme {
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status {
-    border-color: #347854;
-    color: #ace7bd;
-    background: #173c2a;
+    border-color: #6f9632;
+    color: #d9ff93;
+    background: #334d13;
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status--assigned {
-    border-color: #4d9d68;
-    color: #c2f2cf;
-    background: #1d4b31;
+    border-color: #87ad3f;
+    color: #e7ffad;
+    background: #405f18;
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status--cancelled {
