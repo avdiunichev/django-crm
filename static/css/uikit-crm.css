@@ -1344,12 +1344,11 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 }
 
 .order-command-actions {
-    align-self: center;
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
-    margin-left: auto;
-    padding-right: 2px;
+    padding-top: 2px;
 }
 
 /* Строгий вид кнопок в карточке заказа и её диалогах. */
