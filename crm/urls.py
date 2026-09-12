@@ -215,6 +215,11 @@ urlpatterns = [
         name="order-update",
     ),
     path(
+        "orders/<int:pk>/pdf/",
+        views.TransportOrderPDFView.as_view(),
+        name="order-pdf",
+    ),
+    path(
         "orders/<int:pk>/assign/",
         views.TransportOrderAssignView.as_view(),
         name="order-assign",

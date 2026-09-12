@@ -4,8 +4,10 @@ from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import json
 import mimetypes
+from pathlib import Path
 import re
 from urllib.parse import urlencode
+from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.conf import settings
@@ -5723,6 +5725,197 @@ class TransportOrderAssignView(LoginRequiredMixin, View):
             f"Заказ {order.number} передан в назначение исполнителя.",
         )
         return redirect("transportation-update", pk=transportation.pk)
+
+
+class TransportOrderPDFView(LoginRequiredMixin, View):
+    """Printable order form with room for handwritten work notes."""
+
+    def get(self, request, pk):
+        from reportlab.lib import colors
+        from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+        order = get_object_or_404(
+            TransportOrder.objects.select_related(
+                "owner_company", "client", "manager", "package_type"
+            ).prefetch_related("stops"),
+            pk=pk,
+        )
+
+        font_candidates = (
+            (
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            ),
+            (
+                Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+                Path("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+            ),
+        )
+        regular_font = bold_font = "Helvetica"
+        for regular_path, bold_path in font_candidates:
+            if regular_path.exists() and bold_path.exists():
+                pdfmetrics.registerFont(TTFont("CRMRegular", str(regular_path)))
+                pdfmetrics.registerFont(TTFont("CRMBold", str(bold_path)))
+                regular_font, bold_font = "CRMRegular", "CRMBold"
+                break
+
+        def text(value, empty="—"):
+            value = str(value).strip() if value is not None else ""
+            return escape(value or empty).replace("\n", "<br/>")
+
+        def date_value(value):
+            return value.strftime("%d.%m.%Y") if value else "—"
+
+        def time_value(value):
+            return value.strftime("%H:%M") if value else "—"
+
+        def amount(value):
+            symbol = {"RUB": "₽", "USD": "$", "EUR": "€"}.get(order.currency, order.currency)
+            return f"{Decimal(value or 0):,.2f}".replace(",", " ").replace(".", ",") + f" {symbol}"
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "OrderTitle", parent=styles["Heading1"], fontName=bold_font,
+            fontSize=18, leading=23, textColor=colors.HexColor("#263445"), spaceAfter=3,
+        )
+        meta_style = ParagraphStyle(
+            "OrderMeta", parent=styles["Normal"], fontName=regular_font,
+            fontSize=9, leading=13, textColor=colors.HexColor("#667085"),
+        )
+        section_style = ParagraphStyle(
+            "OrderSection", parent=styles["Heading2"], fontName=bold_font,
+            fontSize=11, leading=14, textColor=colors.HexColor("#1e87f0"),
+            spaceBefore=12, spaceAfter=7,
+        )
+        value_style = ParagraphStyle(
+            "OrderValue", parent=styles["Normal"], fontName=regular_font,
+            fontSize=9, leading=13, textColor=colors.HexColor("#263445"),
+        )
+        label_style = ParagraphStyle(
+            "OrderLabel", parent=value_style, fontName=bold_font,
+            fontSize=8, leading=12, textColor=colors.HexColor("#667085"),
+        )
+        note_style = ParagraphStyle(
+            "OrderNote", parent=value_style, fontSize=8, leading=12,
+            textColor=colors.HexColor("#667085"),
+        )
+
+        def field_table(rows):
+            table_rows = [
+                [Paragraph(text(label), label_style), Paragraph(text(value), value_style)]
+                for label, value in rows
+            ]
+            table = Table(table_rows, colWidths=(48 * mm, 122 * mm), hAlign="LEFT")
+            table.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#dfe6ee")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ]))
+            return table
+
+        buffer = BytesIO()
+        document = SimpleDocTemplate(
+            buffer, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm,
+            topMargin=16 * mm, bottomMargin=17 * mm,
+            title=f"Заказ {order.number}", author="CRM • НОВЫЙ ПРОЕКТ",
+        )
+        story = [
+            Paragraph("CRM • НОВЫЙ ПРОЕКТ", section_style),
+            Paragraph(f"Заказ № {text(order.number)}", title_style),
+            Paragraph(
+                f"Дата заказа: {date_value(order.document_date)} · Статус: {text(order.get_status_display())}",
+                meta_style,
+            ),
+            Spacer(1, 4 * mm),
+            Paragraph("Основные данные", section_style),
+            field_table([
+                ("Наша компания", f"{order.owner_company} · ИНН {order.owner_company.tax_id or 'не указан'}"),
+                ("Ответственный менеджер", order.manager.get_full_name() or order.manager.username),
+                ("Клиент", f"{order.client} · ИНН {order.client.tax_id or 'не указан'}"),
+                ("Ставка клиента", amount(order.rate)),
+                ("Форма оплаты", order.get_payment_form_display()),
+                ("Отсрочка", f"{order.payment_term_days} дн."),
+            ]),
+            Paragraph("Груз", section_style),
+            field_table([
+                ("Наименование", order.cargo_name),
+                ("Вес / объём", f"{order.weight_kg or 0} кг / {order.volume_m3 or 0} м³"),
+                ("Количество мест", order.total_package_count or "не указано"),
+                ("Вид упаковки", order.package_type or "не указан"),
+                ("Температурный режим", order.temperature_regime or "Отсутствует"),
+                ("Класс опасности ADR", order.get_adr_class_display() or "Не относится к опасным грузам"),
+                ("Требования к транспорту", order.vehicle_requirements),
+                ("Характеристики груза", order.cargo_description),
+                ("Особые требования", order.special_requirements),
+            ]),
+            Paragraph("Маршрут", section_style),
+        ]
+
+        stops = list(order.stops.all())
+        if stops:
+            for index, stop in enumerate(stops, start=1):
+                time_window = f"{time_value(stop.planned_time_from)} — {time_value(stop.planned_time_to)}"
+                story.extend([
+                    Paragraph(f"{index}. {text(stop.get_kind_display())}", ParagraphStyle(
+                        f"StopTitle{index}", parent=value_style, fontName=bold_font,
+                        spaceBefore=6, spaceAfter=2,
+                    )),
+                    field_table([
+                        ("Дата и время", f"{date_value(stop.planned_date)} · {time_window}"),
+                        ("Город", stop.city),
+                        ("Адрес", stop.address),
+                        ("Контакт", f"{stop.contact_name or '—'} · {stop.contact_phone or '—'}"),
+                        ("Инструкции", stop.instructions),
+                    ]),
+                ])
+        else:
+            story.append(Paragraph("Точки маршрута не указаны.", note_style))
+
+        if order.notes:
+            story.extend([
+                Paragraph("Комментарий к заказу", section_style),
+                field_table([("Комментарий", order.notes)]),
+            ])
+
+        story.extend([
+            Paragraph("Заметки для работы с исполнителем", section_style),
+            Paragraph("Поле предназначено для ручных пометок при подборе и согласовании исполнителя.", note_style),
+            Spacer(1, 3 * mm),
+        ])
+        note_lines = Table(
+            [[""]] * 9, colWidths=(170 * mm,), rowHeights=[10 * mm] * 9,
+            hAlign="LEFT",
+        )
+        note_lines.setStyle(TableStyle([
+            ("LINEABOVE", (0, 0), (-1, -1), 0.4, colors.HexColor("#b7cbe0")),
+            ("LINEBELOW", (0, -1), (-1, -1), 0.4, colors.HexColor("#b7cbe0")),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        story.append(note_lines)
+
+        def page_footer(canvas, doc):
+            canvas.saveState()
+            canvas.setFont(regular_font, 7)
+            canvas.setFillColor(colors.HexColor("#7b8797"))
+            canvas.drawString(18 * mm, 10 * mm, "CRM • НОВЫЙ ПРОЕКТ · Печатная форма заказа")
+            canvas.drawRightString(A4[0] - 18 * mm, 10 * mm, f"Страница {doc.page}")
+            canvas.restoreState()
+
+        document.build(story, onFirstPage=page_footer, onLaterPages=page_footer)
+        buffer.seek(0)
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{order.number or "order"}.pdf"'
+        return response
 
 
 class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
