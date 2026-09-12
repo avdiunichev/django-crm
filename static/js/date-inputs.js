@@ -143,7 +143,19 @@
             dropdown.append(header, weekdays, days);
             dropdown.hidden = false;
         };
+        const syncCalendarWithTypedDate = () => {
+            // Форматирование ввода выполняется делегированным обработчиком выше по DOM.
+            // Откладываем чтение на один тик, чтобы календарь получил уже ДД.ММ.ГГГГ.
+            setTimeout(() => {
+                const typedDate = parseDate(field.value);
+                if (!typedDate) return;
+                viewDate = typedDate;
+                if (!dropdown.hidden) render();
+            }, 0);
+        };
         field.addEventListener("focus", () => { viewDate = parseDate(field.value) || new Date(); render(); });
+        field.addEventListener("input", syncCalendarWithTypedDate);
+        field.addEventListener("change", syncCalendarWithTypedDate);
         field.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
         wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement)) close(); }, 0));
     };
