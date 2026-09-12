@@ -9721,22 +9721,22 @@ body.uikit-theme {
     display: inline-flex;
     align-items: center;
     min-height: 26px;
-    padding: 0 16px 0 10px;
-    border: 1px solid #b7df55;
+    padding: 0 10px;
+    border: 1px solid #2684e9;
     border-radius: 0;
-    color: #517a08;
-    background: #f2facf;
+    color: #fff;
+    background: #2684e9;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1;
+    text-transform: uppercase;
     white-space: nowrap;
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
 }
 
 .order-status--assigned {
-    border-color: #9fc73a;
-    color: #426b00;
-    background: #e7f8ae;
+    border-color: #2684e9;
+    color: #fff;
+    background: #2684e9;
 }
 
 .order-status--cancelled {
@@ -9746,15 +9746,15 @@ body.uikit-theme {
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status {
-    border-color: #6f9632;
-    color: #d9ff93;
-    background: #334d13;
+    border-color: #3b9bf5;
+    color: #fff;
+    background: #267fd0;
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status--assigned {
-    border-color: #87ad3f;
-    color: #e7ffad;
-    background: #405f18;
+    border-color: #3b9bf5;
+    color: #fff;
+    background: #267fd0;
 }
 
 html[data-theme="dark"] body.uikit-theme .order-status--cancelled {
