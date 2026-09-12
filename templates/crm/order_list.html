@@ -2,12 +2,11 @@
 {% load humanize %}
 {% block title %}Заказы — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="page-heading with-action order-register-heading">
+<div class="page-heading order-register-heading">
     <div>
         <h1>Реестр входящих заказов</h1>
         <p>Входящие заказы клиентов до назначения исполнителя и формирования рейса.</p>
     </div>
-    <a class="btn btn-primary uk-button uk-button-primary" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
 </div>
 
 <section class="metrics-grid order-metrics">
@@ -44,6 +43,7 @@
         {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    <a class="uk-button uk-button-primary" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
     {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
 </form>
 
