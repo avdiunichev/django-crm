@@ -71,7 +71,9 @@
         form.dispatchEvent(new Event("crm:route-refresh"));
     };
 
-    restoreDraft();
+    const navigationType = performance.getEntriesByType?.("navigation")[0]?.type;
+    if (navigationType === "reload") restoreDraft();
+    else clearDraft();
     form.addEventListener("input", scheduleSave);
     form.addEventListener("change", scheduleSave);
     form.addEventListener("submit", clearDraft);
