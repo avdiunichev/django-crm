@@ -2,13 +2,6 @@
 {% load humanize %}
 {% block title %}Заказы — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="page-heading order-register-heading">
-    <div>
-        <h1>Реестр входящих заказов</h1>
-        <p>Входящие заказы клиентов до назначения исполнителя и формирования рейса.</p>
-    </div>
-</div>
-
 <section class="metrics-grid order-metrics">
     <a class="metric-link metric-card uk-card uk-card-default {% if not current_status and not current_q and not current_owner %}is-selected{% endif %}" href="{% url 'order-list' %}">
         <span class="metric-top"><span>Всего заказов</span><i class="metric-icon uk-icon-button" uk-icon="cart"></i></span>
@@ -48,7 +41,7 @@
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">
-    <div class="onec-register-header"><div><span class="eyebrow">Регистр</span><h2>Заказы клиентов</h2><p>Входящие заявки до назначения исполнителя и формирования рейса.</p></div><span class="uk-text-meta">{{ order_count }} записей</span></div>
+    <div class="onec-register-header"><div><span class="eyebrow">Реестр</span><h2>Заказы клиентов</h2><p>Входящие заявки до назначения исполнителя и формирования рейса.</p></div><span class="uk-text-meta">{{ order_count }} записей</span></div>
     <div class="table-wrap">
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table" data-server-sort="true">
             <thead>
