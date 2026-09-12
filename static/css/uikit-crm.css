@@ -5380,6 +5380,119 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* На телефоне строки реестра заказов становятся самостоятельными карточками,
+   поэтому все реквизиты читаются без горизонтальной прокрутки. */
+@media (max-width: 720px) {
+    .uikit-theme .order-register-filters {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .uikit-theme .order-register-filters .uk-button,
+    .uikit-theme .order-register-filters .clear-link {
+        width: 100%;
+    }
+
+    .uikit-theme .order-register-panel .onec-register-header {
+        align-items: flex-start;
+        padding: 16px;
+    }
+
+    .uikit-theme .order-register-panel .onec-register-header > .uk-text-meta {
+        margin-left: 0;
+    }
+
+    .uikit-theme .order-register-panel .table-wrap {
+        overflow: visible;
+    }
+
+    .uikit-theme .order-register-table,
+    .uikit-theme .order-register-table tbody,
+    .uikit-theme .order-register-table tr,
+    .uikit-theme .order-register-table td {
+        display: block;
+        width: 100% !important;
+        max-width: none;
+    }
+
+    .uikit-theme .order-register-table {
+        min-width: 0;
+        margin: 0;
+        table-layout: auto;
+    }
+
+    .uikit-theme .order-register-table thead {
+        display: none;
+    }
+
+    .uikit-theme .order-register-table tbody tr {
+        padding: 16px;
+        border-bottom: 1px solid #dfe6ee;
+    }
+
+    .uikit-theme .order-register-table tbody tr:last-child {
+        border-bottom: 0;
+    }
+
+    .uikit-theme .order-register-table td {
+        min-height: 0;
+        padding: 11px 0;
+        border: 0 !important;
+        overflow-wrap: anywhere;
+        white-space: normal !important;
+    }
+
+    .uikit-theme .order-register-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        color: #77869a;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .uikit-theme .order-register-table td:first-child {
+        padding-top: 0;
+    }
+
+    .uikit-theme .order-register-table td:last-child {
+        padding-bottom: 0;
+    }
+
+    .uikit-theme .order-register-table td:has(.amount-income) {
+        text-align: left;
+    }
+
+    .uikit-theme .order-register-table td:has(.amount-income) .amount-income,
+    .uikit-theme .order-register-table td:has(.amount-income) small {
+        text-align: right !important;
+    }
+
+    .uikit-theme .order-register-table .route-compact {
+        -webkit-line-clamp: unset;
+        display: block;
+    }
+
+    .uikit-theme .order-register-table .empty-state {
+        padding: 24px 0;
+        text-align: center;
+    }
+
+    .uikit-theme .order-register-table .empty-state::before {
+        display: none;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-table tbody tr {
+        border-color: #29364a;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-table td::before {
+        color: #9aa8ba;
+    }
+}
+
 /* Подсказки груза используют тот же универсальный селект, что и справочники. */
 
 /* Карточка рейса: все разделы используют один визуальный язык с финансами. */
