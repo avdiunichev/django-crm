@@ -1376,7 +1376,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 
 .order-cancel-modal[hidden] { display: none; }
 
-.order-cancel-dialog {
+.order-cancel-modal .order-cancel-dialog.safe-delete-dialog.uk-card {
     position: relative;
     box-sizing: border-box;
     width: min(720px, 100%);
@@ -1384,7 +1384,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     overflow: auto;
     padding: 26px;
     border: 1px solid #d9e1eb;
-    border-radius: 0;
+    border-radius: 0 !important;
     background: #fff;
     box-shadow: 0 20px 52px rgba(20, 35, 54, .28);
 }
