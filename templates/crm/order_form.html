@@ -11,7 +11,7 @@
         </div>
         <div class="order-command-actions">
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Сохранить</button>
-            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}"><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
+            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
             {% if object.transportation_id %}
                 <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
             {% else %}
@@ -146,7 +146,7 @@
         </div>
         <div class="order-command-actions">
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Сохранить</button>
-            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}"><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
+            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
             {% if object.transportation_id %}
                 <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
             {% else %}

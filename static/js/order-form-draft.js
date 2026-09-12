@@ -72,7 +72,7 @@
     };
 
     const navigationType = performance.getEntriesByType?.("navigation")[0]?.type;
-    if (navigationType === "reload") restoreDraft();
+    if (navigationType === "reload" || navigationType === "back_forward") restoreDraft();
     else clearDraft();
     form.addEventListener("input", scheduleSave);
     form.addEventListener("change", scheduleSave);
@@ -82,6 +82,9 @@
     });
     document.querySelectorAll("[data-order-cancel-confirm]").forEach((control) => {
         control.addEventListener("click", clearDraft);
+    });
+    document.querySelectorAll("[data-order-pdf-download]").forEach((control) => {
+        control.addEventListener("click", saveDraft);
     });
     window.addEventListener("pagehide", saveDraft);
 })();
