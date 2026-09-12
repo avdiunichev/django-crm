@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block title %}Заказы — Экспедитор CRM{% endblock %}
 {% block content %}
-<div class="page-heading with-action">
+<div class="page-heading with-action order-register-heading">
     <div>
         <span class="eyebrow">Коммерческая работа</span>
         <h1>Заказы</h1>
@@ -34,21 +34,22 @@
     </article>
 </section>
 
-<section class="panel uk-card uk-card-default">
-    <form class="filters" method="get">
-        <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, клиент, ИНН, груз, город или адрес">
-        <select class="form-control uk-select" name="owner">
-            <option value="">Все наши компании</option>
-            {% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}
-        </select>
-        <select class="form-control uk-select" name="status">
-            <option value="">Все статусы</option>
-            {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
-        </select>
-        <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-        {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
-    </form>
+<form class="filters order-register-filters" method="get">
+    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, клиент, ИНН, груз, город или адрес">
+    <select class="form-control uk-select" name="owner">
+        <option value="">Все наши компании</option>
+        {% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}
+    </select>
+    <select class="form-control uk-select" name="status">
+        <option value="">Все статусы</option>
+        {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
+</form>
 
+<section class="panel uk-card uk-card-default order-register-panel">
+    <div class="onec-register-header"><div><span class="eyebrow">Регистр</span><h2>Заказы клиентов</h2><p>Входящие заявки до назначения исполнителя и формирования рейса.</p></div><span class="uk-text-meta">{{ order_count }} записей</span></div>
     <div class="table-wrap">
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table" data-server-sort="true">
             <thead>

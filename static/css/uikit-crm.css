@@ -3510,6 +3510,20 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     overflow: hidden;
 }
 
+/* Реестр заявок повторяет структуру банковского регистра и использует строгие элементы управления. */
+.order-register-panel {
+    overflow: hidden;
+}
+
+.order-register-heading .uk-button,
+.order-register-filters,
+.order-register-filters .uk-input,
+.order-register-filters .uk-select,
+.order-register-filters .uk-button,
+.order-register-panel .uk-button {
+    border-radius: 0 !important;
+}
+
 .bank-statement-register .uk-table small,
 .bank-statement-lines .uk-table small,
 .bank-candidate-table small {
