@@ -11,26 +11,6 @@
     <div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}{{ bank_formset.non_form_errors }}{{ contact_formset.non_form_errors }}</div>
     {% endif %}
 
-    <section class="form-section uk-card uk-card-default order-command-header organization-command-header">
-        <div class="form-section-title order-command-title">
-            <span class="order-command-icon" uk-icon="users"></span>
-            <div>
-                <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
-                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
-            </div>
-        </div>
-        <div class="organization-command-footer">
-            <div class="organization-command-inn">
-                {{ form.tax_id }}
-            </div>
-            <div class="order-command-actions organization-command-actions">
-                {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
-                <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
-                <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
-            </div>
-        </div>
-    </section>
-
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
         <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
@@ -45,23 +25,36 @@
             <div class="onec-main-grid">
                 <section class="organization-form-sections">
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Наименование и тип контрагента</p></div></div>
+                        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div></div>
                         <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.kind %}
-                            {% include "crm/includes/form_field.html" with field=form.name %}
-                            {% include "crm/includes/form_field.html" with field=form.short_name %}
-                            {% include "crm/includes/form_field.html" with field=form.group %}
-                            {% include "crm/includes/form_field.html" with field=form.registration_country %}
+                            {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
+                            <div class="organization-registration-grid field-wide">
+                                <div class="field mb-3"><label class="uk-form-label form-label" for="id_tax_id_mirror">ИНН</label><input class="form-control uk-input" id="id_tax_id_mirror" type="text" inputmode="numeric" autocomplete="off" value="{{ form.tax_id.value|default_if_none:'' }}" data-tax-id-mirror></div>
+                                {% include "crm/includes/form_field.html" with field=form.kpp %}
+                                {% include "crm/includes/form_field.html" with field=form.ogrn %}
+                                {% include "crm/includes/form_field.html" with field=form.registration_date %}
+                            </div>
+                            {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
                         </div>
                     </section>
 
-                    <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>02</span><div><h2>Регистрационные данные</h2><p>ИНН, КПП и сведения из реестров</p></div></div>
-                        <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.kpp %}
-                            {% include "crm/includes/form_field.html" with field=form.ogrn %}
-                            {% include "crm/includes/form_field.html" with field=form.registration_date %}
-                            {% include "crm/includes/form_field.html" with field=form.okato %}
+                    <section class="form-section uk-card uk-card-default order-command-header organization-command-header">
+                        <div class="form-section-title order-command-title">
+                            <span class="order-command-icon" uk-icon="users"></span>
+                            <div>
+                                <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
+                                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="organization-command-footer">
+                            <div class="organization-command-inn">
+                                {{ form.tax_id }}
+                            </div>
+                            <div class="order-command-actions organization-command-actions">
+                                {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
+                                <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+                                <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+                            </div>
                         </div>
                     </section>
 
@@ -76,16 +69,15 @@
                     </div>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>03</span><div><h2>Адрес и руководитель</h2><p>Юридический адрес и ответственное лицо</p></div></div>
+                        <div class="form-section-title"><span>02</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
                         <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
                             {% include "crm/includes/form_field.html" with field=form.director_name %}
                             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
                         </div>
                     </section>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>04</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
+                        <div class="form-section-title"><span>03</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
                         <div class="form-grid">
                             {% include "crm/includes/form_field.html" with field=form.default_vat_rate %}
                             {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
@@ -98,7 +90,7 @@
                     </section>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>05</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
+                        <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
                         <div class="onec-flags onec-role-flags">
                             {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
                         </div>
@@ -174,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const duplicateWarning = document.getElementById("inn-duplicate-warning");
     const duplicateText = duplicateWarning?.querySelector("[data-inn-duplicate-text]");
     const duplicateLink = duplicateWarning?.querySelector("[data-inn-duplicate-link]");
-    const submitButtons = document.querySelectorAll('.onec-commandbar button[type="submit"]');
+    const submitButtons = document.querySelectorAll('.organization-command-actions button[type="submit"]');
     let innCheckTimer;
     let innCheckController;
     const showDuplicate = (organization) => {
@@ -213,6 +205,16 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(innCheckTimer);
         innCheckTimer = setTimeout(checkInn, 300);
     }));
+    document.querySelectorAll("[data-tax-id-mirror]").forEach((mirror) => {
+        mirror.addEventListener("input", () => {
+            if (!taxId) return;
+            taxId.value = mirror.value;
+            taxId.dispatchEvent(new Event("input", {bubbles: true}));
+        });
+        ["input", "change"].forEach((eventName) => taxId?.addEventListener(eventName, () => {
+            mirror.value = taxId.value;
+        }));
+    });
     const ownCompany = document.getElementById("{{ form.is_own_company.id_for_label }}");
     const ownCompanyTax = document.querySelector("[data-own-company-tax]");
     const syncOwnCompanyTax = () => ownCompanyTax?.classList.toggle("uk-hidden", !ownCompany?.checked);
