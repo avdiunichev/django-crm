@@ -859,6 +859,10 @@ class CrmTestCase(TestCase):
         self.customer.refresh_from_db()
         self.assertEqual(self.customer.settlement_account, bank.account_number)
 
+        response = self.client.get(organization.get_absolute_url())
+        self.assertEqual(response.context["bank_formset"].total_form_count(), 1)
+        self.assertEqual(response.context["bank_formset"].initial_form_count(), 1)
+
     def test_inactive_organization_is_hidden_from_new_lists_but_kept_in_existing_document(self):
         organization = self.customer.organization
         organization.is_active = False

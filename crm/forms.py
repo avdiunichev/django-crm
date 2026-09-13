@@ -715,6 +715,17 @@ OrganizationBankAccountFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+# При создании карточки показываем один основной счёт. В уже сохранённой
+# карточке новые строки добавляются только кнопкой «Добавить реквизиты».
+OrganizationBankAccountEditFormSet = inlineformset_factory(
+    Organization,
+    OrganizationBankAccount,
+    form=OrganizationBankAccountForm,
+    formset=PrimaryRegisterFormSet,
+    extra=0,
+    can_delete=True,
+)
+
 OrganizationContactFormSet = inlineformset_factory(
     Organization,
     OrganizationContact,

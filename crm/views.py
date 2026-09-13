@@ -279,6 +279,7 @@ from .forms import (
     DriverLicenseFormSet,
     DriverPassportFormSet,
     ForwardingOrderForm,
+    OrganizationBankAccountEditFormSet,
     OrganizationBankAccountFormSet,
     OrganizationContactFormSet,
     OrganizationForm,
@@ -5261,9 +5262,16 @@ class OrganizationWorkspaceMixin:
     contact_formset_class = OrganizationContactFormSet
 
     def get_formset(self, formset_class, prefix, data=None, instance=None):
+        current_instance = instance if instance is not None else self.object
+        if (
+            formset_class is self.bank_formset_class
+            and current_instance
+            and current_instance.pk
+        ):
+            formset_class = OrganizationBankAccountEditFormSet
         return formset_class(
             data=data,
-            instance=instance if instance is not None else self.object,
+            instance=current_instance,
             prefix=prefix,
         )
 
