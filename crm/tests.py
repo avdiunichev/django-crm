@@ -17,6 +17,7 @@ from docx import Document
 
 from .forms import (
     ShipmentForm,
+    TransportOrderStopForm,
     TransportationChainForm,
     TransportationDocumentForm,
     VehicleCombinationForm,
@@ -257,6 +258,9 @@ class CrmTestCase(TestCase):
         self.assertContains(create_page, "Ставка и форма оплаты")
         self.assertContains(create_page, "Добавить погрузку")
         self.assertContains(create_page, "Добавить выгрузку")
+        self.assertContains(create_page, "Грузоотправитель")
+        self.assertContains(create_page, "Грузополучатель")
+        self.assertContains(create_page, 'data-dadata-address')
         self.assertEqual(
             len(create_page.context["stop_formset"].forms), 2
         )
@@ -318,7 +322,7 @@ class CrmTestCase(TestCase):
         registry = self.client.get(reverse("order-list"))
         self.assertContains(registry, order.number)
         self.assertContains(registry, "Пластиковая тара")
-        self.assertContains(registry, "Ожидают назначения")
+        self.assertContains(registry, "Заказы клиентов")
         edit_page = self.client.get(reverse("order-update", args=[order.pk]))
         self.assertEqual(edit_page.status_code, 200)
         self.assertContains(edit_page, f"Заказ {order.number}")
@@ -326,6 +330,28 @@ class CrmTestCase(TestCase):
         self.assertContains(edit_page, "По клиенту нет действующего договора")
         self.assertContains(edit_page, "Создать договор")
         self.assertContains(edit_page, f"customer={self.customer.pk}")
+
+    def test_order_stop_derives_route_city_from_manual_address(self):
+        form = TransportOrderStopForm(
+            data={
+                "sequence": "1",
+                "kind": TransportOrderStop.Kind.PICKUP,
+                "organization": "",
+                "organization_text": "",
+                "city": "",
+                "address": "Воронежская обл., г. Воронеж, ул. Логистическая, 7",
+                "planned_date": date.today().isoformat(),
+                "planned_time_from": "09:00",
+                "planned_time_to": "10:00",
+                "contact_name": "",
+                "contact_phone": "",
+                "instructions": "",
+                "address_meta": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
     def test_order_assignment_creates_linked_trip_with_full_route(self):
         order = TransportOrder.objects.create(
@@ -350,6 +376,7 @@ class CrmTestCase(TestCase):
                 sequence=sequence,
                 kind=kind,
                 city=city,
+                organization=self.carrier.organization if sequence == 1 else None,
                 planned_date=date.today() + timedelta(days=sequence - 1),
                 planned_time_from=time_from,
                 planned_time_to=time_to,
@@ -372,6 +399,7 @@ class CrmTestCase(TestCase):
             ["Псков", "Тверь", "Москва"],
         )
         first_stop = transportation.stops.order_by("sequence").first()
+        self.assertEqual(first_stop.organization, self.carrier.organization)
         self.assertEqual(
             timezone.localtime(first_stop.planned_from).time().replace(
                 second=0, microsecond=0

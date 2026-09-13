@@ -2320,6 +2320,17 @@ class TransportOrderStop(TimestampedModel):
     )
     sequence = models.PositiveSmallIntegerField("Порядок")
     kind = models.CharField("Операция", max_length=20, choices=Kind.choices)
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name="Организация точки маршрута",
+        related_name="transport_order_stops",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    organization_text = models.CharField(
+        "Наименование организации вручную", max_length=255, blank=True
+    )
     city = models.CharField("Город", max_length=120)
     address = models.CharField("Адрес", max_length=255, blank=True)
     address_fias_id = models.CharField("ФИАС", max_length=36, blank=True)

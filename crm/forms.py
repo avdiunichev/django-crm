@@ -1047,7 +1047,7 @@ class TransportOrderStopForm(StyledModelForm):
     class Meta:
         model = TransportOrderStop
         fields = [
-            "sequence", "kind", "city", "address", "planned_date",
+            "sequence", "kind", "organization", "organization_text", "city", "address", "planned_date",
             "planned_time_from", "planned_time_to", "contact_name",
             "contact_phone", "instructions",
         ]
@@ -1061,8 +1061,37 @@ class TransportOrderStopForm(StyledModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        kind = (
+            self.data.get(self.add_prefix("kind"))
+            if self.is_bound
+            else self.initial.get("kind") or self.instance.kind
+        )
+        party_label = (
+            "Грузополучатель"
+            if kind == TransportOrderStop.Kind.DELIVERY
+            else "Грузоотправитель"
+        )
+        self.fields["organization"].queryset = Organization.objects.filter(
+            is_active=True
+        ).distinct()
+        self.fields["organization"].required = False
+        self.fields["organization"].label = party_label
+        self.fields["organization"].widget.attrs.update(
+            {
+                "data-smart-select": "organization",
+                "data-create-url": reverse("quick-organization-create"),
+                "data-search-placeholder": f"Название или ИНН: {party_label.lower()}",
+                "data-create-label": f"Создать: {party_label.lower()}",
+            }
+        )
+        self.fields["organization_text"].widget = forms.HiddenInput()
+        self.fields["city"].required = False
+        self.fields["city"].widget = forms.HiddenInput()
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
+        self.fields["address"].widget = forms.Textarea(
+            attrs={"class": "form-control uk-textarea", "rows": 2}
+        )
         self.fields["address"].widget.attrs.update(
             {
                 "autocomplete": "off",
@@ -1071,14 +1100,6 @@ class TransportOrderStopForm(StyledModelForm):
                 "data-dadata-city-source": f"id_{self.add_prefix('city')}",
                 "data-dadata-meta-target": f"id_{self.add_prefix('address_meta')}",
                 "placeholder": "Начните вводить улицу, дом или полный адрес",
-            }
-        )
-        self.fields["city"].widget.attrs.update(
-            {
-                "autocomplete": "off",
-                "data-dadata-city": "",
-                "data-dadata-city-url": reverse("dadata-address-suggestions"),
-                "placeholder": "Начните вводить город или населённый пункт",
             }
         )
         self.fields["contact_phone"].widget.attrs.update(
@@ -1096,6 +1117,38 @@ class TransportOrderStopForm(StyledModelForm):
             }
             if any(values.values()):
                 self.initial["address_meta"] = json.dumps(values, ensure_ascii=False)
+
+    @staticmethod
+    def _city_from_address(address):
+        """Use the locality fragment for a concise route, even without DaData."""
+        parts = [part.strip() for part in (address or "").split(",") if part.strip()]
+        locality_markers = (
+            "г.", "город", "пгт", "рп", "п.", "пос", "с.", "село", "дер", "ст-ца",
+        )
+        for part in parts:
+            normalized = part.casefold()
+            if any(marker in normalized for marker in locality_markers):
+                return part[:120]
+        return parts[0][:120] if parts else ""
+
+    def clean(self):
+        cleaned = super().clean()
+        raw = cleaned.get("address_meta") or ""
+        try:
+            address_data = json.loads(raw) if isinstance(raw, str) else raw
+        except (TypeError, ValueError):
+            address_data = {}
+        if not isinstance(address_data, dict):
+            address_data = {}
+        cleaned["city"] = (
+            cleaned.get("city")
+            or address_data.get("city")
+            or address_data.get("settlement")
+            or self._city_from_address(cleaned.get("address"))
+        )[:120]
+        if not cleaned["city"]:
+            self.add_error("address", "Укажите адрес с населённым пунктом.")
+        return cleaned
 
     def save(self, commit=True):
         instance = super().save(commit=False)

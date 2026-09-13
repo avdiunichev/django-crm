@@ -107,6 +107,8 @@ def assign_order_to_transportation(order, user):
                 if route_stop.kind == TransportOrderStop.Kind.PICKUP
                 else TransportationStop.Kind.DELIVERY
             ),
+            organization=route_stop.organization,
+            organization_text=route_stop.organization_text,
             city=route_stop.city,
             address=route_stop.address,
             address_fias_id=route_stop.address_fias_id,

@@ -87,7 +87,8 @@
                     {% if stop_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_form.non_field_errors }}</div>{% endif %}
                     <div class="form-grid order-route-grid">
                         <div class="route-city-address-grid field-wide">
-                            {% include "crm/includes/form_field.html" with field=stop_form.city %}
+                            {% include "crm/includes/form_field.html" with field=stop_form.organization %}
+                            {{ stop_form.organization_text }}{{ stop_form.city }}
                             {% include "crm/includes/form_field.html" with field=stop_form.address %}
                         </div>
                         {{ stop_form.address_meta }}
@@ -113,7 +114,8 @@
                 </div>
                 <div class="form-grid order-route-grid">
                     <div class="route-city-address-grid field-wide">
-                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.organization %}
+                        {{ stop_formset.empty_form.organization_text }}{{ stop_formset.empty_form.city }}
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address %}
                     </div>
                     {{ stop_formset.empty_form.address_meta }}

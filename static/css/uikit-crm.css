@@ -9301,6 +9301,12 @@ html[data-theme="dark"] body.uikit-theme .driver-history-facts div {
     grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr);
 }
 
+.order-route-stop textarea[data-dadata-address] {
+    min-height: 42px;
+    height: 42px;
+    resize: vertical;
+}
+
 .route-schedule-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -9354,6 +9360,11 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 
     .route-city-address-grid {
         grid-template-columns: 1fr;
+    }
+
+    .order-route-stop textarea[data-dadata-address] {
+        min-height: 78px;
+        height: 78px;
     }
 
     .route-schedule-grid {

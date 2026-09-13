@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    const SELECTOR = "input[data-dadata-address]";
+    const SELECTOR = "[data-dadata-address]";
     const MIN_QUERY_LENGTH = 3;
     const DELAY = 280;
 

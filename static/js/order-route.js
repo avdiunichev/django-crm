@@ -23,6 +23,15 @@
                     ? "Выгрузка"
                     : (kind === "intermediate" ? "Промежуточная точка" : "Погрузка");
             }
+            const organization = row.querySelector("[name$='-organization']");
+            const organizationLabel = organization
+                ? row.querySelector(`label[for="${organization.id}"]`)
+                : null;
+            if (organizationLabel) {
+                organizationLabel.textContent = kind === "delivery"
+                    ? "Грузополучатель"
+                    : (kind === "intermediate" ? "Контрагент точки" : "Грузоотправитель");
+            }
             row.classList.toggle("is-delivery", kind === "delivery");
             row.classList.toggle("is-intermediate", kind === "intermediate");
             row.classList.toggle("is-deleted", Boolean(deleted));
@@ -65,7 +74,7 @@
             window.CRMUniversalSelects?.enhanceWithin(row);
             window.CRMAddressSuggestions?.enhanceWithin(row);
             window.CRMCitySuggestions?.enhanceWithin(row);
-            row?.querySelector("input[name$='-city']")?.focus();
+            row?.querySelector("select[name$='-organization'], input[name$='-address'], textarea[name$='-address']")?.focus();
         };
 
         form.addEventListener("click", (event) => {
