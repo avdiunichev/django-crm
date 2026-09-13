@@ -3192,11 +3192,24 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     margin: 0;
 }
 
+.organization-form-sections .organization-role-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+    gap: 12px;
+}
+
 .organization-form-sections .onec-role-flags {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 10px 24px;
     align-items: center;
+}
+
+.organization-form-sections .organization-role-box,
+.organization-form-sections .organization-role-state-box {
+    padding: 12px 16px;
+    border: 1px solid #bfddf7;
+    background: #eef8ff;
 }
 
 .organization-form-sections .onec-role-flags .onec-flag-option,
@@ -3218,7 +3231,12 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px 24px;
-    margin-top: 18px;
+    align-items: center;
+}
+
+.organization-form-sections .organization-role-state-box {
+    border-color: #d9e0e7;
+    background: #f7f9fb;
 }
 
 .organization-form-sections .organization-role-state-flags input:nth-of-type(2) {
@@ -3230,6 +3248,10 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
 }
 
 @media (max-width: 720px) {
+    .organization-form-sections .organization-role-controls {
+        grid-template-columns: 1fr;
+    }
+
     .organization-form-sections .onec-role-flags,
     .organization-form-sections .organization-role-state-flags {
         grid-template-columns: 1fr;
