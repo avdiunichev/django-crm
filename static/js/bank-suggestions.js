@@ -11,16 +11,6 @@
         return form.querySelector(`[name="${CSS.escape(fieldName)}"]`);
     };
 
-    const statusFor = (input) => {
-        let status = input.parentElement?.querySelector("[data-dadata-bank-status]");
-        if (status) return status;
-        status = document.createElement("small");
-        status.dataset.dadataBankStatus = "";
-        status.className = "uk-text-meta dadata-bank-status";
-        input.insertAdjacentElement("afterend", status);
-        return status;
-    };
-
     const fillIfSafe = (field, value, marker) => {
         if (!field || !value) return;
         const previous = field.dataset.dadataBankValue || "";
@@ -35,25 +25,13 @@
     const lookupBank = async (input) => {
         const bik = digits(input.value);
         input.value = bik;
-        const status = statusFor(input);
-        if (bik.length === 0) {
-            status.textContent = "";
-            return;
-        }
-        if (bik.length !== 9) {
-            status.textContent = "БИК должен состоять из 9 цифр";
-            status.classList.add("uk-text-warning");
-            status.classList.remove("uk-text-danger", "uk-text-success");
-            return;
-        }
+        if (bik.length !== 9) return;
 
         const bankNameField = findField(input, input.dataset.bankNameField);
         const correspondentField = findField(input, input.dataset.correspondentAccountField);
         const url = new URL(input.dataset.dadataBankUrl, window.location.origin);
         url.searchParams.set("bik", bik);
 
-        status.textContent = "Ищу банк по БИК…";
-        status.classList.remove("uk-text-danger", "uk-text-warning", "uk-text-success");
         try {
             const response = await fetch(url, {
                 headers: {"X-Requested-With": "XMLHttpRequest"},
@@ -66,14 +44,7 @@
             const bank = payload.bank || {};
             fillIfSafe(bankNameField, bank.bank_name || bank.value, bik);
             fillIfSafe(correspondentField, bank.correspondent_account, bik);
-            status.textContent = bank.bank_name ? `Найден: ${bank.bank_name}` : "Банк найден";
-            status.classList.add("uk-text-success");
-            status.classList.remove("uk-text-danger", "uk-text-warning");
-        } catch (error) {
-            status.textContent = error.message || "Не удалось получить банк";
-            status.classList.add("uk-text-danger");
-            status.classList.remove("uk-text-success", "uk-text-warning");
-        }
+        } catch (error) {}
     };
 
     const enhance = (input) => {
