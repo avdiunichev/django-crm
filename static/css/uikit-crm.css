@@ -3214,20 +3214,6 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     position: relative;
 }
 
-.organization-bank-bik .uk-input {
-    padding-right: 58px;
-}
-
-.organization-bank-bik > span {
-    position: absolute;
-    right: 10px;
-    bottom: 11px;
-    color: #287fdb;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .04em;
-    pointer-events: none;
-}
 
 .organization-bank-actions {
     margin-top: 16px;
