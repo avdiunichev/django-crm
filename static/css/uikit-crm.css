@@ -6282,6 +6282,11 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 
     .uikit-theme .organization-register-table td {
         white-space: normal !important;
+        box-sizing: border-box;
+    }
+
+    .uikit-theme .organization-register-table tbody tr {
+        box-sizing: border-box;
     }
 
     .uikit-theme .organization-register-table .organization-register-address {
@@ -11355,6 +11360,11 @@ body.uikit-theme {
         overflow-wrap: anywhere !important;
         white-space: normal !important;
         word-break: break-all !important;
+    }
+
+    .uikit-theme .organization-register-table tbody tr,
+    .uikit-theme .organization-register-table td {
+        box-sizing: border-box;
     }
 }
 
