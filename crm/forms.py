@@ -373,6 +373,12 @@ class OrganizationForm(StyledModelForm):
         self.fields["edo_operator"].required = False
         self.fields["edo_id"].required = False
         self.fields["originals_handling"].required = False
+        self.fields["tax_id"].widget.attrs.update(
+            {
+                "placeholder": "Введите ИНН для автоматического заполнения",
+                "data-dadata-inn-input": "",
+            }
+        )
         self._audit_before = {}
         for field_name in self.Meta.fields:
             if field_name in self.fields:

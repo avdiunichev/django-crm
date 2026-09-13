@@ -3055,12 +3055,27 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 }
 
 .organization-command-inn {
-    flex: 0 1 340px;
+    position: relative;
+    flex: 1 1 340px;
     min-width: 220px;
 }
 
-.organization-command-inn .field {
-    margin: 0;
+.organization-command-inn .uk-input {
+    width: 100%;
+    padding-right: 82px;
+}
+
+.organization-command-inn::after {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    content: "DaData";
+    color: #287fdb;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    pointer-events: none;
+    transform: translateY(-50%);
 }
 
 .organization-command-actions {
