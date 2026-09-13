@@ -5258,6 +5258,196 @@ class OrganizationDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+class OrganizationPDFView(LoginRequiredMixin, View):
+    """Compact printable counterpart card with requisites and contacts."""
+
+    def get(self, request, pk):
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+        organization = get_object_or_404(
+            Organization.objects.prefetch_related("roles", "bank_accounts", "contact_people"),
+            pk=pk,
+        )
+
+        regular_font = bold_font = "Helvetica"
+        for regular_path, bold_path in (
+            (
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            ),
+            (
+                Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+                Path("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+            ),
+        ):
+            if regular_path.exists() and bold_path.exists():
+                pdfmetrics.registerFont(TTFont("CRMOrganizationRegular", str(regular_path)))
+                pdfmetrics.registerFont(TTFont("CRMOrganizationBold", str(bold_path)))
+                regular_font, bold_font = "CRMOrganizationRegular", "CRMOrganizationBold"
+                break
+
+        def text(value, empty="—"):
+            value = str(value).strip() if value is not None else ""
+            return escape(value or empty).replace("\n", "<br/>")
+
+        def date_value(value):
+            return value.strftime("%d.%m.%Y") if value else "—"
+
+        def amount(value):
+            return f"{Decimal(value or 0):,.2f}".replace(",", " ").replace(".", ",") + " ₽"
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "OrganizationTitle", parent=styles["Heading1"], fontName=bold_font,
+            fontSize=15, leading=18, textColor=colors.HexColor("#263445"), spaceAfter=2,
+        )
+        meta_style = ParagraphStyle(
+            "OrganizationMeta", parent=styles["Normal"], fontName=regular_font,
+            fontSize=8, leading=10, textColor=colors.HexColor("#667085"),
+        )
+        section_style = ParagraphStyle(
+            "OrganizationSection", parent=styles["Heading2"], fontName=bold_font,
+            fontSize=9, leading=11, textColor=colors.HexColor("#1e87f0"),
+            spaceBefore=7, spaceAfter=4,
+        )
+        value_style = ParagraphStyle(
+            "OrganizationValue", parent=styles["Normal"], fontName=regular_font,
+            fontSize=8, leading=10, textColor=colors.HexColor("#263445"),
+        )
+        label_style = ParagraphStyle(
+            "OrganizationLabel", parent=value_style, fontName=bold_font,
+            fontSize=7, leading=9, textColor=colors.HexColor("#667085"),
+        )
+
+        def field_table(rows):
+            table = Table(
+                [[Paragraph(text(label), label_style), Paragraph(text(value), value_style)] for label, value in rows],
+                colWidths=(43 * mm, 143 * mm), hAlign="LEFT",
+            )
+            table.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#dfe6ee")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ]))
+            return table
+
+        buffer = BytesIO()
+        document = SimpleDocTemplate(
+            buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
+            topMargin=11 * mm, bottomMargin=12 * mm,
+            title=f"Карточка контрагента {organization}", author="CRM • НОВЫЙ ПРОЕКТ",
+        )
+        active_roles = [role.get_role_display() for role in organization.roles.all() if role.is_active]
+        story = [
+            Paragraph("CRM • НОВЫЙ ПРОЕКТ", section_style),
+            Paragraph("Карточка контрагента", title_style),
+            Paragraph(
+                f"Сформировано {timezone.localtime().strftime('%d.%m.%Y %H:%M')} · статус ФНС: {text(organization.get_fns_status_display())}",
+                meta_style,
+            ),
+            Spacer(1, 2 * mm),
+            Paragraph("Основные данные", section_style),
+            field_table([
+                ("Наименование", organization.short_name or organization.name),
+                ("Полное наименование", organization.name),
+                ("Вид", organization.get_kind_display()),
+                ("ИНН / КПП", f"{organization.tax_id or '—'} / {organization.kpp or '—'}"),
+                ("ОГРН / ОГРНИП", organization.ogrn),
+                ("Дата регистрации", date_value(organization.registration_date)),
+                ("Юридический адрес", organization.legal_address),
+                ("Руководитель", f"{organization.director_position or '—'} · {organization.director_name or '—'}"),
+                ("Основание", organization.acting_basis),
+                ("Роли", " · ".join(active_roles) or "Не назначены"),
+            ]),
+            Paragraph("Финансовые настройки", section_style),
+            field_table([
+                ("Форма оплаты", organization.get_default_payment_form_display() or "Не указана"),
+                ("Отсрочка", f"{organization.payment_term_days or 0} дн."),
+                ("Кредитный лимит", amount(organization.credit_limit)),
+                ("Оператор ЭДО", organization.edo_operator),
+                ("Идентификатор ЭДО", organization.edo_id),
+                ("Оригиналы", organization.get_originals_handling_display()),
+            ]),
+        ]
+
+        accounts = [account for account in organization.bank_accounts.all() if account.is_active]
+        story.append(Paragraph("Банковские реквизиты", section_style))
+        if accounts:
+            account_rows = [[
+                Paragraph("Счёт", label_style), Paragraph("Банк", label_style),
+                Paragraph("БИК", label_style), Paragraph("К/счёт", label_style),
+            ]]
+            account_rows.extend([
+                [
+                    Paragraph(text(account.account_number), value_style),
+                    Paragraph(text(account.bank_name), value_style),
+                    Paragraph(text(account.bik), value_style),
+                    Paragraph(text(account.correspondent_account), value_style),
+                ] for account in accounts
+            ])
+            accounts_table = Table(account_rows, colWidths=(43 * mm, 66 * mm, 27 * mm, 50 * mm), repeatRows=1)
+            accounts_table.setStyle(TableStyle([
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#dfe6ee")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f4f8fc")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]))
+            story.append(accounts_table)
+        else:
+            story.append(Paragraph("Банковские реквизиты не указаны.", meta_style))
+
+        contacts = [contact for contact in organization.contact_people.all() if contact.is_active]
+        story.append(Paragraph("Контакты", section_style))
+        if contacts:
+            contact_rows = [[
+                Paragraph("Должность", label_style), Paragraph("Ф. И. О.", label_style),
+                Paragraph("Телефон", label_style), Paragraph("Email", label_style),
+            ]]
+            contact_rows.extend([
+                [
+                    Paragraph(text(contact.position), value_style), Paragraph(text(contact.full_name), value_style),
+                    Paragraph(text(contact.phone), value_style), Paragraph(text(contact.email), value_style),
+                ] for contact in contacts
+            ])
+            contacts_table = Table(contact_rows, colWidths=(42 * mm, 54 * mm, 40 * mm, 50 * mm), repeatRows=1)
+            contacts_table.setStyle(TableStyle([
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#dfe6ee")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f4f8fc")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]))
+            story.append(contacts_table)
+        else:
+            story.append(Paragraph("Контакты не указаны.", meta_style))
+
+        if organization.notes:
+            story.extend([Paragraph("Комментарий", section_style), field_table([("Комментарий", organization.notes)])])
+
+        def page_footer(canvas, doc):
+            canvas.saveState()
+            canvas.setFont(regular_font, 7)
+            canvas.setFillColor(colors.HexColor("#7b8797"))
+            canvas.drawString(12 * mm, 7 * mm, "CRM • НОВЫЙ ПРОЕКТ · Карточка контрагента")
+            canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
+            canvas.restoreState()
+
+        document.build(story, onFirstPage=page_footer, onLaterPages=page_footer)
+        response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="organization-{organization.pk}.pdf"'
+        return response
+
+
 class OrganizationWorkspaceMixin:
     bank_formset_class = OrganizationBankAccountFormSet
     contact_formset_class = OrganizationContactFormSet

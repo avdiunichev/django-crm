@@ -355,6 +355,11 @@ urlpatterns = [
         name="organization-create",
     ),
     path(
+        "organizations/<int:pk>/pdf/",
+        views.OrganizationPDFView.as_view(),
+        name="organization-pdf",
+    ),
+    path(
         "organizations/<int:pk>/",
         views.OrganizationDetailView.as_view(),
         name="organization-detail",

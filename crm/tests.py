@@ -4645,6 +4645,18 @@ class CrmTestCase(TestCase):
         self.assertContains(response, "organization-register-table")
         self.assertContains(response, "Создать контрагента")
 
+    def test_organization_card_pdf_download(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("organization-pdf", args=[self.customer.organization.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("organization-", response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
     def test_payment_can_be_edited_and_deleted(self):
         payment = Payment.objects.create(
             shipment=self.shipment,

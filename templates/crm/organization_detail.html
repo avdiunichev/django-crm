@@ -9,6 +9,7 @@
 </div>
 <div class="onec-commandbar directory-commandbar">
     <a class="onec-save-close uk-button uk-button-primary" href="{% url 'organization-update' organization.pk %}"><span uk-icon="pencil"></span> Изменить</a>
+    <a class="onec-command uk-button uk-button-default" href="{% url 'organization-pdf' organization.pk %}" target="_blank" rel="noopener"><span uk-icon="download"></span> Скачать PDF</a>
     <a class="onec-command uk-button uk-button-default" href="{% url 'contract-create' %}?organization={{ organization.pk }}"><span uk-icon="album"></span> Новый договор</a>
     <a class="onec-command uk-button uk-button-danger" href="{% url 'organization-delete' organization.pk %}"><span uk-icon="trash"></span> Удалить</a>
     <span class="directory-card-state {% if organization.is_active %}is-active{% endif %}"><span uk-icon="{% if organization.is_active %}check{% else %}ban{% endif %}"></span> {% if organization.is_active %}Активна{% else %}Неактивна{% endif %}{% if organization.is_own_company %} · наша компания{% endif %}</span>
