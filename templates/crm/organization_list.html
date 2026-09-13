@@ -4,10 +4,9 @@
 <form class="filters order-register-filters organization-register-filters" method="get">
     <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН или контакт">
     <select class="form-control uk-select" name="role"><option value="">Все роли</option>{% for value,label in role_choices %}<option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-    <select class="form-control uk-select" name="group"><option value="">Все группы</option>{% for group in organization_groups %}<option value="{{ group.pk }}" {% if current_group == group.pk|stringformat:'s' %}selected{% endif %}>{{ group }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="own"><option value="">Все компании</option><option value="1" {% if current_own == '1' %}selected{% endif %}>Только наши компании</option></select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_q or current_role or current_own or current_group %}<a class="clear-link" href="{% url 'organization-list' %}">Сбросить</a>{% endif %}
+    {% if current_q or current_role or current_own %}<a class="clear-link" href="{% url 'organization-list' %}">Сбросить</a>{% endif %}
     <a class="uk-button uk-button-primary order-register-create" href="{% url 'organization-create' %}"><span uk-icon="plus"></span> Создать контрагента</a>
 </form>
 <section class="panel uk-card uk-card-default order-register-panel organization-register-panel">

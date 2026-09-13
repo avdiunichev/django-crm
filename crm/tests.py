@@ -4644,6 +4644,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "organization-register-table")
         self.assertContains(response, "Создать контрагента")
+        self.assertNotContains(response, "Все группы")
 
     def test_organization_card_pdf_download(self):
         self.client.force_login(self.user)

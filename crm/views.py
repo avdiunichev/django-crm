@@ -5146,7 +5146,6 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
         )
         query = self.request.GET.get("q", "").strip()
         role = self.request.GET.get("role", "").strip()
-        group = self.request.GET.get("group", "").strip()
         if query:
             queryset = queryset.filter(
                 Q(name__iunicodecontains=query)
@@ -5158,8 +5157,6 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
             queryset = queryset.filter(roles__role=role, roles__is_active=True)
         if self.request.GET.get("own") == "1":
             queryset = queryset.filter(is_own_company=True)
-        if group.isdigit():
-            queryset = queryset.filter(group_id=group)
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
@@ -5170,10 +5167,6 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
                 "current_q": self.request.GET.get("q", ""),
                 "current_role": self.request.GET.get("role", ""),
                 "current_own": self.request.GET.get("own", ""),
-                "current_group": self.request.GET.get("group", ""),
-                "organization_groups": OrganizationGroup.objects.filter(
-                    is_active=True
-                ).select_related("parent"),
                 "role_choices": OrganizationRole.Role.choices,
                 "organization_count": all_organizations.count(),
                 "client_count": all_organizations.filter(
