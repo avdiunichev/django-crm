@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setField("id_buyer_kpp", party.kpp);
                 setField("id_buyer_address", party.legal_address);
             } else {
-                setField("id_name", isExpeditor ? party.full_name : (party.short_name || party.full_name));
+                setField("id_name", party.full_name || party.short_name);
                 setField("id_short_name", party.short_name);
                 setField("id_tax_id", party.inn);
                 setField("id_kpp", party.kpp);
