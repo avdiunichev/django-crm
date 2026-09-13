@@ -42,9 +42,23 @@
         wrapper.append(search, dropdown);
         select.insertAdjacentElement("afterend", wrapper);
 
+        const freeTextTarget = document.getElementById(select.dataset.freeTextTarget || "");
+        const allowsFreeText = select.dataset.allowFreeText !== undefined && Boolean(freeTextTarget);
+
         let activeIndex = -1;
         let committedValue = "";
         let committedText = "";
+        const commitFreeText = () => {
+            if (!allowsFreeText) return;
+            select.value = "";
+            freeTextTarget.value = search.value.trim();
+            committedValue = "";
+            committedText = freeTextTarget.value;
+            search.value = committedText;
+            search.dataset.selectedText = "";
+            search.setCustomValidity("");
+            freeTextTarget.dispatchEvent(new Event("change", {bubbles: true}));
+        };
         const selectedText = () => {
             const option = select.selectedOptions[0];
             if (!option || isPlaceholder(option.textContent.trim())) return "";
@@ -55,13 +69,19 @@
             search.setAttribute("aria-expanded", "false");
             activeIndex = -1;
             if (restore && search.value !== committedText) {
+                if (allowsFreeText) {
+                    commitFreeText();
+                    return;
+                }
                 select.value = committedValue;
                 search.value = committedText;
                 search.setCustomValidity(required && !committedValue ? "Выберите значение из списка" : "");
             }
         };
         const syncFromSelect = () => {
-            search.value = selectedText();
+            const selected = selectedText();
+            if (selected && freeTextTarget) freeTextTarget.value = "";
+            search.value = selected || (allowsFreeText ? freeTextTarget.value.trim() : "");
             search.dataset.selectedText = search.value;
             committedValue = select.value;
             committedText = search.value;
@@ -74,6 +94,7 @@
         };
         const choose = (option) => {
             select.value = option.value;
+            if (freeTextTarget) freeTextTarget.value = "";
             syncFromSelect();
             close();
             select.dispatchEvent(new Event("change", {bubbles: true}));
@@ -109,9 +130,24 @@
                 dropdown.appendChild(button);
             });
             if (!options.length) {
+                if (allowsFreeText && search.value.trim()) {
+                    const useText = document.createElement("button");
+                    useText.type = "button";
+                    useText.className = "crm-smart-option crm-smart-option-free";
+                    useText.textContent = `Использовать «${search.value.trim()}» только в этом заказе`;
+                    useText.addEventListener("mousedown", (event) => event.preventDefault());
+                    useText.addEventListener("click", () => {
+                        commitFreeText();
+                        close();
+                        search.focus();
+                    });
+                    dropdown.appendChild(useText);
+                }
                 const empty = document.createElement("div");
                 empty.className = "crm-smart-empty";
-                empty.textContent = "Подходящих вариантов не найдено.";
+                empty.textContent = allowsFreeText
+                    ? "Контрагент не зарегистрирован: значение сохранится только в этом заказе."
+                    : "Подходящих вариантов не найдено.";
                 dropdown.appendChild(empty);
             }
             dropdown.hidden = false;
@@ -124,7 +160,10 @@
             search.select();
         });
         search.addEventListener("input", () => {
-            if (search.value !== committedText) select.value = "";
+            if (search.value !== committedText) {
+                select.value = "";
+                if (allowsFreeText) freeTextTarget.value = search.value.trim();
+            }
             else select.value = committedValue;
             search.setCustomValidity(
                 required && !select.value

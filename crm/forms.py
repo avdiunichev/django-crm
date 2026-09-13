@@ -1043,6 +1043,9 @@ class TransportOrderStopForm(StyledModelForm):
     # JSON is kept in a hidden field so a DaData selection can carry all
     # structured address parts without cluttering the order form.
     address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
+    organization = OrganizationChoiceField(
+        label="Грузоотправитель", queryset=Organization.objects.none(), required=False
+    )
 
     class Meta:
         model = TransportOrderStop
@@ -1071,8 +1074,20 @@ class TransportOrderStopForm(StyledModelForm):
             if kind == TransportOrderStop.Kind.DELIVERY
             else "Грузоотправитель"
         )
+        required_role = (
+            OrganizationRole.Role.CONSIGNEE
+            if kind == TransportOrderStop.Kind.DELIVERY
+            else OrganizationRole.Role.SHIPPER
+        )
+        organization_filter = Q(
+            is_active=True,
+            roles__role=required_role,
+            roles__is_active=True,
+        )
+        if self.instance.organization_id:
+            organization_filter |= Q(pk=self.instance.organization_id)
         self.fields["organization"].queryset = Organization.objects.filter(
-            is_active=True
+            organization_filter
         ).distinct()
         self.fields["organization"].required = False
         self.fields["organization"].label = party_label
@@ -1080,8 +1095,11 @@ class TransportOrderStopForm(StyledModelForm):
             {
                 "data-smart-select": "organization",
                 "data-create-url": reverse("quick-organization-create"),
+                "data-required-role": required_role,
                 "data-search-placeholder": f"Название или ИНН: {party_label.lower()}",
                 "data-create-label": f"Создать: {party_label.lower()}",
+                "data-allow-free-text": "",
+                "data-free-text-target": f"id_{self.add_prefix('organization_text')}",
             }
         )
         self.fields["organization_text"].widget = forms.HiddenInput()
@@ -1249,6 +1267,9 @@ TransportOrderStopFormSet = inlineformset_factory(
 
 class TransportationStopForm(StyledModelForm):
     address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
+    organization = OrganizationChoiceField(
+        label="Грузоотправитель", queryset=Organization.objects.none(), required=False
+    )
     planned_date = forms.DateField(
         label="Дата",
         required=False,
@@ -1282,16 +1303,35 @@ class TransportationStopForm(StyledModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        required_roles = (
+            [OrganizationRole.Role.CONSIGNEE]
+            if self.instance.kind == TransportationStop.Kind.DELIVERY
+            else [OrganizationRole.Role.SHIPPER]
+        )
+        required_role = required_roles[0]
+        organization_filter = Q(
+            is_active=True,
+            roles__role__in=required_roles,
+            roles__is_active=True,
+        )
+        if self.instance.organization_id:
+            organization_filter |= Q(pk=self.instance.organization_id)
         self.fields["organization"].queryset = Organization.objects.filter(
-            is_active=True
+            organization_filter
         ).distinct()
         self.fields["organization"].required = False
+        self.fields["organization"].label = (
+            "Грузополучатель"
+            if required_role == OrganizationRole.Role.CONSIGNEE
+            else "Грузоотправитель"
+        )
         self.fields["organization"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
                 "data-create-url": reverse("quick-organization-create"),
-                "data-search-placeholder": "Название или ИНН контрагента",
-                "data-create-label": "Создать контрагента",
+                "data-required-role": required_role,
+                "data-search-placeholder": f"Название или ИНН: {self.fields['organization'].label.lower()}",
+                "data-create-label": f"Создать: {self.fields['organization'].label.lower()}",
             }
         )
         self.fields["planned_date"].widget = CRMDateInput()

@@ -353,6 +353,36 @@ class CrmTestCase(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
+    def test_order_stop_filters_parties_and_keeps_unregistered_name_on_order(self):
+        OrganizationRole.objects.create(
+            organization=self.carrier.organization,
+            role=OrganizationRole.Role.SHIPPER,
+        )
+        form = TransportOrderStopForm(
+            data={
+                "sequence": "1",
+                "kind": TransportOrderStop.Kind.PICKUP,
+                "organization": "",
+                "organization_text": "Магазин роз",
+                "city": "",
+                "address": "г. Воронеж, ул. Логистическая, 7",
+                "planned_date": date.today().isoformat(),
+                "planned_time_from": "09:00",
+                "planned_time_to": "10:00",
+                "contact_name": "",
+                "contact_phone": "",
+                "instructions": "",
+                "address_meta": "",
+            }
+        )
+
+        self.assertIn(self.carrier.organization, form.fields["organization"].queryset)
+        self.assertNotIn(self.customer.organization, form.fields["organization"].queryset)
+        self.assertTrue(form.is_valid(), form.errors)
+        stop = form.save(commit=False)
+        self.assertEqual(stop.organization_text, "Магазин роз")
+        self.assertEqual(form.fields["organization"].label_from_instance(self.carrier.organization), f"{self.carrier.organization} · ИНН {self.carrier.organization.tax_id}")
+
     def test_order_assignment_creates_linked_trip_with_full_route(self):
         order = TransportOrder.objects.create(
             owner_company=self.company_profile.organization,
