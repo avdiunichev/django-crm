@@ -10830,6 +10830,16 @@ body.uikit-theme {
     font-size: 14px;
 }
 
+.uikit-theme .order-register-filters .order-register-create {
+    margin-left: auto;
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .order-register-filters .order-register-create {
+        margin-left: 0;
+    }
+}
+
 .uikit-theme .order-register-filters .crm-smart-dropdown,
 .uikit-theme .order-register-filters .crm-smart-option {
     border-radius: 0 !important;
