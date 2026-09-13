@@ -421,6 +421,13 @@ class OrganizationForm(StyledModelForm):
     def clean_registration_country(self):
         return self.cleaned_data.get("registration_country") or "РОССИЯ"
 
+    def clean_director_position(self):
+        value = " ".join((self.cleaned_data.get("director_position") or "").split()).lower()
+        return value[:1].upper() + value[1:] if value else ""
+
+    def clean_legal_address(self):
+        return (self.cleaned_data.get("legal_address") or "").upper()
+
     def clean_fns_status(self):
         value = self.cleaned_data.get("fns_status")
         return value or (

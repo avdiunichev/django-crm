@@ -57,7 +57,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default organization-bank-section">
-        <div class="form-section-title"><span>03</span><div><h2>Банковские реквизиты</h2><p>Расчётные счета и основной счёт для документов</p></div></div>
+        <div class="form-section-title"><span>02</span><div><h2>Банковские реквизиты</h2><p>Расчётные счета и основной счёт для документов</p></div></div>
         {{ bank_formset.management_form }}
         {% if bank_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ bank_formset.non_form_errors }}</div>{% endif %}
         <div class="organization-bank-list onec-formset" data-formset="bank_accounts">
@@ -100,14 +100,14 @@
                     </div>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>02</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
+                        <div class="form-section-title"><span>03</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
                         <div class="form-grid">
                             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
                         </div>
                     </section>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>03</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
+                        <div class="form-section-title"><span>04</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
                         <div class="form-grid">
                             {% include "crm/includes/form_field.html" with field=form.default_vat_rate %}
                             {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
@@ -120,7 +120,7 @@
                     </section>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
+                        <div class="form-section-title"><span>05</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
                         <div class="onec-flags onec-role-flags">
                             {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
                         </div>
@@ -233,6 +233,18 @@ document.addEventListener("DOMContentLoaded", () => {
         ["input", "change"].forEach((eventName) => taxId?.addEventListener(eventName, () => {
             mirror.value = taxId.value;
         }));
+    });
+    const normalizeDirectorPosition = (value) => {
+        const compact = (value || "").trim().replace(/\s+/g, " ").toLowerCase();
+        return compact ? `${compact[0].toUpperCase()}${compact.slice(1)}` : "";
+    };
+    const directorPosition = document.getElementById("{{ form.director_position.id_for_label }}");
+    const legalAddress = document.getElementById("{{ form.legal_address.id_for_label }}");
+    directorPosition?.addEventListener("change", () => {
+        directorPosition.value = normalizeDirectorPosition(directorPosition.value);
+    });
+    legalAddress?.addEventListener("change", () => {
+        legalAddress.value = legalAddress.value.toUpperCase();
     });
     const ownCompany = document.getElementById("{{ form.is_own_company.id_for_label }}");
     const ownCompanyTax = document.querySelector("[data-own-company-tax]");

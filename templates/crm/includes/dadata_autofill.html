@@ -37,7 +37,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!field || !value) return;
         const isoDate = field.matches("[data-crm-date]")
             && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-        field.value = isoDate ? `${isoDate[3]}.${isoDate[2]}.${isoDate[1]}` : value;
+        let normalizedValue = isoDate ? `${isoDate[3]}.${isoDate[2]}.${isoDate[1]}` : value;
+        if (id === "id_director_position") {
+            const compact = String(normalizedValue).trim().replace(/\s+/g, " ").toLowerCase();
+            normalizedValue = compact ? `${compact[0].toUpperCase()}${compact.slice(1)}` : "";
+        }
+        if (id === "id_legal_address") normalizedValue = String(normalizedValue).toUpperCase();
+        field.value = normalizedValue;
         field.dispatchEvent(new Event("change", {bubbles: true}));
     };
 
