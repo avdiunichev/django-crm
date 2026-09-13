@@ -3068,8 +3068,26 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 .organization-command-header .onec-inn-warning {
     margin: 14px 0 0;
     padding: 10px 12px;
+    border: 1px solid #c7e1fb;
     border-radius: 0;
+    color: #1b6fbe;
+    background: #edf7ff;
     font-size: 13px;
+}
+
+.organization-command-header .onec-inn-warning a {
+    color: #176cb7;
+    font-weight: 600;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-warning {
+    border-color: #315b81;
+    color: #9bcfff;
+    background: #193550;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-warning a {
+    color: #a8d6ff;
 }
 
 .organization-command-inn::after {

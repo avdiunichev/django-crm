@@ -19,7 +19,7 @@
                 <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
             </div>
         </div>
-        <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
+        <div id="inn-duplicate-warning" class="uk-alert-primary onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
             <span data-inn-duplicate-text>Контрагент с таким ИНН уже существует.</span>
             <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку{% if form.duplicate_organization %} {{ form.duplicate_organization }}{% endif %}</a>
         </div>
