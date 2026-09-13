@@ -11323,12 +11323,38 @@ body.uikit-theme {
 .uikit-theme .organization-register-table td:nth-child(5) { width: 11%; }
 
 @media (max-width: 720px) {
-    .uikit-theme .organization-register-table .organization-register-address {
+    .uikit-theme .organization-register-panel .table-wrap {
+        overflow: visible;
+    }
+
+    .uikit-theme .organization-register-table,
+    .uikit-theme .organization-register-table tbody,
+    .uikit-theme .organization-register-table tr,
+    .uikit-theme .organization-register-table td {
         display: block;
-        max-width: 100%;
-        overflow-wrap: anywhere;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .uikit-theme .organization-register-table {
+        table-layout: auto;
+    }
+
+    .uikit-theme .organization-register-table td {
         white-space: normal !important;
-        word-break: break-word;
+    }
+
+    .uikit-theme .organization-register-table .organization-register-address {
+        display: block !important;
+        box-sizing: border-box;
+        width: 100% !important;
+        padding-right: 24px;
+        min-width: 0 !important;
+        max-width: none !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+        word-break: break-all !important;
     }
 }
 
