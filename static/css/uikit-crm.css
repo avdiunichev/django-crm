@@ -1178,7 +1178,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 
 @media (max-width: 560px) {
     .safe-delete-modal {
-        align-items: end;
+        align-items: center;
         padding: 12px;
     }
 
@@ -1609,7 +1609,7 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
         padding: 16px;
     }
 
-    .order-cancel-modal { align-items: end; padding: 12px; }
+    .order-cancel-modal { align-items: center; padding: 12px; }
     .order-cancel-dialog { max-height: calc(100vh - 24px); padding: 20px 18px; }
     .order-cancel-actions { display: grid; gap: 8px; }
     .order-cancel-actions .uk-button { width: 100%; }
