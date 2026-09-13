@@ -10,6 +10,10 @@
     flex-wrap: nowrap;
 }
 
+.uikit-theme .organization-view-command .organization-command-actions {
+    margin-top: 18px;
+}
+
 .uikit-theme .organization-view-tabs > * > a {
     padding-right: 18px;
     padding-left: 18px;
