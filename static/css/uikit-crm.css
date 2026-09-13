@@ -3163,7 +3163,7 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
 
 .organization-form-sections .onec-role-flags {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 10px 24px;
     align-items: center;
 }
