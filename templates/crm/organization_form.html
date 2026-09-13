@@ -48,6 +48,11 @@
                 {% include "crm/includes/form_field.html" with field=form.registration_date %}
             </div>
             {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
+            <div class="organization-director-grid field-wide">
+                {% include "crm/includes/form_field.html" with field=form.director_position %}
+                {% include "crm/includes/form_field.html" with field=form.director_name %}
+                {% include "crm/includes/form_field.html" with field=form.acting_basis %}
+            </div>
         </div>
     </section>
 
@@ -72,7 +77,6 @@
                     <section class="form-section uk-card uk-card-default">
                         <div class="form-section-title"><span>02</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
                         <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.director_name %}
                             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
                         </div>
                     </section>

@@ -84,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setField("id_legal_address", party.legal_address);
                 setField("id_address", party.legal_address);
                 setField("id_legal_address_meta", JSON.stringify(party.address_data || {}));
+                setField("id_director_position", party.director_post);
                 setField("id_director_name", party.director_name);
                 setField("id_phone", party.phone);
                 setField("id_email", party.email);

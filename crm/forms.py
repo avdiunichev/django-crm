@@ -337,7 +337,7 @@ class OrganizationForm(StyledModelForm):
         fields = [
             "kind", "name", "short_name", "group", "registration_country",
             "tax_id", "kpp", "ogrn", "registration_date", "okato",
-            "legal_address", "director_name", "contact_name", "phone", "email",
+            "legal_address", "director_position", "director_name", "acting_basis", "contact_name", "phone", "email",
             "bank_name", "bik", "settlement_account", "correspondent_account",
             "is_own_company", "profit_tax_rate", "verification_status", "fns_status",
             "default_vat_rate", "default_payment_form", "payment_term_days", "credit_limit", "edo_operator", "edo_id",
