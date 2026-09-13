@@ -11280,6 +11280,16 @@ body.uikit-theme {
 .uikit-theme .organization-register-table th:nth-child(5),
 .uikit-theme .organization-register-table td:nth-child(5) { width: 11%; }
 
+@media (max-width: 720px) {
+    .uikit-theme .organization-register-table .organization-register-address {
+        display: block;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+}
+
 html[data-theme="dark"] body.uikit-theme .order-register-filters {
     border-color: #29364a;
     background: #141e2f;

@@ -14,7 +14,7 @@
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table organization-register-table">
         <thead><tr><th>Контрагент</th><th>ИНН / КПП</th><th>Роли</th><th>Контакт</th><th>Статус ФНС</th></tr></thead>
         <tbody>{% for organization in organizations %}<tr>
-            <td data-label="Контрагент"><a class="primary-link" href="{% url 'organization-detail' organization.pk %}">{{ organization }}</a><small>{{ organization.legal_address|default:"Адрес не указан" }}</small></td>
+            <td data-label="Контрагент"><a class="primary-link" href="{% url 'organization-detail' organization.pk %}">{{ organization }}</a><small class="organization-register-address">{{ organization.legal_address|default:"Адрес не указан" }}</small></td>
             <td data-label="ИНН / КПП">{{ organization.tax_id|default:"—" }}{% if organization.kpp %}<small>КПП {{ organization.kpp }}</small>{% endif %}</td>
             <td data-label="Роли">{% if organization.is_own_company %}<small>Наша компания</small>{% endif %}{% for role in organization.active_roles %}{{ role.get_role_display }}{% if not forloop.last %} · {% endif %}{% empty %}<span class="uk-text-muted">Не назначены</span>{% endfor %}</td>
             <td data-label="Контакт">{{ organization.contact_name|default:"—" }}<small>{{ organization.phone|default:organization.email|default:"Контакты не указаны" }}</small></td>
