@@ -122,58 +122,6 @@
         </div>
     </section>
 
-    <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
-        <li><a href="#">Основное</a></li>
-        <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
-        <li><a href="#">Договоры <span>{{ contracts|length }}</span></a></li>
-        <li><a href="#">Контактные лица <span>{% if object %}{{ object.contact_people.count }}{% else %}0{% endif %}</span></a></li>
-        <li><a href="#">Взаиморасчёты <span>{{ settlement_rows|length }}</span></a></li>
-    </ul>
-
-    <ul id="organization-sections" class="uk-switcher onec-switcher">
-        <li>
-            <div class="onec-main-grid">
-                <aside class="onec-sidepanels">
-                    <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ receivable_total|floatformat:2 }} ₽</a></article>
-                    <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ payable_total|floatformat:2 }} ₽</a></article>
-                    <article class="neutral"><h3>Работа с контрагентом</h3><p>Активных рейсов: <strong>{{ active_trip_count }}</strong></p><p>Ролей: <strong>{% if object %}{{ object.roles.count }}{% else %}0{% endif %}</strong></p></article>
-                </aside>
-            </div>
-        </li>
-
-        <li>
-            <div class="onec-register-header"><div><h2>Документы контрагента</h2><p>Документы всех связанных рейсов.</p></div><a class="uk-button uk-button-default" href="{% url 'shipment-document-list' %}">Открыть журнал документов</a></div>
-            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Документ</th><th>Номер / дата</th><th>Рейс</th><th>Сторона</th><th>Статус</th><th>Сумма</th></tr></thead><tbody>
-            {% for document in organization_documents %}<tr><td><a href="{{ document.get_absolute_url }}">{{ document.get_kind_display }}</a></td><td>{{ document.number|default:"—" }}<small>{{ document.document_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td><td><a href="{{ document.shipment.get_absolute_url }}">{{ document.shipment.number }}</a></td><td>{{ document.get_party_display }}</td><td>{{ document.get_status_display }}</td><td>{{ document.amount|floatformat:2|default:"—" }} {{ document.currency|currency_symbol }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Связанных документов пока нет.</td></tr>{% endfor %}
-            </tbody></table></div>
-        </li>
-
-        <li>
-            <div class="onec-register-header"><div><h2>Договоры</h2><p>Клиентские, перевозочные и экспедиторские договоры.</p></div><a class="uk-button uk-button-primary" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать</a></div>
-            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Номер</th><th>Вид договора</th><th>Наша компания</th><th>Дата</th><th>Статус</th></tr></thead><tbody>
-            {% for contract in contracts %}<tr><td><a href="{{ contract.get_absolute_url }}">{{ contract.number }}</a></td><td>{{ contract.get_kind_display }}</td><td>{{ contract.expeditor }}</td><td>{{ contract.contract_date|date:"d.m.Y" }}</td><td>{{ contract.get_status_display }}</td></tr>{% empty %}<tr><td colspan="5" class="empty-state">С контрагентом ещё нет договоров.</td></tr>{% endfor %}
-            </tbody></table></div>
-        </li>
-
-        <li>
-            {{ contact_formset.management_form }}
-            <div class="onec-register-header"><div><h2>Контактные лица</h2><p>Ответственные сотрудники контрагента и их рабочие контакты.</p></div><button class="uk-button uk-button-default" type="button" data-add-form="contact_people"><span uk-icon="plus"></span> Добавить контакт</button></div>
-            {% if contact_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ contact_formset.non_form_errors }}</div>{% endif %}
-            <div class="onec-formset" data-formset="contact_people">
-                {% for contact_form in contact_formset %}<article class="onec-register-row contact-row">{{ contact_form.id }}
-                    <div class="field wide"><label>{{ contact_form.full_name.label }}</label>{{ contact_form.full_name }}{{ contact_form.full_name.errors }}</div><div class="field wide"><label>{{ contact_form.position.label }}</label>{{ contact_form.position }}</div><div class="field"><label>{{ contact_form.phone.label }}</label>{{ contact_form.phone }}</div><div class="field"><label>{{ contact_form.email.label }}</label>{{ contact_form.email }}</div><div class="field check">{{ contact_form.is_primary }} <label>{{ contact_form.is_primary.label }}</label></div><div class="field check">{{ contact_form.is_active }} <label>{{ contact_form.is_active.label }}</label></div><div class="field check danger">{{ contact_form.DELETE }} <label>{{ contact_form.DELETE.label }}</label></div><div class="field full"><label>{{ contact_form.notes.label }}</label>{{ contact_form.notes }}</div>
-                </article>{% endfor %}
-            </div>
-            <template id="contact_people-empty-form"><article class="onec-register-row contact-row">{{ contact_formset.empty_form.id }}<div class="field wide"><label>{{ contact_formset.empty_form.full_name.label }}</label>{{ contact_formset.empty_form.full_name }}</div><div class="field wide"><label>{{ contact_formset.empty_form.position.label }}</label>{{ contact_formset.empty_form.position }}</div><div class="field"><label>{{ contact_formset.empty_form.phone.label }}</label>{{ contact_formset.empty_form.phone }}</div><div class="field"><label>{{ contact_formset.empty_form.email.label }}</label>{{ contact_formset.empty_form.email }}</div><div class="field check">{{ contact_formset.empty_form.is_primary }} <label>{{ contact_formset.empty_form.is_primary.label }}</label></div><div class="field check">{{ contact_formset.empty_form.is_active }} <label>{{ contact_formset.empty_form.is_active.label }}</label></div><div class="field check danger">{{ contact_formset.empty_form.DELETE }} <label>{{ contact_formset.empty_form.DELETE.label }}</label></div><div class="field full"><label>{{ contact_formset.empty_form.notes.label }}</label>{{ contact_formset.empty_form.notes }}</div></article></template>
-        </li>
-
-        <li>
-            <div class="onec-debt-summary"><article><span>Дебиторская задолженность</span><strong>{{ receivable_total|floatformat:2 }} ₽</strong><small>Нам должен контрагент</small></article><article><span>Кредиторская задолженность</span><strong>{{ payable_total|floatformat:2 }} ₽</strong><small>Мы должны контрагенту</small></article></div>
-            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Рейс</th><th>Роль</th><th>Начислено</th><th>Оплачено</th><th>Остаток</th><th>Состояние</th></tr></thead><tbody>
-            {% for row in settlement_rows %}<tr><td><a href="{{ row.shipment.get_absolute_url }}">{{ row.shipment.number }}</a><small class="route-compact" title="{{ row.shipment.route }}">{{ row.shipment.route }}</small></td><td>{{ row.side }}</td><td>{{ row.accrued|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</td><td>{{ row.paid|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</td><td class="{% if row.balance > 0 %}uk-text-danger{% endif %}"><strong>{{ row.balance|floatformat:2 }} {{ row.shipment.currency|currency_symbol }}</strong></td><td>{{ row.state }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Взаиморасчётов с контрагентом пока нет.</td></tr>{% endfor %}
-            </tbody></table></div>
-        </li>
-    </ul>
 </form>
 
 <script>
@@ -321,13 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
             formset?.querySelectorAll('[name$="-is_primary"]').forEach((field) => { if (field !== event.target) field.checked = false; });
         }
         if (formset?.matches('[data-formset="bank_accounts"]')) syncBankAccountCards();
-    });
-    document.querySelectorAll("[data-open-organization-tab]").forEach((link) => {
-        link.addEventListener("click", (event) => {
-            event.preventDefault();
-            const tabs = document.querySelector(".onec-tabs");
-            if (tabs && window.UIkit) UIkit.tab(tabs).show(Number(link.dataset.openOrganizationTab));
-        });
     });
 });
 </script>

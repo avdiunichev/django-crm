@@ -882,8 +882,8 @@ class CrmTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Записать и закрыть")
         self.assertContains(response, "Банковские реквизиты")
-        self.assertContains(response, "Контактные лица")
-        self.assertContains(response, "Взаиморасчёты")
+        self.assertNotContains(response, 'class="onec-tabs')
+        self.assertNotContains(response, "Взаиморасчёты")
         self.assertEqual(response.context["receivable_total"], Decimal("100000"))
 
         carrier_response = self.client.get(self.carrier.organization.get_absolute_url())
