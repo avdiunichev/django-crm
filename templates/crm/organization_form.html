@@ -20,7 +20,14 @@
             </div>
         </div>
         <div class="organization-command-footer">
-            <div class="organization-command-inn">{{ form.tax_id }}</div>
+            <div class="organization-command-inn">
+                {{ form.tax_id }}
+                <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
+                    <span uk-icon="warning"></span>
+                    <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
+                    <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку</a>
+                </div>
+            </div>
             <div class="order-command-actions organization-command-actions">
                 {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
                 <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
@@ -58,11 +65,6 @@
         <li>
             <div class="onec-main-grid">
                 <section class="organization-form-sections">
-                    <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
-                        <span uk-icon="warning"></span>
-                        <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
-                        <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку</a>
-                    </div>
                     <div class="onec-verification {% if form.instance.verification_status == 'verified' %}is-ok{% elif form.instance.verification_status == 'warning' %}is-warning{% endif %}">
                         <span uk-icon="{% if form.instance.verification_status == 'verified' %}check{% else %}info{% endif %}"></span>
                         {{ form.instance.get_verification_status_display|default:"Контрагент ещё не проверен" }}{% if form.instance.verified_at %} · {{ form.instance.verified_at|date:"d.m.Y H:i" }}{% endif %}{{ form.verification_status }}

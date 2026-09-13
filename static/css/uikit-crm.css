@@ -3065,6 +3065,13 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     padding-right: 82px;
 }
 
+.organization-command-inn .onec-inn-warning {
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    border-radius: 0;
+    font-size: 13px;
+}
+
 .organization-command-inn::after {
     position: absolute;
     top: 50%;
