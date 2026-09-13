@@ -3,7 +3,7 @@
 {% block content %}
 <form method="post" class="onec-workspace organization-workspace" novalidate>
     {% csrf_token %}
-    {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}{{ form.default_vat_rate.as_hidden }}
+    {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}{{ form.verification_status }}{{ form.default_vat_rate.as_hidden }}
     {{ form.bank_name }}{{ form.bik }}{{ form.settlement_account }}{{ form.correspondent_account }}
     {{ form.legal_address_meta }}
 
@@ -33,6 +33,13 @@
                 <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
             </div>
         </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default organization-verification-card">
+        <h2>Проверка контрагента</h2>
+        <strong data-fns-status class="{% if form.instance.fns_status == 'active' %}uk-text-success{% elif form.instance.fns_status != 'unknown' %}uk-text-danger{% endif %}">ФНС: {{ form.instance.get_fns_status_display|default:"Не проверен" }}</strong>
+        <p>{% if form.instance.fns_checked_at %}Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}{% else %}Нажмите «Проверка контрагента» после ввода ИНН.{% endif %}</p>
+        <small>{{ form.instance.get_verification_status_display|default:"Реквизиты не проверены" }}</small>
     </section>
 
     <section class="form-section uk-card uk-card-default organization-primary-details">
@@ -108,11 +115,6 @@
         <li>
             <div class="onec-main-grid">
                 <section class="organization-form-sections">
-                    <div class="onec-verification {% if form.instance.verification_status == 'verified' %}is-ok{% elif form.instance.verification_status == 'warning' %}is-warning{% endif %}">
-                        <span uk-icon="{% if form.instance.verification_status == 'verified' %}check{% else %}info{% endif %}"></span>
-                        {{ form.instance.get_verification_status_display|default:"Контрагент ещё не проверен" }}{% if form.instance.verified_at %} · {{ form.instance.verified_at|date:"d.m.Y H:i" }}{% endif %}{{ form.verification_status }}
-                    </div>
-
                     <section class="form-section uk-card uk-card-default">
                         <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите роли и при необходимости укажите причину деактивации.</p></div></div>
                         <div class="onec-flags onec-role-flags">
@@ -132,7 +134,6 @@
                 </section>
 
                 <aside class="onec-sidepanels">
-                    <article><h3>Проверка контрагента</h3><strong data-fns-status class="{% if form.instance.fns_status == 'active' %}uk-text-success{% elif form.instance.fns_status != 'unknown' %}uk-text-danger{% endif %}">ФНС: {{ form.instance.get_fns_status_display|default:"Не проверен" }}</strong><p>{% if form.instance.fns_checked_at %}Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}{% else %}Нажмите «Проверка контрагента» после ввода ИНН.{% endif %}</p><small>{{ form.instance.get_verification_status_display|default:"Реквизиты не проверены" }}</small></article>
                     <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ receivable_total|floatformat:2 }} ₽</a></article>
                     <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ payable_total|floatformat:2 }} ₽</a></article>
                     <article class="neutral"><h3>Работа с контрагентом</h3><p>Активных рейсов: <strong>{{ active_trip_count }}</strong></p><p>Ролей: <strong>{% if object %}{{ object.roles.count }}{% else %}0{% endif %}</strong></p></article>

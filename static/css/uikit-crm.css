@@ -3035,7 +3035,38 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 }
 
 .organization-workspace .onec-sidepanels {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.organization-verification-card {
+    border-top: 4px solid #1e87f0;
+}
+
+.organization-verification-card h2,
+.organization-verification-card p {
+    margin: 0;
+}
+
+.organization-verification-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.organization-verification-card strong {
+    display: block;
+    margin-top: 18px;
+    font-size: 18px;
+}
+
+.organization-verification-card p {
+    margin-top: 12px;
+    color: #687586;
+}
+
+.organization-verification-card small {
+    display: block;
+    margin-top: 14px;
+    color: #687586;
 }
 
 .uikit-theme .organization-command-header .order-command-title {
