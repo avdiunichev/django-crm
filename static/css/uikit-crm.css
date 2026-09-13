@@ -9369,8 +9369,8 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     }
 
     .order-route-stop textarea[data-dadata-address] {
-        min-height: 78px;
-        height: 78px;
+        min-height: 122px;
+        height: 122px;
     }
 
     .route-schedule-grid {
