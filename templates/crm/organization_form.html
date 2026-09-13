@@ -122,6 +122,17 @@
         </div>
     </section>
 
+    <section class="form-section uk-card uk-card-default order-command-header order-command-footer organization-command-panel">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="cog"></span>
+            <div><h2>Панель управления</h2><p>Сохранение и закрытие карточки контрагента</p></div>
+        </div>
+        <div class="order-command-actions organization-command-actions">
+            <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+            <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+        </div>
+    </section>
+
 </form>
 
 <script>

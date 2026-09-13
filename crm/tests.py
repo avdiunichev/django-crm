@@ -882,6 +882,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Записать и закрыть")
         self.assertContains(response, "Банковские реквизиты")
+        self.assertContains(response, "Панель управления")
         self.assertNotContains(response, 'class="onec-tabs')
         self.assertNotContains(response, "Взаиморасчёты")
         self.assertEqual(response.context["receivable_total"], Decimal("100000"))
