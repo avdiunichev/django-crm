@@ -60,15 +60,11 @@
 
 .organization-view-field > strong {
     display: block;
-    box-sizing: border-box;
-    min-height: 40px;
-    padding: 10px 12px;
-    border: 1px solid #d5dfe8;
-    border-radius: 0 !important;
+    min-height: 22px;
+    padding: 0;
     color: #2f3846;
-    background: #fff;
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.4;
     overflow-wrap: anywhere;
 }
@@ -154,9 +150,7 @@ html[data-theme="dark"] body.uikit-theme .organization-view-empty {
 }
 
 html[data-theme="dark"] body.uikit-theme .organization-view-field > strong {
-    border-color: #344257;
     color: #eef3fa;
-    background: #111b2c;
 }
 
 html[data-theme="dark"] body.uikit-theme .organization-view-role-box {
