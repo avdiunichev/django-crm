@@ -7944,6 +7944,10 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     padding-right: 86px;
 }
 
+.crm-address-suggest > textarea[data-dadata-address] {
+    padding-right: 86px;
+}
+
 .crm-address-suggest::after {
     position: absolute;
     z-index: 1;
