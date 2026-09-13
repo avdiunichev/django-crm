@@ -246,6 +246,16 @@ class Organization(TimestampedModel):
     payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка оплаты, дней", default=0
     )
+    payment_term_basis = models.CharField(
+        "Основание срока оплаты",
+        max_length=30,
+        choices=(
+            ("delivery_date", "Дата доставки"),
+            ("document_date", "Дата документа"),
+            ("originals_received", "Получение оригиналов"),
+        ),
+        default="delivery_date",
+    )
     default_payment_form = models.CharField(
         "Форма оплаты по умолчанию",
         max_length=30,

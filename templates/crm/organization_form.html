@@ -3,7 +3,7 @@
 {% block content %}
 <form method="post" class="onec-workspace organization-workspace" novalidate>
     {% csrf_token %}
-    {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}
+    {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}{{ form.default_vat_rate.as_hidden }}
     {{ form.bank_name }}{{ form.bik }}{{ form.settlement_account }}{{ form.correspondent_account }}
     {{ form.legal_address_meta }}
 
@@ -83,6 +83,19 @@
         <template id="bank_accounts-empty-form"><article class="order-route-stop organization-bank-card" data-bank-account-card>{{ bank_formset.empty_form.id }}{{ bank_formset.empty_form.currency.as_hidden }}{{ bank_formset.empty_form.is_active.as_hidden }}{{ bank_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong>Банковские реквизиты</strong></div><div class="organization-bank-card-actions">{{ bank_formset.empty_form.is_primary }} <label for="{{ bank_formset.empty_form.is_primary.id_for_label }}">Основной</label>{{ bank_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-bank-account>Удалить</a></div></div><div class="organization-bank-grid"><div class="field"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field organization-bank-bik"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}<span>DaData</span></div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div></div></article></template>
     </section>
 
+    <section class="form-section uk-card uk-card-default organization-financial-section">
+        <div class="form-section-title"><span>03</span><div><h2>Финансовые настройки</h2><p>Условия оплаты, ЭДО и работа с оригиналами</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
+            {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.payment_term_basis %}
+            {% include "crm/includes/form_field.html" with field=form.credit_limit %}
+            {% include "crm/includes/form_field.html" with field=form.edo_operator %}
+            {% include "crm/includes/form_field.html" with field=form.edo_id %}
+            {% include "crm/includes/form_field.html" with field=form.originals_handling wide=True %}
+        </div>
+    </section>
+
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
         <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
@@ -101,22 +114,9 @@
                     </div>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>03</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
+                        <div class="form-section-title"><span>04</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
                         <div class="form-grid">
                             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
-                        </div>
-                    </section>
-
-                    <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>04</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
-                        <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.default_vat_rate %}
-                            {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
-                            {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
-                            {% include "crm/includes/form_field.html" with field=form.credit_limit %}
-                            {% include "crm/includes/form_field.html" with field=form.edo_operator %}
-                            {% include "crm/includes/form_field.html" with field=form.edo_id %}
-                            {% include "crm/includes/form_field.html" with field=form.originals_handling wide=True %}
                         </div>
                     </section>
 

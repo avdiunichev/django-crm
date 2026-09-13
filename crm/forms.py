@@ -340,7 +340,7 @@ class OrganizationForm(StyledModelForm):
             "legal_address", "director_position", "director_name", "acting_basis", "contact_name", "phone", "email",
             "bank_name", "bik", "settlement_account", "correspondent_account",
             "is_own_company", "profit_tax_rate", "verification_status", "fns_status",
-            "default_vat_rate", "default_payment_form", "payment_term_days", "credit_limit", "edo_operator", "edo_id",
+            "default_vat_rate", "default_payment_form", "payment_term_days", "payment_term_basis", "credit_limit", "edo_operator", "edo_id",
             "originals_handling", "notes", "is_active",
         ]
         widgets = {
@@ -371,6 +371,7 @@ class OrganizationForm(StyledModelForm):
         self.fields["default_payment_form"].required = False
         self.fields["fns_status"].required = False
         self.fields["payment_term_days"].required = False
+        self.fields["payment_term_basis"].required = False
         self.fields["credit_limit"].required = False
         self.fields["edo_operator"].required = False
         self.fields["edo_id"].required = False
@@ -381,6 +382,16 @@ class OrganizationForm(StyledModelForm):
                 "data-dadata-inn-input": "",
             }
         )
+        self.fields["credit_limit"].widget = forms.TextInput(
+            attrs={
+                "class": "form-control uk-input",
+                "inputmode": "decimal",
+                "placeholder": "Не указан",
+                "data-money-input": "",
+            }
+        )
+        if self.instance.credit_limit in (None, Decimal("0")):
+            self.initial["credit_limit"] = ""
         self._audit_before = {}
         for field_name in self.Meta.fields:
             if field_name in self.fields:

@@ -101,7 +101,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-money-input], [data-decimal-input]").forEach(enhanceMoneyInput);
         document.querySelectorAll("[data-cargo-autocomplete]").forEach(enhanceCargoInput);
-        document.querySelectorAll("form[data-order-form]").forEach((form) => {
+        document.querySelectorAll("form").forEach((form) => {
             form.addEventListener("submit", () => {
                 form.querySelectorAll("[data-money-input], [data-decimal-input]").forEach((input) => {
                     input.value = normalizeMoney(input.value);
