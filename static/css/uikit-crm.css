@@ -2413,6 +2413,24 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     border-radius: 0;
 }
 
+/* Поле налога — отдельная полноширинная строка в блоке ролей. */
+.organization-role-section .onec-own-company-tax {
+    box-sizing: border-box;
+    display: block;
+    grid-column: 1 / -1;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.organization-role-section .onec-own-company-tax .uk-input,
+.organization-role-section .onec-own-company-tax .form-control {
+    box-sizing: border-box;
+    display: block;
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+}
+
 .onec-own-company-tax small {
     margin-top: 6px;
     color: #999;
