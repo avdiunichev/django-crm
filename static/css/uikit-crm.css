@@ -3204,6 +3204,24 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     display: none;
 }
 
+.organization-bank-remove-text {
+    color: #df4e4e;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.organization-bank-remove-text:hover {
+    color: #bd3232;
+    text-decoration: none;
+}
+
+.organization-bank-remove-text[aria-disabled="true"] {
+    color: #9ba7b8;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .organization-bank-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
