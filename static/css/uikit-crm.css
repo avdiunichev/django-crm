@@ -6255,6 +6255,46 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Реестр контрагентов: на телефоне таблица превращается в карточки.
+   Это правило намеренно находится в конце файла: десктопное min-width
+   таблицы объявлено ниже первоначальных мобильных стилей. */
+@media (max-width: 720px) {
+    .uikit-theme .organization-register-panel .table-wrap {
+        overflow: visible;
+    }
+
+    .uikit-theme .organization-register-table {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        table-layout: auto;
+    }
+
+    .uikit-theme .organization-register-table tbody,
+    .uikit-theme .organization-register-table tr,
+    .uikit-theme .organization-register-table td {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .uikit-theme .organization-register-table td {
+        white-space: normal !important;
+    }
+
+    .uikit-theme .organization-register-table .organization-register-address {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+    }
+}
+
 /* EOF: карточка рейса использует ту же строгую геометрию, что и заказ. */
 body.uikit-theme .transportation-card {
     gap: 18px;
