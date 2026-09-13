@@ -66,7 +66,7 @@
                 {{ account_form.id }}{{ account_form.currency.as_hidden }}{{ account_form.is_active.as_hidden }}{{ account_form.notes.as_hidden }}
                 <div class="order-route-stop-head">
                     <div><span class="route-stop-index">{{ forloop.counter }}</span><strong>Банковские реквизиты</strong></div>
-                    <div class="organization-bank-card-actions">{{ account_form.is_primary }} <label for="{{ account_form.is_primary.id_for_label }}">Основной</label>{{ account_form.DELETE }}<button class="route-delete-button" type="button" data-remove-bank-account>Удалить</button></div>
+                    <div class="organization-bank-card-actions">{{ account_form.is_primary }} <label for="{{ account_form.is_primary.id_for_label }}">Основной</label>{{ account_form.DELETE }}<button class="route-delete-button" type="button" data-remove-bank-account {% if forloop.first and forloop.last %}disabled{% endif %}>Удалить</button></div>
                 </div>
                 {% if account_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ account_form.non_field_errors }}</div>{% endif %}
                 <div class="organization-bank-grid">
@@ -262,14 +262,22 @@ document.addEventListener("DOMContentLoaded", () => {
             target.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", index));
             total.value = index + 1;
             window.CRMDateInputs?.enhanceWithin?.(target.lastElementChild);
+            if (prefix === "bank_accounts") syncBankAccountCards();
         });
     });
-    const updateBankAccountIndexes = () => {
-        document.querySelectorAll("[data-bank-account-card]").forEach((card, index) => {
-            if (!card.classList.contains("is-deleted")) {
-                const number = card.querySelector(".route-stop-index");
-                if (number) number.textContent = String(index + 1);
-            }
+    const syncBankAccountCards = () => {
+        const cards = [...document.querySelectorAll("[data-bank-account-card]")]
+            .filter((card) => !card.classList.contains("is-deleted"));
+        const primary = cards.find((card) => card.querySelector('[name$="-is_primary"]')?.checked);
+        if (!primary && cards.length) {
+            const checkbox = cards[0].querySelector('[name$="-is_primary"]');
+            if (checkbox) checkbox.checked = true;
+        }
+        cards.forEach((card, index) => {
+            const number = card.querySelector(".route-stop-index");
+            if (number) number.textContent = String(index + 1);
+            const removeButton = card.querySelector("[data-remove-bank-account]");
+            if (removeButton) removeButton.disabled = cards.length < 2;
         });
     };
     document.addEventListener("click", (event) => {
@@ -280,13 +288,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!card || !remove) return;
         remove.checked = true;
         card.classList.add("is-deleted");
-        updateBankAccountIndexes();
+        syncBankAccountCards();
     });
-    updateBankAccountIndexes();
+    syncBankAccountCards();
     document.addEventListener("change", (event) => {
-        if (!event.target.matches('[name$="-is_primary"]') || !event.target.checked) return;
+        if (!event.target.matches('[name$="-is_primary"]')) return;
         const formset = event.target.closest(".onec-formset");
-        formset?.querySelectorAll('[name$="-is_primary"]').forEach((field) => { if (field !== event.target) field.checked = false; });
+        if (event.target.checked) {
+            formset?.querySelectorAll('[name$="-is_primary"]').forEach((field) => { if (field !== event.target) field.checked = false; });
+        }
+        if (formset?.matches('[data-formset="bank_accounts"]')) syncBankAccountCards();
     });
     document.querySelectorAll("[data-open-organization-tab]").forEach((link) => {
         link.addEventListener("click", (event) => {

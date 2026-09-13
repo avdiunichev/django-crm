@@ -625,18 +625,41 @@ class QuickOrganizationForm(StyledModelForm):
 class PrimaryRegisterFormSet(BaseInlineFormSet):
     primary_field = "is_primary"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.is_bound:
+            return
+        available_forms = [
+            form for form in self.forms
+            if form.instance.pk or not form.empty_permitted
+        ]
+        if not available_forms:
+            available_forms = list(self.forms[:1])
+        if available_forms and not any(
+            form.initial.get(self.primary_field, False)
+            or getattr(form.instance, self.primary_field, False)
+            for form in available_forms
+        ):
+            available_forms[0].fields[self.primary_field].initial = True
+
     def clean(self):
         super().clean()
         if any(self.errors):
             return
         primary_count = 0
+        available_forms = []
         for form in self.forms:
             if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
                 continue
+            if not form.has_changed() and not form.instance.pk:
+                continue
+            available_forms.append(form)
             if form.cleaned_data.get(self.primary_field):
                 primary_count += 1
         if primary_count > 1:
             raise forms.ValidationError("Основной записью может быть только одна строка.")
+        if available_forms and not primary_count:
+            available_forms[0].cleaned_data[self.primary_field] = True
 
 
 class OrganizationBankAccountForm(StyledModelForm):
