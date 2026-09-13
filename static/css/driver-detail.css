@@ -1,0 +1,33 @@
+/* Карточка водителя построена по структуре карточки контрагента. */
+.uikit-theme .driver-view-workspace { display: grid; gap: 18px; }
+.uikit-theme .driver-view-command .driver-command-actions { margin-top: 18px; }
+.uikit-theme .driver-view-tabs { margin: 0; overflow-x: auto; flex-wrap: nowrap; }
+.uikit-theme .driver-view-tabs > * > a { padding-right: 18px; padding-left: 18px; border-radius: 0 !important; font-size: 13px; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
+.uikit-theme .driver-view-switcher { margin: 0; padding: 0; border: 0; background: transparent; }
+.uikit-theme .driver-view-section, .uikit-theme .driver-view-record { margin: 0; border-radius: 0 !important; }
+
+.driver-view-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
+.driver-view-field { min-width: 0; }
+.driver-view-field.field-wide { grid-column: 1 / -1; }
+.driver-view-field > span { display: block; margin-bottom: 6px; color: #687586; font-size: 13px; line-height: 1.3; }
+.driver-view-field > strong { display: block; min-height: 22px; padding: 0; color: #2f3846; font-size: 14px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; word-break: normal; }
+.driver-view-field > strong a { color: #287fdb; }
+.driver-view-record-list { display: grid; gap: 16px; padding: 20px; }
+.driver-view-record-grid { padding: 18px 20px 20px; }
+.driver-view-record .driver-view-grid + .driver-view-grid { border-top: 1px solid #dce5ed; }
+.driver-view-primary { color: #287fdb; font-size: 13px; }
+.driver-view-empty { margin: 0; padding: 16px; border: 1px solid #d5dfe8; color: #687586; }
+
+html[data-theme="dark"] body.uikit-theme .driver-view-field > span,
+html[data-theme="dark"] body.uikit-theme .driver-view-empty { color: #9aa8ba; }
+html[data-theme="dark"] body.uikit-theme .driver-view-field > strong { color: #eef3fa; }
+html[data-theme="dark"] body.uikit-theme .driver-view-record .driver-view-grid + .driver-view-grid { border-color: #344257; }
+html[data-theme="dark"] body.uikit-theme .driver-view-empty { border-color: #344257; background: #141e2f; }
+
+@media (max-width: 960px) { .driver-view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+    .uikit-theme .driver-view-tabs > * > a { min-height: 40px; padding: 0 12px 8px; font-size: 12px; }
+    .driver-view-grid { grid-template-columns: 1fr; padding: 16px; }
+    .driver-view-record-list { padding: 16px; }
+    .driver-view-record-grid { padding: 16px; }
+}

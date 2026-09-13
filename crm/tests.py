@@ -2145,11 +2145,11 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(listing.context["page_obj"].paginator.count, 1)
         self.assertContains(listing, "driver-directory-table")
-        self.assertContains(listing, "Документы требуют внимания")
+        self.assertContains(listing, "Карточки водителей")
         detail = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
-        self.assertContains(detail, "onec-titlebar")
-        self.assertContains(detail, "driver-summary-card")
-        self.assertContains(detail, "Компании водителя")
+        self.assertContains(detail, "driver-view-workspace")
+        self.assertContains(detail, "01 Основные данные")
+        self.assertContains(detail, "Места работы водителя")
         self.assertContains(detail, "История карточки")
 
     def test_vehicle_directory_and_card_follow_onec_workspace(self):
