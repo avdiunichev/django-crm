@@ -3173,6 +3173,55 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     gap: 18px;
 }
 
+.organization-bank-list {
+    display: grid;
+    gap: 16px;
+}
+
+.organization-bank-section .organization-bank-card {
+    border-radius: 0;
+}
+
+.organization-bank-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+}
+
+.organization-bank-card-actions input[name$="-DELETE"] {
+    display: none;
+}
+
+.organization-bank-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.organization-bank-bik {
+    position: relative;
+}
+
+.organization-bank-bik .uk-input {
+    padding-right: 58px;
+}
+
+.organization-bank-bik > span {
+    position: absolute;
+    right: 10px;
+    bottom: 11px;
+    color: #287fdb;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    pointer-events: none;
+}
+
+.organization-bank-actions {
+    margin-top: 16px;
+}
+
 @media (max-width: 1100px) {
     .organization-registration-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3181,11 +3230,24 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     .organization-director-grid {
         grid-template-columns: 1fr;
     }
+
+    .organization-bank-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 720px) {
     .organization-registration-grid {
         grid-template-columns: 1fr;
+    }
+
+    .organization-bank-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .organization-bank-card .order-route-stop-head {
+        align-items: flex-start;
+        gap: 12px;
     }
 }
 

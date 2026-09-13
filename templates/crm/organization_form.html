@@ -56,11 +56,36 @@
         </div>
     </section>
 
+    <section class="form-section uk-card uk-card-default organization-bank-section">
+        <div class="form-section-title"><span>03</span><div><h2>Банковские реквизиты</h2><p>Расчётные счета и основной счёт для документов</p></div></div>
+        {{ bank_formset.management_form }}
+        {% if bank_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ bank_formset.non_form_errors }}</div>{% endif %}
+        <div class="organization-bank-list onec-formset" data-formset="bank_accounts">
+            {% for account_form in bank_formset %}
+            <article class="order-route-stop organization-bank-card" data-bank-account-card>
+                {{ account_form.id }}{{ account_form.currency.as_hidden }}{{ account_form.is_active.as_hidden }}{{ account_form.notes.as_hidden }}
+                <div class="order-route-stop-head">
+                    <div><span class="route-stop-index">{{ forloop.counter }}</span><strong>Банковские реквизиты</strong></div>
+                    <div class="organization-bank-card-actions">{{ account_form.is_primary }} <label for="{{ account_form.is_primary.id_for_label }}">Основной</label>{{ account_form.DELETE }}<button class="route-delete-button" type="button" data-remove-bank-account>Удалить</button></div>
+                </div>
+                {% if account_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ account_form.non_field_errors }}</div>{% endif %}
+                <div class="organization-bank-grid">
+                    <div class="field"><label>{{ account_form.account_number.label }}</label>{{ account_form.account_number }}{{ account_form.account_number.errors }}</div>
+                    <div class="field organization-bank-bik"><label>{{ account_form.bik.label }}</label>{{ account_form.bik }}<span>DaData</span>{{ account_form.bik.errors }}</div>
+                    <div class="field"><label>{{ account_form.correspondent_account.label }}</label>{{ account_form.correspondent_account }}{{ account_form.correspondent_account.errors }}</div>
+                    <div class="field"><label>{{ account_form.bank_name.label }}</label>{{ account_form.bank_name }}{{ account_form.bank_name.errors }}</div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="organization-bank-actions"><button class="uk-button uk-button-default" type="button" data-add-form="bank_accounts"><span uk-icon="plus"></span> Добавить реквизиты</button></div>
+        <template id="bank_accounts-empty-form"><article class="order-route-stop organization-bank-card" data-bank-account-card>{{ bank_formset.empty_form.id }}{{ bank_formset.empty_form.currency.as_hidden }}{{ bank_formset.empty_form.is_active.as_hidden }}{{ bank_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong>Банковские реквизиты</strong></div><div class="organization-bank-card-actions">{{ bank_formset.empty_form.is_primary }} <label for="{{ bank_formset.empty_form.is_primary.id_for_label }}">Основной</label>{{ bank_formset.empty_form.DELETE }}<button class="route-delete-button" type="button" data-remove-bank-account>Удалить</button></div></div><div class="organization-bank-grid"><div class="field"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field organization-bank-bik"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}<span>DaData</span></div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div></div></article></template>
+    </section>
+
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
         <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
         <li><a href="#">Договоры <span>{{ contracts|length }}</span></a></li>
-        <li><a href="#">Банковские счета <span>{% if object %}{{ object.bank_accounts.count }}{% else %}0{% endif %}</span></a></li>
         <li><a href="#">Контактные лица <span>{% if object %}{{ object.contact_people.count }}{% else %}0{% endif %}</span></a></li>
         <li><a href="#">Взаиморасчёты <span>{{ settlement_rows|length }}</span></a></li>
     </ul>
@@ -111,8 +136,8 @@
 
                 <aside class="onec-sidepanels">
                     <article><h3>Проверка контрагента</h3><strong data-fns-status class="{% if form.instance.fns_status == 'active' %}uk-text-success{% elif form.instance.fns_status != 'unknown' %}uk-text-danger{% endif %}">ФНС: {{ form.instance.get_fns_status_display|default:"Не проверен" }}</strong><p>{% if form.instance.fns_checked_at %}Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}{% else %}Нажмите «Проверка контрагента» после ввода ИНН.{% endif %}</p><small>{{ form.instance.get_verification_status_display|default:"Реквизиты не проверены" }}</small></article>
-                    <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="5">{{ receivable_total|floatformat:2 }} ₽</a></article>
-                    <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="5">{{ payable_total|floatformat:2 }} ₽</a></article>
+                    <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ receivable_total|floatformat:2 }} ₽</a></article>
+                    <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ payable_total|floatformat:2 }} ₽</a></article>
                     <article class="neutral"><h3>Работа с контрагентом</h3><p>Активных рейсов: <strong>{{ active_trip_count }}</strong></p><p>Ролей: <strong>{% if object %}{{ object.roles.count }}{% else %}0{% endif %}</strong></p></article>
                 </aside>
             </div>
@@ -130,18 +155,6 @@
             <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover"><thead><tr><th>Номер</th><th>Вид договора</th><th>Наша компания</th><th>Дата</th><th>Статус</th></tr></thead><tbody>
             {% for contract in contracts %}<tr><td><a href="{{ contract.get_absolute_url }}">{{ contract.number }}</a></td><td>{{ contract.get_kind_display }}</td><td>{{ contract.expeditor }}</td><td>{{ contract.contract_date|date:"d.m.Y" }}</td><td>{{ contract.get_status_display }}</td></tr>{% empty %}<tr><td colspan="5" class="empty-state">С контрагентом ещё нет договоров.</td></tr>{% endfor %}
             </tbody></table></div>
-        </li>
-
-        <li>
-            {{ bank_formset.management_form }}
-            <div class="onec-register-header"><div><h2>Банковские счета</h2><p>Основной счёт подставляется в договоры и бухгалтерские документы.</p></div><button class="uk-button uk-button-default" type="button" data-add-form="bank_accounts"><span uk-icon="plus"></span> Добавить счёт</button></div>
-            {% if bank_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ bank_formset.non_form_errors }}</div>{% endif %}
-            <div class="onec-formset" data-formset="bank_accounts">
-                {% for account_form in bank_formset %}<article class="onec-register-row">{{ account_form.id }}
-                    <div class="field wide"><label>{{ account_form.account_number.label }}</label>{{ account_form.account_number }}{{ account_form.account_number.errors }}</div><div class="field wide"><label>{{ account_form.bank_name.label }}</label>{{ account_form.bank_name }}{{ account_form.bank_name.errors }}</div><div class="field"><label>{{ account_form.bik.label }}</label>{{ account_form.bik }}</div><div class="field"><label>{{ account_form.correspondent_account.label }}</label>{{ account_form.correspondent_account }}</div><div class="field"><label>{{ account_form.currency.label }}</label>{{ account_form.currency }}</div><div class="field check">{{ account_form.is_primary }} <label>{{ account_form.is_primary.label }}</label></div><div class="field check">{{ account_form.is_active }} <label>{{ account_form.is_active.label }}</label></div><div class="field check danger">{{ account_form.DELETE }} <label>{{ account_form.DELETE.label }}</label></div><div class="field full"><label>{{ account_form.notes.label }}</label>{{ account_form.notes }}</div>
-                </article>{% endfor %}
-            </div>
-            <template id="bank_accounts-empty-form"><article class="onec-register-row">{{ bank_formset.empty_form.id }}<div class="field wide"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field wide"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div><div class="field"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}</div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.currency.label }}</label>{{ bank_formset.empty_form.currency }}</div><div class="field check">{{ bank_formset.empty_form.is_primary }} <label>{{ bank_formset.empty_form.is_primary.label }}</label></div><div class="field check">{{ bank_formset.empty_form.is_active }} <label>{{ bank_formset.empty_form.is_active.label }}</label></div><div class="field check danger">{{ bank_formset.empty_form.DELETE }} <label>{{ bank_formset.empty_form.DELETE.label }}</label></div><div class="field full"><label>{{ bank_formset.empty_form.notes.label }}</label>{{ bank_formset.empty_form.notes }}</div></article></template>
         </li>
 
         <li>
@@ -236,8 +249,28 @@ document.addEventListener("DOMContentLoaded", () => {
             const index = Number(total.value);
             target.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", index));
             total.value = index + 1;
+            window.CRMDateInputs?.enhanceWithin?.(target.lastElementChild);
         });
     });
+    const updateBankAccountIndexes = () => {
+        document.querySelectorAll("[data-bank-account-card]").forEach((card, index) => {
+            if (!card.classList.contains("is-deleted")) {
+                const number = card.querySelector(".route-stop-index");
+                if (number) number.textContent = String(index + 1);
+            }
+        });
+    };
+    document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-bank-account]");
+        if (!button) return;
+        const card = button.closest("[data-bank-account-card]");
+        const remove = card?.querySelector('input[name$="-DELETE"]');
+        if (!card || !remove) return;
+        remove.checked = true;
+        card.classList.add("is-deleted");
+        updateBankAccountIndexes();
+    });
+    updateBankAccountIndexes();
     document.addEventListener("change", (event) => {
         if (!event.target.matches('[name$="-is_primary"]') || !event.target.checked) return;
         const formset = event.target.closest(".onec-formset");
