@@ -11,6 +11,38 @@
     <div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}{{ bank_formset.non_form_errors }}{{ contact_formset.non_form_errors }}</div>
     {% endif %}
 
+    <section class="form-section uk-card uk-card-default order-command-header organization-command-header">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="users"></span>
+            <div>
+                <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
+                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
+            </div>
+        </div>
+        <div class="organization-command-footer">
+            <div class="organization-command-inn">{{ form.tax_id }}</div>
+            <div class="order-command-actions organization-command-actions">
+                {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
+                <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+                <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default organization-primary-details">
+        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
+            <div class="organization-registration-grid field-wide">
+                <div class="field mb-3"><label class="uk-form-label form-label" for="id_tax_id_mirror">ИНН</label><input class="form-control uk-input" id="id_tax_id_mirror" type="text" inputmode="numeric" autocomplete="off" value="{{ form.tax_id.value|default_if_none:'' }}" data-tax-id-mirror></div>
+                {% include "crm/includes/form_field.html" with field=form.kpp %}
+                {% include "crm/includes/form_field.html" with field=form.ogrn %}
+                {% include "crm/includes/form_field.html" with field=form.registration_date %}
+            </div>
+            {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
+        </div>
+    </section>
+
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
         <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
@@ -24,40 +56,6 @@
         <li>
             <div class="onec-main-grid">
                 <section class="organization-form-sections">
-                    <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div></div>
-                        <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
-                            <div class="organization-registration-grid field-wide">
-                                <div class="field mb-3"><label class="uk-form-label form-label" for="id_tax_id_mirror">ИНН</label><input class="form-control uk-input" id="id_tax_id_mirror" type="text" inputmode="numeric" autocomplete="off" value="{{ form.tax_id.value|default_if_none:'' }}" data-tax-id-mirror></div>
-                                {% include "crm/includes/form_field.html" with field=form.kpp %}
-                                {% include "crm/includes/form_field.html" with field=form.ogrn %}
-                                {% include "crm/includes/form_field.html" with field=form.registration_date %}
-                            </div>
-                            {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
-                        </div>
-                    </section>
-
-                    <section class="form-section uk-card uk-card-default order-command-header organization-command-header">
-                        <div class="form-section-title order-command-title">
-                            <span class="order-command-icon" uk-icon="users"></span>
-                            <div>
-                                <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
-                                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
-                            </div>
-                        </div>
-                        <div class="organization-command-footer">
-                            <div class="organization-command-inn">
-                                {{ form.tax_id }}
-                            </div>
-                            <div class="order-command-actions organization-command-actions">
-                                {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
-                                <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
-                                <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
-                            </div>
-                        </div>
-                    </section>
-
                     <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
                         <span uk-icon="warning"></span>
                         <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
