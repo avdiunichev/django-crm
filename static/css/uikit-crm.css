@@ -3232,10 +3232,10 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
 }
 
 .organization-form-sections .organization-role-state-flags {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 24px;
+    display: flex;
+    gap: 24px;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .organization-form-sections .organization-role-state-box {
@@ -3260,6 +3260,10 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     .organization-form-sections .organization-role-state-flags {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+
+    .organization-form-sections .organization-role-state-flags {
+        flex-wrap: wrap;
     }
 }
 
