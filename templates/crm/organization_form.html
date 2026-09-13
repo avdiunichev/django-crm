@@ -103,6 +103,25 @@
         </div>
     </section>
 
+    <section class="form-section uk-card uk-card-default organization-role-section">
+        <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите роли и при необходимости укажите причину деактивации.</p></div></div>
+        <div class="organization-role-controls">
+            <div class="onec-flags onec-role-flags organization-role-box">
+                {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
+            </div>
+            <div class="onec-flags organization-role-state-flags organization-role-state-box">{{ form.is_own_company }} <label for="{{ form.is_own_company.id_for_label }}">{{ form.is_own_company.label }}</label>{{ form.is_active }} <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label></div>
+        </div>
+        {{ form.roles.errors }}
+        <div class="onec-own-company-tax" data-own-company-tax>
+            <label for="{{ form.profit_tax_rate.id_for_label }}">{{ form.profit_tax_rate.label }}</label>
+            {{ form.profit_tax_rate }}{{ form.profit_tax_rate.errors }}
+            <small>Используется для расчёта чистой прибыли по рейсам этой компании.</small>
+        </div>
+        <div class="form-grid organization-role-comment">
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
         <li><a href="#">Документы <span>{{ organization_documents|length }}</span></a></li>
@@ -114,27 +133,6 @@
     <ul id="organization-sections" class="uk-switcher onec-switcher">
         <li>
             <div class="onec-main-grid">
-                <section class="organization-form-sections">
-                    <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите роли и при необходимости укажите причину деактивации.</p></div></div>
-                        <div class="organization-role-controls">
-                            <div class="onec-flags onec-role-flags organization-role-box">
-                                {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
-                            </div>
-                            <div class="onec-flags organization-role-state-flags organization-role-state-box">{{ form.is_own_company }} <label for="{{ form.is_own_company.id_for_label }}">{{ form.is_own_company.label }}</label>{{ form.is_active }} <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label></div>
-                        </div>
-                        {{ form.roles.errors }}
-                        <div class="onec-own-company-tax" data-own-company-tax>
-                            <label for="{{ form.profit_tax_rate.id_for_label }}">{{ form.profit_tax_rate.label }}</label>
-                            {{ form.profit_tax_rate }}{{ form.profit_tax_rate.errors }}
-                            <small>Используется для расчёта чистой прибыли по рейсам этой компании.</small>
-                        </div>
-                        <div class="form-grid organization-role-comment">
-                            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
-                        </div>
-                    </section>
-                </section>
-
                 <aside class="onec-sidepanels">
                     <article><h3>Покупатель</h3><p>Дебиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ receivable_total|floatformat:2 }} ₽</a></article>
                     <article><h3>Поставщик</h3><p>Кредиторская задолженность</p><a href="#" data-open-organization-tab="4">{{ payable_total|floatformat:2 }} ₽</a></article>
