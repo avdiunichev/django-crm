@@ -11357,9 +11357,9 @@ body.uikit-theme {
         padding-right: 24px;
         min-width: 0 !important;
         max-width: none !important;
-        overflow-wrap: anywhere !important;
+        overflow-wrap: break-word !important;
         white-space: normal !important;
-        word-break: break-all !important;
+        word-break: normal !important;
     }
 
     .uikit-theme .organization-register-table tbody tr,
