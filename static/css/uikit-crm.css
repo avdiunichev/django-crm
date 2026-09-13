@@ -3024,6 +3024,35 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     max-width: 930px;
 }
 
+.organization-form-sections {
+    display: grid;
+    gap: 18px;
+    max-width: 930px;
+    min-width: 0;
+}
+
+.uikit-theme .organization-form-sections .form-section,
+.uikit-theme .organization-form-sections .uk-input,
+.uikit-theme .organization-form-sections .uk-select,
+.uikit-theme .organization-form-sections .uk-textarea {
+    border-radius: 0 !important;
+}
+
+.organization-form-sections .form-section {
+    margin: 0;
+}
+
+.organization-form-sections .onec-verification {
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid #d5dfe8;
+}
+
+.organization-form-sections .onec-flags {
+    flex-wrap: wrap;
+    margin: 0;
+}
+
 .onec-form-row {
     min-height: 38px;
     margin-bottom: 7px;

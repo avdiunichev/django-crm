@@ -43,50 +43,63 @@
     <ul id="organization-sections" class="uk-switcher onec-switcher">
         <li>
             <div class="onec-main-grid">
-                <section class="onec-master-form">
-                    <div class="onec-form-row"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label><div>{{ form.kind }}{{ form.kind.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.name.id_for_label }}">{{ form.name.label }} <b>*</b></label><div>{{ form.name }}{{ form.name.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.short_name.id_for_label }}">{{ form.short_name.label }}</label><div>{{ form.short_name }}{{ form.short_name.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.group.id_for_label }}">{{ form.group.label }}</label><div>{{ form.group }}{{ form.group.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.registration_country.id_for_label }}">{{ form.registration_country.label }}</label><div>{{ form.registration_country }}{{ form.registration_country.errors }}</div></div>
-                    <div class="onec-form-row compact-value"><label for="{{ form.tax_id.id_for_label }}">{{ form.tax_id.label }}</label><div>{{ form.tax_id }}{{ form.tax_id.errors }}</div></div>
+                <section class="organization-form-sections">
+                    <section class="form-section uk-card uk-card-default">
+                        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Наименование и тип контрагента</p></div></div>
+                        <div class="form-grid">
+                            {% include "crm/includes/form_field.html" with field=form.kind %}
+                            {% include "crm/includes/form_field.html" with field=form.name %}
+                            {% include "crm/includes/form_field.html" with field=form.short_name %}
+                            {% include "crm/includes/form_field.html" with field=form.group %}
+                            {% include "crm/includes/form_field.html" with field=form.registration_country %}
+                        </div>
+                    </section>
+
+                    <section class="form-section uk-card uk-card-default">
+                        <div class="form-section-title"><span>02</span><div><h2>Регистрационные данные</h2><p>ИНН, КПП и сведения из реестров</p></div></div>
+                        <div class="form-grid">
+                            {% include "crm/includes/form_field.html" with field=form.tax_id %}
+                            {% include "crm/includes/form_field.html" with field=form.kpp %}
+                            {% include "crm/includes/form_field.html" with field=form.ogrn %}
+                            {% include "crm/includes/form_field.html" with field=form.registration_date %}
+                            {% include "crm/includes/form_field.html" with field=form.okato %}
+                        </div>
+                    </section>
+
                     <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
                         <span uk-icon="warning"></span>
                         <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
                         <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку</a>
                     </div>
-                    <div class="onec-form-row compact-value"><label for="{{ form.kpp.id_for_label }}">{{ form.kpp.label }}</label><div>{{ form.kpp }}{{ form.kpp.errors }}</div></div>
                     <div class="onec-verification {% if form.instance.verification_status == 'verified' %}is-ok{% elif form.instance.verification_status == 'warning' %}is-warning{% endif %}">
                         <span uk-icon="{% if form.instance.verification_status == 'verified' %}check{% else %}info{% endif %}"></span>
                         {{ form.instance.get_verification_status_display|default:"Контрагент ещё не проверен" }}{% if form.instance.verified_at %} · {{ form.instance.verified_at|date:"d.m.Y H:i" }}{% endif %}{{ form.verification_status }}
                     </div>
-                    <div class="onec-two-values">
-                        <div class="onec-form-row compact-value"><label for="{{ form.ogrn.id_for_label }}">{{ form.ogrn.label }}</label><div>{{ form.ogrn }}{{ form.ogrn.errors }}</div></div>
-                        <div class="onec-form-row compact-value"><label for="{{ form.registration_date.id_for_label }}">{{ form.registration_date.label }}</label><div>{{ form.registration_date }}{{ form.registration_date.errors }}</div></div>
-                    </div>
-                    <div class="onec-form-row compact-value"><label for="{{ form.okato.id_for_label }}">{{ form.okato.label }}</label><div>{{ form.okato }}{{ form.okato.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.legal_address.id_for_label }}">{{ form.legal_address.label }}</label><div>{{ form.legal_address }}{{ form.legal_address.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.director_name.id_for_label }}">{{ form.director_name.label }}</label><div>{{ form.director_name }}{{ form.director_name.errors }}</div></div>
-                    <div class="onec-form-row"><label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label><div>{{ form.notes }}{{ form.notes.errors }}</div></div>
 
-                    <section class="onec-role-section onec-finance-settings">
-                        <h2>Финансовые настройки</h2>
-                        <div class="onec-two-values">
-                            <div class="onec-form-row compact-value"><label for="{{ form.default_vat_rate.id_for_label }}">{{ form.default_vat_rate.label }}</label><div>{{ form.default_vat_rate }}{{ form.default_vat_rate.errors }}</div></div>
-                            <div class="onec-form-row compact-value"><label for="{{ form.default_payment_form.id_for_label }}">{{ form.default_payment_form.label }}</label><div>{{ form.default_payment_form }}{{ form.default_payment_form.errors }}</div></div>
-                            <div class="onec-form-row compact-value"><label for="{{ form.payment_term_days.id_for_label }}">{{ form.payment_term_days.label }}</label><div>{{ form.payment_term_days }}{{ form.payment_term_days.errors }}</div></div>
+                    <section class="form-section uk-card uk-card-default">
+                        <div class="form-section-title"><span>03</span><div><h2>Адрес и руководитель</h2><p>Юридический адрес и ответственное лицо</p></div></div>
+                        <div class="form-grid">
+                            {% include "crm/includes/form_field.html" with field=form.legal_address wide=True %}
+                            {% include "crm/includes/form_field.html" with field=form.director_name %}
+                            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
                         </div>
-                        <div class="onec-two-values">
-                            <div class="onec-form-row compact-value"><label for="{{ form.credit_limit.id_for_label }}">{{ form.credit_limit.label }}</label><div>{{ form.credit_limit }}{{ form.credit_limit.errors }}</div></div>
-                            <div class="onec-form-row compact-value"><label for="{{ form.edo_operator.id_for_label }}">{{ form.edo_operator.label }}</label><div>{{ form.edo_operator }}{{ form.edo_operator.errors }}</div></div>
-                        </div>
-                        <div class="onec-form-row"><label for="{{ form.edo_id.id_for_label }}">{{ form.edo_id.label }}</label><div>{{ form.edo_id }}{{ form.edo_id.errors }}<small class="uk-text-muted">Используется при подготовке XML для Контур.Диадок.</small></div></div>
-                        <div class="onec-form-row"><label for="{{ form.originals_handling.id_for_label }}">{{ form.originals_handling.label }}</label><div>{{ form.originals_handling }}{{ form.originals_handling.errors }}</div></div>
                     </section>
 
-                    <section class="onec-role-section">
-                        <h2>Роли контрагента</h2>
-                        <p>Отметьте все варианты, в которых контрагент участвует в работе.</p>
+                    <section class="form-section uk-card uk-card-default">
+                        <div class="form-section-title"><span>04</span><div><h2>Финансовые настройки</h2><p>Условия оплаты и электронный документооборот</p></div></div>
+                        <div class="form-grid">
+                            {% include "crm/includes/form_field.html" with field=form.default_vat_rate %}
+                            {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
+                            {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
+                            {% include "crm/includes/form_field.html" with field=form.credit_limit %}
+                            {% include "crm/includes/form_field.html" with field=form.edo_operator %}
+                            {% include "crm/includes/form_field.html" with field=form.edo_id %}
+                            {% include "crm/includes/form_field.html" with field=form.originals_handling wide=True %}
+                        </div>
+                    </section>
+
+                    <section class="form-section uk-card uk-card-default">
+                        <div class="form-section-title"><span>05</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
                         <div class="onec-flags onec-role-flags">
                             {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
                         </div>
@@ -98,9 +111,6 @@
                             <small>Используется для расчёта чистой прибыли по рейсам этой компании.</small>
                         </div>
                     </section>
-                    <details class="onec-disclosure"><summary>Основной банковский счёт: {% if object.settlement_account %}{{ object.settlement_account }}, {{ object.bank_name }}{% else %}не указан{% endif %}</summary><p>Все банковские реквизиты редактируются на вкладке «Банковские счета».</p></details>
-                    <details class="onec-disclosure"><summary>Адрес и телефон: {{ object.legal_address|default:"не указаны" }}{% if object.phone %}, {{ object.phone }}{% endif %}</summary><p>{{ object.email|default:"Email не указан" }}</p></details>
-                    <details class="onec-disclosure"><summary>Контактное лицо: {{ object.contact_name|default:"не указано" }}</summary><p>Все контакты редактируются на вкладке «Контактные лица».</p></details>
                 </section>
 
                 <aside class="onec-sidepanels">
