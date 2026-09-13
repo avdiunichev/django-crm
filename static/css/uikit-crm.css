@@ -3178,6 +3178,17 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     gap: 16px;
 }
 
+.organization-bank-notice {
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border: 1px solid #c7e1fb;
+    border-radius: 0;
+    color: #1b6fbe;
+    background: #edf7ff;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
 .organization-bank-section .organization-bank-card {
     border-radius: 0;
 }
@@ -3220,6 +3231,12 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
 
 .organization-bank-actions {
     margin-top: 16px;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-bank-notice {
+    border-color: #315b81;
+    color: #9bcfff;
+    background: #193550;
 }
 
 @media (max-width: 1100px) {

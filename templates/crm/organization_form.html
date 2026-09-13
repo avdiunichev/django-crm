@@ -58,6 +58,7 @@
 
     <section class="form-section uk-card uk-card-default organization-bank-section">
         <div class="form-section-title"><span>02</span><div><h2>Банковские реквизиты</h2><p>Расчётные счета и основной счёт для документов</p></div></div>
+        <div class="organization-bank-notice">Первый банковский счёт назначается основным. Удаление станет доступно после добавления ещё одного счёта.</div>
         {{ bank_formset.management_form }}
         {% if bank_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ bank_formset.non_form_errors }}</div>{% endif %}
         <div class="organization-bank-list onec-formset" data-formset="bank_accounts">
