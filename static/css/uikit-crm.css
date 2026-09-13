@@ -3194,6 +3194,10 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     margin-left: 0;
 }
 
+.organization-form-sections .organization-role-comment {
+    margin-top: 18px;
+}
+
 @media (max-width: 720px) {
     .organization-form-sections .onec-role-flags,
     .organization-form-sections .organization-role-state-flags {

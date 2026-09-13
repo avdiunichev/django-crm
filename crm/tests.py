@@ -17,6 +17,7 @@ from docx import Document
 
 from .forms import (
     ShipmentForm,
+    ShipmentDocumentForm,
     TransportOrderStopForm,
     TransportationChainForm,
     TransportationDocumentForm,
@@ -857,6 +858,19 @@ class CrmTestCase(TestCase):
         self.assertEqual(organization.contact_name, contact.full_name)
         self.customer.refresh_from_db()
         self.assertEqual(self.customer.settlement_account, bank.account_number)
+
+    def test_inactive_organization_is_hidden_from_new_lists_but_kept_in_existing_document(self):
+        organization = self.customer.organization
+        organization.is_active = False
+        organization.save(update_fields=["is_active", "updated_at"])
+
+        new_form = ShipmentDocumentForm()
+        self.assertNotIn(organization, new_form.fields["counterparty"].queryset)
+
+        existing_form = ShipmentDocumentForm(
+            instance=ShipmentDocument(counterparty=organization)
+        )
+        self.assertIn(organization, existing_form.fields["counterparty"].queryset)
 
     def test_organization_workspace_contains_1c_sections_and_balances(self):
         self.client.force_login(self.user)

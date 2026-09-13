@@ -114,14 +114,7 @@
                     </div>
 
                     <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>04</span><div><h2>Контакт и комментарий</h2><p>Руководитель и внутренние сведения</p></div></div>
-                        <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
-                        </div>
-                    </section>
-
-                    <section class="form-section uk-card uk-card-default">
-                        <div class="form-section-title"><span>05</span><div><h2>Роли контрагента</h2><p>Выберите все роли, в которых контрагент участвует в работе</p></div></div>
+                        <div class="form-section-title"><span>04</span><div><h2>Роли контрагента</h2><p>Выберите роли и при необходимости укажите причину деактивации.</p></div></div>
                         <div class="onec-flags onec-role-flags">
                             {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
                         </div>
@@ -131,6 +124,9 @@
                             <label for="{{ form.profit_tax_rate.id_for_label }}">{{ form.profit_tax_rate.label }}</label>
                             {{ form.profit_tax_rate }}{{ form.profit_tax_rate.errors }}
                             <small>Используется для расчёта чистой прибыли по рейсам этой компании.</small>
+                        </div>
+                        <div class="form-grid organization-role-comment">
+                            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
                         </div>
                     </section>
                 </section>

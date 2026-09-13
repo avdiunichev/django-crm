@@ -843,6 +843,15 @@ class TransportationChainForm(forms.Form):
                     "trailer_registration_number": assignment.trailer_registration_number,
                 }
             )
+        for field_name, organization_id in (
+            ("executor", link.contractor_party.organization_id if link else None),
+            ("actual_carrier", assignment.actual_carrier_id if assignment else None),
+        ):
+            if organization_id:
+                active_ids = self.fields[field_name].queryset.values("pk")
+                self.fields[field_name].queryset = Organization.objects.filter(
+                    Q(pk__in=active_ids) | Q(pk=organization_id)
+                ).distinct()
         for field in self.fields.values():
             if isinstance(field.widget, forms.Select):
                 field.widget.attrs["class"] = "form-control uk-select"
@@ -1773,6 +1782,19 @@ class TransportationDocumentForm(StyledModelForm):
                 kind=TransportationStop.Kind.DELIVERY
             ).order_by("-sequence").first()
 
+        for field_name, organization_id in (
+            ("client", client_party.organization_id if client_party else None),
+            ("executor", link.contractor_party.organization_id if link else None),
+            ("actual_carrier", assignment.actual_carrier_id if assignment else None),
+            ("pickup_organization", pickup.organization_id if pickup else None),
+            ("delivery_organization", delivery.organization_id if delivery else None),
+        ):
+            if organization_id:
+                active_ids = self.fields[field_name].queryset.values("pk")
+                self.fields[field_name].queryset = Organization.objects.filter(
+                    Q(pk__in=active_ids) | Q(pk=organization_id)
+                ).distinct()
+
         actual_id = self.data.get("actual_carrier") if self.is_bound else None
         if not actual_id and assignment:
             actual_id = assignment.actual_carrier_id
@@ -2458,6 +2480,10 @@ class TransportationIncidentForm(StyledModelForm):
         self.fields["counterparty"].queryset = Organization.objects.filter(
             is_active=True
         ).order_by("name")
+        if self.instance.counterparty_id:
+            self.fields["counterparty"].queryset = Organization.objects.filter(
+                Q(is_active=True) | Q(pk=self.instance.counterparty_id)
+            ).order_by("name")
         if self.transportation and not self.is_bound:
             self.initial.setdefault("currency", self.transportation.currency)
 
@@ -3324,6 +3350,10 @@ class ShipmentDocumentForm(StyledModelForm):
         self.fields["counterparty"].queryset = Organization.objects.filter(
             is_active=True
         ).order_by("name")
+        if self.instance.counterparty_id:
+            self.fields["counterparty"].queryset = Organization.objects.filter(
+                Q(is_active=True) | Q(pk=self.instance.counterparty_id)
+            ).order_by("name")
         self.fields["direction"].required = False
         self.fields["counterparty"].required = False
         if shipment is not None:
