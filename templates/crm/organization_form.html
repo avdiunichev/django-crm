@@ -23,9 +23,8 @@
             <div class="organization-command-inn">
                 {{ form.tax_id }}
                 <div id="inn-duplicate-warning" class="uk-alert-warning onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
-                    <span uk-icon="warning"></span>
-                    <span data-inn-duplicate-text>{% if form.duplicate_organization %}Контрагент «{{ form.duplicate_organization }}» с таким ИНН уже существует.{% endif %}</span>
-                    <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку</a>
+                    <span data-inn-duplicate-text>Контрагент с таким ИНН уже существует.</span>
+                    <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку{% if form.duplicate_organization %} {{ form.duplicate_organization }}{% endif %}</a>
                 </div>
             </div>
             <div class="order-command-actions organization-command-actions">
@@ -172,8 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let innCheckTimer;
     let innCheckController;
     const showDuplicate = (organization) => {
-        duplicateText.textContent = `Контрагент «${organization.name}» с таким ИНН уже существует.`;
+        duplicateText.textContent = "Контрагент с таким ИНН уже существует.";
         duplicateLink.href = organization.url;
+        duplicateLink.textContent = `Открыть карточку ${organization.name}`;
         duplicateWarning.hidden = false;
         submitButtons.forEach((button) => { button.disabled = true; });
     };
