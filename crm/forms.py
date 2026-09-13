@@ -362,6 +362,8 @@ class OrganizationForm(StyledModelForm):
         self.duplicate_organization = None
         self._audit_is_create = not bool(self.instance.pk)
         self.fields["kind"].required = False
+        self.fields["short_name"].label = "Наименование"
+        self.fields["name"].label = "Полное наименование"
         self.fields["registration_country"].required = False
         self.fields["profit_tax_rate"].required = False
         self.fields["default_vat_rate"].queryset = VATRate.objects.filter(is_active=True)

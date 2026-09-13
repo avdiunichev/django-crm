@@ -33,6 +33,8 @@
         <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.short_name wide=True %}
+            {% include "crm/includes/form_field.html" with field=form.name wide=True %}
             <div class="organization-registration-grid field-wide">
                 <div class="field mb-3"><label class="uk-form-label form-label" for="id_tax_id_mirror">ИНН</label><input class="form-control uk-input" id="id_tax_id_mirror" type="text" inputmode="numeric" autocomplete="off" value="{{ form.tax_id.value|default_if_none:'' }}" data-tax-id-mirror></div>
                 {% include "crm/includes/form_field.html" with field=form.kpp %}
