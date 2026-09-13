@@ -481,6 +481,11 @@ class OrganizationForm(StyledModelForm):
             return self.instance.profit_tax_rate
         return Decimal("25.00")
 
+    def clean_credit_limit(self):
+        # Поле визуально может быть пустым («Не указан»), но в базе лимит
+        # хранится как обязательное числовое значение.
+        return self.cleaned_data.get("credit_limit") or Decimal("0")
+
     def save(self, commit=True):
         if self.is_bound:
             raw_meta = self.cleaned_data.get("legal_address_meta") or ""

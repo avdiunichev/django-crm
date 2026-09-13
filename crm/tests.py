@@ -863,6 +863,58 @@ class CrmTestCase(TestCase):
         self.assertEqual(response.context["bank_formset"].total_form_count(), 1)
         self.assertEqual(response.context["bank_formset"].initial_form_count(), 1)
 
+    def test_organization_workspace_saves_an_existing_bank_account(self):
+        self.client.force_login(self.user)
+        organization = self.customer.organization
+        bank = OrganizationBankAccount.objects.create(
+            organization=organization,
+            account_number="40702810000000000999",
+            bank_name='АО "Новый банк"',
+            bik="044525999",
+            correspondent_account="30101810000000000999",
+            is_primary=True,
+        )
+
+        response = self.client.post(
+            reverse("organization-update", args=[organization.pk]),
+            {
+                "kind": Organization.Kind.LEGAL_ENTITY,
+                "name": organization.name,
+                "short_name": organization.short_name,
+                "registration_country": "РОССИЯ",
+                "tax_id": organization.tax_id,
+                "kpp": organization.kpp,
+                "roles": [OrganizationRole.Role.CLIENT],
+                "is_active": "on",
+                "verification_status": Organization.VerificationStatus.NOT_CHECKED,
+                "credit_limit": "",
+                "bank_accounts-TOTAL_FORMS": "2",
+                "bank_accounts-INITIAL_FORMS": "1",
+                "bank_accounts-MIN_NUM_FORMS": "0",
+                "bank_accounts-MAX_NUM_FORMS": "1000",
+                "bank_accounts-0-id": str(bank.pk),
+                "bank_accounts-0-account_number": bank.account_number,
+                "bank_accounts-0-bank_name": "АО Обновлённый банк",
+                "bank_accounts-0-bik": bank.bik,
+                "bank_accounts-0-correspondent_account": bank.correspondent_account,
+                "bank_accounts-0-currency": "RUB",
+                "bank_accounts-0-is_primary": "on",
+                "bank_accounts-0-is_active": "on",
+                "bank_accounts-1-account_number": "40702810000000000888",
+                "bank_accounts-1-bank_name": "АО Второй банк",
+                "bank_accounts-1-bik": "044525888",
+                "bank_accounts-1-correspondent_account": "30101810000000000888",
+                "bank_accounts-1-currency": "RUB",
+                "bank_accounts-1-is_active": "on",
+                "action": "save_close",
+            },
+        )
+
+        self.assertRedirects(response, reverse("organization-list"))
+        bank.refresh_from_db()
+        self.assertEqual(bank.bank_name, "АО Обновлённый банк")
+        self.assertEqual(organization.bank_accounts.count(), 2)
+
     def test_inactive_organization_is_hidden_from_new_lists_but_kept_in_existing_document(self):
         organization = self.customer.organization
         organization.is_active = False
