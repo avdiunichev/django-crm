@@ -740,6 +740,15 @@ OrganizationContactFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+OrganizationContactEditFormSet = inlineformset_factory(
+    Organization,
+    OrganizationContact,
+    form=OrganizationContactForm,
+    formset=PrimaryRegisterFormSet,
+    extra=0,
+    can_delete=True,
+)
+
 
 class TransportationChainForm(forms.Form):
     executor = forms.ModelChoiceField(

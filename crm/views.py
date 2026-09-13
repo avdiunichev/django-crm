@@ -281,6 +281,7 @@ from .forms import (
     ForwardingOrderForm,
     OrganizationBankAccountEditFormSet,
     OrganizationBankAccountFormSet,
+    OrganizationContactEditFormSet,
     OrganizationContactFormSet,
     OrganizationForm,
     PaymentForm,
@@ -5269,6 +5270,12 @@ class OrganizationWorkspaceMixin:
             and current_instance.pk
         ):
             formset_class = OrganizationBankAccountEditFormSet
+        if (
+            formset_class is self.contact_formset_class
+            and current_instance
+            and current_instance.pk
+        ):
+            formset_class = OrganizationContactEditFormSet
         return formset_class(
             data=data,
             instance=current_instance,

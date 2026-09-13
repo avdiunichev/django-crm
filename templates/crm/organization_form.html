@@ -122,6 +122,32 @@
         </div>
     </section>
 
+    <section class="form-section uk-card uk-card-default organization-contact-section">
+        <div class="form-section-title"><span>05</span><div><h2>Контакты</h2><p>Контактные лица контрагента для рабочих вопросов</p></div></div>
+        {{ contact_formset.management_form }}
+        {% if contact_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ contact_formset.non_form_errors }}</div>{% endif %}
+        <div class="organization-bank-list onec-formset" data-formset="contact_people">
+            {% for contact_form in contact_formset %}
+            <article class="order-route-stop organization-bank-card organization-contact-card" data-contact-card>
+                {{ contact_form.id }}{{ contact_form.is_active.as_hidden }}{{ contact_form.notes.as_hidden }}
+                <div class="order-route-stop-head">
+                    <div><span class="route-stop-index">{{ forloop.counter }}</span><strong data-contact-title>{% if contact_form.is_primary.value %}Основной контакт{% else %}Дополнительный контакт{% endif %}</strong></div>
+                    <div class="organization-bank-card-actions">{{ contact_form.is_primary.as_hidden }}<label class="organization-bank-primary-switch"><input class="uk-radio" type="radio" name="contact-primary" value="{{ forloop.counter0 }}" data-contact-primary-toggle {% if contact_form.is_primary.value %}checked{% endif %}> Основной</label>{{ contact_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-contact {% if forloop.first and forloop.last %}aria-disabled="true"{% endif %}>Удалить</a></div>
+                </div>
+                {% if contact_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ contact_form.non_field_errors }}</div>{% endif %}
+                <div class="organization-bank-grid">
+                    <div class="field"><label>{{ contact_form.position.label }}</label>{{ contact_form.position }}{{ contact_form.position.errors }}</div>
+                    <div class="field"><label>{{ contact_form.full_name.label }}</label>{{ contact_form.full_name }}{{ contact_form.full_name.errors }}</div>
+                    <div class="field"><label>{{ contact_form.phone.label }}</label>{{ contact_form.phone }}{{ contact_form.phone.errors }}</div>
+                    <div class="field"><label>{{ contact_form.email.label }}</label>{{ contact_form.email }}{{ contact_form.email.errors }}</div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="organization-bank-actions"><button class="uk-button uk-button-default" type="button" data-add-form="contact_people"><span uk-icon="plus"></span> Добавить контакт</button></div>
+        <template id="contact_people-empty-form"><article class="order-route-stop organization-bank-card organization-contact-card" data-contact-card>{{ contact_formset.empty_form.id }}{{ contact_formset.empty_form.is_active.as_hidden }}{{ contact_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong data-contact-title>Дополнительный контакт</strong></div><div class="organization-bank-card-actions">{{ contact_formset.empty_form.is_primary.as_hidden }}<label class="organization-bank-primary-switch"><input class="uk-radio" type="radio" name="contact-primary" value="__prefix__" data-contact-primary-toggle> Основной</label>{{ contact_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-contact>Удалить</a></div></div><div class="organization-bank-grid"><div class="field"><label>{{ contact_formset.empty_form.position.label }}</label>{{ contact_formset.empty_form.position }}</div><div class="field"><label>{{ contact_formset.empty_form.full_name.label }}</label>{{ contact_formset.empty_form.full_name }}</div><div class="field"><label>{{ contact_formset.empty_form.phone.label }}</label>{{ contact_formset.empty_form.phone }}</div><div class="field"><label>{{ contact_formset.empty_form.email.label }}</label>{{ contact_formset.empty_form.email }}</div></div></article></template>
+    </section>
+
     <section class="form-section uk-card uk-card-default order-command-header order-command-footer organization-command-panel">
         <div class="form-section-title order-command-title">
             <span class="order-command-icon" uk-icon="cog"></span>
@@ -220,6 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
             total.value = index + 1;
             window.CRMDateInputs?.enhanceWithin?.(target.lastElementChild);
             if (prefix === "bank_accounts") syncBankAccountCards();
+            if (prefix === "contact_people") syncContactCards();
         });
     });
     const isBankPrimary = (field) => field && (field.type === "hidden"
@@ -250,19 +277,45 @@ document.addEventListener("DOMContentLoaded", () => {
             if (removeButton) removeButton.setAttribute("aria-disabled", String(cards.length < 2));
         });
     };
+    const syncContactCards = () => {
+        const cards = [...document.querySelectorAll("[data-contact-card]")]
+            .filter((card) => !card.classList.contains("is-deleted"));
+        const primary = cards.find((card) => isBankPrimary(card.querySelector('[name$="-is_primary"]')));
+        if (!primary && cards.length) {
+            setBankPrimary(cards[0].querySelector('[name$="-is_primary"]'), true);
+        }
+        cards.forEach((card, index) => {
+            const number = card.querySelector(".route-stop-index");
+            if (number) number.textContent = String(index + 1);
+            const primaryField = card.querySelector('[name$="-is_primary"]');
+            const isPrimary = isBankPrimary(primaryField);
+            const toggle = card.querySelector("[data-contact-primary-toggle]");
+            if (toggle) toggle.checked = isPrimary;
+            const title = card.querySelector("[data-contact-title]");
+            if (title) title.textContent = isPrimary ? "Основной контакт" : "Дополнительный контакт";
+            const removeButton = card.querySelector("[data-remove-contact]");
+            if (removeButton) removeButton.setAttribute("aria-disabled", String(cards.length < 2));
+        });
+    };
     document.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-remove-bank-account]");
+        const bankButton = event.target.closest("[data-remove-bank-account]");
+        const contactButton = event.target.closest("[data-remove-contact]");
+        const button = bankButton || contactButton;
         if (!button) return;
         event.preventDefault();
         if (button.getAttribute("aria-disabled") === "true") return;
-        const card = button.closest("[data-bank-account-card]");
+        const card = bankButton
+            ? button.closest("[data-bank-account-card]")
+            : button.closest("[data-contact-card]");
         const remove = card?.querySelector('input[name$="-DELETE"]');
         if (!card || !remove) return;
         remove.checked = true;
         card.classList.add("is-deleted");
-        syncBankAccountCards();
+        if (bankButton) syncBankAccountCards();
+        else syncContactCards();
     });
     syncBankAccountCards();
+    syncContactCards();
     document.addEventListener("change", (event) => {
         if (event.target.matches("[data-bank-primary-toggle]")) {
             const selected = event.target.closest("[data-bank-account-card]");
@@ -272,6 +325,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
             syncBankAccountCards();
+            return;
+        }
+        if (event.target.matches("[data-contact-primary-toggle]")) {
+            const selected = event.target.closest("[data-contact-card]");
+            document.querySelectorAll("[data-contact-card]").forEach((card) => {
+                if (!card.classList.contains("is-deleted")) {
+                    setBankPrimary(card.querySelector('[name$="-is_primary"]'), card === selected);
+                }
+            });
+            syncContactCards();
             return;
         }
         if (!event.target.matches('[name$="-is_primary"]')) return;

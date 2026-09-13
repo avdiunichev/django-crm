@@ -862,6 +862,8 @@ class CrmTestCase(TestCase):
         response = self.client.get(organization.get_absolute_url())
         self.assertEqual(response.context["bank_formset"].total_form_count(), 1)
         self.assertEqual(response.context["bank_formset"].initial_form_count(), 1)
+        self.assertEqual(response.context["contact_formset"].total_form_count(), 1)
+        self.assertEqual(response.context["contact_formset"].initial_form_count(), 1)
 
     def test_organization_workspace_saves_an_existing_bank_account(self):
         self.client.force_login(self.user)
@@ -938,6 +940,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Записать и закрыть")
         self.assertContains(response, "Банковские реквизиты")
+        self.assertContains(response, "Контакты")
         self.assertContains(response, "Панель управления")
         self.assertNotContains(response, 'class="onec-tabs')
         self.assertNotContains(response, "Взаиморасчёты")
