@@ -30,6 +30,24 @@ ORDER_PAYMENT_FORM_CHOICES = (
 )
 
 
+_FEDERAL_ROUTE_CITIES = {"москва", "санкт-петербург", "севастополь"}
+
+
+def route_location_label(stop):
+    """Return a concise but unambiguous point for route displays."""
+    city = " ".join((getattr(stop, "city", "") or "").split())
+    region = " ".join((getattr(stop, "address_region", "") or "").split())
+    if not city:
+        return getattr(stop, "address", "") or ""
+
+    city_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", city.casefold()).strip()
+    if region and city_key not in _FEDERAL_ROUTE_CITIES:
+        region_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", region.casefold()).strip()
+        if region_key != city_key:
+            return f"{region}, {city}"
+    return city
+
+
 class TimestampedModel(models.Model):
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
@@ -1813,7 +1831,7 @@ class Transportation(TimestampedModel):
         stops = list(self.stops.all())
         if not stops:
             return "Маршрут не указан"
-        points = [stop.city or stop.address for stop in stops]
+        points = [route_location_label(stop) for stop in stops]
         return " → ".join(point for point in points if point) or "Маршрут не указан"
 
     @property
@@ -2300,7 +2318,7 @@ class TransportOrder(TimestampedModel):
         stops = list(self.stops.all())
         if not stops:
             return "Маршрут не указан"
-        points = [stop.city or stop.address for stop in stops]
+        points = [route_location_label(stop) for stop in stops]
         return " → ".join(point for point in points if point) or "Маршрут не указан"
 
     def get_absolute_url(self):
@@ -2375,6 +2393,10 @@ class TransportOrderStop(TimestampedModel):
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"
+
+    @property
+    def route_point(self):
+        return route_location_label(self)
 
 
 class TransportationParty(TimestampedModel):

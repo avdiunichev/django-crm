@@ -383,6 +383,17 @@ class CrmTestCase(TestCase):
         self.assertEqual(stop.organization_text, "Магазин роз")
         self.assertEqual(form.fields["organization"].label_from_instance(self.carrier.organization), f"{self.carrier.organization} · ИНН {self.carrier.organization.tax_id}")
 
+    def test_route_points_include_region_except_for_federal_cities(self):
+        regional_stop = TransportOrderStop(
+            city="рп Октябрьский", address_region="Пермский край"
+        )
+        federal_stop = TransportOrderStop(
+            city="г. Москва", address_region="Москва"
+        )
+
+        self.assertEqual(regional_stop.route_point, "Пермский край, рп Октябрьский")
+        self.assertEqual(federal_stop.route_point, "г. Москва")
+
     def test_order_assignment_creates_linked_trip_with_full_route(self):
         order = TransportOrder.objects.create(
             owner_company=self.company_profile.organization,
