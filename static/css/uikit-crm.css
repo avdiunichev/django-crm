@@ -3027,8 +3027,24 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 .organization-form-sections {
     display: grid;
     gap: 18px;
-    max-width: 930px;
     min-width: 0;
+}
+
+.organization-workspace .onec-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.organization-workspace .onec-sidepanels {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.uikit-theme .organization-command-header .order-command-title {
+    margin: 0;
+}
+
+.uikit-theme .organization-command-header .uk-button,
+.uikit-theme .organization-command-header .onec-dadata-inline {
+    border-radius: 0 !important;
 }
 
 .uikit-theme .organization-form-sections .form-section,

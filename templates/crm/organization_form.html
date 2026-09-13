@@ -1,35 +1,36 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}{{ object }}{% else %}Новый контрагент{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
-<form method="post" class="onec-workspace" novalidate>
+<form method="post" class="onec-workspace organization-workspace" novalidate>
     {% csrf_token %}
     {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}
     {{ form.bank_name }}{{ form.bik }}{{ form.settlement_account }}{{ form.correspondent_account }}
     {{ form.legal_address_meta }}
 
-    <div class="onec-titlebar">
-        <a class="onec-back" href="{% url 'organization-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
-        <div>
-            <h1>{% if object %}{{ object }} <small>(Контрагент)</small>{% else %}Новый контрагент{% endif %}</h1>
-            {% if object %}<p>Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}</p>{% else %}<p>Единый справочник компаний и физических лиц</p>{% endif %}
-        </div>
-    </div>
-
     {% if form.non_field_errors or bank_formset.non_form_errors or contact_formset.non_form_errors %}
     <div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}{{ bank_formset.non_form_errors }}{{ contact_formset.non_form_errors }}</div>
     {% endif %}
 
-    <div class="onec-commandbar">
-        <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
-        <button class="onec-command uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
-        {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True %}
-        {% if object %}
-        <a class="onec-command uk-button uk-button-default" href="{% url 'contract-create' %}?organization={{ object.pk }}"><span uk-icon="album"></span> Создать договор</a>
-        <a class="onec-command uk-button uk-button-default" href="{% url 'shipment-document-list' %}?q={{ object.tax_id|urlencode }}"><span uk-icon="folder"></span> Документы</a>
-        <a class="onec-command uk-button uk-button-danger" href="{% url 'organization-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
-        {% endif %}
-        <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
-    </div>
+    <section class="form-section uk-card uk-card-default order-command-header organization-command-header">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="users"></span>
+            <div>
+                <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
+                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Единый справочник компаний и физических лиц{% endif %}</p>
+            </div>
+        </div>
+        <div class="order-command-actions organization-command-actions">
+            <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+            <button class="onec-command uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
+            {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True %}
+            {% if object %}
+            <a class="onec-command uk-button uk-button-default" href="{% url 'contract-create' %}?organization={{ object.pk }}"><span uk-icon="album"></span> Создать договор</a>
+            <a class="onec-command uk-button uk-button-default" href="{% url 'shipment-document-list' %}?q={{ object.tax_id|urlencode }}"><span uk-icon="folder"></span> Документы</a>
+            <a class="onec-command uk-button uk-button-danger" href="{% url 'organization-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
+            {% endif %}
+            <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+        </div>
+    </section>
 
     <ul class="onec-tabs uk-tab" uk-tab="connect: #organization-sections; animation: uk-animation-fade">
         <li><a href="#">Основное</a></li>
