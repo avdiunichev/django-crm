@@ -3039,7 +3039,8 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 }
 
 .organization-verification-card {
-    border-top: 4px solid #1e87f0;
+    padding: 16px 20px !important;
+    border-top: 4px solid #1e87f0 !important;
 }
 
 .organization-verification-card h2,
@@ -3048,24 +3049,27 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 }
 
 .organization-verification-card h2 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
+    line-height: 1.25;
 }
 
 .organization-verification-card strong {
     display: block;
-    margin-top: 18px;
-    font-size: 18px;
+    margin-top: 10px;
+    font-size: 16px;
 }
 
 .organization-verification-card p {
-    margin-top: 12px;
+    margin-top: 6px;
+    font-size: 14px;
     color: #687586;
 }
 
 .organization-verification-card small {
     display: block;
-    margin-top: 14px;
+    margin-top: 6px;
+    font-size: 13px;
     color: #687586;
 }
 
