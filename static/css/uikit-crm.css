@@ -3083,7 +3083,7 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     margin-left: auto;
 }
 
-.organization-command-actions .onec-command-status {
+.organization-command-actions [data-dadata-status] {
     display: none;
 }
 
