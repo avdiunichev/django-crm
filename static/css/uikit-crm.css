@@ -6287,6 +6287,8 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     .uikit-theme .organization-register-table .organization-register-address {
         display: block !important;
         width: 100% !important;
+        box-sizing: border-box;
+        padding-right: 14px;
         min-width: 0 !important;
         max-width: none !important;
         overflow-wrap: anywhere !important;
