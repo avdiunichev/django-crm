@@ -3047,6 +3047,58 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     border-radius: 0 !important;
 }
 
+.organization-command-footer {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.organization-command-inn {
+    flex: 0 1 340px;
+    min-width: 220px;
+}
+
+.organization-command-inn .field {
+    margin: 0;
+}
+
+.organization-command-actions {
+    margin: 0;
+    margin-left: auto;
+}
+
+.organization-command-actions .onec-command-status {
+    display: none;
+}
+
+.uikit-theme .organization-workspace .form-section,
+.uikit-theme .organization-workspace .onec-switcher,
+.uikit-theme .organization-workspace .onec-register-row,
+.uikit-theme .organization-workspace .onec-sidepanels article,
+.uikit-theme .organization-workspace .uk-input,
+.uikit-theme .organization-workspace .uk-select,
+.uikit-theme .organization-workspace .uk-textarea,
+.uikit-theme .organization-workspace .uk-button {
+    border-radius: 0 !important;
+}
+
+@media (max-width: 720px) {
+    .organization-command-footer {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .organization-command-inn {
+        min-width: 0;
+    }
+
+    .organization-command-actions {
+        margin-left: 0;
+    }
+}
+
 .uikit-theme .organization-form-sections .form-section,
 .uikit-theme .organization-form-sections .uk-input,
 .uikit-theme .organization-form-sections .uk-select,

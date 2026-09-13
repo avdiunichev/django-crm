@@ -19,16 +19,15 @@
                 <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Единый справочник компаний и физических лиц{% endif %}</p>
             </div>
         </div>
-        <div class="order-command-actions organization-command-actions">
-            <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
-            <button class="onec-command uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
-            {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True %}
-            {% if object %}
-            <a class="onec-command uk-button uk-button-default" href="{% url 'contract-create' %}?organization={{ object.pk }}"><span uk-icon="album"></span> Создать договор</a>
-            <a class="onec-command uk-button uk-button-default" href="{% url 'shipment-document-list' %}?q={{ object.tax_id|urlencode }}"><span uk-icon="folder"></span> Документы</a>
-            <a class="onec-command uk-button uk-button-danger" href="{% url 'organization-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
-            {% endif %}
-            <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+        <div class="organization-command-footer">
+            <div class="organization-command-inn">
+                {% include "crm/includes/form_field.html" with field=form.tax_id %}
+            </div>
+            <div class="order-command-actions organization-command-actions">
+                {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
+                <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
+                <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
+            </div>
         </div>
     </section>
 
@@ -59,7 +58,6 @@
                     <section class="form-section uk-card uk-card-default">
                         <div class="form-section-title"><span>02</span><div><h2>Регистрационные данные</h2><p>ИНН, КПП и сведения из реестров</p></div></div>
                         <div class="form-grid">
-                            {% include "crm/includes/form_field.html" with field=form.tax_id %}
                             {% include "crm/includes/form_field.html" with field=form.kpp %}
                             {% include "crm/includes/form_field.html" with field=form.ogrn %}
                             {% include "crm/includes/form_field.html" with field=form.registration_date %}

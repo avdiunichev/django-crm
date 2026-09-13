@@ -1,6 +1,6 @@
 <section class="{% if dadata_compact %}onec-dadata-inline{% else %}uk-card uk-card-default uk-card-body uk-padding-small uk-margin-bottom{% endif %}" data-dadata-autofill data-mode="{{ dadata_mode }}" data-inn-id="{{ dadata_inn_id|default:'id_tax_id' }}" data-url="{% url 'dadata-party-by-inn' %}">
     {% if dadata_compact %}
-    <button class="onec-command uk-button uk-button-default" type="button" data-dadata-button><span uk-icon="search"></span> Проверка контрагента</button>
+    <button class="onec-command uk-button uk-button-default" type="button" data-dadata-button><span uk-icon="search"></span> {{ dadata_button_label|default:"Проверка контрагента" }}</button>
     <span class="onec-command-status" data-dadata-status aria-live="polite"></span>
     {% else %}
     <div class="uk-flex uk-flex-between uk-flex-middle uk-flex-wrap">
@@ -29,6 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
             kind === "success" ? "uk-text-success" : kind === "danger" ? "uk-text-danger" : "uk-text-muted"
         );
     };
+    const showToast = (message, kind = "info") => {
+        window.CRMToasts?.show(message, kind === "danger" ? "error" : kind);
+    };
     const setField = (id, value) => {
         const field = document.getElementById(id);
         if (!field || !value) return;
@@ -39,7 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", async () => {
         const inn = innInput.value.trim();
         if (!/^\d{10}$|^\d{12}$/.test(inn)) {
-            setStatus("Укажите ИНН из 10 цифр для организации или 12 для ИП.", "danger");
+            const message = "Укажите ИНН из 10 цифр для организации или 12 для ИП.";
+            setStatus(message, "danger");
+            showToast(message, "danger");
             innInput.focus();
             return;
         }
@@ -100,14 +105,22 @@ document.addEventListener("DOMContentLoaded", () => {
             let message = "Реквизиты заполнены";
             if (party.status_label) message += ". Статус: " + party.status_label;
             if (party.is_invalid) {
-                setStatus(message + ". DaData сообщает о недостоверных сведениях — проверьте данные вручную.", "danger");
+                message += ". DaData сообщает о недостоверных сведениях — проверьте данные вручную.";
+                setStatus(message, "danger");
+                showToast(message, "danger");
             } else if (party.status && party.status !== "ACTIVE") {
-                setStatus(message + ". Перед сохранением проверьте статус организации.", "danger");
+                message += ". Перед сохранением проверьте статус организации.";
+                setStatus(message, "danger");
+                showToast(message, "danger");
             } else {
-                setStatus(message + ". Проверьте данные перед сохранением.", "success");
+                message += ". Проверьте данные перед сохранением.";
+                setStatus(message, "success");
+                showToast(message, "success");
             }
         } catch (error) {
-            setStatus(error.message || "Не удалось получить реквизиты.", "danger");
+            const message = error.message || "Не удалось получить реквизиты.";
+            setStatus(message, "danger");
+            showToast(message, "danger");
         } finally {
             button.disabled = false;
         }
