@@ -5779,6 +5779,9 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
             symbol = {"RUB": "₽", "USD": "$", "EUR": "€"}.get(order.currency, order.currency)
             return f"{Decimal(value or 0):,.2f}".replace(",", " ").replace(".", ",") + f" {symbol}"
 
+        def optional_amount(value):
+            return amount(value) if value is not None else "Не указана"
+
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
             "OrderTitle", parent=styles["Heading1"], fontName=bold_font,
@@ -5845,10 +5848,10 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
             Paragraph("Груз", section_style),
             field_table([
                 ("Наименование", order.cargo_name),
+                ("Стоимость груза", optional_amount(order.cargo_value)),
                 ("Параметры", f"{order.weight_kg or 0} кг · {order.volume_m3 or 0} м³ · {order.total_package_count or 'места не указаны'} · {order.package_type or 'упаковка не указана'}"),
                 ("Условия", f"Температура: {order.temperature_regime or 'Отсутствует'} · ADR: {order.get_adr_class_display() or 'не относится к опасным грузам'}"),
                 ("Транспорт", order.vehicle_requirements),
-                ("Характеристики груза", order.cargo_description),
                 ("Особые требования", order.special_requirements),
             ]),
             Paragraph("Маршрут", section_style),

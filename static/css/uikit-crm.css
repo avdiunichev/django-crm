@@ -1637,6 +1637,12 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     gap: 18px;
 }
 
+.cargo-value-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
 @media (max-width: 1100px) {
     .form-grid-four {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1647,6 +1653,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .cargo-conditions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cargo-value-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -1661,6 +1671,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .cargo-conditions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cargo-value-grid {
         grid-template-columns: 1fr;
     }
 }

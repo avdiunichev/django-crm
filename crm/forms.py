@@ -905,7 +905,7 @@ class TransportOrderForm(StyledModelForm):
         fields = [
             "owner_company", "client", "manager", "document_date",
             "rate", "currency", "payment_form", "payment_term_days",
-            "cargo_name", "cargo_description", "weight_kg", "volume_m3",
+            "cargo_name", "cargo_value", "weight_kg", "volume_m3",
             "package_count", "pallet_count", "package_type",
             "temperature_regime", "adr_class", "vehicle_requirements",
             "special_requirements", "notes",
@@ -983,6 +983,14 @@ class TransportOrderForm(StyledModelForm):
                 "class": "form-control uk-input",
                 "inputmode": "decimal",
                 "placeholder": "0,00",
+                "data-money-input": "",
+            }
+        )
+        self.fields["cargo_value"].widget = forms.TextInput(
+            attrs={
+                "class": "form-control uk-input",
+                "inputmode": "decimal",
+                "placeholder": "Не указана",
                 "data-money-input": "",
             }
         )

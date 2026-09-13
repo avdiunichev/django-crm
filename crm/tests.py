@@ -260,6 +260,7 @@ class CrmTestCase(TestCase):
         self.assertContains(create_page, "Добавить выгрузку")
         self.assertContains(create_page, "Грузоотправитель")
         self.assertContains(create_page, "Грузополучатель")
+        self.assertContains(create_page, "Стоимость груза")
         self.assertContains(create_page, 'data-dadata-address')
         self.assertEqual(
             len(create_page.context["stop_formset"].forms), 2
@@ -277,7 +278,7 @@ class CrmTestCase(TestCase):
                 "payment_form": TransportOrder.PaymentForm.BANK_VAT_22,
                 "payment_term_days": "15",
                 "cargo_name": "Пластиковая тара",
-                "cargo_description": "33 паллеты",
+                "cargo_value": "160000.50",
                 "weight_kg": "15000",
                 "volume_m3": "82",
                 "package_count": "33",
@@ -317,6 +318,7 @@ class CrmTestCase(TestCase):
         self.assertRedirects(response, reverse("order-list"))
         order = TransportOrder.objects.get(cargo_name="Пластиковая тара")
         self.assertRegex(order.number, r"^ЗК-\d{4}-\d{5}$")
+        self.assertEqual(order.cargo_value, Decimal("160000.50"))
         self.assertEqual(order.stops.count(), 3)
         self.assertEqual(order.route, "Санкт-Петербург → Тверь → Москва")
         registry = self.client.get(reverse("order-list"))

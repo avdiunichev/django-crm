@@ -2221,6 +2221,14 @@ class TransportOrder(TimestampedModel):
     )
     cargo_name = models.CharField("Наименование груза", max_length=255)
     cargo_description = models.TextField("Характеристики груза", blank=True)
+    cargo_value = models.DecimalField(
+        "Стоимость груза",
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
     weight_kg = models.DecimalField(
         "Вес, кг",
         max_digits=12,
