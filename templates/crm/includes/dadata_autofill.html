@@ -35,7 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const setField = (id, value) => {
         const field = document.getElementById(id);
         if (!field || !value) return;
-        field.value = value;
+        const isoDate = field.matches("[data-crm-date]")
+            && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        field.value = isoDate ? `${isoDate[3]}.${isoDate[2]}.${isoDate[1]}` : value;
         field.dispatchEvent(new Event("change", {bubbles: true}));
     };
 
