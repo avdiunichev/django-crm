@@ -1,0 +1,204 @@
+/* Карточка просмотра контрагента повторяет структуру формы редактирования. */
+.uikit-theme .organization-view-workspace {
+    display: grid;
+    gap: 18px;
+}
+
+.uikit-theme .organization-view-tabs {
+    margin: 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+}
+
+.uikit-theme .organization-view-tabs > * > a {
+    padding-right: 18px;
+    padding-left: 18px;
+    border-radius: 0 !important;
+    font-size: 13px;
+    letter-spacing: .02em;
+    text-transform: none;
+}
+
+.uikit-theme .organization-view-switcher {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.uikit-theme .organization-view-section {
+    margin: 0;
+    border-radius: 0 !important;
+}
+
+.organization-view-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.organization-view-field {
+    min-width: 0;
+}
+
+.organization-view-field.field-wide {
+    grid-column: 1 / -1;
+}
+
+.organization-view-field > span {
+    display: block;
+    margin-bottom: 6px;
+    color: #687586;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.organization-view-field > strong {
+    display: block;
+    box-sizing: border-box;
+    min-height: 40px;
+    padding: 10px 12px;
+    border: 1px solid #d5dfe8;
+    border-radius: 0 !important;
+    color: #2f3846;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.organization-view-record-list {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+}
+
+.organization-view-record {
+    margin: 0;
+    border-radius: 0 !important;
+}
+
+.organization-view-record-grid {
+    padding: 18px 20px 20px;
+}
+
+.organization-view-primary {
+    color: #287fdb;
+    font-size: 13px;
+}
+
+.organization-view-empty {
+    margin: 0;
+    padding: 16px;
+    border: 1px solid #d5dfe8;
+    color: #687586;
+}
+
+.organization-view-role-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+    gap: 12px;
+    padding: 20px 20px 0;
+}
+
+.organization-view-role-box,
+.organization-view-state-box {
+    padding: 12px 16px;
+    border: 1px solid #bfddf7;
+    border-radius: 0 !important;
+    background: #eef8ff;
+}
+
+.organization-view-box-title {
+    display: block;
+    margin-bottom: 8px;
+    color: #287fdb;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.organization-view-role-list,
+.organization-view-state-box {
+    display: flex;
+    align-items: center;
+    gap: 12px 24px;
+    flex-wrap: wrap;
+}
+
+.organization-view-role-list span,
+.organization-view-state-box span {
+    color: #2f3846;
+    font-size: 14px;
+}
+
+.organization-view-state-box {
+    border-color: #d9e0e7;
+    background: #f7f9fb;
+}
+
+.organization-view-tax,
+.organization-view-notes {
+    padding-top: 16px;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-view-field > span,
+html[data-theme="dark"] body.uikit-theme .organization-view-empty {
+    color: #9aa8ba;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-view-field > strong {
+    border-color: #344257;
+    color: #eef3fa;
+    background: #111b2c;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-view-role-box {
+    border-color: #315b81;
+    background: #193550;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-view-state-box,
+html[data-theme="dark"] body.uikit-theme .organization-view-empty {
+    border-color: #344257;
+    background: #141e2f;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-view-role-list span,
+html[data-theme="dark"] body.uikit-theme .organization-view-state-box span {
+    color: #dce4ef;
+}
+
+@media (max-width: 960px) {
+    .organization-view-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .organization-view-tabs > * > a {
+        min-height: 40px;
+        padding: 0 12px 8px;
+        font-size: 12px;
+    }
+
+    .organization-view-grid,
+    .organization-view-role-controls {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .organization-view-record-list {
+        padding: 16px;
+    }
+
+    .organization-view-record-grid {
+        padding: 16px;
+    }
+
+    .organization-view-role-controls {
+        gap: 10px;
+    }
+}
