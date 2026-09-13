@@ -41,10 +41,16 @@ def route_location_label(stop):
         return getattr(stop, "address", "") or ""
 
     city_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", city.casefold()).strip()
+    if city_key in _FEDERAL_ROUTE_CITIES:
+        return city
     if region and city_key not in _FEDERAL_ROUTE_CITIES:
+        # Legacy records can contain the region in the old ``city`` field too.
+        # The structured region is authoritative, so keep it only once.
+        if city.casefold().startswith(region.casefold()):
+            city = city[len(region) :].lstrip(", ")
         region_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", region.casefold()).strip()
         if region_key != city_key:
-            return f"{region}, {city}"
+            return f"{region}, {city}" if city else region
     return city
 
 

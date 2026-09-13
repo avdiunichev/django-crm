@@ -390,9 +390,17 @@ class CrmTestCase(TestCase):
         federal_stop = TransportOrderStop(
             city="г. Москва", address_region="Москва"
         )
+        legacy_regional_stop = TransportOrderStop(
+            city="Ленинградская обл, Киришский р-н, г Кириши",
+            address_region="Ленинградская обл",
+        )
 
         self.assertEqual(regional_stop.route_point, "Пермский край, рп Октябрьский")
         self.assertEqual(federal_stop.route_point, "г. Москва")
+        self.assertEqual(
+            legacy_regional_stop.route_point,
+            "Ленинградская обл, Киришский р-н, г Кириши",
+        )
 
     def test_order_assignment_creates_linked_trip_with_full_route(self):
         order = TransportOrder.objects.create(
