@@ -22,6 +22,7 @@ from .models import (
     OrganizationBankAccount,
     OrganizationChange,
     OrganizationContact,
+    OrganizationRequisiteChange,
     OrganizationGroup,
     OrganizationRole,
     Payment,
@@ -92,6 +93,11 @@ class OrganizationContactInline(admin.TabularInline):
     extra = 0
 
 
+class OrganizationRequisiteChangeInline(admin.TabularInline):
+    model = OrganizationRequisiteChange
+    extra = 0
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
@@ -103,6 +109,7 @@ class OrganizationAdmin(admin.ModelAdmin):
         OrganizationRoleInline,
         OrganizationBankAccountInline,
         OrganizationContactInline,
+        OrganizationRequisiteChangeInline,
     )
 
 

@@ -3359,6 +3359,12 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     gap: 16px;
 }
 
+.organization-requisite-change-grid {
+    display: grid;
+    grid-template-columns: minmax(170px, 1fr) minmax(220px, 1.25fr) minmax(0, 2fr);
+    gap: 16px;
+}
+
 .organization-bank-bik {
     position: relative;
 }
@@ -3400,6 +3406,10 @@ html[data-theme="dark"] body.uikit-theme .organization-bank-notice {
 
     .organization-bank-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .organization-requisite-change-grid {
+        grid-template-columns: 1fr;
     }
 }
 

@@ -456,6 +456,51 @@ class OrganizationContact(TimestampedModel):
         return self.full_name
 
 
+class OrganizationRequisiteChange(TimestampedModel):
+    """История изменений реквизитов, введённая пользователем вручную."""
+
+    class FieldName(models.TextChoices):
+        KIND = "kind", "Вид контрагента"
+        SHORT_NAME = "short_name", "Наименование"
+        NAME = "name", "Полное наименование"
+        TAX_ID = "tax_id", "ИНН"
+        KPP = "kpp", "КПП"
+        OGRN = "ogrn", "ОГРН / ОГРНИП"
+        REGISTRATION_DATE = "registration_date", "Дата регистрации"
+        LEGAL_ADDRESS = "legal_address", "Юридический адрес"
+        DIRECTOR_POSITION = "director_position", "Должность руководителя"
+        DIRECTOR_NAME = "director_name", "Ф. И. О. руководителя"
+        ACTING_BASIS = "acting_basis", "Действует на основании"
+
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name="Контрагент",
+        related_name="requisite_changes",
+        on_delete=models.CASCADE,
+    )
+    effective_date = models.DateField("Дата изменения")
+    field_name = models.CharField(
+        "Реквизит",
+        max_length=40,
+        choices=FieldName.choices,
+    )
+    new_value = models.CharField("Что изменилось", max_length=500)
+
+    class Meta:
+        verbose_name = "изменение реквизита контрагента"
+        verbose_name_plural = "изменения реквизитов контрагента"
+        ordering = ("-effective_date", "-pk")
+        indexes = [
+            models.Index(
+                fields=("organization", "-effective_date"),
+                name="crm_organiz_organiz_6de8c2_idx",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.organization} · {self.get_field_name_display()} · {self.effective_date:%d.%m.%Y}"
+
+
 class VATRate(TimestampedModel):
     code = models.CharField("Код", max_length=20, unique=True)
     name = models.CharField("Наименование", max_length=100)

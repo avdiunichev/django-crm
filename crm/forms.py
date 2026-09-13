@@ -29,6 +29,7 @@ from .models import (
     OrganizationBankAccount,
     OrganizationChange,
     OrganizationContact,
+    OrganizationRequisiteChange,
     OrganizationRole,
     Payment,
     PlannerTask,
@@ -745,6 +746,25 @@ OrganizationContactEditFormSet = inlineformset_factory(
     OrganizationContact,
     form=OrganizationContactForm,
     formset=PrimaryRegisterFormSet,
+    extra=0,
+    can_delete=True,
+)
+
+
+class OrganizationRequisiteChangeForm(StyledModelForm):
+    class Meta:
+        model = OrganizationRequisiteChange
+        fields = ["effective_date", "field_name", "new_value"]
+        widgets = {
+            "effective_date": CRMDateInput(),
+            "new_value": forms.TextInput(attrs={"placeholder": "Новое значение"}),
+        }
+
+
+OrganizationRequisiteChangeFormSet = inlineformset_factory(
+    Organization,
+    OrganizationRequisiteChange,
+    form=OrganizationRequisiteChangeForm,
     extra=0,
     can_delete=True,
 )

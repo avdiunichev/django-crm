@@ -149,6 +149,24 @@
         <template id="contact_people-empty-form"><article class="order-route-stop organization-bank-card organization-contact-card" data-contact-card>{{ contact_formset.empty_form.id }}{{ contact_formset.empty_form.is_active.as_hidden }}{{ contact_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong data-contact-title>Дополнительный контакт</strong></div><div class="organization-bank-card-actions">{{ contact_formset.empty_form.is_primary.as_hidden }}<label class="organization-bank-primary-switch"><input class="uk-radio" type="radio" name="contact-primary" value="__prefix__" data-contact-primary-toggle> Основной</label>{{ contact_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-contact>Удалить</a></div></div><div class="organization-bank-grid"><div class="field"><label>{{ contact_formset.empty_form.position.label }}</label>{{ contact_formset.empty_form.position }}</div><div class="field"><label>{{ contact_formset.empty_form.full_name.label }}</label>{{ contact_formset.empty_form.full_name }}</div><div class="field"><label>{{ contact_formset.empty_form.phone.label }}</label>{{ contact_formset.empty_form.phone }}</div><div class="field"><label>{{ contact_formset.empty_form.email.label }}</label>{{ contact_formset.empty_form.email }}</div></div></article></template>
     </section>
 
+    <section class="form-section uk-card uk-card-default organization-requisite-change-section">
+        <div class="form-section-title"><span>06</span><div><h2>Изменения в реквизитах</h2><p>Зафиксируйте дату начала действия и новое значение реквизита.</p></div></div>
+        {{ requisite_change_formset.management_form }}
+        {% if requisite_change_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ requisite_change_formset.non_form_errors }}</div>{% endif %}
+        <div class="organization-bank-list onec-formset" data-formset="requisite_changes">
+            {% for change_form in requisite_change_formset %}
+            <article class="order-route-stop organization-bank-card organization-requisite-change-card" data-requisite-change-card>
+                {{ change_form.id }}
+                <div class="order-route-stop-head"><div><span class="route-stop-index">{{ forloop.counter }}</span><strong>Изменение реквизитов</strong></div><div class="organization-bank-card-actions">{{ change_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-requisite-change>Удалить</a></div></div>
+                {% if change_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ change_form.non_field_errors }}</div>{% endif %}
+                <div class="organization-requisite-change-grid"><div class="field"><label>{{ change_form.effective_date.label }}</label>{{ change_form.effective_date }}{{ change_form.effective_date.errors }}</div><div class="field"><label>{{ change_form.field_name.label }}</label>{{ change_form.field_name }}{{ change_form.field_name.errors }}</div><div class="field"><label>{{ change_form.new_value.label }}</label>{{ change_form.new_value }}{{ change_form.new_value.errors }}</div></div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="organization-bank-actions"><button class="uk-button uk-button-default" type="button" data-add-form="requisite_changes"><span uk-icon="plus"></span> Добавить изменение</button></div>
+        <template id="requisite_changes-empty-form"><article class="order-route-stop organization-bank-card organization-requisite-change-card" data-requisite-change-card>{{ requisite_change_formset.empty_form.id }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong>Изменение реквизитов</strong></div><div class="organization-bank-card-actions">{{ requisite_change_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-requisite-change>Удалить</a></div></div><div class="organization-requisite-change-grid"><div class="field"><label>{{ requisite_change_formset.empty_form.effective_date.label }}</label>{{ requisite_change_formset.empty_form.effective_date }}</div><div class="field"><label>{{ requisite_change_formset.empty_form.field_name.label }}</label>{{ requisite_change_formset.empty_form.field_name }}</div><div class="field"><label>{{ requisite_change_formset.empty_form.new_value.label }}</label>{{ requisite_change_formset.empty_form.new_value }}</div></div></article></template>
+    </section>
+
     <section class="form-section uk-card uk-card-default order-command-header order-command-footer organization-command-panel">
         <div class="form-section-title order-command-title">
             <span class="order-command-icon" uk-icon="cog"></span>
@@ -249,6 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.CRMDateInputs?.enhanceWithin?.(target.lastElementChild);
             if (prefix === "bank_accounts") syncBankAccountCards();
             if (prefix === "contact_people") syncContactCards();
+            if (prefix === "requisite_changes") syncRequisiteChangeCards();
         });
     });
     const isBankPrimary = (field) => field && (field.type === "hidden"
@@ -299,25 +318,38 @@ document.addEventListener("DOMContentLoaded", () => {
             if (removeButton) removeButton.setAttribute("aria-disabled", String(cards.length < 2));
         });
     };
+    const syncRequisiteChangeCards = () => {
+        const cards = [...document.querySelectorAll("[data-requisite-change-card]")]
+            .filter((card) => !card.classList.contains("is-deleted"));
+        cards.forEach((card, index) => {
+            const number = card.querySelector(".route-stop-index");
+            if (number) number.textContent = String(index + 1);
+        });
+    };
     document.addEventListener("click", (event) => {
         const bankButton = event.target.closest("[data-remove-bank-account]");
         const contactButton = event.target.closest("[data-remove-contact]");
-        const button = bankButton || contactButton;
+        const requisiteChangeButton = event.target.closest("[data-remove-requisite-change]");
+        const button = bankButton || contactButton || requisiteChangeButton;
         if (!button) return;
         event.preventDefault();
         if (button.getAttribute("aria-disabled") === "true") return;
         const card = bankButton
             ? button.closest("[data-bank-account-card]")
-            : button.closest("[data-contact-card]");
+            : contactButton
+                ? button.closest("[data-contact-card]")
+                : button.closest("[data-requisite-change-card]");
         const remove = card?.querySelector('input[name$="-DELETE"]');
         if (!card || !remove) return;
         remove.checked = true;
         card.classList.add("is-deleted");
         if (bankButton) syncBankAccountCards();
-        else syncContactCards();
+        else if (contactButton) syncContactCards();
+        else syncRequisiteChangeCards();
     });
     syncBankAccountCards();
     syncContactCards();
+    syncRequisiteChangeCards();
     document.addEventListener("change", (event) => {
         if (event.target.matches("[data-bank-primary-toggle]")) {
             const selected = event.target.closest("[data-bank-account-card]");

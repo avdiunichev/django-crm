@@ -283,6 +283,7 @@ from .forms import (
     OrganizationBankAccountFormSet,
     OrganizationContactEditFormSet,
     OrganizationContactFormSet,
+    OrganizationRequisiteChangeFormSet,
     OrganizationForm,
     PaymentForm,
     PlannerTaskForm,
@@ -316,6 +317,7 @@ from .models import (
     OrganizationBankAccount,
     OrganizationChange,
     OrganizationContact,
+    OrganizationRequisiteChange,
     OrganizationGroup,
     OrganizationRole,
     Payment,
@@ -5206,6 +5208,7 @@ class OrganizationDetailView(LoginRequiredMixin, DetailView):
         ).select_related("transportation", "driver", "vehicle")[:10]
         context["contacts"] = organization.contact_people.filter(is_active=True)
         context["bank_accounts"] = organization.bank_accounts.filter(is_active=True)
+        context["requisite_changes"] = organization.requisite_changes.all()
         context["contracts"] = Contract.objects.filter(
             Q(customer__organization=organization)
             | Q(carrier__organization=organization)
@@ -5444,6 +5447,7 @@ class OrganizationPDFView(LoginRequiredMixin, View):
 class OrganizationWorkspaceMixin:
     bank_formset_class = OrganizationBankAccountFormSet
     contact_formset_class = OrganizationContactFormSet
+    requisite_change_formset_class = OrganizationRequisiteChangeFormSet
 
     def get_formset(self, formset_class, prefix, data=None, instance=None):
         current_instance = instance if instance is not None else self.object
@@ -5563,6 +5567,14 @@ class OrganizationWorkspaceMixin:
             "contact_formset",
             self.get_formset(self.contact_formset_class, "contact_people", instance=instance),
         )
+        context.setdefault(
+            "requisite_change_formset",
+            self.get_formset(
+                self.requisite_change_formset_class,
+                "requisite_changes",
+                instance=instance,
+            ),
+        )
         context.update(self.get_workspace_context(self.object))
         return context
 
@@ -5572,6 +5584,7 @@ class OrganizationWorkspaceMixin:
         instance = form.instance
         bank_submitted = "bank_accounts-TOTAL_FORMS" in request.POST
         contact_submitted = "contact_people-TOTAL_FORMS" in request.POST
+        requisite_changes_submitted = "requisite_changes-TOTAL_FORMS" in request.POST
         bank_formset = self.get_formset(
             self.bank_formset_class,
             "bank_accounts",
@@ -5584,9 +5597,19 @@ class OrganizationWorkspaceMixin:
             data=request.POST if contact_submitted else None,
             instance=instance,
         )
+        requisite_change_formset = self.get_formset(
+            self.requisite_change_formset_class,
+            "requisite_changes",
+            data=request.POST if requisite_changes_submitted else None,
+            instance=instance,
+        )
         formsets_valid = (
             (not bank_submitted or bank_formset.is_valid())
             and (not contact_submitted or contact_formset.is_valid())
+            and (
+                not requisite_changes_submitted
+                or requisite_change_formset.is_valid()
+            )
         )
         if form.is_valid() and formsets_valid:
             before_bank = list(
@@ -5608,6 +5631,9 @@ class OrganizationWorkspaceMixin:
             if contact_submitted:
                 contact_formset.instance = self.object
                 contact_formset.save()
+            if requisite_changes_submitted:
+                requisite_change_formset.instance = self.object
+                requisite_change_formset.save()
             self.sync_primary_registers()
             audit_changes = dict(getattr(form, "audit_changes", {}))
             if bank_submitted:
@@ -5651,6 +5677,7 @@ class OrganizationWorkspaceMixin:
                 form=form,
                 bank_formset=bank_formset,
                 contact_formset=contact_formset,
+                requisite_change_formset=requisite_change_formset,
             )
         )
 
