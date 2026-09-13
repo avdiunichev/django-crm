@@ -38,7 +38,7 @@
     <section class="form-section uk-card uk-card-default organization-verification-card">
         <h2>Проверка контрагента</h2>
         <strong data-fns-status class="{% if form.instance.fns_status == 'active' %}uk-text-success{% elif form.instance.fns_status != 'unknown' %}uk-text-danger{% endif %}">ФНС: {{ form.instance.get_fns_status_display|default:"Не проверен" }}</strong>
-        <p>{% if form.instance.fns_checked_at %}Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}{% else %}Нажмите «Проверка контрагента» после ввода ИНН.{% endif %}</p>
+        {% if form.instance.fns_checked_at %}<p>Проверено {{ form.instance.fns_checked_at|date:"d.m.Y H:i" }}</p>{% endif %}
         <small>{{ form.instance.get_verification_status_display|default:"Реквизиты не проверены" }}</small>
     </section>
 
