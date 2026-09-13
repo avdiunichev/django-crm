@@ -867,7 +867,7 @@ class CrmTestCase(TestCase):
         response = self.client.get(organization.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Записать и закрыть")
-        self.assertContains(response, "Банковские счета")
+        self.assertContains(response, "Банковские реквизиты")
         self.assertContains(response, "Контактные лица")
         self.assertContains(response, "Взаиморасчёты")
         self.assertEqual(response.context["receivable_total"], Decimal("100000"))

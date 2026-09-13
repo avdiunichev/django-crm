@@ -66,8 +66,8 @@
             <article class="order-route-stop organization-bank-card" data-bank-account-card>
                 {{ account_form.id }}{{ account_form.currency.as_hidden }}{{ account_form.is_active.as_hidden }}{{ account_form.notes.as_hidden }}
                 <div class="order-route-stop-head">
-                    <div><span class="route-stop-index">{{ forloop.counter }}</span><strong>Банковские реквизиты</strong></div>
-                    <div class="organization-bank-card-actions">{{ account_form.is_primary }} <label for="{{ account_form.is_primary.id_for_label }}">Основной</label>{{ account_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-bank-account {% if forloop.first and forloop.last %}aria-disabled="true"{% endif %}>Удалить</a></div>
+                    <div><span class="route-stop-index">{{ forloop.counter }}</span><strong data-bank-account-title>{% if account_form.is_primary.value %}Основной расчётный счёт{% else %}Дополнительный расчётный счёт{% endif %}</strong></div>
+                    <div class="organization-bank-card-actions">{{ account_form.is_primary.as_hidden }}<label class="organization-bank-primary-switch"><input class="uk-radio" type="radio" name="bank-primary-account" value="{{ forloop.counter0 }}" data-bank-primary-toggle {% if account_form.is_primary.value %}checked{% endif %}> Основной</label>{{ account_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-bank-account {% if forloop.first and forloop.last %}aria-disabled="true"{% endif %}>Удалить</a></div>
                 </div>
                 {% if account_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ account_form.non_field_errors }}</div>{% endif %}
                 <div class="organization-bank-grid">
@@ -80,7 +80,7 @@
             {% endfor %}
         </div>
         <div class="organization-bank-actions"><button class="uk-button uk-button-default" type="button" data-add-form="bank_accounts"><span uk-icon="plus"></span> Добавить реквизиты</button></div>
-        <template id="bank_accounts-empty-form"><article class="order-route-stop organization-bank-card" data-bank-account-card>{{ bank_formset.empty_form.id }}{{ bank_formset.empty_form.currency.as_hidden }}{{ bank_formset.empty_form.is_active.as_hidden }}{{ bank_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong>Банковские реквизиты</strong></div><div class="organization-bank-card-actions">{{ bank_formset.empty_form.is_primary }} <label for="{{ bank_formset.empty_form.is_primary.id_for_label }}">Основной</label>{{ bank_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-bank-account>Удалить</a></div></div><div class="organization-bank-grid"><div class="field"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field organization-bank-bik"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}<span>DaData</span></div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div></div></article></template>
+        <template id="bank_accounts-empty-form"><article class="order-route-stop organization-bank-card" data-bank-account-card>{{ bank_formset.empty_form.id }}{{ bank_formset.empty_form.currency.as_hidden }}{{ bank_formset.empty_form.is_active.as_hidden }}{{ bank_formset.empty_form.notes.as_hidden }}<div class="order-route-stop-head"><div><span class="route-stop-index">—</span><strong data-bank-account-title>Дополнительный расчётный счёт</strong></div><div class="organization-bank-card-actions">{{ bank_formset.empty_form.is_primary.as_hidden }}<label class="organization-bank-primary-switch"><input class="uk-radio" type="radio" name="bank-primary-account" value="__prefix__" data-bank-primary-toggle> Основной</label>{{ bank_formset.empty_form.DELETE }}<a class="organization-bank-remove-text" href="#" data-remove-bank-account>Удалить</a></div></div><div class="organization-bank-grid"><div class="field"><label>{{ bank_formset.empty_form.account_number.label }}</label>{{ bank_formset.empty_form.account_number }}</div><div class="field organization-bank-bik"><label>{{ bank_formset.empty_form.bik.label }}</label>{{ bank_formset.empty_form.bik }}<span>DaData</span></div><div class="field"><label>{{ bank_formset.empty_form.correspondent_account.label }}</label>{{ bank_formset.empty_form.correspondent_account }}</div><div class="field"><label>{{ bank_formset.empty_form.bank_name.label }}</label>{{ bank_formset.empty_form.bank_name }}</div></div></article></template>
     </section>
 
     <section class="form-section uk-card uk-card-default organization-financial-section">
@@ -266,17 +266,30 @@ document.addEventListener("DOMContentLoaded", () => {
             if (prefix === "bank_accounts") syncBankAccountCards();
         });
     });
+    const isBankPrimary = (field) => field && (field.type === "hidden"
+        ? ["true", "1", "on"].includes((field.value || "").toLowerCase())
+        : field.checked);
+    const setBankPrimary = (field, value) => {
+        if (!field) return;
+        if (field.type === "hidden") field.value = value ? "True" : "False";
+        else field.checked = value;
+    };
     const syncBankAccountCards = () => {
         const cards = [...document.querySelectorAll("[data-bank-account-card]")]
             .filter((card) => !card.classList.contains("is-deleted"));
-        const primary = cards.find((card) => card.querySelector('[name$="-is_primary"]')?.checked);
+        const primary = cards.find((card) => isBankPrimary(card.querySelector('[name$="-is_primary"]')));
         if (!primary && cards.length) {
-            const checkbox = cards[0].querySelector('[name$="-is_primary"]');
-            if (checkbox) checkbox.checked = true;
+            setBankPrimary(cards[0].querySelector('[name$="-is_primary"]'), true);
         }
         cards.forEach((card, index) => {
             const number = card.querySelector(".route-stop-index");
             if (number) number.textContent = String(index + 1);
+            const primaryField = card.querySelector('[name$="-is_primary"]');
+            const isPrimary = isBankPrimary(primaryField);
+            const toggle = card.querySelector("[data-bank-primary-toggle]");
+            if (toggle) toggle.checked = isPrimary;
+            const title = card.querySelector("[data-bank-account-title]");
+            if (title) title.textContent = isPrimary ? "Основной расчётный счёт" : "Дополнительный расчётный счёт";
             const removeButton = card.querySelector("[data-remove-bank-account]");
             if (removeButton) removeButton.setAttribute("aria-disabled", String(cards.length < 2));
         });
@@ -295,6 +308,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     syncBankAccountCards();
     document.addEventListener("change", (event) => {
+        if (event.target.matches("[data-bank-primary-toggle]")) {
+            const selected = event.target.closest("[data-bank-account-card]");
+            document.querySelectorAll("[data-bank-account-card]").forEach((card) => {
+                if (!card.classList.contains("is-deleted")) {
+                    setBankPrimary(card.querySelector('[name$="-is_primary"]'), card === selected);
+                }
+            });
+            syncBankAccountCards();
+            return;
+        }
         if (!event.target.matches('[name$="-is_primary"]')) return;
         const formset = event.target.closest(".onec-formset");
         if (event.target.checked) {
