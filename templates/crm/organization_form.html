@@ -16,7 +16,7 @@
             <span class="order-command-icon" uk-icon="users"></span>
             <div>
                 <h2>{% if object %}{{ object }}{% else %}Новый контрагент{% endif %}</h2>
-                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Единый справочник компаний и физических лиц{% endif %}</p>
+                <p>{% if object %}Карточка № {{ object.pk }} · изменена {{ object.updated_at|date:"d.m.Y H:i" }}{% else %}Заполните форму реквизитами{% endif %}</p>
             </div>
         </div>
         <div class="organization-command-footer">
