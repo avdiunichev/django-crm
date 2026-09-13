@@ -3143,6 +3143,10 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     margin-left: auto;
 }
 
+.organization-command-panel .organization-command-actions {
+    margin: 18px 0 0;
+}
+
 .organization-command-actions [data-dadata-status] {
     display: none;
 }
