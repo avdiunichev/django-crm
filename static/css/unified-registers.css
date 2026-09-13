@@ -1,0 +1,179 @@
+/* Единая геометрия реестров: контрагенты, водители, автопарк и рейсы. */
+body.uikit-theme.driver-directory-page .driver-directory-heading,
+body.uikit-theme.vehicle-directory-page .vehicle-directory-heading,
+.uikit-theme .transportation-directory-heading,
+body.uikit-theme.driver-directory-page .driver-metrics,
+body.uikit-theme.vehicle-directory-page .vehicle-metrics,
+.uikit-theme .transportation-register-metrics {
+    display: none;
+}
+
+.uikit-theme .driver-register-filters,
+.uikit-theme .vehicle-register-filters,
+.uikit-theme .transportation-register-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.7fr) repeat(3, minmax(150px, 1fr)) auto auto;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 24px;
+    border: 1px solid #d5dfe8;
+    border-radius: 0 !important;
+    background: #fff;
+}
+
+.uikit-theme .driver-register-filters > *,
+.uikit-theme .vehicle-register-filters > *,
+.uikit-theme .transportation-register-filters > * {
+    min-width: 0;
+    border-radius: 0 !important;
+}
+
+.uikit-theme .driver-register-filters .order-register-create,
+.uikit-theme .vehicle-register-filters .order-register-create,
+.uikit-theme .transportation-register-filters .order-register-create {
+    justify-self: end;
+    white-space: nowrap;
+}
+
+.uikit-theme .driver-register-panel,
+.uikit-theme .vehicle-register-panel,
+.uikit-theme .transportation-register-panel,
+.uikit-theme .driver-register-panel .table-wrap,
+.uikit-theme .vehicle-register-panel .table-wrap,
+.uikit-theme .transportation-register-panel .table-wrap,
+.uikit-theme .driver-directory-table,
+.uikit-theme .vehicle-directory-table,
+.uikit-theme .transportation-register-table {
+    border-radius: 0 !important;
+}
+
+.uikit-theme .driver-register-panel .onec-register-header,
+.uikit-theme .vehicle-register-panel .onec-register-header,
+.uikit-theme .transportation-register-panel .onec-register-header {
+    min-height: auto;
+}
+
+.uikit-theme .driver-directory-table,
+.uikit-theme .vehicle-directory-table,
+.uikit-theme .transportation-register-table {
+    font-size: 14px;
+}
+
+.uikit-theme .driver-directory-table th,
+.uikit-theme .vehicle-directory-table th,
+.uikit-theme .transportation-register-table th {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 1080px) {
+    .uikit-theme .driver-register-filters,
+    .uikit-theme .vehicle-register-filters,
+    .uikit-theme .transportation-register-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .uikit-theme .driver-register-filters .order-register-create,
+    .uikit-theme .vehicle-register-filters .order-register-create,
+    .uikit-theme .transportation-register-filters .order-register-create {
+        justify-self: stretch;
+    }
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .driver-register-filters,
+    .uikit-theme .vehicle-register-filters,
+    .uikit-theme .transportation-register-filters {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .uikit-theme .driver-register-filters .uk-button,
+    .uikit-theme .vehicle-register-filters .uk-button,
+    .uikit-theme .transportation-register-filters .uk-button,
+    .uikit-theme .driver-register-filters .clear-link,
+    .uikit-theme .vehicle-register-filters .clear-link,
+    .uikit-theme .transportation-register-filters .clear-link {
+        width: 100%;
+    }
+
+    .uikit-theme .driver-directory-table,
+    .uikit-theme .driver-directory-table tbody,
+    .uikit-theme .driver-directory-table tr,
+    .uikit-theme .driver-directory-table td,
+    .uikit-theme .vehicle-directory-table,
+    .uikit-theme .vehicle-directory-table tbody,
+    .uikit-theme .vehicle-directory-table tr,
+    .uikit-theme .vehicle-directory-table td,
+    .uikit-theme .transportation-register-table,
+    .uikit-theme .transportation-register-table tbody,
+    .uikit-theme .transportation-register-table tr,
+    .uikit-theme .transportation-register-table td {
+        display: block;
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .uikit-theme .driver-register-panel .table-wrap,
+    .uikit-theme .vehicle-register-panel .table-wrap,
+    .uikit-theme .transportation-register-panel .table-wrap {
+        overflow: visible;
+    }
+
+    .uikit-theme .driver-directory-table,
+    .uikit-theme .vehicle-directory-table,
+    .uikit-theme .transportation-register-table {
+        min-width: 0 !important;
+        margin: 0;
+        table-layout: auto;
+    }
+
+    .uikit-theme .driver-directory-table thead,
+    .uikit-theme .vehicle-directory-table thead,
+    .uikit-theme .transportation-register-table thead {
+        display: none;
+    }
+
+    .uikit-theme .driver-directory-table tbody tr,
+    .uikit-theme .vehicle-directory-table tbody tr,
+    .uikit-theme .transportation-register-table tbody tr {
+        padding: 16px;
+        border-bottom: 1px solid #dfe6ee;
+    }
+
+    .uikit-theme .driver-directory-table td,
+    .uikit-theme .vehicle-directory-table td,
+    .uikit-theme .transportation-register-table td {
+        min-height: 0;
+        padding: 11px 0;
+        border: 0 !important;
+        overflow-wrap: break-word;
+        white-space: normal !important;
+        text-align: left !important;
+    }
+
+    .uikit-theme .driver-directory-table td::before,
+    .uikit-theme .vehicle-directory-table td::before,
+    .uikit-theme .transportation-register-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        color: #77869a;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .uikit-theme .driver-directory-table td:first-child,
+    .uikit-theme .vehicle-directory-table td:first-child,
+    .uikit-theme .transportation-register-table td:first-child { padding-top: 0; }
+
+    .uikit-theme .driver-directory-table td:last-child,
+    .uikit-theme .vehicle-directory-table td:last-child,
+    .uikit-theme .transportation-register-table td:last-child { padding-bottom: 0; }
+}
