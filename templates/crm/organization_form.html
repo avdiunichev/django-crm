@@ -21,7 +21,7 @@
         </div>
         <div class="organization-command-footer">
             <div class="organization-command-inn">
-                {{ form.tax_id }}{{ form.tax_id.errors }}
+                {{ form.tax_id }}
             </div>
             <div class="order-command-actions organization-command-actions">
                 {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
