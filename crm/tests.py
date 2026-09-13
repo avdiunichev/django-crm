@@ -2165,11 +2165,11 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(listing.context["page_obj"].paginator.count, 1)
         self.assertContains(listing, "vehicle-directory-table")
-        self.assertContains(listing, "Документы требуют внимания")
+        self.assertContains(listing, "Транспорт, документы и назначение")
         detail = self.client.get(reverse("vehicle-detail", args=[self.vehicle.pk]))
-        self.assertContains(detail, "onec-titlebar")
-        self.assertContains(detail, "vehicle-summary-card")
-        self.assertContains(detail, "Сцепки с прицепами")
+        self.assertContains(detail, "vehicle-view-workspace")
+        self.assertContains(detail, "01 Основные данные")
+        self.assertContains(detail, "Связи тягача с прицепами")
         self.assertContains(detail, "История карточки")
 
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):

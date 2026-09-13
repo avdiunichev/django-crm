@@ -1,0 +1,23 @@
+/* Карточка транспорта повторяет структуру карточки контрагента и водителя. */
+.uikit-theme .vehicle-view-workspace { display: grid; gap: 18px; }
+.uikit-theme .vehicle-view-command .vehicle-command-actions { margin-top: 18px; }
+.uikit-theme .vehicle-view-tabs { margin: 0; overflow-x: auto; flex-wrap: nowrap; }
+.uikit-theme .vehicle-view-tabs > * > a { padding-right: 18px; padding-left: 18px; border-radius: 0 !important; font-size: 13px; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
+.uikit-theme .vehicle-view-switcher { margin: 0; padding: 0; border: 0; background: transparent; }
+.uikit-theme .vehicle-view-section, .uikit-theme .vehicle-view-record { margin: 0; border-radius: 0 !important; }
+.vehicle-view-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
+.vehicle-view-field { min-width: 0; }
+.vehicle-view-field.field-wide { grid-column: 1 / -1; }
+.vehicle-view-field > span { display: block; margin-bottom: 6px; color: #687586; font-size: 13px; line-height: 1.3; }
+.vehicle-view-field > strong { display: block; min-height: 22px; padding: 0; color: #2f3846; font-size: 14px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; word-break: normal; }
+.vehicle-view-field > strong a { color: #287fdb; }
+.vehicle-view-record-list { display: grid; gap: 16px; padding: 20px; }
+.vehicle-view-record-grid { padding: 18px 20px 20px; }
+.vehicle-view-primary { color: #287fdb; font-size: 13px; }
+.vehicle-view-empty { margin: 0; padding: 16px; border: 1px solid #d5dfe8; color: #687586; }
+html[data-theme="dark"] body.uikit-theme .vehicle-view-field > span,
+html[data-theme="dark"] body.uikit-theme .vehicle-view-empty { color: #9aa8ba; }
+html[data-theme="dark"] body.uikit-theme .vehicle-view-field > strong { color: #eef3fa; }
+html[data-theme="dark"] body.uikit-theme .vehicle-view-empty { border-color: #344257; background: #141e2f; }
+@media (max-width: 960px) { .vehicle-view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .uikit-theme .vehicle-view-tabs > * > a { min-height: 40px; padding: 0 12px 8px; font-size: 12px; }.vehicle-view-grid { grid-template-columns: 1fr; padding: 16px; }.vehicle-view-record-list { padding: 16px; }.vehicle-view-record-grid { padding: 16px; } }
