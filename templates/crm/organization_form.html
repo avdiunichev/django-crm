@@ -126,7 +126,7 @@
                             {% for checkbox in form.roles %}<span class="onec-flag-option">{{ checkbox.tag }} <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></span>{% endfor %}
                         </div>
                         {{ form.roles.errors }}
-                        <div class="onec-flags">{{ form.is_own_company }} <label for="{{ form.is_own_company.id_for_label }}">{{ form.is_own_company.label }}</label>{{ form.is_active }} <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label></div>
+                        <div class="onec-flags organization-role-state-flags">{{ form.is_own_company }} <label for="{{ form.is_own_company.id_for_label }}">{{ form.is_own_company.label }}</label>{{ form.is_active }} <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label></div>
                         <div class="onec-own-company-tax" data-own-company-tax>
                             <label for="{{ form.profit_tax_rate.id_for_label }}">{{ form.profit_tax_rate.label }}</label>
                             {{ form.profit_tax_rate }}{{ form.profit_tax_rate.errors }}
