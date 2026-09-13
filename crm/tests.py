@@ -4581,6 +4581,15 @@ class CrmTestCase(TestCase):
         self.assertContains(organizations, organization.name)
         self.assertContains(shipments, self.shipment.number)
 
+    def test_organization_register_uses_order_register_layout(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("organization-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "organization-register-table")
+        self.assertContains(response, "Создать контрагента")
+
     def test_payment_can_be_edited_and_deleted(self):
         payment = Payment.objects.create(
             shipment=self.shipment,

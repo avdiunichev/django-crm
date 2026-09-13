@@ -11247,6 +11247,20 @@ body.uikit-theme {
     font-size: 13px;
 }
 
+/* Реестр контрагентов повторяет строгую геометрию реестра заказов. */
+.uikit-theme .organization-register-table th:nth-child(1),
+.uikit-theme .organization-register-table td:nth-child(1) { width: 27%; }
+.uikit-theme .organization-register-table th:nth-child(2),
+.uikit-theme .organization-register-table td:nth-child(2) { width: 13%; }
+.uikit-theme .organization-register-table th:nth-child(3),
+.uikit-theme .organization-register-table td:nth-child(3) { width: 14%; }
+.uikit-theme .organization-register-table th:nth-child(4),
+.uikit-theme .organization-register-table td:nth-child(4) { width: 20%; }
+.uikit-theme .organization-register-table th:nth-child(5),
+.uikit-theme .organization-register-table td:nth-child(5) { width: 16%; }
+.uikit-theme .organization-register-table th:nth-child(6),
+.uikit-theme .organization-register-table td:nth-child(6) { width: 10%; }
+
 html[data-theme="dark"] body.uikit-theme .order-register-filters {
     border-color: #29364a;
     background: #141e2f;
