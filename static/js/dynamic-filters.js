@@ -96,6 +96,7 @@
         form.dataset.dynamicFilterReady = "true";
         let timer;
         let composing = false;
+        const textDelay = Number.parseInt(form.dataset.filterDelay || "", 10) || TEXT_DELAY;
 
         form.addEventListener("submit", () => {
             const url = buildFilterUrl(form);
@@ -111,12 +112,12 @@
             field.addEventListener("compositionend", () => {
                 composing = false;
                 clearTimeout(timer);
-                timer = setTimeout(() => submitFilter(form, field), TEXT_DELAY);
+                timer = setTimeout(() => submitFilter(form, field), textDelay);
             });
             field.addEventListener("input", () => {
                 if (composing) return;
                 clearTimeout(timer);
-                timer = setTimeout(() => submitFilter(form, field), TEXT_DELAY);
+                timer = setTimeout(() => submitFilter(form, field), textDelay);
             });
         });
 
