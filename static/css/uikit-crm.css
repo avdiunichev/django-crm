@@ -1866,6 +1866,19 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     border-radius: 0;
 }
 
+/* Форма рейса следует строгому стилю карточки заказа: у всех её блоков
+   прямые углы, включая вложенные точки маршрута и финансовую сводку. */
+body.uikit-theme #transportation-form .form-section,
+body.uikit-theme #transportation-form .order-route-stop,
+body.uikit-theme #transportation-form .form-section-title > span,
+body.uikit-theme #transportation-form .finance-summary article,
+body.uikit-theme #transportation-form .finance-tax-result article,
+body.uikit-theme #transportation-form .uk-alert,
+body.uikit-theme #transportation-form .crm-smart-dropdown,
+body.uikit-theme #transportation-form .crm-smart-option {
+    border-radius: 0 !important;
+}
+
 /* Главный контрагент занимает половину строки; реквизиты документа справа
    делят оставшееся пространство поровну. */
 .transportation-primary-document-grid {
