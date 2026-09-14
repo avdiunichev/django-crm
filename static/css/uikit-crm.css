@@ -1865,10 +1865,17 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 /* Главный контрагент занимает половину строки; реквизиты документа справа
    делят оставшееся пространство поровну. */
 .transportation-primary-document-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
-.transportation-primary-document-grid > :first-child,
+.transportation-primary-document-grid > :first-child {
+    grid-column: span 6;
+}
+
+.transportation-primary-document-grid > :not(:first-child) {
+    grid-column: span 3;
+}
+
 .transportation-primary-pair-grid > * {
     grid-column: span 3;
 }
@@ -1921,6 +1928,7 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .transportation-primary-document-grid > :first-child,
+    .transportation-primary-document-grid > :not(:first-child),
     .transportation-primary-pair-grid > * {
         grid-column: auto;
     }
