@@ -1466,14 +1466,20 @@ class TransportationStopForm(StyledModelForm):
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
+            "kind": forms.HiddenInput(),
             "instructions": forms.Textarea(attrs={"rows": 2}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        kind = (
+            self.data.get(self.add_prefix("kind"))
+            if self.is_bound
+            else self.initial.get("kind") or self.instance.kind
+        )
         required_roles = (
             [OrganizationRole.Role.CONSIGNEE]
-            if self.instance.kind == TransportationStop.Kind.DELIVERY
+            if kind == TransportationStop.Kind.DELIVERY
             else [OrganizationRole.Role.SHIPPER]
         )
         required_role = required_roles[0]
@@ -1500,19 +1506,19 @@ class TransportationStopForm(StyledModelForm):
                 "data-required-role": required_role,
                 "data-search-placeholder": f"Название или ИНН: {self.fields['organization'].label.lower()}",
                 "data-create-label": f"Создать: {self.fields['organization'].label.lower()}",
+                "data-allow-free-text": "",
+                "data-free-text-target": f"id_{self.add_prefix('organization_text')}",
             }
         )
+        self.fields["organization_text"].widget = forms.HiddenInput()
+        self.fields["city"].required = False
+        self.fields["city"].widget = forms.HiddenInput()
         self.fields["planned_date"].widget = CRMDateInput()
         self.fields["planned_date"].input_formats = CRM_DATE_INPUT_FORMATS
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
-        self.fields["city"].widget.attrs.update(
-            {
-                "autocomplete": "off",
-                "data-dadata-city": "",
-                "data-dadata-city-url": reverse("dadata-address-suggestions"),
-                "placeholder": "Начните вводить город или населённый пункт",
-            }
+        self.fields["address"].widget = forms.Textarea(
+            attrs={"class": "form-control uk-textarea", "rows": 2}
         )
         self.fields["address"].widget.attrs.update(
             {
@@ -1564,6 +1570,37 @@ class TransportationStopForm(StyledModelForm):
             }
             if any(values.values()):
                 self.initial["address_meta"] = json.dumps(values, ensure_ascii=False)
+
+    @staticmethod
+    def _city_from_address(address):
+        parts = [part.strip() for part in (address or "").split(",") if part.strip()]
+        locality_markers = (
+            "г.", "город", "пгт", "рп", "п.", "пос", "с.", "село", "дер", "ст-ца",
+        )
+        for part in parts:
+            normalized = part.casefold()
+            if any(marker in normalized for marker in locality_markers):
+                return part[:120]
+        return parts[0][:120] if parts else ""
+
+    def clean(self):
+        cleaned = super().clean()
+        raw = cleaned.get("address_meta") or ""
+        try:
+            address_data = json.loads(raw) if isinstance(raw, str) else raw
+        except (TypeError, ValueError):
+            address_data = {}
+        if not isinstance(address_data, dict):
+            address_data = {}
+        cleaned["city"] = (
+            cleaned.get("city")
+            or address_data.get("city")
+            or address_data.get("settlement")
+            or self._city_from_address(cleaned.get("address"))
+        )[:120]
+        if not cleaned["city"]:
+            self.add_error("address", "Укажите адрес с населённым пунктом.")
+        return cleaned
 
     @staticmethod
     def _planned_datetime(date_value, time_value):
