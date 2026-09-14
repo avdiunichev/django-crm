@@ -100,6 +100,51 @@ html[data-theme="dark"] body.uikit-theme .document-register-completeness > small
     .uikit-theme .document-register-filters .clear-link { width: 100%; }
 }
 
+/* Реестр контрагентов: реквизиты, доступность и проверка читаются по строке. */
+.uikit-theme .organization-register-table th:nth-child(1),
+.uikit-theme .organization-register-table td:nth-child(1) { width: 28%; }
+.uikit-theme .organization-register-table th:nth-child(2),
+.uikit-theme .organization-register-table td:nth-child(2) { width: 18%; }
+.uikit-theme .organization-register-table th:nth-child(3),
+.uikit-theme .organization-register-table td:nth-child(3) { width: 24%; }
+.uikit-theme .organization-register-table th:nth-child(4),
+.uikit-theme .organization-register-table td:nth-child(4) { width: 20%; }
+.uikit-theme .organization-register-table th:nth-child(5),
+.uikit-theme .organization-register-table td:nth-child(5) { width: 180px; }
+
+.uikit-theme .organization-register-table .organization-register-company > small,
+.uikit-theme .organization-register-table .organization-register-requisites > small,
+.uikit-theme .organization-register-table .organization-register-roles > small,
+.uikit-theme .organization-register-table .organization-register-contact > small,
+.uikit-theme .organization-register-table .organization-register-verification > small {
+    display: block;
+    margin-top: 3px;
+    color: #77869a;
+}
+
+.uikit-theme .organization-register-table .organization-register-company .organization-register-address {
+    margin-top: 7px;
+}
+
+.uikit-theme .organization-register-table .organization-fns-status { font-weight: 600; }
+.uikit-theme .organization-register-table .organization-fns-status-active { color: #218739; }
+.uikit-theme .organization-register-table .organization-fns-status-liquidated,
+.uikit-theme .organization-register-table .organization-fns-status-liquidating,
+.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #c43c4b; }
+
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-register-company > small,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-register-requisites > small,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-register-roles > small,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-register-contact > small,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-register-verification > small {
+    color: #9aa8ba;
+}
+
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-active { color: #72d48a; }
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-liquidated,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-liquidating,
+html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
+
 .uikit-theme .driver-register-filters,
 .uikit-theme .vehicle-register-filters,
 .uikit-theme .transportation-register-filters {

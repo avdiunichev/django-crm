@@ -12,13 +12,13 @@
 <section class="panel uk-card uk-card-default order-register-panel organization-register-panel">
     <div class="onec-register-header"><div><span class="eyebrow">Реестр</span><h2>Контрагенты</h2><p>Компании, ИП и физические лица для работы в CRM.</p></div><span class="uk-text-meta">{{ organization_count }} записей</span></div>
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table organization-register-table">
-        <thead><tr><th>Контрагент</th><th>ИНН / КПП</th><th>Роли</th><th>Контакт</th><th>Статус ФНС</th></tr></thead>
+        <thead><tr><th>Контрагент</th><th>Реквизиты</th><th>Роли и состояние</th><th>Контакт</th><th>Проверка</th></tr></thead>
         <tbody>{% for organization in organizations %}<tr>
-            <td data-label="Контрагент"><a class="primary-link" href="{% url 'organization-detail' organization.pk %}">{{ organization }}</a><small class="organization-register-address">{{ organization.legal_address|default:"Адрес не указан" }}</small></td>
-            <td data-label="ИНН / КПП">{{ organization.tax_id|default:"—" }}{% if organization.kpp %}<small>КПП {{ organization.kpp }}</small>{% endif %}</td>
-            <td data-label="Роли">{% if organization.is_own_company %}<small>Наша компания</small>{% endif %}{% for role in organization.active_roles %}{{ role.get_role_display }}{% if not forloop.last %} · {% endif %}{% empty %}<span class="uk-text-muted">Не назначены</span>{% endfor %}</td>
-            <td data-label="Контакт">{{ organization.contact_name|default:"—" }}<small>{{ organization.phone|default:organization.email|default:"Контакты не указаны" }}</small></td>
-            <td data-label="Статус ФНС">{{ organization.get_fns_status_display }}</td>
+            <td data-label="Контрагент" class="organization-register-company"><a class="primary-link" href="{% url 'organization-detail' organization.pk %}">{{ organization }}</a><small>{{ organization.get_kind_display }}</small><small class="organization-register-address">{{ organization.legal_address|default:"Адрес не указан" }}</small></td>
+            <td data-label="Реквизиты" class="organization-register-requisites"><strong>ИНН {{ organization.tax_id|default:"—" }}</strong>{% if organization.kpp %}<small>КПП {{ organization.kpp }}</small>{% endif %}{% if organization.ogrn %}<small>ОГРН {{ organization.ogrn }}</small>{% endif %}</td>
+            <td data-label="Роли и состояние" class="organization-register-roles"><strong>{% for role in organization.active_roles %}{{ role.get_role_display }}{% if not forloop.last %} · {% endif %}{% empty %}<span class="uk-text-muted">Роли не назначены</span>{% endfor %}</strong><small>{% if organization.is_own_company %}Наша компания · {% endif %}{% if organization.is_active %}Активен{% else %}Неактивен{% endif %}</small></td>
+            <td data-label="Контакт" class="organization-register-contact"><strong>{{ organization.contact_name|default:"Контакт не указан" }}</strong><small>{{ organization.phone|default:"Телефон не указан" }}</small>{% if organization.email %}<small>{{ organization.email }}</small>{% endif %}</td>
+            <td data-label="Проверка" class="organization-register-verification"><strong class="organization-fns-status organization-fns-status-{{ organization.fns_status }}">ФНС: {{ organization.get_fns_status_display }}</strong><small>{{ organization.get_verification_status_display }}</small></td>
         </tr>{% empty %}<tr><td colspan="5" class="empty-state">Контрагентов пока нет. Создайте первого контрагента.</td></tr>{% endfor %}</tbody>
     </table></div>
 </section>
