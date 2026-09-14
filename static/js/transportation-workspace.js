@@ -74,6 +74,11 @@
             dropdown.hidden = true;
             search.setAttribute("aria-expanded", "false");
         };
+        const syncDisabled = () => {
+            search.disabled = select.disabled;
+            wrapper.classList.toggle("is-disabled", select.disabled);
+            if (select.disabled) close();
+        };
         const choose = (option) => {
             select.value = option.value;
             search.value = option.textContent.trim();
@@ -151,6 +156,7 @@
         select.addEventListener("change", () => {
             if (select.dataset.smartTyping !== "true") syncFromSelect();
         });
+        select.addEventListener("disabledchange", syncDisabled);
         const roleSource = document.getElementById(select.dataset.roleSource || "");
         roleSource?.addEventListener("change", () => {
             const selected = select.selectedOptions[0];
@@ -164,6 +170,7 @@
             if (!wrapper.contains(event.target)) close();
         });
         syncFromSelect();
+        syncDisabled();
     };
 
     const addCreatedOption = (select, item) => {
