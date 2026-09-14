@@ -285,7 +285,175 @@
         });
     };
 
+    const setOrganizationField = (dialog, id, value) => {
+        const field = dialog.querySelector(`#${id}`);
+        if (!field || value === undefined || value === null || value === "") return;
+        let normalized = String(value);
+        if (id === "id_director_position") {
+            normalized = normalized.trim().replace(/\s+/g, " ").toLowerCase();
+            normalized = normalized ? `${normalized[0].toUpperCase()}${normalized.slice(1)}` : "";
+        }
+        if (id === "id_legal_address") normalized = normalized.toUpperCase();
+        field.value = normalized;
+        field.dispatchEvent(new Event("change", {bubbles: true}));
+    };
+
+    const bindFullOrganizationDadata = (dialog, autoFill = false) => {
+        const tools = dialog.querySelector("[data-dadata-autofill]");
+        const button = tools?.querySelector("[data-dadata-button]");
+        const status = tools?.querySelector("[data-dadata-status]");
+        const form = dialog.querySelector("form.organization-workspace");
+        const taxId = form?.querySelector("#id_tax_id");
+        if (!tools || !button || !form || !taxId) return;
+        const fill = async () => {
+            const inn = taxId.value.replace(/\D/g, "");
+            if (!/^\d{10}$|^\d{12}$/.test(inn)) {
+                if (status) status.textContent = "Укажите ИНН из 10 или 12 цифр.";
+                taxId.focus();
+                return;
+            }
+            button.disabled = true;
+            if (status) status.textContent = "Получаем реквизиты…";
+            try {
+                const csrf = form.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
+                const response = await fetch(tools.dataset.url, {
+                    method: "POST",
+                    headers: {"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "X-CSRFToken": csrf},
+                    body: new URLSearchParams({inn})
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || "Не удалось получить реквизиты.");
+                const party = result.party;
+                const values = {
+                    id_name: party.full_name,
+                    id_short_name: party.short_name,
+                    id_tax_id: party.inn,
+                    id_kpp: party.kpp,
+                    id_ogrn: party.ogrn,
+                    id_registration_date: party.registration_date,
+                    id_legal_address: party.legal_address,
+                    id_legal_address_meta: JSON.stringify(party.address_data || {}),
+                    id_director_position: party.director_post,
+                    id_director_name: party.director_name,
+                    id_verification_status: party.is_invalid || (party.status && party.status !== "ACTIVE") ? "warning" : "verified",
+                    id_fns_status: ({ACTIVE: "active", LIQUIDATED: "liquidated", LIQUIDATING: "liquidating", REORGANIZING: "reorganizing", BANKRUPT: "bankrupt"})[party.status] || "unknown"
+                };
+                Object.entries(values).forEach(([id, value]) => setOrganizationField(dialog, id, value));
+                if (party.organization_type === "INDIVIDUAL") setOrganizationField(dialog, "id_kind", "entrepreneur");
+                const mirror = form.querySelector("[data-tax-id-mirror]");
+                if (mirror) mirror.value = taxId.value;
+                if (status) status.textContent = "Реквизиты заполнены. Проверьте их перед сохранением.";
+            } catch (error) {
+                if (status) status.textContent = error.message || "Не удалось получить реквизиты.";
+            } finally { button.disabled = false; }
+        };
+        button.addEventListener("click", fill);
+        if (autoFill) fill();
+    };
+
+    const bindFullOrganizationForm = (dialog, sourceUrl) => {
+        const form = dialog.querySelector("form.organization-workspace");
+        if (!form) return;
+        form.action = sourceUrl;
+        form.querySelectorAll('a[href$="/organizations/"]').forEach((link) => {
+            link.addEventListener("click", (event) => { event.preventDefault(); modalInstance(quickModalElement)?.hide(); });
+        });
+        const taxId = form.querySelector("#id_tax_id");
+        form.querySelectorAll("[data-tax-id-mirror]").forEach((mirror) => {
+            mirror.addEventListener("input", () => { taxId.value = mirror.value; taxId.dispatchEvent(new Event("input", {bubbles: true})); });
+            taxId?.addEventListener("input", () => { mirror.value = taxId.value; });
+        });
+        dialog.addEventListener("click", (event) => {
+            const add = event.target.closest("[data-add-form]");
+            if (add) {
+                const prefix = add.dataset.addForm;
+                const total = form.querySelector(`#id_${prefix}-TOTAL_FORMS`);
+                const template = form.querySelector(`#${prefix}-empty-form`);
+                const target = form.querySelector(`[data-formset="${prefix}"]`);
+                if (total && template && target) { target.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", total.value)); total.value = Number(total.value) + 1; }
+                return;
+            }
+            const remove = event.target.closest("[data-remove-bank-account], [data-remove-contact], [data-remove-requisite-change]");
+            if (remove?.getAttribute("aria-disabled") !== "true") {
+                event.preventDefault();
+                const card = remove.closest("[data-bank-account-card], [data-contact-card], [data-requisite-change-card]");
+                const deleted = card?.querySelector('[name$="-DELETE"]');
+                if (deleted) { deleted.checked = true; card.classList.add("is-deleted"); }
+            }
+        });
+        dialog.addEventListener("change", (event) => {
+            const toggle = event.target.closest("[data-bank-primary-toggle], [data-contact-primary-toggle]");
+            if (!toggle) return;
+            const isBank = toggle.matches("[data-bank-primary-toggle]");
+            const card = toggle.closest(isBank ? "[data-bank-account-card]" : "[data-contact-card]");
+            dialog.querySelectorAll(isBank ? "[data-bank-account-card]" : "[data-contact-card]").forEach((item) => {
+                const field = item.querySelector('[name$="-is_primary"]');
+                if (field) field.value = item === card ? "True" : "False";
+            });
+        });
+        bindFullOrganizationDadata(dialog);
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submit = event.submitter || form.querySelector('[type="submit"]');
+            if (submit) submit.disabled = true;
+            try {
+                const response = await fetch(sourceUrl, {method: "POST", body: new FormData(form), headers: {"X-Requested-With": "XMLHttpRequest"}});
+                const contentType = response.headers.get("content-type") || "";
+                if (response.ok && contentType.includes("application/json")) {
+                    const result = await response.json();
+                    if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
+                    modalInstance(quickModalElement)?.hide();
+                    notify("Контрагент создан и выбран в заказе.", "success");
+                    return;
+                }
+                renderFullOrganizationForm(await response.text(), sourceUrl);
+            } catch (_error) {
+                notify("Не удалось сохранить контрагента. Проверьте данные и соединение.", "danger");
+                if (submit?.isConnected) submit.disabled = false;
+            }
+        });
+    };
+
+    const renderFullOrganizationForm = (html, sourceUrl) => {
+        const page = new DOMParser().parseFromString(html, "text/html");
+        const form = page.querySelector("form.organization-workspace");
+        if (!form) throw new Error("Форма контрагента не найдена");
+        const dialog = document.createElement("div");
+        dialog.className = "uk-modal-dialog uk-modal-body crm-full-organization-dialog";
+        dialog.append(form);
+        quickModalElement.replaceChildren(dialog);
+        bindFullOrganizationForm(dialog, sourceUrl);
+        window.CRMUniversalSelects?.enhanceWithin?.(dialog);
+        window.CRMDateInputs?.enhanceWithin?.(dialog);
+        window.UIkit?.update?.(quickModalElement);
+    };
+
+    async function openFullOrganizationCreate(select, query) {
+        const modal = ensureModal("quick");
+        activeQuickSelect = select;
+        activeQuickQuery = query || "";
+        showLoading(modal, "Открываем карточку контрагента…");
+        modal.classList.add("crm-full-organization-modal");
+        modalInstance(modal)?.show();
+        try {
+            const response = await fetch(buildQuickUrl(select), {headers: {"X-Requested-With": "XMLHttpRequest"}});
+            if (!response.ok) throw new Error();
+            renderFullOrganizationForm(await response.text(), response.url || select.dataset.createUrl);
+            const form = modal.querySelector("form.organization-workspace");
+            const inn = activeQuickQuery.replace(/\D/g, "");
+            const field = form?.querySelector("#id_tax_id");
+            if (field && /^[0-9]{10}$|^[0-9]{12}$/.test(inn)) {
+                field.value = inn;
+                form.querySelector("[data-tax-id-mirror]").value = inn;
+                modal.querySelector("[data-dadata-button]")?.click();
+            }
+        } catch (_error) {
+            modal.innerHTML = '<div class="uk-modal-dialog uk-modal-body"><button class="uk-modal-close-default" type="button" uk-close></button><div class="uk-alert-danger" uk-alert>Не удалось открыть карточку контрагента.</div></div>';
+        }
+    }
+
     async function openQuickCreate(select, query) {
+        if (select.dataset.fullOrganizationCreate === "true") return openFullOrganizationCreate(select, query);
         const modal = ensureModal("quick");
         activeQuickSelect = select;
         activeQuickQuery = query || "";

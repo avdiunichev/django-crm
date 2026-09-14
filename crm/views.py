@@ -5450,6 +5450,17 @@ class OrganizationWorkspaceMixin:
     contact_formset_class = OrganizationContactFormSet
     requisite_change_formset_class = OrganizationRequisiteChangeFormSet
 
+    def get_required_role(self):
+        role = self.request.GET.get("role", self.request.POST.get("required_role", ""))
+        return role if role in OrganizationRole.Role.values else ""
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        required_role = self.get_required_role()
+        if required_role and not form.is_bound:
+            form.initial["roles"] = [required_role]
+        return form
+
     def get_formset(self, formset_class, prefix, data=None, instance=None):
         current_instance = instance if instance is not None else self.object
         if (
@@ -5581,6 +5592,12 @@ class OrganizationWorkspaceMixin:
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if kwargs.get("pk") else None
+        required_role = self.get_required_role()
+        if required_role:
+            # Запуск из заказа всегда создаёт клиента: даже если чекбокс роли
+            # случайно снят в модальном окне, роль сохраняется вместе с карточкой.
+            request.POST = request.POST.copy()
+            request.POST.appendlist("roles", required_role)
         form = self.get_form()
         instance = form.instance
         bank_submitted = "bank_accounts-TOTAL_FORMS" in request.POST
@@ -5613,6 +5630,10 @@ class OrganizationWorkspaceMixin:
             )
         )
         if form.is_valid() and formsets_valid:
+            if required_role:
+                form.cleaned_data["roles"] = sorted(
+                    set(form.cleaned_data.get("roles", ())) | {required_role}
+                )
             before_bank = list(
                 instance.bank_accounts.values(
                     "account_number", "bank_name", "bik", "correspondent_account",
@@ -5670,6 +5691,21 @@ class OrganizationWorkspaceMixin:
                     changes=audit_changes,
                 )
             messages.success(self.request, self.success_message)
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse(
+                    {
+                        "ok": True,
+                        "item": {
+                            "id": self.object.pk,
+                            "label": (
+                                f"{self.object} · ИНН {self.object.tax_id}"
+                                if self.object.tax_id
+                                else str(self.object)
+                            ),
+                            "roles": self.object.role_values,
+                        },
+                    }
+                )
             if request.POST.get("action") == "save_close":
                 return redirect("organization-list")
             return redirect(self.object.get_absolute_url())

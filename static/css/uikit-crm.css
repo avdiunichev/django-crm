@@ -8479,6 +8479,23 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     border-radius: 8px;
 }
 
+.crm-full-organization-modal .crm-full-organization-dialog {
+    width: min(1480px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 18px;
+    border-radius: 0;
+}
+
+.crm-full-organization-dialog .organization-workspace {
+    gap: 16px;
+}
+
+.crm-full-organization-dialog .organization-verification-card {
+    margin-top: 0;
+}
+
 .crm-driver-dialog {
     width: min(1180px, calc(100vw - 40px));
     max-width: none;
@@ -8540,6 +8557,12 @@ html[data-theme="dark"] body.uikit-theme .crm-address-dropdown,
 html[data-theme="dark"] body.uikit-theme .crm-quick-create-actions,
 html[data-theme="dark"] body.uikit-theme .crm-transportation-dialog,
 html[data-theme="dark"] body.uikit-theme .crm-quick-create-dialog {
+    color: #dce4ef;
+    border-color: #3a4960;
+    background: #141e2f;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-full-organization-dialog {
     color: #dce4ef;
     border-color: #3a4960;
     background: #141e2f;

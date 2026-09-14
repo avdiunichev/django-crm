@@ -552,6 +552,34 @@ class CrmTestCase(TestCase):
             status_code=422,
         )
 
+    def test_order_client_uses_full_organization_card_and_keeps_client_role(self):
+        self.client.force_login(self.user)
+        order_form = self.client.get(reverse("order-create"))
+        self.assertContains(order_form, 'data-full-organization-create="true"')
+
+        create_url = f"{reverse('organization-create')}?role=client"
+        form_page = self.client.get(create_url)
+        self.assertContains(form_page, "organization-bank-section")
+        self.assertContains(form_page, "organization-financial-section")
+        self.assertContains(form_page, "organization-contact-section")
+        self.assertEqual(form_page.context["form"].initial["roles"], ["client"])
+
+        response = self.client.post(
+            create_url,
+            {
+                "kind": Organization.Kind.LEGAL_ENTITY,
+                "name": 'ООО "Клиент из заказа"',
+                "short_name": "Клиент из заказа",
+                "tax_id": "7801234567",
+                "roles": [OrganizationRole.Role.CLIENT],
+                "is_active": "on",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response["Content-Type"].split(";")[0], "application/json")
+        organization = Organization.objects.get(pk=response.json()["item"]["id"])
+        self.assertTrue(organization.roles.filter(role="client", is_active=True).exists())
+
     def test_quick_driver_and_vehicle_create_for_selected_carrier(self):
         self.client.force_login(self.user)
         organization = self.carrier.organization

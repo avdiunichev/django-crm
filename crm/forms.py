@@ -371,6 +371,7 @@ class OrganizationForm(StyledModelForm):
         self.fields["default_vat_rate"].required = False
         self.fields["default_payment_form"].required = False
         self.fields["fns_status"].required = False
+        self.fields["verification_status"].required = False
         self.fields["payment_term_days"].required = False
         self.fields["payment_term_basis"].required = False
         self.fields["credit_limit"].required = False
@@ -446,6 +447,14 @@ class OrganizationForm(StyledModelForm):
             self.instance.fns_status
             if self.instance.pk and self.instance.fns_status
             else Organization.FNSStatus.UNKNOWN
+        )
+
+    def clean_verification_status(self):
+        value = self.cleaned_data.get("verification_status")
+        return value or (
+            self.instance.verification_status
+            if self.instance.pk and self.instance.verification_status
+            else Organization.VerificationStatus.NOT_CHECKED
         )
 
     def clean_originals_handling(self):
@@ -1061,10 +1070,11 @@ class TransportOrderForm(StyledModelForm):
         self.fields["client"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
-                "data-create-url": reverse("quick-organization-create"),
+                "data-create-url": reverse("organization-create"),
                 "data-required-role": OrganizationRole.Role.CLIENT,
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН клиента",
-                "data-create-label": "Создать клиента",
+                "data-create-label": "Создать карточку клиента",
             }
         )
         if self.instance.pk:
