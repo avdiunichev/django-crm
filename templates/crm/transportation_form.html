@@ -45,13 +45,13 @@
 
     <section class="form-section uk-card uk-card-default transportation-primary-section">
         <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
-        <div class="form-grid form-grid-four">
+        <div class="form-grid transportation-primary-document-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.transportation_number %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
-        <div class="form-grid form-grid-four">
+        <div class="form-grid transportation-primary-document-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.source_order_number %}
             {% include "crm/includes/form_field.html" with field=form.source_order_date %}
