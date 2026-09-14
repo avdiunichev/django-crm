@@ -1100,9 +1100,6 @@ class TransportOrderForm(StyledModelForm):
             )
         self.fields["prepayment"].required = False
         self.fields["number"].required = False
-        self.fields["number"].widget.attrs.update(
-            {"placeholder": "Присваивается автоматически"}
-        )
         self.fields["payment_due_basis"].required = False
         self.fields["payment_due_basis"].label = "Основание отсрочки"
         self.fields["cargo_value"].widget = forms.TextInput(

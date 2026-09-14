@@ -269,7 +269,6 @@ class CrmTestCase(TestCase):
         self.assertContains(create_page, "Грузополучатель")
         self.assertContains(create_page, "Стоимость груза")
         self.assertContains(create_page, 'name="number"')
-        self.assertContains(create_page, "Присваивается автоматически")
         self.assertContains(create_page, 'data-dadata-address')
         self.assertEqual(
             len(create_page.context["stop_formset"].forms), 2
