@@ -145,6 +145,95 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-liquidating,
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
 
+/* Реестр рейсов: один ряд показывает операционную и финансовую картину рейса. */
+.uikit-theme .transportation-register-table { min-width: 1360px; table-layout: fixed; }
+.uikit-theme .transportation-register-table th:nth-child(1),
+.uikit-theme .transportation-register-table td:nth-child(1) { width: 190px; }
+.uikit-theme .transportation-register-table th:nth-child(2),
+.uikit-theme .transportation-register-table td:nth-child(2) { width: 28%; max-width: 410px; }
+.uikit-theme .transportation-register-table th:nth-child(3),
+.uikit-theme .transportation-register-table td:nth-child(3) { width: 250px; }
+.uikit-theme .transportation-register-table th:nth-child(4),
+.uikit-theme .transportation-register-table td:nth-child(4) { width: 280px; }
+.uikit-theme .transportation-register-table th:nth-child(5),
+.uikit-theme .transportation-register-table td:nth-child(5) { width: 180px; }
+
+.uikit-theme .transportation-register-table .transportation-register-trip > strong,
+.uikit-theme .transportation-register-table .transportation-register-trip > small,
+.uikit-theme .transportation-register-table .transportation-register-route > small,
+.uikit-theme .transportation-register-table .transportation-register-state > small {
+    display: block;
+    margin-top: 3px;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-trip > strong { margin-top: 7px; }
+.uikit-theme .transportation-register-table .transportation-register-route > small,
+.uikit-theme .transportation-register-table .transportation-register-trip > small,
+.uikit-theme .transportation-register-table .transportation-register-state > small { color: #77869a; }
+
+.uikit-theme .transportation-register-table .transportation-register-parties > span,
+.uikit-theme .transportation-register-table .transportation-register-finance span {
+    display: block;
+    color: #77869a;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-parties > strong {
+    display: block;
+    margin: 2px 0 10px;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-parties > small {
+    display: block;
+    margin: -8px 0 10px;
+    color: #77869a;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-finance { display: grid; gap: 8px; }
+.uikit-theme .transportation-register-table .transportation-register-finance > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+    align-items: baseline;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-finance > div > strong {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-finance > div > small {
+    grid-column: 1 / -1;
+    margin-top: 1px;
+    color: #77869a;
+    font-size: 12px;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-finance .transportation-register-profit {
+    margin-top: 2px;
+    padding-top: 7px;
+    border-top: 1px solid #dfe6ee;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-state > strong { font-weight: 600; }
+
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-route > small,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-trip > small,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-state > small,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-parties > span,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-parties > small,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-finance span,
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-finance > div > small { color: #9aa8ba; }
+
+html[data-theme="dark"] body.uikit-theme .transportation-register-table .transportation-register-finance .transportation-register-profit { border-top-color: #344257; }
+
+@media (max-width: 720px) {
+    .uikit-theme .transportation-register-table .transportation-register-finance > div > strong { text-align: left; }
+}
+
 .uikit-theme .driver-register-filters,
 .uikit-theme .vehicle-register-filters,
 .uikit-theme .transportation-register-filters {
