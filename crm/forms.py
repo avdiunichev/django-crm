@@ -998,6 +998,10 @@ class TransportOrderForm(StyledModelForm):
         label="Наша компания",
         queryset=Organization.objects.none(),
     )
+    manager = UserDisplayChoiceField(
+        label="Ответственный менеджер",
+        queryset=get_user_model().objects.none(),
+    )
     client = OrganizationChoiceField(
         label="Клиент",
         queryset=Organization.objects.none(),
