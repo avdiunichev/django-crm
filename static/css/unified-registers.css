@@ -8,6 +8,98 @@ body.uikit-theme.vehicle-directory-page .vehicle-metrics,
     display: none;
 }
 
+/* Первичные документы: тот же строгий журнал, что и заказы. */
+.uikit-theme .document-register-panel,
+.uikit-theme .document-register-panel .table-wrap,
+.uikit-theme .document-register-panel .document-group-table,
+.uikit-theme .document-register-panel .document-chip,
+.uikit-theme .document-register-filters,
+.uikit-theme .document-register-filters .uk-input,
+.uikit-theme .document-register-filters .uk-select,
+.uikit-theme .document-register-filters .form-control,
+.uikit-theme .document-register-filters .uk-button,
+.uikit-theme .document-register-panel .document-chip .uk-label {
+    border-radius: 0 !important;
+}
+
+.uikit-theme .document-group-table {
+    min-width: 1280px;
+    table-layout: fixed;
+}
+
+.uikit-theme .document-group-table th:nth-child(1),
+.uikit-theme .document-group-table td:nth-child(1) { width: 270px; }
+.uikit-theme .document-group-table th:nth-child(2),
+.uikit-theme .document-group-table td:nth-child(2),
+.uikit-theme .document-group-table th:nth-child(3),
+.uikit-theme .document-group-table td:nth-child(3) { width: 31%; }
+.uikit-theme .document-group-table th:nth-child(4),
+.uikit-theme .document-group-table td:nth-child(4) { width: 170px; }
+
+.uikit-theme .document-group-table th:first-child,
+.uikit-theme .document-group-table td:first-child { padding-left: 24px; }
+.uikit-theme .document-group-table th:last-child,
+.uikit-theme .document-group-table td:last-child { padding-right: 24px; }
+
+.uikit-theme .document-chip {
+    padding: 10px 12px;
+    border: 1px solid #dbe5f1;
+    border-left: 3px solid #2684e9;
+    background: #fff;
+}
+
+.uikit-theme .document-register-source > small,
+.uikit-theme .document-register-completeness > small {
+    display: block;
+    margin-top: 4px;
+    color: #77869a;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-register-filters,
+html[data-theme="dark"] body.uikit-theme .document-chip {
+    border-color: #344257 !important;
+    background: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .document-register-source > small,
+html[data-theme="dark"] body.uikit-theme .document-register-completeness > small {
+    color: #9aa8ba;
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .document-register-panel .table-wrap { overflow: visible; }
+    .uikit-theme .document-group-table,
+    .uikit-theme .document-group-table tbody,
+    .uikit-theme .document-group-table tr,
+    .uikit-theme .document-group-table td {
+        display: block;
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .uikit-theme .document-group-table { min-width: 0; margin: 0; table-layout: auto; }
+    .uikit-theme .document-group-table thead { display: none; }
+    .uikit-theme .document-group-table tbody tr { padding: 16px; border-bottom: 1px solid #dfe6ee; }
+    .uikit-theme .document-group-table td { padding: 11px 0; border: 0 !important; text-align: left !important; }
+    .uikit-theme .document-group-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        color: #77869a;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+    .uikit-theme .document-group-table td:first-child { padding-top: 0; padding-left: 0; }
+    .uikit-theme .document-group-table td:last-child { padding-bottom: 0; padding-right: 0; }
+    .uikit-theme .document-register-filters { padding: 16px; gap: 10px; }
+    .uikit-theme .document-register-filters .uk-button,
+    .uikit-theme .document-register-filters .clear-link { width: 100%; }
+}
+
 .uikit-theme .driver-register-filters,
 .uikit-theme .vehicle-register-filters,
 .uikit-theme .transportation-register-filters {

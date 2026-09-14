@@ -20,7 +20,7 @@
     <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Оригиналы</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ original_count }}</strong><small><span>получены в бумаге</span></small></article>
 </section>
 
-<form class="filters" method="get">
+<form class="filters document-register-filters" method="get">
     <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Заявка, номер документа или контрагент">
     <select class="form-control uk-select" name="expeditor"><option value="">Все экспедиторы</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
@@ -31,20 +31,20 @@
     {% if current_q or current_direction or current_kind or current_status or current_party or current_expeditor %}<a class="clear-link" href="{% url 'shipment-document-list' %}">Сбросить</a>{% endif %}
 </form>
 
-<section class="panel uk-card uk-card-default">
-    <div class="onec-register-header"><div><h2>Документы по заявкам</h2><p>Одна строка — одна заявка/рейс и весь комплект первички по ней.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} документов</span></div>
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle document-group-table">
+<section class="panel uk-card uk-card-default order-register-panel document-register-panel">
+    <div class="onec-register-header"><div><span class="eyebrow">Реестр</span><h2>Документы по заявкам</h2><p>Одна строка — одна заявка или рейс и весь комплект первички по нему.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} документов</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table document-group-table">
         <thead><tr><th>Заявка / рейс</th><th>Исходящие документы</th><th>Входящие документы</th><th>Статус комплекта</th></tr></thead>
         <tbody>
         {% for group in document_groups %}
             <tr>
-                <td>
+                <td data-label="Заявка / рейс" class="document-register-source">
                     <a class="primary-link" href="{{ group.source_url }}">{{ group.source_number }}</a>
                     <small>{{ group.customer_name }}</small>
                     <small class="route-compact" title="{{ group.route }}">{{ group.route }}</small>
                     {% if group.owner_company %}<small>Наша компания: {{ group.owner_company }}</small>{% endif %}
                 </td>
-                <td>
+                <td data-label="Исходящие документы">
                     <div class="document-stack">
                         {% for document in group.outgoing %}
                             <article class="document-chip">
@@ -59,7 +59,7 @@
                         {% endfor %}
                     </div>
                 </td>
-                <td>
+                <td data-label="Входящие документы">
                     <div class="document-stack">
                         {% for document in group.incoming %}
                             <article class="document-chip">
@@ -74,13 +74,13 @@
                         {% endfor %}
                     </div>
                 </td>
-                <td>
+                <td data-label="Комплект" class="document-register-completeness">
                     {% if group.has_problem %}
-                        <span class="uk-label uk-label-danger">Есть проблема</span>
+                        <strong class="uk-text-danger">Есть проблема</strong>
                     {% elif group.incoming and group.outgoing %}
-                        <span class="uk-label uk-label-success">Комплект есть</span>
+                        <strong class="uk-text-success">Комплект есть</strong>
                     {% else %}
-                        <span class="uk-label uk-label-warning">Комплект неполный</span>
+                        <strong class="uk-text-warning">Комплект неполный</strong>
                     {% endif %}
                     <small>{{ group.total }} док.</small>
                 </td>
