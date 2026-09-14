@@ -2,6 +2,7 @@
 {% load humanize %}
 {% block title %}{% if object %}Заявка {{ object.number|default:"(черновик)" }}{% else %}Оформить заявку{% endif %} — CRM • FORWARDING{% endblock %}
 {% block content %}
+{% if not object or not object.source_order %}
 <div class="onec-document-heading">
     <div>
         <a class="back-link" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">← Заявки / рейсы</a>
@@ -14,10 +15,26 @@
         <strong>{% if object %}{{ object.get_posting_status_display }}{% else %}Черновик{% endif %}</strong>
     </div>
 </div>
+{% endif %}
 
 <form method="post" class="entity-form uk-form-stacked onec-document-form" id="transportation-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}" data-return-transportation="{% if object %}{{ object.pk }}{% endif %}">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    {% if object and object.source_order %}
+    <section class="form-section uk-card uk-card-default order-command-header transportation-assignment-header">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="git-fork"></span>
+            <div><h2>Назначение заказа в рейс</h2><p>Заказ {{ object.source_order.number }} · {{ object.route|default:"маршрут уточняется" }}</p></div>
+        </div>
+        <div class="order-command-actions transportation-form-actions">
+            <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save_close">Записать и закрыть</button>
+            <a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
+            <a class="uk-button uk-button-default" href="{{ object.get_absolute_url }}">Закрыть</a>
+        </div>
+    </section>
+    {% else %}
     <div class="onec-command-bar">
         <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
         <button class="uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
@@ -25,9 +42,10 @@
         {% if object %}<a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
         <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">Закрыть</a>
     </div>
+    {% endif %}
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>01</span><div><h2>Шапка документа</h2><p>Организация, ответственный и текущее состояние рейса</p></div></div>
+        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Организация, ответственный и текущее состояние рейса</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}

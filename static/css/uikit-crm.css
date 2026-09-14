@@ -646,6 +646,15 @@ body.uikit-theme .transportation-card .transportation-command-header {
     background: #fff !important;
 }
 
+/* Назначение из заказа использует ту же командную шапку, что и сам заказ. */
+body.uikit-theme #transportation-form .transportation-assignment-header {
+    border-radius: 0 !important;
+}
+
+body.uikit-theme #transportation-form .transportation-assignment-header .transportation-form-actions {
+    margin-top: 18px;
+}
+
 body.uikit-theme .transportation-card .transportation-command-header .form-section-title {
     align-items: center;
     margin-bottom: 0;
