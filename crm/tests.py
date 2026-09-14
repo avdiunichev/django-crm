@@ -479,6 +479,7 @@ class CrmTestCase(TestCase):
             cargo_name="Сборный груз",
             cargo_value=Decimal("125000.00"),
             weight_kg=Decimal("5000"),
+            document_date=date.today() - timedelta(days=1),
             planned_start_date=date.today(),
             planned_end_date=date.today() + timedelta(days=2),
         )
@@ -513,6 +514,7 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(order.status, TransportOrder.Status.ASSIGNED)
         transportation = order.transportation
+        self.assertEqual(transportation.document_date, timezone.localdate())
         self.assertEqual(transportation.client_contact, client_contact)
         self.assertEqual(transportation.customer_amount, Decimal("90000.00"))
         self.assertEqual(transportation.cargo_value, Decimal("125000.00"))

@@ -60,7 +60,8 @@ def assign_order_to_transportation(order, user):
     transportation = Transportation.objects.create(
         owner_company=order.owner_company,
         manager=order.manager,
-        document_date=order.document_date,
+        # Дата рейса отражает дату его создания, а не дату исходного заказа.
+        document_date=timezone.localdate(),
         client_contact=OrganizationContact.objects.filter(
             organization=order.client, is_active=True
         ).order_by("-is_primary", "full_name").first(),
