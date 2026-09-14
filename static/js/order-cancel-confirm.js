@@ -95,15 +95,6 @@
         requestLeave(cancelButton.dataset.orderCancelUrl);
     }));
 
-    document.querySelectorAll(".crm-topnav a[href]").forEach((link) => {
-        link.addEventListener("click", (event) => {
-            const url = link.href;
-            if (!url || link.getAttribute("href") === "#" || url === window.location.href) return;
-            event.preventDefault();
-            requestLeave(url);
-        });
-    });
-
     modal?.querySelectorAll("[data-order-cancel-dismiss]").forEach((button) => button.addEventListener("click", closeModal));
     modalSaveButton?.addEventListener("click", () => {
         closeModal();
