@@ -277,10 +277,22 @@ class UserDisplayChoiceField(forms.ModelChoiceField):
 
 class DriverChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, driver):
-        license_number = (
-            f" · В/У {driver.license_number}" if driver.license_number else ""
+        passport = " ".join(
+            part for part in (driver.passport_series, driver.passport_number) if part
         )
-        return f"{driver.full_name}{license_number}"
+        parts = [driver.full_name]
+        for value in (
+            driver.phone,
+            passport,
+            driver.passport_issued_by,
+            (
+                driver.passport_issue_date.strftime("%d.%m.%Y")
+                if driver.passport_issue_date else ""
+            ),
+        ):
+            if value:
+                parts.append(value)
+        return " · ".join(parts)
 
 
 class CarrierChoiceField(forms.ModelChoiceField):
