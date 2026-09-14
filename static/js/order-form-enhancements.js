@@ -98,15 +98,19 @@
         }, 0));
     };
 
+    const moneyFields = (root) => root.querySelectorAll("[data-money-input], [data-decimal-input]");
+    const enhanceMoneyWithin = (root) => moneyFields(root).forEach(enhanceMoneyInput);
+    const normalizeMoneyWithin = (root) => moneyFields(root).forEach((input) => {
+        input.value = normalizeMoney(input.value);
+    });
+
+    window.CRMMoneyInputs = { enhanceWithin: enhanceMoneyWithin, normalizeWithin: normalizeMoneyWithin };
+
     document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll("[data-money-input], [data-decimal-input]").forEach(enhanceMoneyInput);
+        enhanceMoneyWithin(document);
         document.querySelectorAll("[data-cargo-autocomplete]").forEach(enhanceCargoInput);
         document.querySelectorAll("form").forEach((form) => {
-            form.addEventListener("submit", () => {
-                form.querySelectorAll("[data-money-input], [data-decimal-input]").forEach((input) => {
-                    input.value = normalizeMoney(input.value);
-                });
-            });
+            form.addEventListener("submit", () => normalizeMoneyWithin(form));
         });
     });
 })();

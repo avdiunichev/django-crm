@@ -446,6 +446,7 @@
         bindFullOrganizationForm(dialog, sourceUrl);
         window.CRMUniversalSelects?.enhanceWithin?.(dialog);
         window.CRMDateInputs?.enhanceWithin?.(dialog);
+        window.CRMMoneyInputs?.enhanceWithin?.(dialog);
         window.UIkit?.update?.(quickModalElement);
     };
 
