@@ -286,6 +286,20 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
     font-size: 14px;
 }
 
+.uikit-theme .transportation-register-panel .register-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-left: auto;
+}
+
+.uikit-theme .transportation-register-panel .register-header-actions .uk-button {
+    min-height: 40px;
+    border-radius: 0 !important;
+    white-space: nowrap;
+}
+
 .uikit-theme .driver-directory-table th,
 .uikit-theme .vehicle-directory-table th,
 .uikit-theme .transportation-register-table th {
@@ -322,6 +336,17 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
     .uikit-theme .driver-register-filters .clear-link,
     .uikit-theme .vehicle-register-filters .clear-link,
     .uikit-theme .transportation-register-filters .clear-link {
+        width: 100%;
+    }
+
+    .uikit-theme .transportation-register-panel .register-header-actions {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .uikit-theme .transportation-register-panel .register-header-actions .uk-button {
         width: 100%;
     }
 
