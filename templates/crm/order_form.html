@@ -16,7 +16,6 @@
             {% else %}
                 <button class="uk-button uk-button-primary" type="submit" name="action" value="assign" disabled aria-disabled="true" title="Заполните обязательные поля, погрузку и выгрузку" data-order-assign><span uk-icon="forward"></span> Назначить</button>
             {% endif %}
-            <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay"><span uk-icon="file-edit"></span> Записать</button>
             {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
             {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
             <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
