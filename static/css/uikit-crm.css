@@ -1635,6 +1635,23 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     position: static;
 }
 
+/* На широком экране панель управления остаётся под навбаром, пока пользователь
+   прокручивает форму: рабочие блоки проходят под её непрозрачным фоном. */
+@media (min-width: 1181px) {
+    .uikit-theme .onec-document-form > .order-command-header.uk-card {
+        position: sticky;
+        top: 72px;
+        z-index: 80;
+        background: rgba(255, 255, 255, .97);
+        box-shadow: 0 12px 24px rgba(24, 39, 75, .12);
+    }
+
+    html[data-theme="dark"] body.uikit-theme .onec-document-form > .order-command-header.uk-card {
+        background: rgba(17, 27, 44, .97);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, .28);
+    }
+}
+
 .uikit-theme .order-command-header .order-command-title {
     margin: 0;
 }
