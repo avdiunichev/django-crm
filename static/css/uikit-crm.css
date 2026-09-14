@@ -1803,6 +1803,12 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     border-radius: 0;
 }
 
+.transportation-primary-divider {
+    height: 1px;
+    margin: 20px 0;
+    background: #dce4ee;
+}
+
 .cargo-details-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
