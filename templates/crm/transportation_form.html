@@ -49,10 +49,10 @@
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
-        <div class="form-grid order-main-client-date-grid">
+        <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.client_reference %}
-            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {{ form.document_date.as_hidden }}
             {{ form.status.as_hidden }}
         </div>
     </section>
