@@ -61,7 +61,9 @@ def assign_order_to_transportation(order, user):
         manager=order.manager,
         document_date=order.document_date,
         status=Transportation.Status.EXECUTOR_SELECTED,
-        client_reference=order.number,
+        client_reference=(
+            f"{order.number} от {order.document_date.strftime('%d.%m.%Y')}"
+        ),
         customer_amount=order.rate,
         customer_prepayment=0,
         customer_payment_form=order.payment_form,

@@ -1006,10 +1006,6 @@ class TransportOrderForm(StyledModelForm):
         label="Клиент",
         queryset=Organization.objects.none(),
     )
-    manager = UserDisplayChoiceField(
-        label="Ответственный менеджер",
-        queryset=get_user_model().objects.none(),
-    )
     adr_class = forms.ChoiceField(
         label="Класс опасности ADR",
         choices=TransportOrder.ADRClass.choices,
@@ -1639,6 +1635,10 @@ class TransportationDocumentForm(StyledModelForm):
         label="Наша компания",
         queryset=Organization.objects.none(),
     )
+    manager = UserDisplayChoiceField(
+        label="Ответственный менеджер",
+        queryset=get_user_model().objects.none(),
+    )
     client = OrganizationChoiceField(
         label="Клиент",
         queryset=Organization.objects.none(),
@@ -1726,11 +1726,11 @@ class TransportationDocumentForm(StyledModelForm):
         model = Transportation
         fields = [
             "owner_company", "manager", "document_date", "status",
-            "client_reference", "customer_contract", "customer_amount",
-            "customer_prepayment", "customer_payment_form", "customer_vat_rate",
-            "executor_amount", "executor_vat_rate",
-            "currency", "customer_payment_term_days",
-            "executor_payment_term_days", "payment_due_basis", "cargo_name",
+            "client", "customer_amount", "customer_prepayment", "currency",
+            "customer_payment_form", "client_reference", "customer_contract",
+            "customer_payment_term_days", "payment_due_basis", "customer_vat_rate",
+            "executor_amount", "executor_vat_rate", "executor_payment_term_days",
+            "cargo_name",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
             "unloading_method", "temperature_regime", "adr_class", "vehicle_requirements",
@@ -1752,6 +1752,12 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["owner_company"].queryset = Organization.objects.filter(
             is_own_company=True, is_active=True
         )
+        manager_filter = Q(is_active=True)
+        if self.instance.pk:
+            manager_filter |= Q(pk=self.instance.manager_id)
+        self.fields["manager"].queryset = get_user_model().objects.filter(
+            manager_filter
+        ).order_by("first_name", "last_name", "username")
         self.fields["client"].queryset = Organization.objects.filter(
             is_active=True,
             roles__role=OrganizationRole.Role.CLIENT,
@@ -1796,16 +1802,20 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_vat_rate"].queryset = self.fields[
             "executor_vat_rate"
         ].queryset.filter(is_active=True)
-        self.fields["customer_amount"].widget.attrs.update(
-            {"min": "0.01", "step": "0.01", "placeholder": "0,00"}
-        )
-        self.fields["customer_prepayment"].widget.attrs.update(
-            {"min": "0", "step": "0.01", "placeholder": "0,00"}
-        )
+        for field_name in ("customer_amount", "customer_prepayment"):
+            self.fields[field_name].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control uk-input",
+                    "inputmode": "decimal",
+                    "placeholder": "0,00",
+                    "data-money-input": "",
+                }
+            )
         self.fields["customer_amount"].label = "Ставка"
         self.fields["customer_prepayment"].label = "Предоплата"
         self.fields["customer_payment_form"].label = "Форма оплаты"
         self.fields["client_reference"].label = "Номер заказа клиента"
+        self.fields["payment_due_basis"].label = "Основание отсрочки"
         self.fields["executor_amount"].widget.attrs.update(
             {"min": "0", "step": "0.01", "placeholder": "0,00"}
         )
