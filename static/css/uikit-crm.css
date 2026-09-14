@@ -11837,6 +11837,20 @@ body.uikit-theme {
     margin-left: auto;
 }
 
+/* На широком экране фильтры реестра остаются под главным навбаром. */
+@media (min-width: 1181px) {
+    .uikit-theme .order-register-filters[data-order-register-filters] {
+        position: sticky;
+        top: 72px;
+        z-index: 80;
+        box-shadow: 0 12px 24px rgba(24, 39, 75, .12);
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-filters[data-order-register-filters] {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, .28);
+    }
+}
+
 @media (max-width: 720px) {
     .uikit-theme .order-register-filters .order-register-create {
         margin-left: 0;
