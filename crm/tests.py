@@ -268,6 +268,8 @@ class CrmTestCase(TestCase):
         self.assertContains(create_page, "Грузоотправитель")
         self.assertContains(create_page, "Грузополучатель")
         self.assertContains(create_page, "Стоимость груза")
+        self.assertContains(create_page, 'name="number"')
+        self.assertContains(create_page, "Присваивается автоматически")
         self.assertContains(create_page, 'data-dadata-address')
         self.assertEqual(
             len(create_page.context["stop_formset"].forms), 2
@@ -336,6 +338,7 @@ class CrmTestCase(TestCase):
         edit_page = self.client.get(reverse("order-update", args=[order.pk]))
         self.assertEqual(edit_page.status_code, 200)
         self.assertContains(edit_page, f"Заказ {order.number}")
+        self.assertContains(edit_page, f'value="{order.number}"')
         self.assertContains(edit_page, "Пластиковая тара")
         self.assertContains(edit_page, "По клиенту нет действующего договора")
         self.assertContains(edit_page, "Создать договор")

@@ -1015,7 +1015,7 @@ class TransportOrderForm(StyledModelForm):
     class Meta:
         model = TransportOrder
         fields = [
-            "owner_company", "client", "manager", "document_date",
+            "owner_company", "client", "number", "manager", "document_date",
             "rate", "prepayment", "currency", "payment_form", "payment_term_days",
             "customer_contract", "payment_due_basis",
             "cargo_name", "cargo_value", "weight_kg", "volume_m3",
@@ -1099,6 +1099,10 @@ class TransportOrderForm(StyledModelForm):
                 }
             )
         self.fields["prepayment"].required = False
+        self.fields["number"].required = False
+        self.fields["number"].widget.attrs.update(
+            {"placeholder": "Присваивается автоматически"}
+        )
         self.fields["payment_due_basis"].required = False
         self.fields["payment_due_basis"].label = "Основание отсрочки"
         self.fields["cargo_value"].widget = forms.TextInput(

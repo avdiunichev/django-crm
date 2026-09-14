@@ -36,7 +36,10 @@
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
+        </div>
+        <div class="form-grid form-grid-three">
             {% include "crm/includes/form_field.html" with field=form.client %}
+            {% include "crm/includes/form_field.html" with field=form.number %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
         </div>
     </section>
