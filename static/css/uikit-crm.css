@@ -1669,6 +1669,19 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
         background: transparent;
     }
 
+    .uikit-theme .onec-document-form > .order-command-header .order-command-document-icon {
+        flex: 0 0 46px;
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+    }
+
+    .uikit-theme .onec-document-form > .order-command-header .order-command-document-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
     .uikit-theme .onec-document-form > .order-command-header .order-command-actions {
         flex: 0 0 auto;
         justify-content: flex-end;

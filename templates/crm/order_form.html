@@ -6,7 +6,7 @@
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default order-command-header">
         <div class="form-section-title order-command-title">
-            <span class="order-command-icon" uk-icon="file-edit"></span>
+            <span class="order-command-icon order-command-document-icon" uk-icon="copy"></span>
             <div><h2>{% if object and object.pk %}Заказ № {{ object.number }}{% else %}Новый заказ{% endif %}</h2><p>{% if object and object.pk %}Редактирование и управление заказом{% else %}Заполните форму заказа{% endif %}</p></div>
         </div>
         <div class="order-command-actions">
