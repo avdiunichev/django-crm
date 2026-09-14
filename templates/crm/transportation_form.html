@@ -45,11 +45,11 @@
 
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Организация, ответственный и текущее состояние рейса</p></div></div>
-        <div class="form-grid">
+        <div class="form-grid form-grid-three">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
-            {% include "crm/includes/form_field.html" with field=form.document_date %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
-            {% include "crm/includes/form_field.html" with field=form.status %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
+            {% include "crm/includes/form_field.html" with field=form.status wide=True %}
         </div>
     </section>
 
