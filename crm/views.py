@@ -6462,7 +6462,61 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
                 "label": "↓" if current_sort_desc else "↑",
             }
         context["sort_columns"] = sort_columns
+        export_params = self.request.GET.copy()
+        export_params.pop("page", None)
+        export_params.pop("per_page", None)
+        export_query = export_params.urlencode()
+        context["transportation_export_url"] = reverse("transportation-export") + (
+            f"?{export_query}" if export_query else ""
+        )
         return context
+
+
+class TransportationExportView(TransportationListView):
+    """Download selected or filtered trips from the transportation register."""
+
+    def get(self, request, *args, **kwargs):
+        selected_ids = [
+            int(value) for value in request.GET.getlist("ids") if value.isdigit()
+        ]
+        transportations = self.get_queryset()
+        if selected_ids:
+            transportations = transportations.filter(pk__in=selected_ids)
+
+        rows = [[
+            "Номер рейса", "Дата рейса", "Статус", "Наша компания", "Клиент",
+            "ИНН клиента", "Исполнитель", "Маршрут", "Груз", "Вес, кг",
+            "Объём, м³", "Ставка клиента", "Ставка исполнителя", "Валюта",
+            "Чистая прибыль",
+        ]]
+        for transportation in transportations:
+            client_party = next(iter(transportation.client_parties), None)
+            executor_link = next(iter(transportation.execution_links.all()), None)
+            client = client_party.organization if client_party else None
+            executor = (
+                executor_link.contractor_party.organization if executor_link else None
+            )
+            rows.append([
+                transportation.number or "",
+                transportation.document_date,
+                transportation.get_status_display(),
+                str(transportation.owner_company),
+                str(client) if client else "",
+                client.tax_id if client else "",
+                str(executor) if executor else "",
+                transportation.route,
+                transportation.cargo_name,
+                transportation.weight_kg,
+                transportation.volume_m3,
+                transportation.customer_amount,
+                transportation.executor_amount,
+                transportation.currency,
+                transportation.net_profit,
+            ])
+        return _xlsx_response(
+            f"transportations-{timezone.localdate():%Y%m%d}.xlsx",
+            [("Рейсы", rows)],
+        )
 
 
 class TransportationAccountingView(TransportationListView):

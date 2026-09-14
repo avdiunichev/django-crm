@@ -6816,11 +6816,21 @@ html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-f
         padding-left: 24px;
     }
 
-    .uikit-theme .order-register-table th:last-child,
-    .uikit-theme .order-register-table td:last-child {
+.uikit-theme .order-register-table th:last-child,
+.uikit-theme .order-register-table td:last-child {
         padding-right: 24px;
     }
 }
+
+/* Реестр рейсов использует те же отступы, чекбоксы и заголовок, что и заказы. */
+.transportation-filter-spacer { flex: 1 1 auto; }
+.uikit-theme .transportation-register-table th.order-register-select,
+.uikit-theme .transportation-register-table td.order-register-select { width: 44px; }
+.uikit-theme .transportation-register-table th:nth-child(2),
+.uikit-theme .transportation-register-table td:nth-child(2) { width: 170px; }
+.uikit-theme .transportation-register-table th:nth-child(3),
+.uikit-theme .transportation-register-table td:nth-child(3) { width: 27%; max-width: 400px; }
+
 
 /* Реестр контрагентов: на телефоне таблица превращается в карточки.
    Это правило намеренно находится в конце файла: десктопное min-width

@@ -240,6 +240,11 @@ urlpatterns = [
         name="transportation-list",
     ),
     path(
+        "transportations/export/",
+        views.TransportationExportView.as_view(),
+        name="transportation-export",
+    ),
+    path(
         "transportation-accounting/",
         views.TransportationAccountingView.as_view(),
         name="transportation-accounting",
