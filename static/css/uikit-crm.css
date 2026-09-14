@@ -6473,6 +6473,35 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Order assignment is the positive next workflow step. */
+body.uikit-theme .order-assign-button {
+    border-color: #21a366 !important;
+    background: #21a366 !important;
+    color: #fff !important;
+}
+
+body.uikit-theme .order-assign-button:hover,
+body.uikit-theme .order-assign-button:focus {
+    border-color: #16834e !important;
+    background: #16834e !important;
+    color: #fff !important;
+}
+
+body.uikit-theme .order-assign-button:disabled,
+body.uikit-theme .order-assign-button[aria-disabled="true"] {
+    border-color: #b8d9c7 !important;
+    background: #dcefe4 !important;
+    color: #83a992 !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-assign-button:disabled,
+html[data-theme="dark"] body.uikit-theme .order-assign-button[aria-disabled="true"] {
+    border-color: #315b45 !important;
+    background: #203c2d !important;
+    color: #85b99c !important;
+}
+
 /* Реестр документов использует ту же строгую геометрию, что и реестр заказов. */
 .uikit-theme .document-register-filters {
     margin-bottom: 18px;
