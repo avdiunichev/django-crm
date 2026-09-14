@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import (
+    Contract,
     TransportOrder,
     TransportOrderStop,
     Transportation,
@@ -60,7 +61,16 @@ def assign_order_to_transportation(order, user):
         manager=order.manager,
         document_date=order.document_date,
         status=Transportation.Status.EXECUTOR_SELECTED,
+        client_reference=order.number,
         customer_amount=order.rate,
+        customer_prepayment=0,
+        customer_payment_form=order.payment_form,
+        customer_contract=Contract.objects.filter(
+            kind=Contract.Kind.CLIENT_FORWARDING,
+            customer__organization=order.client,
+            expeditor__organization=order.owner_company,
+            status__in=[Contract.Status.READY, Contract.Status.SIGNED],
+        ).order_by("-contract_date", "-pk").first(),
         customer_vat_rate=_customer_vat_rate(order),
         currency=order.currency,
         customer_payment_term_days=order.payment_term_days,

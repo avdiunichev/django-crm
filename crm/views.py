@@ -820,6 +820,10 @@ def organization_defaults(request, pk):
             )
         if contract.payment_term_days and not payload["payment_term_days"]:
             payload["payment_term_days"] = contract.payment_term_days
+    payload["contracts"] = [
+        {"id": item.pk, "label": str(item)}
+        for item in contracts
+    ]
     return JsonResponse(payload)
 
 

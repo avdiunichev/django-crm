@@ -1152,6 +1152,8 @@ class TransportOrderForm(StyledModelForm):
         cleaned = super().clean()
         owner = cleaned.get("owner_company")
         client = cleaned.get("client")
+        customer_amount = cleaned.get("customer_amount")
+        customer_prepayment = cleaned.get("customer_prepayment")
         if owner and client and owner == client:
             self.add_error("client", "Наша компания не может быть клиентом заказа.")
         if cleaned.get("rate") is not None and cleaned["rate"] <= 0:
@@ -1725,7 +1727,8 @@ class TransportationDocumentForm(StyledModelForm):
         fields = [
             "owner_company", "manager", "document_date", "status",
             "client_reference", "customer_contract", "customer_amount",
-            "customer_vat_rate", "executor_amount", "executor_vat_rate",
+            "customer_prepayment", "customer_payment_form", "customer_vat_rate",
+            "executor_amount", "executor_vat_rate",
             "currency", "customer_payment_term_days",
             "executor_payment_term_days", "payment_due_basis", "cargo_name",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
@@ -1796,6 +1799,13 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["customer_amount"].widget.attrs.update(
             {"min": "0.01", "step": "0.01", "placeholder": "0,00"}
         )
+        self.fields["customer_prepayment"].widget.attrs.update(
+            {"min": "0", "step": "0.01", "placeholder": "0,00"}
+        )
+        self.fields["customer_amount"].label = "Ставка"
+        self.fields["customer_prepayment"].label = "Предоплата"
+        self.fields["customer_payment_form"].label = "Форма оплаты"
+        self.fields["client_reference"].label = "Номер заказа клиента"
         self.fields["executor_amount"].widget.attrs.update(
             {"min": "0", "step": "0.01", "placeholder": "0,00"}
         )
@@ -1844,6 +1854,21 @@ class TransportationDocumentForm(StyledModelForm):
             delivery = self.instance.stops.filter(
                 kind=TransportationStop.Kind.DELIVERY
             ).order_by("-sequence").first()
+
+        selected_client_id = self.data.get("client") if self.is_bound else (
+            client_party.organization_id if client_party else None
+        )
+        selected_owner_id = self.data.get("owner_company") if self.is_bound else self.instance.owner_company_id
+        customer_contract_filter = Q(kind=Contract.Kind.CLIENT_FORWARDING)
+        if selected_client_id:
+            customer_contract_filter &= Q(customer__organization_id=selected_client_id)
+        if selected_owner_id:
+            customer_contract_filter &= Q(expeditor__organization_id=selected_owner_id)
+        if self.instance.customer_contract_id:
+            customer_contract_filter |= Q(pk=self.instance.customer_contract_id)
+        self.fields["customer_contract"].queryset = Contract.objects.exclude(
+            status__in=[Contract.Status.TERMINATED, Contract.Status.ARCHIVED]
+        ).filter(customer_contract_filter).distinct()
 
         for field_name, organization_id in (
             ("client", client_party.organization_id if client_party else None),
@@ -2132,6 +2157,12 @@ class TransportationDocumentForm(StyledModelForm):
                 )
         if owner and client and owner == client:
             self.add_error("client", "Наша компания не может быть клиентом этого рейса.")
+        if (
+            customer_prepayment is not None
+            and customer_amount is not None
+            and customer_prepayment > customer_amount
+        ):
+            self.add_error("customer_prepayment", "Предоплата не может быть больше ставки.")
         if owner and executor and owner == executor:
             self.add_error("executor", "Наша компания не может быть своим исполнителем.")
         if pickup_date and delivery_date and delivery_date < pickup_date:

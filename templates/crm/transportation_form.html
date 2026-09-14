@@ -54,14 +54,19 @@
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>02</span><div><h2>Продажа клиенту</h2><p>Кто заказал перевозку, по какому основанию и сколько платит</p></div></div>
-        <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.client wide=True %}
-            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
-            {% include "crm/includes/form_field.html" with field=form.client_reference %}
+        <div class="form-section-title"><span>02</span><div><h2>Продажа клиенту</h2><p>Клиент, ставка, условия оплаты и договор</p></div></div>
+        <div class="form-grid form-grid-five">
+            {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.customer_amount %}
-            {% include "crm/includes/form_field.html" with field=form.customer_vat_rate %}
+            {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
+        </div>
+        <div class="form-grid form-grid-three">
+            {% include "crm/includes/form_field.html" with field=form.client_reference %}
+            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
+            {{ form.customer_vat_rate.as_hidden }}
         </div>
     </section>
 
@@ -238,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const owner = document.getElementById("id_owner_company");
     const customerContract = document.getElementById("id_customer_contract");
     const customerVatRate = document.getElementById("id_customer_vat_rate");
+    const customerPaymentForm = document.getElementById("id_customer_payment_form");
     const customerPaymentTerm = document.getElementById("id_customer_payment_term_days");
     const applyClientDefaults = async () => {
         if (!client?.value) return;
@@ -247,6 +253,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) return;
             const data = await response.json();
             const isNewClient = form.dataset.clientDefaultsClient !== client.value;
+            if (customerContract && Array.isArray(data.contracts)) {
+                const selectedContract = customerContract.value;
+                customerContract.innerHTML = '<option value="">---------</option>';
+                data.contracts.forEach((contract) => customerContract.add(new Option(contract.label, contract.id)));
+                customerContract.value = String(isNewClient ? (data.contract_id || "") : selectedContract);
+                customerContract.dispatchEvent(new Event("optionschange", {bubbles: true}));
+            }
             if (customerVatRate && data.vat_rate_id && (isNewClient || !customerVatRate.value)) {
                 customerVatRate.value = String(data.vat_rate_id);
                 customerVatRate.dispatchEvent(new Event("change", {bubbles: true}));
@@ -254,6 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (customerPaymentTerm && data.payment_term_days && (isNewClient || !customerPaymentTerm.value)) {
                 customerPaymentTerm.value = data.payment_term_days;
                 customerPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            if (customerPaymentForm && data.payment_form && (isNewClient || !customerPaymentForm.value)) {
+                customerPaymentForm.value = data.payment_form;
+                customerPaymentForm.dispatchEvent(new Event("change", {bubbles: true}));
             }
             if (customerContract && data.contract_id && (isNewClient || !customerContract.value)) {
                 customerContract.value = String(data.contract_id);

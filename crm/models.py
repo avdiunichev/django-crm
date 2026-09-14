@@ -1641,6 +1641,17 @@ class TransportationNumberSequence(TimestampedModel):
 
 
 class Transportation(TimestampedModel):
+    class CustomerPaymentForm(models.TextChoices):
+        BANK_VAT_0 = "bank_vat_0", "НДС 0%"
+        BANK_VAT_5 = "bank_vat_5", "НДС 5%"
+        BANK_VAT_7 = "bank_vat_7", "НДС 7%"
+        BANK_VAT_10 = "bank_vat_10", "НДС 10%"
+        BANK_VAT_18 = "bank_vat_18", "НДС 18%"
+        BANK_VAT_20 = "bank_vat_20", "НДС 20%"
+        BANK_VAT_22 = "bank_vat_22", "НДС 22%"
+        BANK_NOT_TAXABLE = "bank_not_taxable", "НДС не облагается"
+        CASH = "cash", "Наличные"
+
     class PostingStatus(models.TextChoices):
         DRAFT = "draft", "Черновик"
         POSTED = "posted", "Проведён"
@@ -1754,6 +1765,19 @@ class Transportation(TimestampedModel):
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(Decimal("0"))],
+    )
+    customer_prepayment = models.DecimalField(
+        "Предоплата клиента",
+        max_digits=14,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    customer_payment_form = models.CharField(
+        "Форма оплаты клиента",
+        max_length=30,
+        choices=CustomerPaymentForm.choices,
+        default=CustomerPaymentForm.BANK_VAT_22,
     )
     customer_vat_rate = models.ForeignKey(
         VATRate,
