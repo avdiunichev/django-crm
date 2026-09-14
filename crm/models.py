@@ -1771,6 +1771,8 @@ class Transportation(TimestampedModel):
         max_digits=14,
         decimal_places=2,
         default=0,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(Decimal("0"))],
     )
     customer_payment_form = models.CharField(

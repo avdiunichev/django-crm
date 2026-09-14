@@ -1811,6 +1811,7 @@ class TransportationDocumentForm(StyledModelForm):
                     "data-money-input": "",
                 }
             )
+        self.fields["customer_prepayment"].required = False
         self.fields["customer_amount"].label = "Ставка"
         self.fields["customer_prepayment"].label = "Предоплата"
         self.fields["customer_payment_form"].label = "Форма оплаты"
