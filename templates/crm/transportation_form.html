@@ -49,7 +49,7 @@
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
-            {% include "crm/includes/form_field.html" with field=form.status wide=True %}
+            {{ form.status.as_hidden }}
         </div>
     </section>
 
