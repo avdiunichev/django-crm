@@ -5802,11 +5802,7 @@ class OrganizationUpdateView(
     success_message = "Карточка организации и её роли обновлены."
 
 
-class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
-    model = TransportOrder
-    template_name = "crm/order_list.html"
-    context_object_name = "orders"
-    paginate_by = 30
+class TransportOrderQueryMixin:
     sort_options = {
         "number": ("number", "pk"),
         "date": ("document_date", "pk"),
@@ -5854,6 +5850,15 @@ class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
         _, _, ordering = self.get_sorting()
         return queryset.order_by(*ordering)
 
+
+class TransportOrderListView(
+    LoginRequiredMixin, PersistentPageSizeMixin, TransportOrderQueryMixin, ListView
+):
+    model = TransportOrder
+    template_name = "crm/order_list.html"
+    context_object_name = "orders"
+    paginate_by = 30
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_orders = self.object_list
@@ -5893,7 +5898,51 @@ class TransportOrderListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
                 "label": "↓" if current_sort_desc else "↑",
             }
         context["sort_columns"] = sort_columns
+        export_params = self.request.GET.copy()
+        export_params.pop("page", None)
+        export_params.pop("per_page", None)
+        export_query = export_params.urlencode()
+        context["order_export_url"] = reverse("order-export") + (
+            f"?{export_query}" if export_query else ""
+        )
         return context
+
+
+class TransportOrderExportView(LoginRequiredMixin, TransportOrderQueryMixin, View):
+    """Download the filtered order register as an XLSX workbook."""
+
+    def get(self, request, *args, **kwargs):
+        rows = [[
+            "Номер заказа", "Дата", "Статус", "Наша компания", "Клиент", "ИНН клиента",
+            "Маршрут", "Груз", "Вес, кг", "Объём, м³", "Количество мест",
+            "Упаковка", "Стоимость груза", "Ставка", "Валюта", "Форма оплаты",
+            "НДС", "Рейс",
+        ]]
+        for order in self.get_queryset():
+            rows.append([
+                order.number,
+                order.document_date,
+                order.get_status_display(),
+                str(order.owner_company),
+                str(order.client),
+                order.client.tax_id,
+                order.route,
+                order.cargo_name,
+                order.weight_kg,
+                order.volume_m3,
+                order.total_package_count,
+                str(order.package_type) if order.package_type else "",
+                order.cargo_value,
+                order.rate,
+                order.currency,
+                order.get_payment_form_display(),
+                order.vat_amount,
+                order.transportation.number if order.transportation_id else "",
+            ])
+        return _xlsx_response(
+            f"orders-{timezone.localdate():%Y%m%d}.xlsx",
+            [("Заказы", rows)],
+        )
 
 
 class TransportOrderEditMixin:

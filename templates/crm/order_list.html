@@ -12,9 +12,9 @@
         <option value="">Все статусы</option>
         {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
-    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
     {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
     <a class="uk-button uk-button-primary order-register-create" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
+    <a class="uk-button uk-button-default" href="{{ order_export_url }}">Экспорт заказов в XLSX</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">

@@ -205,6 +205,11 @@ urlpatterns = [
     ),
     path("orders/", views.TransportOrderListView.as_view(), name="order-list"),
     path(
+        "orders/export/",
+        views.TransportOrderExportView.as_view(),
+        name="order-export",
+    ),
+    path(
         "orders/new/",
         views.TransportOrderCreateView.as_view(),
         name="order-create",

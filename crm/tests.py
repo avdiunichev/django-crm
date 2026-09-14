@@ -366,6 +366,49 @@ class CrmTestCase(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
+    def test_order_register_exports_filtered_xlsx(self):
+        self.client.force_login(self.user)
+        order = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization,
+            manager=self.user,
+            document_date=date.today(),
+            cargo_name="Экспортируемый груз",
+            rate=Decimal("125000.00"),
+            weight_kg=Decimal("1200"),
+        )
+        TransportOrderStop.objects.create(
+            order=order,
+            sequence=1,
+            kind=TransportOrderStop.Kind.PICKUP,
+            city="Москва",
+            address="Москва, ул. Экспортная, 1",
+        )
+        TransportOrderStop.objects.create(
+            order=order,
+            sequence=2,
+            kind=TransportOrderStop.Kind.DELIVERY,
+            city="Тверь",
+            address="Тверь, ул. Экспортная, 2",
+        )
+
+        response = self.client.get(
+            reverse("order-export"), {"q": "Экспортируемый"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("orders-", response["Content-Disposition"])
+        with ZipFile(BytesIO(response.content)) as archive:
+            workbook = archive.read("xl/workbook.xml").decode("utf-8")
+            sheet = archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
+        self.assertIn("Заказы", workbook)
+        self.assertIn(order.number, sheet)
+        self.assertIn("Экспортируемый груз", sheet)
+
     def test_order_stop_filters_parties_and_keeps_unregistered_name_on_order(self):
         OrganizationRole.objects.create(
             organization=self.carrier.organization,
