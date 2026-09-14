@@ -1799,10 +1799,6 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     grid-template-columns: calc((100% - 36px) / 3) repeat(4, minmax(0, 1fr));
 }
 
-.transportation-customer-commercial-grid {
-    grid-template-columns: calc((100% - 36px) / 3) repeat(3, minmax(0, 1fr));
-}
-
 .uikit-theme .transportation-primary-section {
     border-radius: 0;
 }
@@ -1834,10 +1830,6 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .transportation-customer-commercial-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .form-grid-three {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1862,10 +1854,6 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .transportation-commercial-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .transportation-customer-commercial-grid {
         grid-template-columns: 1fr;
     }
 

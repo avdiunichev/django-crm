@@ -1581,6 +1581,8 @@ class CrmTestCase(TestCase):
                 "executor_amount": "40000.00",
                 "executor_vat_rate": VATRate.objects.get(code="without_vat").pk,
                 "executor_payment_term_days": "5",
+                "executor_currency": "RUB",
+                "executor_payment_due_basis": Transportation.PaymentDueBasis.DELIVERY_DATE,
                 "payment_due_basis": Transportation.PaymentDueBasis.DELIVERY_DATE,
                 "actual_carrier": self.carrier.organization.pk,
                 "driver": self.driver.pk,

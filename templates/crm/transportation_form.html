@@ -52,16 +52,18 @@
             {{ form.status.as_hidden }}
         </div>
         <div class="transportation-primary-divider" aria-hidden="true"></div>
-        <div class="form-grid transportation-customer-commercial-grid">
+        <div class="form-grid transportation-commercial-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.customer_amount %}
             {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
         </div>
         <div class="form-grid form-grid-four">
             {% include "crm/includes/form_field.html" with field=form.client_reference %}
             {% include "crm/includes/form_field.html" with field=form.customer_contract %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
             {{ form.customer_vat_rate.as_hidden }}
         </div>
         <div class="transportation-primary-divider" aria-hidden="true"></div>
@@ -69,14 +71,14 @@
             {% include "crm/includes/form_field.html" with field=form.executor %}
             {% include "crm/includes/form_field.html" with field=form.executor_amount %}
             {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
-            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.executor_currency %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
         </div>
         <div class="form-grid form-grid-four">
             {% include "crm/includes/form_field.html" with field=form.executor_instruction_number %}
             <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
             {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
-            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
         </div>
     </section>
 

@@ -1824,6 +1824,12 @@ class Transportation(TimestampedModel):
         choices=[("RUB", "RUB"), ("USD", "USD"), ("EUR", "EUR")],
         default="RUB",
     )
+    executor_currency = models.CharField(
+        "Валюта исполнителя",
+        max_length=3,
+        choices=[("RUB", "RUB"), ("USD", "USD"), ("EUR", "EUR")],
+        default="RUB",
+    )
     customer_payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка клиента, дней", default=0
     )
@@ -1832,6 +1838,12 @@ class Transportation(TimestampedModel):
     )
     payment_due_basis = models.CharField(
         "Основание срока оплаты",
+        max_length=30,
+        choices=PaymentDueBasis.choices,
+        default=PaymentDueBasis.DELIVERY_DATE,
+    )
+    executor_payment_due_basis = models.CharField(
+        "Основание срока оплаты исполнителю",
         max_length=30,
         choices=PaymentDueBasis.choices,
         default=PaymentDueBasis.DELIVERY_DATE,

@@ -130,8 +130,13 @@ def _assign_number(transportation):
     )
 
 
-def _due_base(transportation):
-    if transportation.payment_due_basis == Transportation.PaymentDueBasis.DOCUMENT_DATE:
+def _due_base(transportation, *, for_executor=False):
+    basis = (
+        transportation.executor_payment_due_basis
+        if for_executor
+        else transportation.payment_due_basis
+    )
+    if basis == Transportation.PaymentDueBasis.DOCUMENT_DATE:
         return transportation.document_date
     return transportation.planned_end_date or transportation.document_date
 
@@ -161,11 +166,12 @@ def post_transportation(transportation, user=None):
         transportation
     )
     _assign_number(transportation)
-    due_base = _due_base(transportation)
-    transportation.customer_payment_due_date = due_base + timedelta(
+    customer_due_base = _due_base(transportation)
+    executor_due_base = _due_base(transportation, for_executor=True)
+    transportation.customer_payment_due_date = customer_due_base + timedelta(
         days=transportation.customer_payment_term_days
     )
-    transportation.executor_payment_due_date = due_base + timedelta(
+    transportation.executor_payment_due_date = executor_due_base + timedelta(
         days=transportation.executor_payment_term_days
     )
 
@@ -201,7 +207,7 @@ def post_transportation(transportation, user=None):
                 amount_without_vat=transportation.executor_amount_without_vat,
                 vat_amount=transportation.executor_vat_amount,
                 vat_rate=transportation.executor_vat_rate,
-                currency=transportation.currency,
+                currency=transportation.executor_currency,
                 movement_date=transportation.document_date,
             ),
         ]
@@ -228,7 +234,7 @@ def post_transportation(transportation, user=None):
                 counterparty=executor,
                 contract=executor_link.contract,
                 amount=transportation.executor_amount,
-                currency=transportation.currency,
+                currency=transportation.executor_currency,
                 movement_date=transportation.document_date,
                 due_date=transportation.executor_payment_due_date,
             ),

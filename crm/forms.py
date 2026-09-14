@@ -1733,7 +1733,8 @@ class TransportationDocumentForm(StyledModelForm):
             "customer_payment_form", "client_reference", "customer_contract",
             "customer_payment_term_days", "payment_due_basis", "customer_vat_rate",
             "executor_amount", "executor_prepayment", "executor_payment_form",
-            "executor_vat_rate", "executor_payment_term_days",
+            "executor_vat_rate", "executor_currency", "executor_payment_term_days",
+            "executor_payment_due_basis",
             "cargo_name",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
@@ -1830,6 +1831,8 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_amount"].label = "Ставка исполнителя"
         self.fields["executor_prepayment"].label = "Предоплата исполнителю"
         self.fields["executor_payment_form"].label = "Форма оплаты исполнителю"
+        self.fields["executor_currency"].label = "Валюта"
+        self.fields["executor_payment_due_basis"].label = "Основание отсрочки"
         self.fields["executor_instruction_number"].label = "Номер заказа исполнителю"
         self.fields["executor_instruction_number"].disabled = True
         self.fields["executor_instruction_number"].help_text = "Присваивается автоматически по номеру рейса."
@@ -2014,6 +2017,7 @@ class TransportationDocumentForm(StyledModelForm):
                 executor_org.default_payment_form
                 or TransportOrder.payment_form_for_vat_rate(executor_org.default_vat_rate),
             )
+            self.initial.setdefault("executor_currency", self.instance.currency)
             if link.contract_id:
                 if link.contract.vat_rate_id:
                     self.initial.setdefault("executor_vat_rate", link.contract.vat_rate_id)
