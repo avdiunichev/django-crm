@@ -10,6 +10,7 @@
             <div><h2>Новый заказ</h2><p>Заполните форму заказа</p></div>
         </div>
         <div class="order-command-actions">
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay"><span uk-icon="file-edit"></span> Записать</button>
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Записать и закрыть</button>
             {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
             {% if object.transportation_id %}
@@ -147,6 +148,7 @@
             <div><h2>Панель управления</h2><p>Сохранение, назначение и закрытие заказа</p></div>
         </div>
         <div class="order-command-actions">
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay"><span uk-icon="file-edit"></span> Записать</button>
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Записать и закрыть</button>
             {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
             {% if object.transportation_id %}
