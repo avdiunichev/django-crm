@@ -49,23 +49,21 @@
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.transportation_number %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
-            {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
         <div class="form-grid transportation-primary-document-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.source_order_number %}
             {% include "crm/includes/form_field.html" with field=form.source_order_date %}
-            {% include "crm/includes/form_field.html" with field=form.client_contact %}
             {{ form.status.as_hidden }}
         </div>
-        {{ form.client_reference.as_hidden }}
+        {{ form.client_reference.as_hidden }}{{ form.client_contact.as_hidden }}{{ form.executor_contact.as_hidden }}
         <div class="form-grid transportation-primary-pair-grid">
             {% include "crm/includes/form_field.html" with field=form.executor %}
             {% include "crm/includes/form_field.html" with field=form.executor_role %}
         </div>
         <div class="form-grid transportation-primary-pair-grid">
             {% include "crm/includes/form_field.html" with field=form.actual_carrier %}
-            {% include "crm/includes/form_field.html" with field=form.executor_contact %}
+            {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
     </section>
 
