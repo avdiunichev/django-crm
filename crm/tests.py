@@ -532,6 +532,7 @@ class CrmTestCase(TestCase):
             assignment_form,
             f'value="{order.number} от {order.document_date:%d.%m.%Y}"',
         )
+        self.assertTrue(assignment_form.context["form"].fields["client_reference"].disabled)
         self.assertEqual(
             timezone.localtime(first_stop.planned_to).time().replace(
                 second=0, microsecond=0

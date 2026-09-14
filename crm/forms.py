@@ -1975,6 +1975,9 @@ class TransportationDocumentForm(StyledModelForm):
         source_order = getattr(self.instance, "source_order", None)
         if source_order:
             self.initial["source_order_number"] = source_order.number
+            # Рейс, созданный из заказа, всегда хранит ссылку на этот заказ
+            # в исходном виде «№ от ДД.ММ.ГГГГ» и не позволяет её менять.
+            self.fields["client_reference"].disabled = True
 
         selected_client_id = self.data.get("client") if self.is_bound else (
             client_party.organization_id if client_party else None
