@@ -379,7 +379,10 @@ document.addEventListener("DOMContentLoaded", () => {
         previousRole = role?.value || "";
         if (role.value === "carrier" && executor.value) {
             carrier.value = executor.value;
-            loadResources();
+            // Фактический перевозчик отображается через умный список,
+            // поэтому после программной подстановки обновляем и его UI.
+            carrier.dispatchEvent(new Event("optionschange", {bubbles: true}));
+            carrier.dispatchEvent(new Event("change", {bubbles: true}));
         }
     };
     const updateContractAction = () => {
