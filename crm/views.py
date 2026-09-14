@@ -6111,7 +6111,7 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
             field_table([
                 ("Наша компания", f"{order.owner_company} · ИНН {order.owner_company.tax_id or 'не указан'} · менеджер: {order.manager.get_full_name() or order.manager.username}"),
                 ("Клиент", f"{order.client} · ИНН {order.client.tax_id or 'не указан'}"),
-                ("Ставка", f"{amount(order.rate)} · {order.get_payment_form_display()} · отсрочка {order.payment_term_days} дн."),
+                ("Ставка", f"{amount(order.rate)} · предоплата {amount(order.prepayment) if order.prepayment is not None else 'не указана'} · {order.get_payment_form_display()} · отсрочка {order.payment_term_days} дн."),
             ]),
             Paragraph("Груз", section_style),
             field_table([

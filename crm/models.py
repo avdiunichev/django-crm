@@ -2287,6 +2287,14 @@ class TransportOrder(TimestampedModel):
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0"))],
     )
+    prepayment = models.DecimalField(
+        "Предоплата",
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
     currency = models.CharField(
         "Валюта",
         max_length=3,

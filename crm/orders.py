@@ -65,7 +65,7 @@ def assign_order_to_transportation(order, user):
             f"{order.number} от {order.document_date.strftime('%d.%m.%Y')}"
         ),
         customer_amount=order.rate,
-        customer_prepayment=0,
+        customer_prepayment=order.prepayment,
         customer_payment_form=order.payment_form,
         customer_contract=Contract.objects.filter(
             kind=Contract.Kind.CLIENT_FORWARDING,

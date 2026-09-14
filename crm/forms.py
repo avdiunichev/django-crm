@@ -1016,7 +1016,7 @@ class TransportOrderForm(StyledModelForm):
         model = TransportOrder
         fields = [
             "owner_company", "client", "manager", "document_date",
-            "rate", "currency", "payment_form", "payment_term_days",
+            "rate", "prepayment", "currency", "payment_form", "payment_term_days",
             "cargo_name", "cargo_value", "weight_kg", "volume_m3",
             "package_count", "pallet_count", "package_type",
             "temperature_regime", "adr_class", "vehicle_requirements",
@@ -1088,17 +1088,16 @@ class TransportOrderForm(StyledModelForm):
             ].queryset.first()
         if not self.instance.pk and user and user.is_authenticated:
             self.fields["manager"].initial = user
-        self.fields["rate"].widget.attrs.update(
-            {"inputmode": "decimal", "placeholder": "0,00", "data-money-input": ""}
-        )
-        self.fields["rate"].widget = forms.TextInput(
-            attrs={
-                "class": "form-control uk-input",
-                "inputmode": "decimal",
-                "placeholder": "0,00",
-                "data-money-input": "",
-            }
-        )
+        for field_name in ("rate", "prepayment"):
+            self.fields[field_name].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control uk-input",
+                    "inputmode": "decimal",
+                    "placeholder": "0,00",
+                    "data-money-input": "",
+                }
+            )
+        self.fields["prepayment"].required = False
         self.fields["cargo_value"].widget = forms.TextInput(
             attrs={
                 "class": "form-control uk-input",
@@ -1148,12 +1147,16 @@ class TransportOrderForm(StyledModelForm):
         cleaned = super().clean()
         owner = cleaned.get("owner_company")
         client = cleaned.get("client")
-        customer_amount = cleaned.get("customer_amount")
-        customer_prepayment = cleaned.get("customer_prepayment")
         if owner and client and owner == client:
             self.add_error("client", "Наша компания не может быть клиентом заказа.")
         if cleaned.get("rate") is not None and cleaned["rate"] <= 0:
             self.add_error("rate", "Ставка клиента должна быть больше нуля.")
+        if (
+            cleaned.get("prepayment") is not None
+            and cleaned.get("rate") is not None
+            and cleaned["prepayment"] > cleaned["rate"]
+        ):
+            self.add_error("prepayment", "Предоплата не может быть больше ставки.")
         package_count = cleaned.get("package_count") or 0
         pallet_count = cleaned.get("pallet_count") or 0
         total_package_count = package_count + pallet_count
