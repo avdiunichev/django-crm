@@ -11852,11 +11852,18 @@ body.uikit-theme {
         overflow: visible;
     }
 
-    .uikit-theme .order-register-table thead th {
+    .uikit-theme .order-register-table {
+        min-width: 100%;
+    }
+
+    .uikit-theme .order-register-table thead {
         position: sticky;
         top: calc(72px + var(--order-register-filter-height, 90px));
         z-index: 70;
-        background: #f7f9fc;
+    }
+
+    .uikit-theme .order-register-table thead th {
+        background-color: #f7f9fc;
     }
 
     html[data-theme="dark"] body.uikit-theme .order-register-filters[data-order-register-filters] {
@@ -11864,7 +11871,7 @@ body.uikit-theme {
     }
 
     html[data-theme="dark"] body.uikit-theme .order-register-table thead th {
-        background: #1b283b;
+        background-color: #1b283b;
     }
 }
 
@@ -11892,18 +11899,17 @@ body.uikit-theme {
 }
 
 .uikit-theme .order-register-heading-icon {
-    flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
     display: grid;
     place-items: center;
     color: #1e87f0;
-    background: #eef6fe;
 }
 
 .uikit-theme .order-register-heading-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
 }
 
 .uikit-theme .order-register-panel .onec-register-header h2 {
@@ -12003,7 +12009,6 @@ html[data-theme="dark"] body.uikit-theme .order-register-table td small {
 
 html[data-theme="dark"] body.uikit-theme .order-register-heading-icon {
     color: #8fc5ff;
-    background: #203d5e;
 }
 
 .order-status--assigned {
