@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "CRM • НОВЫЙ ПРОЕКТ",
-  "short_name": "CRM • НОВЫЙ ПРОЕКТ",
+  "name": "CRM • FORWARDING",
+  "short_name": "CRM • FORWARDING",
   "description": "CRM для работы с заказами, рейсами, документами и финансами.",
   "lang": "ru",
   "start_url": "/",
