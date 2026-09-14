@@ -425,16 +425,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 executorVatRate.value = String(data.vat_rate_id);
                 executorVatRate.dispatchEvent(new Event("change", {bubbles: true}));
             }
-            if (executorPaymentTerm && data.payment_term_days && (isNewExecutor || !executorPaymentTerm.value)) {
+            if (
+                executorPaymentTerm
+                && data.payment_term_days !== undefined
+                && data.payment_term_days !== null
+                && (isNewExecutor || !executorPaymentTerm.value)
+            ) {
                 executorPaymentTerm.value = data.payment_term_days;
                 executorPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
+                executorPaymentTerm.dispatchEvent(new Event("change", {bubbles: true}));
             }
-            if (executorPaymentDueBasis && data.payment_term_basis && (isNewExecutor || !executorPaymentDueBasis.value)) {
-                executorPaymentDueBasis.value = data.payment_term_basis;
+            if (executorPaymentDueBasis && (isNewExecutor || !executorPaymentDueBasis.value)) {
+                executorPaymentDueBasis.value = data.payment_term_basis || "";
                 executorPaymentDueBasis.dispatchEvent(new Event("change", {bubbles: true}));
             }
-            if (executorPaymentForm && data.payment_form && (isNewExecutor || !executorPaymentForm.value)) {
-                executorPaymentForm.value = data.payment_form;
+            if (executorPaymentForm && (isNewExecutor || !executorPaymentForm.value)) {
+                executorPaymentForm.value = data.payment_form || "";
                 executorPaymentForm.dispatchEvent(new Event("change", {bubbles: true}));
             }
             form.dataset.executorDefaultsExecutor = executor.value;

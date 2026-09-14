@@ -2193,8 +2193,11 @@ class TransportationDocumentForm(StyledModelForm):
             executor_org = link.contractor_party.organization
             if executor_org.default_vat_rate_id:
                 self.initial.setdefault("executor_vat_rate", executor_org.default_vat_rate_id)
-            if executor_org.payment_term_days:
+            if executor_org.payment_term_days is not None:
                 self.initial.setdefault("executor_payment_term_days", executor_org.payment_term_days)
+            self.initial.setdefault(
+                "executor_payment_due_basis", executor_org.payment_term_basis,
+            )
             self.initial.setdefault(
                 "executor_payment_form",
                 executor_org.default_payment_form
@@ -2204,7 +2207,7 @@ class TransportationDocumentForm(StyledModelForm):
             if link.contract_id:
                 if link.contract.vat_rate_id:
                     self.initial.setdefault("executor_vat_rate", link.contract.vat_rate_id)
-                if link.contract.payment_term_days:
+                if link.contract.payment_term_days is not None:
                     self.initial.setdefault("executor_payment_term_days", link.contract.payment_term_days)
             if self.instance.number:
                 self.initial["executor_instruction_number"] = (
