@@ -186,12 +186,14 @@
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>05</span><div><h2>Водитель и транспорт</h2><p>Назначение ресурсов фактического перевозчика</p></div></div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.driver %}
-            {% include "crm/includes/form_field.html" with field=form.vehicle %}
-            {% include "crm/includes/form_field.html" with field=form.combination wide=True %}
-            {% include "crm/includes/form_field.html" with field=form.trailer %}
-            {% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}
+            {% include "crm/includes/form_field.html" with field=form.driver wide=True %}
         </div>
+        <div class="form-grid form-grid-three">
+            {% include "crm/includes/form_field.html" with field=form.combination %}
+            {% include "crm/includes/form_field.html" with field=form.vehicle %}
+            {% include "crm/includes/form_field.html" with field=form.trailer %}
+        </div>
+        {{ form.trailer_registration_number.as_hidden }}
     </section>
 
     <section class="form-section uk-card uk-card-default">
