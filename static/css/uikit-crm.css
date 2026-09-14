@@ -1625,6 +1625,11 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     font-weight: 400;
 }
 
+/* Названия рабочих блоков всегда отображаются как заголовки разделов. */
+.form-section-title:not(.order-command-title) h2 {
+    text-transform: uppercase;
+}
+
 .form-section-title p {
     margin: 2px 0;
     color: #999;
