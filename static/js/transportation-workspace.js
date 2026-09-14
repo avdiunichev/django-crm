@@ -106,14 +106,16 @@
             } else {
                 const empty = document.createElement("div");
                 empty.className = "crm-smart-empty";
-                empty.textContent = query ? "Подходящих записей не найдено." : "Список пока пуст.";
+                empty.textContent = query
+                    ? "Контрагент с таким названием или ИНН не найден. Можно создать новую карточку."
+                    : "Список пока пуст.";
                 dropdown.appendChild(empty);
             }
             if (hasParent() && query.length >= 2 && options.length === 0 && select.dataset.createUrl) {
                 const create = document.createElement("button");
                 create.type = "button";
                 create.className = "crm-smart-create uk-button uk-button-primary uk-button-small";
-                create.innerHTML = `<span uk-icon="plus"></span> ${select.dataset.createLabel || "Создать"}`;
+                create.innerHTML = `<span uk-icon="plus"></span> ${select.dataset.createLabel || "Создать карточку"}`;
                 create.addEventListener("mousedown", (event) => event.preventDefault());
                 create.addEventListener("click", () => openQuickCreate(select, search.value));
                 dropdown.appendChild(create);
@@ -267,7 +269,7 @@
                     const result = await response.json();
                     if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
                     modalInstance(quickModalElement)?.hide();
-                    notify("Запись создана и выбрана в заявке.", "success");
+                    notify("Контрагент создан и выбран в заказе.", "success");
                     return;
                 }
                 const html = await response.text();
@@ -302,6 +304,9 @@
                 if (field && !field.value) field.value = activeQuickQuery;
             }
             bindQuickForm(dialog);
+            if (activeQuickQuery.replace(/\D/g, "").match(/^\d{10}$|^\d{12}$/)) {
+                dialog.querySelector("[data-quick-dadata-button]")?.click();
+            }
             if (window.UIkit?.update) UIkit.update(modal);
         } catch (_error) {
             modal.innerHTML = '<div class="uk-modal-dialog uk-modal-body"><button class="uk-modal-close-default" type="button" uk-close></button><div class="uk-alert-danger" uk-alert>Не удалось открыть форму создания.</div></div>';

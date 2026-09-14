@@ -1069,9 +1069,10 @@ class QuickOrganizationCreateView(LoginRequiredMixin, View):
         return {
             "form": form,
             "quick_kind": "organization",
-            "form_title": f"Новый контрагент · {OrganizationRole.Role(role).label}",
+            "form_title": "Новый контрагент",
             "form_description": (
-                "Контрагент будет сразу добавлен в заявку и единый справочник."
+                f"Карточка для роли «{OrganizationRole.Role(role).label}». "
+                "После сохранения контрагент сразу будет выбран в заказе."
             ),
             "required_role": role,
             "action_url": f"{reverse_lazy('quick-organization-create')}?role={role}",
