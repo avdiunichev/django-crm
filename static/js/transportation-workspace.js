@@ -374,12 +374,11 @@
                 return;
             }
             const remove = event.target.closest("[data-remove-bank-account], [data-remove-contact], [data-remove-requisite-change]");
-            if (remove?.getAttribute("aria-disabled") !== "true") {
-                event.preventDefault();
-                const card = remove.closest("[data-bank-account-card], [data-contact-card], [data-requisite-change-card]");
-                const deleted = card?.querySelector('[name$="-DELETE"]');
-                if (deleted) { deleted.checked = true; card.classList.add("is-deleted"); }
-            }
+            if (!remove || remove.getAttribute("aria-disabled") === "true") return;
+            event.preventDefault();
+            const card = remove.closest("[data-bank-account-card], [data-contact-card], [data-requisite-change-card]");
+            const deleted = card?.querySelector('[name$="-DELETE"]');
+            if (deleted) { deleted.checked = true; card.classList.add("is-deleted"); }
         });
         dialog.addEventListener("change", (event) => {
             const toggle = event.target.closest("[data-bank-primary-toggle], [data-contact-primary-toggle]");
