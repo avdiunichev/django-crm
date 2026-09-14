@@ -362,7 +362,7 @@ from .epd import (
     prepare_documents,
 )
 from .kontur import KonturNotConfigured, KonturUnavailable, generate_ezz_title_xml
-from .orders import assign_order_to_transportation
+from .orders import assign_order_to_transportation, sync_order_from_transportation
 
 
 def parse_crm_date(value):
@@ -7113,6 +7113,7 @@ class TransportationDocumentEditMixin:
             if stop_formset:
                 stop_formset.instance = self.object
                 stop_formset.save()
+            sync_order_from_transportation(self.object)
             if previous_status != self.object.status:
                 changes.setdefault(
                     "Статус",

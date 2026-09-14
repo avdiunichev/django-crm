@@ -168,3 +168,78 @@ def assign_order_to_transportation(order, user):
         },
     )
     return transportation
+
+
+@transaction.atomic
+def sync_order_from_transportation(transportation):
+    """Keep the source order aligned with edits made in its assignment trip."""
+
+    try:
+        order = transportation.source_order
+    except TransportOrder.DoesNotExist:
+        return None
+
+    client_party = transportation.parties.filter(
+        role=TransportationParty.Role.CLIENT,
+        is_active=True,
+    ).select_related("organization").first()
+    if not client_party:
+        return order
+
+    order_fields = {
+        "owner_company": transportation.owner_company,
+        "manager": transportation.manager,
+        "document_date": transportation.document_date,
+        "client": client_party.organization,
+        "rate": transportation.customer_amount,
+        "prepayment": transportation.customer_prepayment,
+        "currency": transportation.currency,
+        "payment_form": transportation.customer_payment_form,
+        "payment_term_days": transportation.customer_payment_term_days,
+        "customer_contract": transportation.customer_contract,
+        "payment_due_basis": transportation.payment_due_basis,
+        "cargo_name": transportation.cargo_name,
+        "cargo_description": transportation.cargo_description,
+        "cargo_value": transportation.cargo_value,
+        "weight_kg": transportation.weight_kg,
+        "volume_m3": transportation.volume_m3,
+        "package_count": transportation.package_count,
+        "pallet_count": transportation.pallet_count,
+        "package_type": transportation.package_type,
+        "temperature_regime": transportation.temperature_regime,
+        "adr_class": transportation.adr_class,
+        "vehicle_requirements": transportation.vehicle_requirements,
+        "special_requirements": transportation.special_requirements,
+        "planned_start_date": transportation.planned_start_date,
+        "planned_end_date": transportation.planned_end_date,
+        "notes": transportation.notes,
+    }
+    for field_name, value in order_fields.items():
+        setattr(order, field_name, value)
+    order.save(update_fields=[*order_fields, "updated_at"])
+
+    order.stops.all().delete()
+    shared_stop_fields = (
+        "organization", "organization_text", "city", "address",
+        "address_fias_id", "address_postal_code", "address_region_code",
+        "address_region", "address_area", "address_city", "address_settlement",
+        "address_street", "address_house", "address_block", "address_flat",
+        "contact_name", "contact_phone", "instructions",
+    )
+    stops = list(transportation.stops.order_by("sequence", "pk"))
+    for sequence, stop in enumerate(stops, start=1):
+        planned_from = stop.planned_from
+        TransportOrderStop.objects.create(
+            order=order,
+            sequence=sequence,
+            kind=(
+                TransportOrderStop.Kind.DELIVERY
+                if stop.kind == TransportationStop.Kind.DELIVERY
+                else TransportOrderStop.Kind.PICKUP
+            ),
+            planned_date=planned_from.date() if planned_from else None,
+            planned_time_from=planned_from.time() if planned_from else None,
+            planned_time_to=stop.planned_to.time() if stop.planned_to else None,
+            **{field_name: getattr(stop, field_name) for field_name in shared_stop_fields},
+        )
+    return order

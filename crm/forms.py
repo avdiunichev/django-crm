@@ -1688,6 +1688,11 @@ class TransportationDocumentForm(StyledModelForm):
         label="Клиент",
         queryset=Organization.objects.none(),
     )
+    source_order_number = forms.CharField(
+        label="Номер заказа",
+        required=False,
+        disabled=True,
+    )
     executor = OrganizationChoiceField(
         label="Исполнитель",
         queryset=Organization.objects.none(),
@@ -1929,6 +1934,10 @@ class TransportationDocumentForm(StyledModelForm):
             delivery = self.instance.stops.filter(
                 kind=TransportationStop.Kind.DELIVERY
             ).order_by("-sequence").first()
+
+        source_order = getattr(self.instance, "source_order", None)
+        if source_order:
+            self.initial["source_order_number"] = source_order.number
 
         selected_client_id = self.data.get("client") if self.is_bound else (
             client_party.organization_id if client_party else None

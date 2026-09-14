@@ -25,6 +25,7 @@ from .forms import (
 )
 from .accounting import post_transportation
 from .epd import epd_validation_errors, prepare_documents
+from .orders import assign_order_to_transportation, sync_order_from_transportation
 from .models import (
     BankStatement,
     BankStatementLine,
@@ -469,6 +470,11 @@ class CrmTestCase(TestCase):
             ),
             time(8, 30),
         )
+        assignment_form = self.client.get(
+            reverse("transportation-update", args=[transportation.pk])
+        )
+        self.assertContains(assignment_form, "Информация по исполнителю")
+        self.assertContains(assignment_form, 'name="source_order_number"')
         self.assertEqual(
             timezone.localtime(first_stop.planned_to).time().replace(
                 second=0, microsecond=0
@@ -513,6 +519,45 @@ class CrmTestCase(TestCase):
         self.assertIsNone(order.transportation_id)
         self.assertIsNone(order.assigned_at)
         self.assertIsNone(order.assigned_by_id)
+
+    def test_assignment_trip_changes_are_synced_back_to_source_order(self):
+        order = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization,
+            manager=self.user,
+            rate=Decimal("90000.00"),
+            cargo_name="Исходный груз",
+            weight_kg=Decimal("1000"),
+        )
+        TransportOrderStop.objects.create(
+            order=order,
+            sequence=1,
+            kind=TransportOrderStop.Kind.PICKUP,
+            city="Псков",
+        )
+        TransportOrderStop.objects.create(
+            order=order,
+            sequence=2,
+            kind=TransportOrderStop.Kind.DELIVERY,
+            city="Тверь",
+        )
+        transportation = assign_order_to_transportation(order, self.user)
+        transportation.customer_amount = Decimal("97500.00")
+        transportation.cargo_name = "Изменённый груз"
+        transportation.save(
+            update_fields=["customer_amount", "cargo_name", "updated_at"]
+        )
+        transportation.stops.filter(sequence=1).update(city="Великий Новгород")
+
+        sync_order_from_transportation(transportation)
+
+        order.refresh_from_db()
+        self.assertEqual(order.rate, Decimal("97500.00"))
+        self.assertEqual(order.cargo_name, "Изменённый груз")
+        self.assertEqual(
+            list(order.stops.values_list("city", flat=True)),
+            ["Великий Новгород", "Тверь"],
+        )
 
     def test_quick_organization_create_adds_required_role_and_legacy_record(self):
         self.client.force_login(self.user)

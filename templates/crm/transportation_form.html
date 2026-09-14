@@ -44,46 +44,37 @@
     {% endif %}
 
     <section class="form-section uk-card uk-card-default transportation-primary-section">
-        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Организация, клиент и коммерческие условия рейса</p></div></div>
-        <div class="form-grid form-grid-three">
+        <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
+        <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
+        </div>
+        <div class="form-grid order-main-client-date-grid">
+            {% include "crm/includes/form_field.html" with field=form.client %}
+            {% if object and object.source_order %}{% include "crm/includes/form_field.html" with field=form.source_order_number %}{% else %}{% include "crm/includes/form_field.html" with field=form.client_reference %}{% endif %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
             {{ form.status.as_hidden }}
-        </div>
-        <div class="transportation-primary-divider" aria-hidden="true"></div>
-        <div class="form-grid transportation-commercial-grid">
-            {% include "crm/includes/form_field.html" with field=form.client %}
-            {% include "crm/includes/form_field.html" with field=form.customer_amount %}
-            {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
-            {% include "crm/includes/form_field.html" with field=form.currency %}
-            {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
-        </div>
-        <div class="form-grid form-grid-four">
-            {% include "crm/includes/form_field.html" with field=form.client_reference %}
-            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
-            {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
-            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
-            {{ form.customer_vat_rate.as_hidden }}
-        </div>
-        <div class="transportation-primary-divider" aria-hidden="true"></div>
-        <div class="form-grid transportation-commercial-grid">
-            {% include "crm/includes/form_field.html" with field=form.executor %}
-            {% include "crm/includes/form_field.html" with field=form.executor_amount %}
-            {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
-            {% include "crm/includes/form_field.html" with field=form.executor_currency %}
-            {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
-        </div>
-        <div class="form-grid form-grid-four">
-            {% include "crm/includes/form_field.html" with field=form.executor_instruction_number %}
-            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
-            {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
-            {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
         </div>
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>02</span><div><h2>Характеристики груза</h2><p>Наименование, количество и специальные требования</p></div></div>
+        <div class="form-section-title"><span>02</span><div><h2>Ставка и форма оплаты</h2><p>Коммерческие условия заказа клиента</p></div></div>
+        <div class="form-grid form-grid-five">
+            {% include "crm/includes/form_field.html" with field=form.customer_amount %}
+            {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
+            {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
+            {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
+        </div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
+            {{ form.customer_vat_rate.as_hidden }}
+        </div>
+    </section>
+
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>03</span><div><h2>Характеристики груза</h2><p>Наименование, количество и специальные требования</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.cargo_name wide=True %}
             <datalist id="cargo-name-suggestions">{% for cargo_name in cargo_name_suggestions %}<option value="{{ cargo_name }}"></option>{% endfor %}</datalist>
@@ -105,7 +96,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>03</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить промежуточные погрузки и выгрузки.</p></div></div>
+        <div class="form-section-title"><span>04</span><div><h2>Маршрут</h2><p>Первая точка — погрузка, последняя — выгрузка. Между ними можно добавить любое количество точек.</p></div></div>
         {{ stop_formset.management_form }}
         {% if stop_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_formset.non_form_errors }}</div>{% endif %}
         <div class="order-route-list" data-order-route-list>
@@ -159,31 +150,45 @@
         </template>
         <div class="order-route-actions">
             <button class="uk-button uk-button-default" type="button" data-order-route-add="pickup"><span uk-icon="plus"></span> Добавить погрузку</button>
-            <button class="uk-button uk-button-default" type="button" data-order-route-add="intermediate"><span uk-icon="plus"></span> Добавить промежуточную</button>
             <button class="uk-button uk-button-default" type="button" data-order-route-add="delivery"><span uk-icon="plus"></span> Добавить выгрузку</button>
         </div>
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>04</span><div><h2>Закупка у исполнителя</h2><p>Посредник и фактический перевозчик учитываются раздельно</p></div></div>
-        <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.executor_role %}
-            {% include "crm/includes/form_field.html" with field=form.executor_vat_rate %}
+        <div class="form-section-title"><span>05</span><div><h2>Информация по исполнителю</h2><p>Условия закупки и фактическое исполнение рейса</p></div></div>
+        <div class="form-grid form-grid-five">
+            {% include "crm/includes/form_field.html" with field=form.executor %}
+            {% include "crm/includes/form_field.html" with field=form.executor_amount %}
+            {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.executor_currency %}
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
         </div>
-        <hr>
-        <div class="section-title"><div><span class="eyebrow">Фактическое исполнение</span><h2>Кто реально везёт груз</h2></div></div>
+        <div class="form-grid form-grid-four">
+            {% include "crm/includes/form_field.html" with field=form.executor_role %}
+            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
+            {{ form.executor_vat_rate.as_hidden }}{{ form.executor_instruction_number.as_hidden }}
+        </div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.actual_carrier wide=True %}
             {% include "crm/includes/form_field.html" with field=form.driver %}
-            {% include "crm/includes/form_field.html" with field=form.combination wide=True %}
             {% include "crm/includes/form_field.html" with field=form.vehicle %}
+            {% include "crm/includes/form_field.html" with field=form.combination wide=True %}
             {% include "crm/includes/form_field.html" with field=form.trailer %}
             {% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}
         </div>
     </section>
 
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>06</span><div><h2>Комментарий</h2><p>Внутренние примечания по рейсу</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
+        </div>
+    </section>
+
     <section class="form-section uk-card uk-card-default onec-finance-result">
-        <div class="form-section-title"><span>05</span><div><h2>Результат рейса</h2><p>Предварительный управленческий результат до проведения</p></div></div>
+        <div class="form-section-title"><span>07</span><div><h2>Результат рейса</h2><p>Предварительный управленческий результат до проведения</p></div></div>
         <div class="finance-summary">
             <article><span>Продажа</span><strong id="preview-revenue">0,00</strong></article>
             <article><span>Закупка</span><strong id="preview-cost">0,00</strong></article>
@@ -195,9 +200,6 @@
             <article><span>Прибыль рейса без НДС</span><strong id="preview-profit">0,00</strong><small>Доход без НДС − расход без НДС</small></article>
             <article><span>Расчётный налог на прибыль</span><strong id="preview-profit-tax">0,00</strong><small id="preview-profit-tax-rate">Ставка нашей компании</small></article>
             <article class="is-net-profit"><span>Чистая прибыль</span><strong id="preview-net-profit">0,00</strong><small>Прибыль без НДС − расчётный налог</small></article>
-        </div>
-        <div class="form-grid uk-margin-top">
-            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
     </section>
 
