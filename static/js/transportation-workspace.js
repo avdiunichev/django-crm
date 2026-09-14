@@ -269,7 +269,7 @@
                     const result = await response.json();
                     if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
                     modalInstance(quickModalElement)?.hide();
-                    notify("Контрагент создан и выбран в заказе.", "success");
+                    notify("Контрагент создан и выбран в документе.", "success");
                     return;
                 }
                 const html = await response.text();
@@ -424,7 +424,7 @@
                     const result = await response.json();
                     if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
                     modalInstance(quickModalElement)?.hide();
-                    notify("Контрагент создан и выбран в заказе.", "success");
+                    notify("Контрагент создан и выбран в документе.", "success");
                     return;
                 }
                 renderFullOrganizationForm(await response.text(), sourceUrl);

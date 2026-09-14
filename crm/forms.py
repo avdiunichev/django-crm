@@ -2038,7 +2038,7 @@ class TransportationDocumentForm(StyledModelForm):
             else:
                 self.initial["executor_instruction_number"] = "Будет присвоен после записи"
 
-        organization_create_url = reverse("quick-organization-create")
+        organization_create_url = reverse("organization-create")
         driver_create_url = reverse("quick-driver-create")
         vehicle_create_url = reverse("quick-vehicle-create")
         smart_selects = {
@@ -2046,6 +2046,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-smart-select": "organization",
                 "data-create-url": organization_create_url,
                 "data-required-role": OrganizationRole.Role.CLIENT,
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН клиента",
                 "data-create-label": "Создать клиента",
             },
@@ -2053,6 +2054,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-smart-select": "organization",
                 "data-create-url": organization_create_url,
                 "data-role-source": "id_executor_role",
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН исполнителя",
                 "data-create-label": "Создать исполнителя",
             },
@@ -2060,6 +2062,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-smart-select": "organization",
                 "data-create-url": organization_create_url,
                 "data-required-role": OrganizationRole.Role.CARRIER,
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН перевозчика",
                 "data-create-label": "Создать перевозчика",
             },
@@ -2067,6 +2070,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-smart-select": "organization",
                 "data-create-url": organization_create_url,
                 "data-required-role": OrganizationRole.Role.SHIPPER,
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Название или ИНН грузоотправителя",
                 "data-create-label": "Создать грузоотправителя",
             },
@@ -2074,6 +2078,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-smart-select": "organization",
                 "data-create-url": organization_create_url,
                 "data-required-role": OrganizationRole.Role.CONSIGNEE,
+                "data-full-organization-create": "true",
                 "data-search-placeholder": "Название или ИНН грузополучателя",
                 "data-create-label": "Создать грузополучателя",
             },

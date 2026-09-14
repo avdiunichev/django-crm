@@ -238,6 +238,10 @@ class CrmTestCase(TestCase):
         self.assertContains(transportation_list, "data-transportation-modal")
         self.assertContains(transportation_list, "js/transportation-workspace.js")
         self.assertContains(form_response, 'data-smart-select="organization"')
+        self.assertContains(form_response, 'data-full-organization-create="true"')
+        self.assertContains(
+            form_response, f'data-create-url="{reverse("organization-create")}"'
+        )
         self.assertContains(form_response, 'data-required-role="client"')
         self.assertContains(form_response, 'data-role-source="id_executor_role"')
         self.assertContains(form_response, 'data-parent-source="id_actual_carrier"')
@@ -250,7 +254,9 @@ class CrmTestCase(TestCase):
             self.carrier.organization,
             form.fields["client"].queryset,
         )
-        self.assertEqual(form.fields["executor_amount"].widget.attrs["min"], "0")
+        self.assertEqual(
+            form.fields["executor_amount"].widget.attrs["data-money-input"], ""
+        )
 
     def test_order_form_supports_multiple_route_operations_and_registry(self):
         self.client.force_login(self.user)
