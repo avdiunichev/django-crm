@@ -1625,8 +1625,8 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
     font-weight: 400;
 }
 
-/* Названия рабочих блоков всегда отображаются как заголовки разделов. */
-.form-section-title:not(.order-command-title) h2 {
+/* Только заголовки командных панелей с кнопками выделяются прописными. */
+.order-command-header .order-command-title h2 {
     text-transform: uppercase;
 }
 
