@@ -11,7 +11,6 @@
     const open = () => {
         menu.hidden = false;
         toggle.setAttribute("aria-expanded", "true");
-        menu.querySelector("[data-mobile-nav-close]")?.focus();
     };
 
     toggle.addEventListener("click", () => (menu.hidden ? open() : close()));

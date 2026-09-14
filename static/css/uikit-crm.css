@@ -7542,7 +7542,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-fi
 @media (max-width: 700px) {
     .uikit-theme .app-shell-topnav .crm-topnav {
         min-height: 0;
-        padding: 8px 12px 10px;
+        padding: 8px 8px 10px;
         gap: 8px;
     }
 
@@ -7597,13 +7597,25 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-fi
         display: flex;
         flex-wrap: nowrap;
         gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 1px;
+        overflow: visible;
+        padding: 0 4px;
         scrollbar-width: none;
     }
 
     .uikit-theme .crm-topnav-tools::-webkit-scrollbar {
         display: none;
+    }
+
+    .uikit-theme .crm-topnav .navbar-notification-center {
+        flex: 0 0 38px;
+        margin: -4px;
+        padding: 4px;
+    }
+
+    .uikit-theme .mobile-nav-close:focus,
+    .uikit-theme .mobile-nav-close:focus-visible {
+        outline: 0;
+        box-shadow: none;
     }
 
     .uikit-theme .crm-topnav .theme-switcher {
