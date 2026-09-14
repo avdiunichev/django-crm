@@ -1865,7 +1865,16 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 /* Главный контрагент занимает половину строки; реквизиты документа справа
    делят оставшееся пространство поровну. */
 .transportation-primary-document-grid {
-    grid-template-columns: 3fr repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.transportation-primary-document-grid > :first-child,
+.transportation-primary-pair-grid > * {
+    grid-column: span 3;
+}
+
+.transportation-primary-pair-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .transportation-primary-divider {
@@ -1907,6 +1916,15 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .transportation-primary-pair-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .transportation-primary-document-grid > :first-child,
+    .transportation-primary-pair-grid > * {
+        grid-column: auto;
+    }
+
     .cargo-details-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1935,6 +1953,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .transportation-primary-document-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .transportation-primary-pair-grid {
         grid-template-columns: 1fr;
     }
 

@@ -59,11 +59,11 @@
             {{ form.status.as_hidden }}
         </div>
         {{ form.client_reference.as_hidden }}
-        <div class="form-grid">
+        <div class="form-grid transportation-primary-pair-grid">
             {% include "crm/includes/form_field.html" with field=form.executor %}
             {% include "crm/includes/form_field.html" with field=form.executor_role %}
         </div>
-        <div class="form-grid">
+        <div class="form-grid transportation-primary-pair-grid">
             {% include "crm/includes/form_field.html" with field=form.actual_carrier %}
             {% include "crm/includes/form_field.html" with field=form.executor_contact %}
         </div>
