@@ -1438,6 +1438,7 @@ class CrmTestCase(TestCase):
         register = self.client.get(reverse("transportation-list"))
         self.assertContains(register, "Реестр рейсов")
         self.assertContains(register, "Создать рейс")
+        self.assertContains(register, "1 записей")
         self.assertContains(register, "scope=active")
         self.assertEqual(register.context["transportation_count"], 1)
         self.assertEqual(register.context["active_count"], 1)
