@@ -3124,26 +3124,26 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 .organization-command-header .onec-inn-warning {
     margin: 14px 0 0;
     padding: 10px 12px;
-    border: 1px solid #c7e1fb;
+    border: 1px solid #f1b9be;
     border-radius: 0;
-    color: #1b6fbe;
-    background: #edf7ff;
+    color: #b4232d;
+    background: #fff1f2;
     font-size: 13px;
 }
 
 .organization-command-header .onec-inn-warning a {
-    color: #176cb7;
+    color: #a61b25;
     font-weight: 600;
 }
 
 html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-warning {
-    border-color: #315b81;
-    color: #9bcfff;
-    background: #193550;
+    border-color: #7e3540;
+    color: #ffb4bd;
+    background: #3a1d25;
 }
 
 html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-warning a {
-    color: #a8d6ff;
+    color: #ffc2c9;
 }
 
 .organization-command-inn::after {
