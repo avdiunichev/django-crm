@@ -380,6 +380,11 @@
             mirror.addEventListener("input", () => { taxId.value = mirror.value; taxId.dispatchEvent(new Event("input", {bubbles: true})); });
             taxId?.addEventListener("input", () => { mirror.value = taxId.value; });
         });
+        const ownCompany = form.querySelector("#id_is_own_company");
+        const ownCompanyTax = form.querySelector("[data-own-company-tax]");
+        const syncOwnCompanyTax = () => ownCompanyTax?.classList.toggle("uk-hidden", !ownCompany?.checked);
+        ownCompany?.addEventListener("change", syncOwnCompanyTax);
+        syncOwnCompanyTax();
         dialog.addEventListener("click", (event) => {
             const add = event.target.closest("[data-add-form]");
             if (add) {
