@@ -52,11 +52,10 @@
             {{ form.status.as_hidden }}
         </div>
         <div class="transportation-primary-divider" aria-hidden="true"></div>
-        <div class="form-grid transportation-commercial-grid">
+        <div class="form-grid transportation-customer-commercial-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
             {% include "crm/includes/form_field.html" with field=form.customer_amount %}
             {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
-            {% include "crm/includes/form_field.html" with field=form.currency %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
         </div>
         <div class="form-grid form-grid-four">
@@ -70,6 +69,7 @@
             {% include "crm/includes/form_field.html" with field=form.executor %}
             {% include "crm/includes/form_field.html" with field=form.executor_amount %}
             {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.currency %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
         </div>
         <div class="form-grid form-grid-four">
@@ -192,7 +192,6 @@
             <article class="is-net-profit"><span>Чистая прибыль</span><strong id="preview-net-profit">0,00</strong><small>Прибыль без НДС − расчётный налог</small></article>
         </div>
         <div class="form-grid uk-margin-top">
-            {% include "crm/includes/form_field.html" with field=form.currency %}
             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
     </section>
