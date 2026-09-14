@@ -372,6 +372,7 @@
         const form = dialog.querySelector("form.organization-workspace");
         if (!form) return;
         form.action = sourceUrl;
+        let saving = false;
         form.querySelectorAll('a[href$="/organizations/"]').forEach((link) => {
             link.addEventListener("click", (event) => { event.preventDefault(); modalInstance(quickModalElement)?.hide(); });
         });
@@ -386,6 +387,15 @@
         ownCompany?.addEventListener("change", syncOwnCompanyTax);
         syncOwnCompanyTax();
         dialog.addEventListener("click", (event) => {
+            const save = event.target.closest('button[type="submit"]');
+            if (save && form.contains(save)) {
+                // The full card lives in a modal beside the trip form. Handle
+                // the button explicitly so nested modal focus/default actions
+                // cannot swallow the native form submit.
+                event.preventDefault();
+                submitOrganization(save);
+                return;
+            }
             const add = event.target.closest("[data-add-form]");
             if (add) {
                 const prefix = add.dataset.addForm;
@@ -413,12 +423,20 @@
             });
         });
         bindFullOrganizationDadata(dialog);
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const submit = event.submitter || form.querySelector('[type="submit"]');
+        const submitOrganization = async (submit) => {
+            if (saving) return;
+            saving = true;
             if (submit) submit.disabled = true;
             try {
-                const response = await fetch(sourceUrl, {method: "POST", body: new FormData(form), headers: {"X-Requested-With": "XMLHttpRequest"}});
+                const formData = new FormData(form);
+                if (submit?.name && !formData.has(submit.name)) {
+                    formData.append(submit.name, submit.value);
+                }
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: {"X-Requested-With": "XMLHttpRequest", "Accept": "application/json, text/html"}
+                });
                 const contentType = response.headers.get("content-type") || "";
                 if (response.ok && contentType.includes("application/json")) {
                     const result = await response.json();
@@ -431,7 +449,13 @@
             } catch (_error) {
                 notify("Не удалось сохранить контрагента. Проверьте данные и соединение.", "danger");
                 if (submit?.isConnected) submit.disabled = false;
+            } finally {
+                saving = false;
             }
+        };
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            submitOrganization(event.submitter || form.querySelector('[type="submit"]'));
         });
     };
 
