@@ -11,6 +11,7 @@
         </div>
         <div class="order-command-actions">
             {% if object and object.transportation_id %}
+                <a class="uk-button uk-button-primary" href="{% url 'transportation-update' object.transportation_id %}">Открыть рейс</a>
                 <a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>
                 <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
             {% else %}
