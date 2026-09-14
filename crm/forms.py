@@ -1732,7 +1732,8 @@ class TransportationDocumentForm(StyledModelForm):
             "client", "customer_amount", "customer_prepayment", "currency",
             "customer_payment_form", "client_reference", "customer_contract",
             "customer_payment_term_days", "payment_due_basis", "customer_vat_rate",
-            "executor_amount", "executor_vat_rate", "executor_payment_term_days",
+            "executor_amount", "executor_prepayment", "executor_payment_form",
+            "executor_vat_rate", "executor_payment_term_days",
             "cargo_name",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
@@ -1805,7 +1806,12 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_vat_rate"].queryset = self.fields[
             "executor_vat_rate"
         ].queryset.filter(is_active=True)
-        for field_name in ("customer_amount", "customer_prepayment"):
+        for field_name in (
+            "customer_amount",
+            "customer_prepayment",
+            "executor_amount",
+            "executor_prepayment",
+        ):
             self.fields[field_name].widget = forms.TextInput(
                 attrs={
                     "class": "form-control uk-input",
@@ -1815,14 +1821,18 @@ class TransportationDocumentForm(StyledModelForm):
                 }
             )
         self.fields["customer_prepayment"].required = False
+        self.fields["executor_prepayment"].required = False
         self.fields["customer_amount"].label = "Ставка"
         self.fields["customer_prepayment"].label = "Предоплата"
         self.fields["customer_payment_form"].label = "Форма оплаты"
         self.fields["client_reference"].label = "Номер заказа клиента"
         self.fields["payment_due_basis"].label = "Основание отсрочки"
-        self.fields["executor_amount"].widget.attrs.update(
-            {"min": "0", "step": "0.01", "placeholder": "0,00"}
-        )
+        self.fields["executor_amount"].label = "Ставка исполнителя"
+        self.fields["executor_prepayment"].label = "Предоплата исполнителю"
+        self.fields["executor_payment_form"].label = "Форма оплаты исполнителю"
+        self.fields["executor_instruction_number"].label = "Номер заказа исполнителю"
+        self.fields["executor_instruction_number"].disabled = True
+        self.fields["executor_instruction_number"].help_text = "Присваивается автоматически по номеру рейса."
         self.fields["cargo_name"].widget.attrs.update(
             {
                 "list": "cargo-name-suggestions",
@@ -1872,6 +1882,9 @@ class TransportationDocumentForm(StyledModelForm):
         selected_client_id = self.data.get("client") if self.is_bound else (
             client_party.organization_id if client_party else None
         )
+        selected_executor_id = self.data.get("executor") if self.is_bound else (
+            link.contractor_party.organization_id if link else None
+        )
         selected_owner_id = self.data.get("owner_company") if self.is_bound else self.instance.owner_company_id
         customer_contract_filter = Q(kind=Contract.Kind.CLIENT_FORWARDING)
         if selected_client_id:
@@ -1883,6 +1896,18 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["customer_contract"].queryset = Contract.objects.exclude(
             status__in=[Contract.Status.TERMINATED, Contract.Status.ARCHIVED]
         ).filter(customer_contract_filter).distinct()
+        executor_contract_filter = ~Q(kind=Contract.Kind.CLIENT_FORWARDING)
+        if selected_executor_id:
+            executor_contract_filter &= Q(
+                carrier__organization_id=selected_executor_id
+            )
+        if selected_owner_id:
+            executor_contract_filter &= Q(expeditor__organization_id=selected_owner_id)
+        if self.instance.pk and link and link.contract_id:
+            executor_contract_filter |= Q(pk=link.contract_id)
+        self.fields["executor_contract"].queryset = active_contracts.filter(
+            executor_contract_filter
+        ).distinct()
 
         for field_name, organization_id in (
             ("client", client_party.organization_id if client_party else None),
@@ -1978,6 +2003,29 @@ class TransportationDocumentForm(StyledModelForm):
                 if contract.payment_term_days:
                     self.initial.setdefault("customer_payment_term_days", contract.payment_term_days)
 
+        if not self.is_bound and link and link.contractor_party_id:
+            executor_org = link.contractor_party.organization
+            if executor_org.default_vat_rate_id:
+                self.initial.setdefault("executor_vat_rate", executor_org.default_vat_rate_id)
+            if executor_org.payment_term_days:
+                self.initial.setdefault("executor_payment_term_days", executor_org.payment_term_days)
+            self.initial.setdefault(
+                "executor_payment_form",
+                executor_org.default_payment_form
+                or TransportOrder.payment_form_for_vat_rate(executor_org.default_vat_rate),
+            )
+            if link.contract_id:
+                if link.contract.vat_rate_id:
+                    self.initial.setdefault("executor_vat_rate", link.contract.vat_rate_id)
+                if link.contract.payment_term_days:
+                    self.initial.setdefault("executor_payment_term_days", link.contract.payment_term_days)
+            if self.instance.number:
+                self.initial["executor_instruction_number"] = (
+                    f"{self.instance.number} от {self.instance.document_date:%d.%m.%Y}"
+                )
+            else:
+                self.initial["executor_instruction_number"] = "Будет присвоен после записи"
+
         organization_create_url = reverse("quick-organization-create")
         driver_create_url = reverse("quick-driver-create")
         vehicle_create_url = reverse("quick-vehicle-create")
@@ -2061,7 +2109,9 @@ class TransportationDocumentForm(StyledModelForm):
                 ),
                 "executor_contract": link.contract_id if link else None,
                 "executor_instruction_number": (
-                    link.instruction_number if link else ""
+                    f"{self.instance.number} от {self.instance.document_date:%d.%m.%Y}"
+                    if link and self.instance.number
+                    else "Будет присвоен после записи"
                 ),
                 "actual_carrier": (
                     assignment.actual_carrier_id if assignment else None
@@ -2116,6 +2166,10 @@ class TransportationDocumentForm(StyledModelForm):
         owner = cleaned.get("owner_company")
         client = cleaned.get("client")
         executor = cleaned.get("executor")
+        customer_amount = cleaned.get("customer_amount")
+        customer_prepayment = cleaned.get("customer_prepayment")
+        executor_amount = cleaned.get("executor_amount")
+        executor_prepayment = cleaned.get("executor_prepayment")
         role = cleaned.get("executor_role")
         actual_carrier = cleaned.get("actual_carrier")
         customer_contract = cleaned.get("customer_contract")
@@ -2177,6 +2231,14 @@ class TransportationDocumentForm(StyledModelForm):
             and customer_prepayment > customer_amount
         ):
             self.add_error("customer_prepayment", "Предоплата не может быть больше ставки.")
+        if (
+            executor_prepayment is not None
+            and executor_amount is not None
+            and executor_prepayment > executor_amount
+        ):
+            self.add_error(
+                "executor_prepayment", "Предоплата не может быть больше ставки исполнителя."
+            )
         if owner and executor and owner == executor:
             self.add_error("executor", "Наша компания не может быть своим исполнителем.")
         if pickup_date and delivery_date and delivery_date < pickup_date:
@@ -2417,6 +2479,16 @@ class TransportationDocumentForm(StyledModelForm):
 
         link = None
         if executor:
+            if not transportation.number:
+                from .accounting import _assign_number
+
+                _assign_number(transportation)
+                transportation.save(
+                    update_fields=["number", "number_year", "updated_at"]
+                )
+            executor_instruction_number = (
+                f"{transportation.number} от {transportation.document_date:%d.%m.%Y}"
+            )
             executor_party, _ = TransportationParty.objects.update_or_create(
                 transportation=transportation,
                 organization=executor,
@@ -2430,9 +2502,7 @@ class TransportationDocumentForm(StyledModelForm):
                 contractor_role=executor_role,
                 sequence=1,
                 contract=self.cleaned_data.get("executor_contract"),
-                instruction_number=self.cleaned_data.get(
-                    "executor_instruction_number", ""
-                ),
+                instruction_number=executor_instruction_number,
                 source="document",
             )
 

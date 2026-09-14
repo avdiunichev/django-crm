@@ -63,8 +63,20 @@
             {% include "crm/includes/form_field.html" with field=form.client_reference %}
             {% include "crm/includes/form_field.html" with field=form.customer_contract %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
-            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
             {{ form.customer_vat_rate.as_hidden }}
+        </div>
+        <div class="transportation-primary-divider" aria-hidden="true"></div>
+        <div class="form-grid transportation-commercial-grid">
+            {% include "crm/includes/form_field.html" with field=form.executor %}
+            {% include "crm/includes/form_field.html" with field=form.executor_amount %}
+            {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
+        </div>
+        <div class="form-grid form-grid-four">
+            {% include "crm/includes/form_field.html" with field=form.executor_instruction_number %}
+            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
+            {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
         </div>
     </section>
 
@@ -150,13 +162,8 @@
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>04</span><div><h2>Закупка у исполнителя</h2><p>Посредник и фактический перевозчик учитываются раздельно</p></div></div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.executor wide=True %}
             {% include "crm/includes/form_field.html" with field=form.executor_role %}
-            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div>
-            {% include "crm/includes/form_field.html" with field=form.executor_instruction_number %}
-            {% include "crm/includes/form_field.html" with field=form.executor_amount %}
             {% include "crm/includes/form_field.html" with field=form.executor_vat_rate %}
-            {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
         </div>
         <hr>
         <div class="section-title"><div><span class="eyebrow">Фактическое исполнение</span><h2>Кто реально везёт груз</h2></div></div>
@@ -277,11 +284,12 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) { /* defaults are optional when the server is unavailable */ }
     };
     client?.addEventListener("change", applyClientDefaults);
-    owner?.addEventListener("change", () => { delete form.dataset.clientDefaultsClient; applyClientDefaults(); });
     const executor = document.getElementById("id_executor");
     const role = document.getElementById("id_executor_role");
     const carrier = document.getElementById("id_actual_carrier");
     const executorContract = document.getElementById("id_executor_contract");
+    const executorPaymentForm = document.getElementById("id_executor_payment_form");
+    const executorPaymentTerm = document.getElementById("id_executor_payment_term_days");
     const contractCreate = form.querySelector("[data-executor-contract-create]");
     const contractHint = form.querySelector("[data-executor-contract-hint]");
     const selects = {
@@ -346,12 +354,52 @@ document.addEventListener("DOMContentLoaded", () => {
         if (owner?.value) url.searchParams.set("owner_organization", owner.value);
         contractCreate.href = `${url.pathname}${url.search}`;
     };
+    const applyExecutorDefaults = async () => {
+        if (!executor?.value) return;
+        try {
+            const params = new URLSearchParams({party: "executor"});
+            if (owner?.value) params.set("owner", owner.value);
+            const response = await fetch(`/api/organizations/${executor.value}/defaults/?${params}`, {headers: {"Accept": "application/json"}});
+            if (!response.ok) return;
+            const data = await response.json();
+            const isNewExecutor = form.dataset.executorDefaultsExecutor !== executor.value;
+            if (executorContract && Array.isArray(data.contracts)) {
+                const selectedContract = executorContract.value;
+                executorContract.innerHTML = '<option value="">---------</option>';
+                data.contracts.forEach((contract) => executorContract.add(new Option(contract.label, contract.id)));
+                executorContract.value = String(isNewExecutor ? (data.contract_id || "") : selectedContract);
+                executorContract.dispatchEvent(new Event("optionschange", {bubbles: true}));
+            }
+            const executorVatRate = document.getElementById("id_executor_vat_rate");
+            if (executorVatRate && data.vat_rate_id && (isNewExecutor || !executorVatRate.value)) {
+                executorVatRate.value = String(data.vat_rate_id);
+                executorVatRate.dispatchEvent(new Event("change", {bubbles: true}));
+            }
+            if (executorPaymentTerm && data.payment_term_days && (isNewExecutor || !executorPaymentTerm.value)) {
+                executorPaymentTerm.value = data.payment_term_days;
+                executorPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            if (executorPaymentForm && data.payment_form && (isNewExecutor || !executorPaymentForm.value)) {
+                executorPaymentForm.value = data.payment_form;
+                executorPaymentForm.dispatchEvent(new Event("change", {bubbles: true}));
+            }
+            form.dataset.executorDefaultsExecutor = executor.value;
+            updateContractAction();
+        } catch (error) { /* defaults are optional when the server is unavailable */ }
+    };
     executor.addEventListener("change", syncDirectCarrier);
+    executor.addEventListener("change", applyExecutorDefaults);
     role.addEventListener("change", syncDirectCarrier);
     executor.addEventListener("change", updateContractAction);
     role.addEventListener("change", updateContractAction);
     executorContract?.addEventListener("change", updateContractAction);
     carrier.addEventListener("change", loadResources);
+    owner?.addEventListener("change", () => {
+        delete form.dataset.clientDefaultsClient;
+        delete form.dataset.executorDefaultsExecutor;
+        applyClientDefaults();
+        applyExecutorDefaults();
+    });
     updateContractAction();
     selects.combinations?.addEventListener("change", () => {
         const option = selects.combinations.options[selects.combinations.selectedIndex];

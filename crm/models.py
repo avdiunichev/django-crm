@@ -1796,6 +1796,20 @@ class Transportation(TimestampedModel):
         default=0,
         validators=[MinValueValidator(Decimal("0"))],
     )
+    executor_prepayment = models.DecimalField(
+        "Предоплата исполнителю",
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    executor_payment_form = models.CharField(
+        "Форма оплаты исполнителю",
+        max_length=30,
+        choices=CustomerPaymentForm.choices,
+        default=CustomerPaymentForm.BANK_VAT_22,
+    )
     executor_vat_rate = models.ForeignKey(
         VATRate,
         verbose_name="НДС исполнителя",

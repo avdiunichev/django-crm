@@ -791,6 +791,7 @@ def dadata_party_by_inn(request):
 def organization_defaults(request, pk):
     """Return defaults used when a counterparty is selected in a document."""
     organization = get_object_or_404(Organization, pk=pk, is_active=True)
+    is_executor = request.GET.get("party") == "executor"
     payload = {
         "vat_rate_id": organization.default_vat_rate_id,
         "vat_rate_label": str(organization.default_vat_rate) if organization.default_vat_rate_id else "",
@@ -801,11 +802,21 @@ def organization_defaults(request, pk):
         "contract_label": "",
     }
     owner_id = request.GET.get("owner")
-    contracts = Contract.objects.filter(
-        customer__organization=organization,
-        kind=Contract.Kind.CLIENT_FORWARDING,
-        status__in=[Contract.Status.READY, Contract.Status.SIGNED],
-    ).order_by("-status", "-contract_date")
+    if is_executor:
+        contracts = Contract.objects.filter(
+            carrier__organization=organization,
+            kind__in=[
+                Contract.Kind.CARRIER_TRANSPORT,
+                Contract.Kind.SUBCONTRACTOR_FORWARDING,
+            ],
+            status__in=[Contract.Status.READY, Contract.Status.SIGNED],
+        ).order_by("-status", "-contract_date")
+    else:
+        contracts = Contract.objects.filter(
+            customer__organization=organization,
+            kind=Contract.Kind.CLIENT_FORWARDING,
+            status__in=[Contract.Status.READY, Contract.Status.SIGNED],
+        ).order_by("-status", "-contract_date")
     if owner_id and owner_id.isdigit():
         contracts = contracts.filter(expeditor__organization_id=owner_id)
     contract = contracts.first()
