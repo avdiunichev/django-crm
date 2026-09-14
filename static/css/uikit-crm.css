@@ -6329,6 +6329,18 @@ html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-f
     }
 }
 
+@media (min-width: 721px) {
+    .uikit-theme .order-register-table th:first-child,
+    .uikit-theme .order-register-table td:first-child {
+        padding-left: 24px;
+    }
+
+    .uikit-theme .order-register-table th:last-child,
+    .uikit-theme .order-register-table td:last-child {
+        padding-right: 24px;
+    }
+}
+
 /* Реестр контрагентов: на телефоне таблица превращается в карточки.
    Это правило намеренно находится в конце файла: десктопное min-width
    таблицы объявлено ниже первоначальных мобильных стилей. */
