@@ -1666,6 +1666,7 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
         padding: 0;
         border: 0;
         background: transparent;
+        align-items: center;
     }
 
     .uikit-theme .onec-document-form > .order-command-header .order-command-icon {
