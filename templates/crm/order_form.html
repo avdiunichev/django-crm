@@ -6,19 +6,20 @@
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default order-command-header">
         <div class="form-section-title order-command-title">
-            <span class="order-command-icon order-command-document-icon" uk-icon="copy"></span>
+            <span class="order-command-icon order-command-document-icon" uk-icon="file-text"></span>
             <div><h2>{% if object and object.pk %}Заказ № {{ object.number }}{% else %}Новый заказ{% endif %}</h2><p>{% if object and object.pk %}Редактирование и управление заказом{% else %}Заполните форму заказа{% endif %}</p></div>
         </div>
         <div class="order-command-actions">
-            <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="check"></span> Записать и закрыть</button>
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save><span uk-icon="chevron-double-right"></span> Записать и закрыть</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay"><span uk-icon="chevron-double-right"></span> Записать</button>
+            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="chevron-double-right"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="chevron-double-right"></span> Скачать PDF</button>{% endif %}
             {% if object.transportation_id %}
-                <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="forward"></span> Открыть рейс</a>
+                <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}"><span uk-icon="chevron-double-right"></span> Открыть рейс</a>
             {% else %}
-                <button class="uk-button uk-button-primary" type="submit" name="action" value="assign" disabled aria-disabled="true" title="Заполните обязательные поля, погрузку и выгрузку" data-order-assign><span uk-icon="forward"></span> Назначить</button>
+                <button class="uk-button uk-button-primary" type="submit" name="action" value="assign" disabled aria-disabled="true" title="Заполните обязательные поля, погрузку и выгрузку" data-order-assign><span uk-icon="chevron-double-right"></span> Назначить</button>
             {% endif %}
-            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
-            {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-            <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
+            {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}"><span uk-icon="chevron-double-right"></span> Удалить</a>{% endif %}
+            <a class="uk-button uk-button-default" href="{% url 'order-list' %}"><span uk-icon="chevron-double-right"></span> Закрыть</a>
         </div>
     </section>
 
