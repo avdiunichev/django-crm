@@ -69,29 +69,29 @@
 
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>02</span><div><h2>Ставка и форма оплаты</h2><p>Коммерческие условия заказа клиента</p></div></div>
-        <div class="form-grid form-grid-five">
+        <div class="form-grid form-grid-six">
             {% include "crm/includes/form_field.html" with field=form.customer_amount %}
             {% include "crm/includes/form_field.html" with field=form.customer_prepayment %}
             {% include "crm/includes/form_field.html" with field=form.currency %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_form %}
             {% include "crm/includes/form_field.html" with field=form.customer_payment_term_days %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
         </div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
-            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
+            {% include "crm/includes/form_field.html" with field=form.customer_contract wide=True %}
             {{ form.customer_vat_rate.as_hidden }}
         </div>
         <div class="transportation-primary-divider"></div>
-        <div class="form-grid form-grid-five">
+        <div class="form-grid form-grid-six">
             {% include "crm/includes/form_field.html" with field=form.executor_amount %}
             {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
             {% include "crm/includes/form_field.html" with field=form.executor_currency %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
-        </div>
-        <div class="form-grid transportation-executor-contract-grid">
-            <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}">Создать договор</a></div>
             {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
+        </div>
+        <div class="form-grid">
+            <div class="executor-contract-field field-wide">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}">Создать договор</a></div>
             {{ form.executor_vat_rate.as_hidden }}{{ form.executor_instruction_number.as_hidden }}
         </div>
     </section>

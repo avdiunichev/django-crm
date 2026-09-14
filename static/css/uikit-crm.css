@@ -1854,6 +1854,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.form-grid-six {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .transportation-commercial-grid {
     grid-template-columns: calc((100% - 36px) / 3) repeat(4, minmax(0, 1fr));
 }
@@ -1911,6 +1915,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .form-grid-six {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .transportation-commercial-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1953,6 +1961,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
 
 @media (max-width: 700px) {
     .form-grid-five {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid-six {
         grid-template-columns: 1fr;
     }
 
