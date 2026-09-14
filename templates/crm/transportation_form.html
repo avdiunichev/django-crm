@@ -17,7 +17,7 @@
 </div>
 {% endif %}
 
-<form method="post" class="entity-form uk-form-stacked onec-document-form" id="transportation-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}" data-return-transportation="{% if object %}{{ object.pk }}{% endif %}">
+<form method="post" class="entity-form uk-form-stacked onec-document-form" id="transportation-form" data-order-route-form data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}" data-return-transportation="{% if object %}{{ object.pk }}{% endif %}">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     {% if object and object.source_order %}

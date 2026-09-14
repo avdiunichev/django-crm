@@ -527,6 +527,7 @@ class CrmTestCase(TestCase):
             reverse("transportation-update", args=[transportation.pk])
         )
         self.assertContains(assignment_form, "Информация по исполнителю")
+        self.assertContains(assignment_form, "data-order-route-form")
         self.assertContains(assignment_form, 'name="client_reference"')
         self.assertContains(
             assignment_form,
@@ -536,6 +537,11 @@ class CrmTestCase(TestCase):
         self.assertEqual(
             dict(assignment_form.context["form"].fields["adr_class"].choices)[""],
             "Не относится к опасным грузам",
+        )
+        self.assertIn(
+            "form-control uk-input",
+            assignment_form.context["stop_formset"].forms[0]
+            .fields["planned_date"].widget.attrs["class"],
         )
         self.assertEqual(
             timezone.localtime(first_stop.planned_to).time().replace(

@@ -95,6 +95,6 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll("[data-order-form]").forEach(enhance);
+        document.querySelectorAll("[data-order-form], [data-order-route-form]").forEach(enhance);
     });
 })();

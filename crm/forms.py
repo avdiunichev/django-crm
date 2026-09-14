@@ -1513,7 +1513,12 @@ class TransportationStopForm(StyledModelForm):
         self.fields["organization_text"].widget = forms.HiddenInput()
         self.fields["city"].required = False
         self.fields["city"].widget = forms.HiddenInput()
-        self.fields["planned_date"].widget = CRMDateInput()
+        # StyledModelForm уже задаёт общий CRM-вид даты. Повторно создаём
+        # виджет только с тем же классом, чтобы поле рейса не отличалось
+        # визуально от даты в маршруте заказа.
+        self.fields["planned_date"].widget = CRMDateInput(
+            attrs={"class": "form-control uk-input"}
+        )
         self.fields["planned_date"].input_formats = CRM_DATE_INPUT_FORMATS
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
