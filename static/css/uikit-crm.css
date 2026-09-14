@@ -8492,6 +8492,11 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     gap: 16px;
 }
 
+.crm-full-organization-dialog a[href*="/pdf/"],
+.crm-full-organization-dialog button[title="Сначала сохраните карточку"] {
+    display: none !important;
+}
+
 .crm-full-organization-dialog .organization-verification-card {
     margin-top: 0;
 }
