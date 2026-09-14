@@ -293,6 +293,10 @@
             normalized = normalized.trim().replace(/\s+/g, " ").toLowerCase();
             normalized = normalized ? `${normalized[0].toUpperCase()}${normalized.slice(1)}` : "";
         }
+        if (id === "id_registration_date") {
+            const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+            if (isoDate) normalized = `${isoDate[3]}.${isoDate[2]}.${isoDate[1]}`;
+        }
         if (id === "id_legal_address") normalized = normalized.toUpperCase();
         field.value = normalized;
         field.dispatchEvent(new Event("change", {bubbles: true}));
