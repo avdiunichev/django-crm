@@ -342,9 +342,22 @@
                 if (party.organization_type === "INDIVIDUAL") setOrganizationField(dialog, "id_kind", "entrepreneur");
                 const mirror = form.querySelector("[data-tax-id-mirror]");
                 if (mirror) mirror.value = taxId.value;
-                if (status) status.textContent = "Реквизиты заполнены. Проверьте их перед сохранением.";
+                const fnsStatus = dialog.querySelector("[data-fns-status]");
+                const isInactive = party.is_invalid || (party.status && party.status !== "ACTIVE");
+                if (fnsStatus) {
+                    fnsStatus.textContent = `ФНС: ${party.status_label || "Не проверен"}`;
+                    fnsStatus.classList.toggle("uk-text-success", party.status === "ACTIVE");
+                    fnsStatus.classList.toggle("uk-text-danger", Boolean(isInactive));
+                }
+                const message = isInactive
+                    ? "Проверка выполнена. Перед сохранением проверьте статус контрагента."
+                    : "Проверка выполнена: реквизиты заполнены.";
+                if (status) status.textContent = message;
+                notify(message, isInactive ? "danger" : "success");
             } catch (error) {
-                if (status) status.textContent = error.message || "Не удалось получить реквизиты.";
+                const message = error.message || "Не удалось получить реквизиты.";
+                if (status) status.textContent = message;
+                notify(message, "danger");
             } finally { button.disabled = false; }
         };
         button.addEventListener("click", fill);
