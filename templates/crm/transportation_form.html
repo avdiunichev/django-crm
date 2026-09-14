@@ -399,15 +399,34 @@ document.addEventListener("DOMContentLoaded", () => {
         if (owner?.value) url.searchParams.set("owner_organization", owner.value);
         contractCreate.href = `${url.pathname}${url.search}`;
     };
+    let executorDefaultsRequest = 0;
+    const clearExecutorTerms = () => {
+        [executorPaymentForm, executorPaymentTerm, executorPaymentDueBasis].forEach((field) => {
+            if (!field) return;
+            field.value = "";
+            field.dispatchEvent(new Event("change", {bubbles: true}));
+        });
+        const executorVatRate = document.getElementById("id_executor_vat_rate");
+        if (executorVatRate) executorVatRate.value = "";
+        delete form.dataset.executorDefaultsExecutor;
+    };
     const applyExecutorDefaults = async () => {
-        if (!executor?.value) return;
+        const executorId = executor?.value;
+        if (!executorId) {
+            clearExecutorTerms();
+            return;
+        }
+        const requestId = ++executorDefaultsRequest;
         try {
             const params = new URLSearchParams({party: "executor"});
             if (owner?.value) params.set("owner", owner.value);
-            const response = await fetch(`/api/organizations/${executor.value}/defaults/?${params}`, {headers: {"Accept": "application/json"}});
+            const response = await fetch(`/api/organizations/${executorId}/defaults/?${params}`, {headers: {"Accept": "application/json"}});
             if (!response.ok) return;
             const data = await response.json();
-            const isNewExecutor = form.dataset.executorDefaultsExecutor !== executor.value;
+            // The user may have already picked a different executor while the
+            // previous request was in flight. Do not mix their requisites.
+            if (requestId !== executorDefaultsRequest || executor?.value !== executorId) return;
+            const isNewExecutor = form.dataset.executorDefaultsExecutor !== executorId;
             replaceContactOptions(
                 executorContact,
                 data.contacts,
@@ -443,14 +462,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 executorPaymentForm.value = data.payment_form || "";
                 executorPaymentForm.dispatchEvent(new Event("change", {bubbles: true}));
             }
-            form.dataset.executorDefaultsExecutor = executor.value;
+            form.dataset.executorDefaultsExecutor = executorId;
             updateContractAction();
         } catch (error) { /* defaults are optional when the server is unavailable */ }
     };
-    executor.addEventListener("change", syncDirectCarrier);
-    executor.addEventListener("change", applyExecutorDefaults);
+    const refreshExecutor = () => {
+        syncDirectCarrier();
+        applyExecutorDefaults();
+        updateContractAction();
+    };
+    executor.addEventListener("change", refreshExecutor);
+    // Smart select controls rebuild their option list before emitting change in
+    // some browsers. This second event makes the selected executor reliable.
+    executor.addEventListener("optionschange", refreshExecutor);
     role.addEventListener("change", syncDirectCarrier);
-    executor.addEventListener("change", updateContractAction);
     role.addEventListener("change", updateContractAction);
     executorContract?.addEventListener("change", updateContractAction);
     carrier.addEventListener("change", loadResources);
