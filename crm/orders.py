@@ -84,6 +84,7 @@ def assign_order_to_transportation(order, user):
         executor_payment_due_basis=Transportation.PaymentDueBasis.DELIVERY_DATE,
         cargo_name=order.cargo_name,
         cargo_description=order.cargo_description,
+        cargo_value=order.cargo_value,
         weight_kg=order.weight_kg,
         volume_m3=order.volume_m3,
         package_count=order.package_count,

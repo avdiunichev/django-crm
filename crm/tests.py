@@ -414,6 +414,7 @@ class CrmTestCase(TestCase):
             payment_form=TransportOrder.PaymentForm.BANK_NOT_TAXABLE,
             payment_term_days=10,
             cargo_name="Сборный груз",
+            cargo_value=Decimal("125000.00"),
             weight_kg=Decimal("5000"),
             planned_start_date=date.today(),
             planned_end_date=date.today() + timedelta(days=2),
@@ -445,6 +446,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(order.status, TransportOrder.Status.ASSIGNED)
         transportation = order.transportation
         self.assertEqual(transportation.customer_amount, Decimal("90000.00"))
+        self.assertEqual(transportation.cargo_value, Decimal("125000.00"))
         self.assertEqual(transportation.stops.count(), 3)
         self.assertEqual(
             list(transportation.stops.values_list("city", flat=True)),

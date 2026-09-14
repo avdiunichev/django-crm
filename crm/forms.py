@@ -1735,7 +1735,7 @@ class TransportationDocumentForm(StyledModelForm):
             "executor_amount", "executor_prepayment", "executor_payment_form",
             "executor_vat_rate", "executor_currency", "executor_payment_term_days",
             "executor_payment_due_basis",
-            "cargo_name",
+            "cargo_name", "cargo_value",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
             "unloading_method", "temperature_regime", "adr_class", "vehicle_requirements",
@@ -1841,6 +1841,14 @@ class TransportationDocumentForm(StyledModelForm):
                 "list": "cargo-name-suggestions",
                 "autocomplete": "off",
                 "placeholder": "Начните вводить наименование груза",
+            }
+        )
+        self.fields["cargo_value"].widget = forms.TextInput(
+            attrs={
+                "class": "form-control uk-input",
+                "inputmode": "decimal",
+                "placeholder": "Не указана",
+                "data-money-input": "",
             }
         )
         self.fields["package_count"].label = "Количество мест / паллет"
