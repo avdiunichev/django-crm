@@ -1629,6 +1629,10 @@ TransportationStopFormSet = inlineformset_factory(
 class TransportationDocumentForm(StyledModelForm):
     pickup_address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
     delivery_address_meta = forms.CharField(required=False, widget=forms.HiddenInput())
+    owner_company = OrganizationChoiceField(
+        label="Наша компания",
+        queryset=Organization.objects.none(),
+    )
     client = OrganizationChoiceField(
         label="Клиент",
         queryset=Organization.objects.none(),
