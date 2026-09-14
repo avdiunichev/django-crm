@@ -534,6 +534,10 @@ class CrmTestCase(TestCase):
         )
         self.assertTrue(assignment_form.context["form"].fields["client_reference"].disabled)
         self.assertEqual(
+            dict(assignment_form.context["form"].fields["adr_class"].choices)[""],
+            "Не относится к опасным грузам",
+        )
+        self.assertEqual(
             timezone.localtime(first_stop.planned_to).time().replace(
                 second=0, microsecond=0
             ),

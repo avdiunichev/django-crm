@@ -1725,6 +1725,11 @@ class TransportationDocumentForm(StyledModelForm):
         label="Клиент",
         queryset=Organization.objects.none(),
     )
+    adr_class = forms.ChoiceField(
+        label="Класс опасности ADR",
+        choices=TransportOrder.ADRClass.choices,
+        required=False,
+    )
     source_order_number = forms.CharField(
         label="Номер заказа",
         required=False,
