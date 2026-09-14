@@ -14,8 +14,7 @@
     </select>
     {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
     <a class="uk-button uk-button-primary order-register-create" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
-    <a class="uk-button uk-button-default" href="{{ order_export_url }}">Экспорт заказов в XLSX</a>
-    <a class="uk-button uk-button-default order-export-selected" href="{{ order_export_url }}" data-order-export-selected data-export-url="{{ order_export_url }}" aria-disabled="true">Экспорт выбранных</a>
+    <a class="uk-button uk-button-default" href="{{ order_export_url }}" data-order-export data-export-url="{{ order_export_url }}">Экспорт заказов в XLSX</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">
@@ -54,23 +53,22 @@
 {% include "crm/includes/pagination.html" %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const selectedExport = document.querySelector("[data-order-export-selected]");
+    const exportButton = document.querySelector("[data-order-export]");
     const selectAll = document.querySelector("[data-order-export-toggle-all]");
     const selectors = Array.from(document.querySelectorAll("[data-order-export-select]"));
-    if (!selectedExport || !selectAll || !selectors.length) return;
+    if (!exportButton || !selectAll || !selectors.length) return;
 
     const sync = () => {
         const selected = selectors.filter((checkbox) => checkbox.checked);
         selectAll.checked = selected.length === selectors.length;
         selectAll.indeterminate = selected.length > 0 && selected.length < selectors.length;
-        selectedExport.setAttribute("aria-disabled", String(!selected.length));
-        selectedExport.textContent = selected.length
-            ? `Экспорт выбранных (${selected.length})`
-            : "Экспорт выбранных";
-        const url = new URL(selectedExport.dataset.exportUrl, window.location.origin);
+        const url = new URL(exportButton.dataset.exportUrl, window.location.origin);
         url.searchParams.delete("ids");
         selected.forEach((checkbox) => url.searchParams.append("ids", checkbox.value));
-        selectedExport.href = url.pathname + url.search;
+        exportButton.href = url.pathname + url.search;
+        exportButton.title = selected.length
+            ? `Будут выгружены выбранные заказы: ${selected.length}`
+            : "Будет выгружен весь реестр с учётом фильтров";
     };
 
     selectAll.addEventListener("change", () => {
@@ -78,9 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
         sync();
     });
     selectors.forEach((checkbox) => checkbox.addEventListener("change", sync));
-    selectedExport.addEventListener("click", (event) => {
-        if (selectedExport.getAttribute("aria-disabled") === "true") event.preventDefault();
-    });
     sync();
 });
 </script>
