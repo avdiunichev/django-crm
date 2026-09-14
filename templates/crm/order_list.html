@@ -54,6 +54,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const filterPanel = document.querySelector("[data-order-register-filters]");
+    const registerTable = document.querySelector(".order-register-table");
     const updateHeaderOffset = () => {
         if (!filterPanel) return;
         document.documentElement.style.setProperty(
@@ -67,6 +68,43 @@ document.addEventListener("DOMContentLoaded", () => {
         new ResizeObserver(updateHeaderOffset).observe(filterPanel);
     }
     window.addEventListener("resize", updateHeaderOffset, { passive: true });
+
+    if (filterPanel && registerTable && registerTable.tHead) {
+        const stickyHead = document.createElement("div");
+        stickyHead.className = "order-register-sticky-head";
+        document.body.append(stickyHead);
+
+        const syncStickyHead = () => {
+            const isDesktop = window.matchMedia("(min-width: 1181px)").matches;
+            const header = registerTable.tHead;
+            const tableBox = registerTable.getBoundingClientRect();
+            const headerBox = header.getBoundingClientRect();
+            const filterBox = filterPanel.getBoundingClientRect();
+            const top = Math.max(72, Math.round(filterBox.bottom));
+            const show = isDesktop && headerBox.top < top && tableBox.bottom > top + headerBox.height;
+
+            if (!show) {
+                stickyHead.classList.remove("is-visible");
+                return;
+            }
+
+            const widths = Array.from(header.rows[0].cells, (cell) => `${cell.getBoundingClientRect().width}px`);
+            stickyHead.style.left = `${Math.round(tableBox.left)}px`;
+            stickyHead.style.top = `${top}px`;
+            stickyHead.style.width = `${Math.round(tableBox.width)}px`;
+            stickyHead.innerHTML = `<table class="${registerTable.className} order-register-sticky-table"><colgroup>${widths.map((width) => `<col style="width:${width}">`).join("")}</colgroup>${header.outerHTML}</table>`;
+            stickyHead.classList.add("is-visible");
+        };
+
+        let stickyFrame;
+        const requestStickySync = () => {
+            window.cancelAnimationFrame(stickyFrame);
+            stickyFrame = window.requestAnimationFrame(syncStickyHead);
+        };
+        window.addEventListener("scroll", requestStickySync, { passive: true });
+        window.addEventListener("resize", requestStickySync, { passive: true });
+        requestStickySync();
+    }
 
     const exportButton = document.querySelector("[data-order-export]");
     const selectAll = document.querySelector("[data-order-export-toggle-all]");

@@ -11846,32 +11846,47 @@ body.uikit-theme {
         box-shadow: 0 12px 24px rgba(24, 39, 75, .12);
     }
 
-    /* Шапка реестра остаётся рядом с фильтрами: так при длинном списке
-       всегда понятно, к какому столбцу относятся значения. */
-    .uikit-theme .order-register-panel .table-wrap {
-        overflow: visible;
-    }
-
-    .uikit-theme .order-register-table {
-        min-width: 100%;
-    }
-
-    .uikit-theme .order-register-table thead {
-        position: sticky;
-        top: calc(72px + var(--order-register-filter-height, 90px));
-        z-index: 70;
-    }
-
-    .uikit-theme .order-register-table thead th {
-        background-color: #f7f9fc;
-    }
-
     html[data-theme="dark"] body.uikit-theme .order-register-filters[data-order-register-filters] {
         box-shadow: 0 12px 24px rgba(0, 0, 0, .28);
     }
+}
 
-    html[data-theme="dark"] body.uikit-theme .order-register-table thead th {
-        background-color: #1b283b;
+/* Закреплённая копия шапки создаётся скриптом только на широком экране.
+   Это сохраняет реальные размеры ячеек таблицы и не даёт заголовкам съехать. */
+.order-register-sticky-head {
+    display: none;
+}
+
+@media (min-width: 1181px) {
+    .order-register-sticky-head {
+        position: fixed;
+        z-index: 75;
+        display: block;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .order-register-sticky-head.is-visible {
+        visibility: visible;
+    }
+
+    .order-register-sticky-table {
+        width: 100%;
+        margin: 0;
+        table-layout: fixed;
+        background: #fff;
+    }
+
+    .order-register-sticky-table th {
+        background: #f7f9fc;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-sticky-table {
+        background: #141e2f;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .order-register-sticky-table th {
+        background: #1b283b;
     }
 }
 
