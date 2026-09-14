@@ -2548,6 +2548,11 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["drivers"][0]["id"], self.driver.pk)
+        self.assertEqual(
+            response.json()["drivers"][0]["label"],
+            "Иванов Иван · +7 900 000-00-01 · 4501 123456 · "
+            "ГУ МВД России по г. Москве · 12.05.2020",
+        )
         self.assertEqual(response.json()["vehicles"][0]["id"], self.vehicle.pk)
 
     def test_dadata_lookup_requires_login(self):

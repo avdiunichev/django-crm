@@ -967,6 +967,25 @@ class Driver(TimestampedModel):
         )
 
     @property
+    def selection_label(self):
+        """Полная подпись водителя для списков назначения в рейс."""
+        passport = " ".join(
+            part for part in (self.passport_series, self.passport_number) if part
+        )
+        parts = [self.full_name]
+        for value in (
+            self.phone,
+            passport,
+            self.passport_issued_by,
+            self.passport_issue_date.strftime("%d.%m.%Y")
+            if self.passport_issue_date
+            else "",
+        ):
+            if value:
+                parts.append(value)
+        return " · ".join(parts)
+
+    @property
     def license_is_expired(self):
         return bool(
             self.license_expiry_date

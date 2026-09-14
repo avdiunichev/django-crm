@@ -996,7 +996,7 @@ def carrier_resources(request):
     return JsonResponse(
         {
             "drivers": [
-                {"id": driver.pk, "label": driver.full_name} for driver in drivers
+                {"id": driver.pk, "label": driver.selection_label} for driver in drivers
             ],
             "vehicles": [
                 {
@@ -1034,7 +1034,7 @@ def organization_resources(request):
     return JsonResponse(
         {
             "drivers": [
-                {"id": driver.pk, "label": driver.full_name} for driver in drivers
+                {"id": driver.pk, "label": driver.selection_label} for driver in drivers
             ],
             "vehicles": [
                 {

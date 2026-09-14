@@ -277,22 +277,7 @@ class UserDisplayChoiceField(forms.ModelChoiceField):
 
 class DriverChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, driver):
-        passport = " ".join(
-            part for part in (driver.passport_series, driver.passport_number) if part
-        )
-        parts = [driver.full_name]
-        for value in (
-            driver.phone,
-            passport,
-            driver.passport_issued_by,
-            (
-                driver.passport_issue_date.strftime("%d.%m.%Y")
-                if driver.passport_issue_date else ""
-            ),
-        ):
-            if value:
-                parts.append(value)
-        return " · ".join(parts)
+        return driver.selection_label
 
 
 class CarrierChoiceField(forms.ModelChoiceField):
@@ -815,7 +800,7 @@ class TransportationChainForm(forms.Form):
         label="Фактический перевозчик",
         queryset=Organization.objects.none(),
     )
-    driver = forms.ModelChoiceField(
+    driver = DriverChoiceField(
         label="Водитель", queryset=Driver.objects.none(), required=False
     )
     vehicle = forms.ModelChoiceField(
@@ -3500,6 +3485,10 @@ class VehicleCombinationForm(StyledModelForm):
 
 
 class ShipmentForm(StyledModelForm):
+    driver = DriverChoiceField(
+        label="Водитель", queryset=Driver.objects.none(), required=False
+    )
+
     class Meta:
         model = Shipment
         fields = [
