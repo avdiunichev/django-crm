@@ -104,7 +104,7 @@
                     <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
                 </div>
             </div>
-            {% if user.is_staff %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'admin:index' %}">Админ</a>{% endif %}
+            {% if user.is_staff %}<a class="topnav-logout-button" href="{% url 'admin:index' %}">Административная панель</a>{% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="topnav-logout-button" type="submit">Выйти</button>
@@ -147,7 +147,7 @@
                         <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
                     </div>
                 </div>
-                {% if user.is_staff %}<a class="mobile-nav-admin" href="{% url 'admin:index' %}">Админ</a>{% endif %}
+                {% if user.is_staff %}<a class="topnav-logout-button mobile-nav-admin" href="{% url 'admin:index' %}">Административная панель</a>{% endif %}
                 <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="topnav-logout-button" type="submit">Выйти</button></form>
             </div>
         </div>
