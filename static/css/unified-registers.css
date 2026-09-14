@@ -237,8 +237,22 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
 .uikit-theme .driver-register-filters,
 .uikit-theme .vehicle-register-filters,
 .uikit-theme .transportation-register-filters {
-    display: grid;
     grid-template-columns: minmax(220px, 1.7fr) repeat(3, minmax(150px, 1fr)) auto auto;
+}
+
+.uikit-theme .transportation-register-filters {
+    grid-template-columns: minmax(220px, 1.7fr) repeat(3, minmax(150px, 1fr)) auto auto auto;
+}
+
+.uikit-theme .transportation-register-filters .transportation-register-create {
+    grid-column: -1;
+    justify-self: end;
+    margin-left: 0;
+    white-space: nowrap;
+}
+
+.uikit-theme .transportation-register-filters {
+    display: grid;
     align-items: end;
     gap: 12px;
     margin-bottom: 18px;
@@ -286,20 +300,6 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
     font-size: 14px;
 }
 
-.uikit-theme .transportation-register-panel .register-header-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-left: auto;
-}
-
-.uikit-theme .transportation-register-panel .register-header-actions .uk-button {
-    min-height: 40px;
-    border-radius: 0 !important;
-    white-space: nowrap;
-}
-
 .uikit-theme .driver-directory-table th,
 .uikit-theme .vehicle-directory-table th,
 .uikit-theme .transportation-register-table th {
@@ -339,14 +339,9 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
         width: 100%;
     }
 
-    .uikit-theme .transportation-register-panel .register-header-actions {
-        align-items: stretch;
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-    }
-
-    .uikit-theme .transportation-register-panel .register-header-actions .uk-button {
+    .uikit-theme .transportation-register-filters .transportation-register-create {
+        grid-column: auto;
+        justify-self: stretch;
         width: 100%;
     }
 
