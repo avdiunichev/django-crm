@@ -11913,6 +11913,12 @@ body.uikit-theme {
     gap: 13px;
 }
 
+/* Текст шапки начинается на одной вертикали с первой рабочей колонкой
+   «Заявка», а крупная иконка остаётся по центру служебной зоны выбора. */
+.uikit-theme .order-register-heading > div:last-child {
+    padding-left: 18px;
+}
+
 .uikit-theme .order-register-heading-icon {
     flex: 0 0 46px;
     width: 46px;
@@ -12024,6 +12030,12 @@ html[data-theme="dark"] body.uikit-theme .order-register-table td small {
 
 html[data-theme="dark"] body.uikit-theme .order-register-heading-icon {
     color: #8fc5ff;
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .order-register-heading > div:last-child {
+        padding-left: 0;
+    }
 }
 
 .order-status--assigned {
