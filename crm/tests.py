@@ -653,6 +653,14 @@ class CrmTestCase(TestCase):
             update_fields=["customer_amount", "cargo_name", "updated_at"]
         )
         transportation.stops.filter(sequence=1).update(city="Великий Новгород")
+        pickup = transportation.stops.get(sequence=1)
+        pickup.planned_from = timezone.make_aware(
+            datetime.combine(date.today(), time(13, 15))
+        )
+        pickup.planned_to = timezone.make_aware(
+            datetime.combine(date.today(), time(16, 45))
+        )
+        pickup.save(update_fields=["planned_from", "planned_to", "updated_at"])
 
         sync_order_from_transportation(transportation)
 
@@ -663,6 +671,10 @@ class CrmTestCase(TestCase):
             list(order.stops.values_list("city", flat=True)),
             ["Великий Новгород", "Тверь"],
         )
+        pickup_stop = order.stops.get(sequence=1)
+        self.assertEqual(pickup_stop.planned_date, date.today())
+        self.assertEqual(pickup_stop.planned_time_from, time(13, 15))
+        self.assertEqual(pickup_stop.planned_time_to, time(16, 45))
 
     def test_quick_organization_create_adds_required_role_and_legacy_record(self):
         self.client.force_login(self.user)

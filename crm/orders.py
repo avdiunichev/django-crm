@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 
 from django.db import transaction
 from django.utils import timezone
@@ -16,14 +16,14 @@ from .models import (
 )
 
 
-def _planned_datetime(route_stop, time_value=None, *, default_time=None):
+def _planned_datetime(route_stop, time_value=None):
     if not route_stop.planned_date:
         return None
-    if time_value is None and default_time is None:
+    if time_value is None:
         return None
     value = datetime.combine(
         route_stop.planned_date,
-        time_value or default_time,
+        time_value,
     )
     return timezone.make_aware(value, timezone.get_current_timezone())
 
@@ -144,9 +144,7 @@ def assign_order_to_transportation(order, user):
             address_flat=route_stop.address_flat,
             contact_name=route_stop.contact_name,
             contact_phone=route_stop.contact_phone,
-            planned_from=_planned_datetime(
-                route_stop, route_stop.planned_time_from, default_time=time(hour=9)
-            ),
+            planned_from=_planned_datetime(route_stop, route_stop.planned_time_from),
             planned_to=_planned_datetime(route_stop, route_stop.planned_time_to),
             instructions=route_stop.instructions,
         )
@@ -233,7 +231,16 @@ def sync_order_from_transportation(transportation):
     )
     stops = list(transportation.stops.order_by("sequence", "pk"))
     for sequence, stop in enumerate(stops, start=1):
-        planned_from = stop.planned_from
+        planned_from = (
+            timezone.localtime(stop.planned_from)
+            if stop.planned_from and timezone.is_aware(stop.planned_from)
+            else stop.planned_from
+        )
+        planned_to = (
+            timezone.localtime(stop.planned_to)
+            if stop.planned_to and timezone.is_aware(stop.planned_to)
+            else stop.planned_to
+        )
         TransportOrderStop.objects.create(
             order=order,
             sequence=sequence,
@@ -244,7 +251,7 @@ def sync_order_from_transportation(transportation):
             ),
             planned_date=planned_from.date() if planned_from else None,
             planned_time_from=planned_from.time() if planned_from else None,
-            planned_time_to=stop.planned_to.time() if stop.planned_to else None,
+            planned_time_to=planned_to.time() if planned_to else None,
             **{field_name: getattr(stop, field_name) for field_name in shared_stop_fields},
         )
     return order
