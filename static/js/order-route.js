@@ -7,6 +7,7 @@
         const template = form.querySelector("template[data-order-route-empty-form]");
         const totalInput = form.querySelector("input[name='route_stops-TOTAL_FORMS']");
         if (!list || !template || !totalInput) return;
+        const routeLocked = form.dataset.orderRouteLocked === "true";
         form.dataset.orderRouteReady = "true";
 
         const rows = () => Array.from(list.querySelectorAll("[data-order-route-stop]"));
@@ -38,9 +39,12 @@
             const deleteButton = row.querySelector("[data-route-delete]");
             if (deleteButton) {
                 const requiredKind = kind === "pickup" || kind === "delivery";
-                const canDelete = !deleted && (!requiredKind || activeKindCounts[kind] > 1);
+                const canDelete = !routeLocked && !deleted
+                    && (!requiredKind || activeKindCounts[kind] > 1);
                 deleteButton.disabled = !canDelete;
-                deleteButton.title = canDelete
+                deleteButton.title = routeLocked
+                    ? "Заказ назначен в рейс. Изменяйте маршрут в карточке рейса."
+                    : canDelete
                     ? "Удалить точку маршрута"
                     : "В маршруте должна остаться хотя бы одна "
                         + (kind === "delivery" ? "выгрузка" : "погрузка");
@@ -61,6 +65,7 @@
         };
 
         const add = (kind) => {
+            if (routeLocked) return;
             const index = Number.parseInt(totalInput.value, 10);
             list.insertAdjacentHTML(
                 "beforeend",

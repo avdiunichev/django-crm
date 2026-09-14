@@ -5978,6 +5978,10 @@ class TransportOrderEditMixin:
         formset = TransportOrderStopFormSet(**kwargs)
         if not form.instance.pk and data is None:
             formset.extra = 2
+        if form.instance.pk and form.instance.transportation_id:
+            for stop_form in formset.forms:
+                for field in stop_form.fields.values():
+                    field.disabled = True
         return formset
 
     def get_context_data(self, **kwargs):
@@ -6022,6 +6026,12 @@ class TransportOrderEditMixin:
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if kwargs.get("pk") else None
+        if self.object and self.object.transportation_id:
+            messages.info(
+                request,
+                "Заказ назначен в рейс. Изменяйте данные в карточке рейса.",
+            )
+            return redirect("order-update", pk=self.object.pk)
         form = self.get_form()
         stop_formset = self.get_stop_formset(form, data=request.POST)
         form_valid = form.is_valid()

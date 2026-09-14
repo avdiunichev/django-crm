@@ -556,6 +556,18 @@ class CrmTestCase(TestCase):
                 is_active=True,
             ).exists()
         )
+        locked_order_page = self.client.get(reverse("order-update", args=[order.pk]))
+        self.assertTrue(locked_order_page.context["form"].fields["rate"].disabled)
+        self.assertTrue(
+            locked_order_page.context["stop_formset"].forms[0]
+            .fields["planned_date"].disabled
+        )
+        update_attempt = self.client.post(
+            reverse("order-update", args=[order.pk]), {"rate": "1"}
+        )
+        self.assertRedirects(update_attempt, reverse("order-update", args=[order.pk]))
+        order.refresh_from_db()
+        self.assertEqual(order.rate, Decimal("90000.00"))
         detail = self.client.get(
             reverse("transportation-detail", args=[transportation.pk])
         )

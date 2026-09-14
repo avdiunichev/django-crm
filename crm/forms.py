@@ -1166,6 +1166,11 @@ class TransportOrderForm(StyledModelForm):
                             self.initial.setdefault("payment_term_days", contract.payment_term_days)
         if not self.instance.pk and not self.is_bound:
             self.initial.setdefault("temperature_regime", "Отсутствует")
+        # После назначения заказ становится частью рейса. Его редактирование
+        # выполняется в карточке рейса, чтобы данные не расходились.
+        if self.instance.pk and self.instance.transportation_id:
+            for field in self.fields.values():
+                field.disabled = True
 
     def clean(self):
         cleaned = super().clean()
