@@ -1761,6 +1761,7 @@ class CrmTestCase(TestCase):
                 "client_reference": "КЛ-2026-001",
                 "customer_contract": "",
                 "customer_amount": "60000.00",
+                "customer_payment_form": TransportOrder.PaymentForm.BANK_VAT_22,
                 "customer_vat_rate": VATRate.objects.get(code="22").pk,
                 "customer_payment_term_days": "10",
                 "pickup_city": "Санкт-Петербург",
@@ -1786,7 +1787,7 @@ class CrmTestCase(TestCase):
                 "executor_contract": executor_contract.pk,
                 "executor_instruction_number": "ИСП-001",
                 "executor_amount": "40000.00",
-                "executor_vat_rate": VATRate.objects.get(code="without_vat").pk,
+                "executor_payment_form": TransportOrder.PaymentForm.BANK_NOT_TAXABLE,
                 "executor_payment_term_days": "5",
                 "executor_currency": "RUB",
                 "executor_payment_due_basis": Transportation.PaymentDueBasis.DELIVERY_DATE,
@@ -1804,6 +1805,7 @@ class CrmTestCase(TestCase):
         transportation = Transportation.objects.get(
             client_reference="КЛ-2026-001"
         )
+        self.assertIsNotNone(transportation.executor_vat_rate_id)
         document_event = transportation.status_events.get(source="document")
         self.assertEqual(document_event.comment, "Документ создан")
         self.assertEqual(
@@ -1820,6 +1822,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(transportation.margin, Decimal("20000.00"))
         self.assertEqual(transportation.customer_vat_amount, Decimal("10819.67"))
         self.assertEqual(transportation.executor_vat_amount, Decimal("0.00"))
+        self.assertEqual(transportation.executor_vat_rate.code, "without_vat")
         self.assertEqual(transportation.vat_payable, Decimal("10819.67"))
         self.assertEqual(transportation.profit, Decimal("9180.33"))
         self.assertEqual(transportation.profit_tax_amount, Decimal("2295.08"))

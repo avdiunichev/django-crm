@@ -53,6 +53,30 @@ from .models import (
 CRM_DATE_DISPLAY_FORMAT = "%d.%m.%Y"
 CRM_DATE_INPUT_FORMATS = (CRM_DATE_DISPLAY_FORMAT, "%Y-%m-%d")
 
+
+def vat_rate_for_payment_form(payment_form):
+    """Return the active VAT rate represented by the visible payment form."""
+    rate_codes = {
+        TransportOrder.PaymentForm.BANK_VAT_0: "0",
+        TransportOrder.PaymentForm.BANK_VAT_5: "5",
+        TransportOrder.PaymentForm.BANK_VAT_7: "7",
+        TransportOrder.PaymentForm.BANK_VAT_10: "10",
+        TransportOrder.PaymentForm.BANK_VAT_18: "18",
+        TransportOrder.PaymentForm.BANK_VAT_20: "20",
+        TransportOrder.PaymentForm.BANK_VAT_22: "22",
+    }
+    if payment_form in {
+        TransportOrder.PaymentForm.BANK_NOT_TAXABLE,
+        TransportOrder.PaymentForm.CASH,
+    }:
+        return VATRate.objects.filter(is_active=True, is_without_vat=True).first()
+    rate_code = rate_codes.get(payment_form)
+    if not rate_code:
+        return None
+    return VATRate.objects.filter(
+        is_active=True, is_without_vat=False, code=rate_code
+    ).first()
+
 # Категории водительских удостоверений и пояснения из справочника категорий.
 # Коды хранятся в едином латинском формате, чтобы корректно сравнивать данные
 # из старых карточек, где визуально похожие буквы могли быть кириллицей.
@@ -2363,6 +2387,19 @@ class TransportationDocumentForm(StyledModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        # Ставка НДС скрыта в интерфейсе: её единственный понятный источник —
+        # выбранная пользователем форма оплаты. Это исключает сохранение с
+        # незаполненным служебным полем при назначении исполнителя.
+        customer_vat_rate = vat_rate_for_payment_form(
+            cleaned.get("customer_payment_form")
+        )
+        if customer_vat_rate:
+            cleaned["customer_vat_rate"] = customer_vat_rate
+        executor_vat_rate = vat_rate_for_payment_form(
+            cleaned.get("executor_payment_form")
+        )
+        if executor_vat_rate:
+            cleaned["executor_vat_rate"] = executor_vat_rate
         owner = cleaned.get("owner_company")
         client = cleaned.get("client")
         executor = cleaned.get("executor")
