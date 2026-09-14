@@ -1638,6 +1638,10 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4;
 /* На широком экране панель управления остаётся под навбаром, пока пользователь
    прокручивает форму: рабочие блоки проходят под её непрозрачным фоном. */
 @media (min-width: 1181px) {
+    .uikit-theme .onec-document-form > .order-command-footer {
+        display: none;
+    }
+
     .uikit-theme .onec-document-form > .order-command-header.uk-card {
         position: sticky;
         top: 72px;
