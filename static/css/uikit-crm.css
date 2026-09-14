@@ -6265,6 +6265,70 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Реестр заказов: данные сгруппированы по рабочей логике заявки. */
+.uikit-theme .order-register-table {
+    min-width: 1280px;
+}
+
+.uikit-theme .order-register-table th:nth-child(1),
+.uikit-theme .order-register-table td:nth-child(1) { width: 150px; }
+.uikit-theme .order-register-table th:nth-child(2),
+.uikit-theme .order-register-table td:nth-child(2) { width: 220px; }
+.uikit-theme .order-register-table th:nth-child(3),
+.uikit-theme .order-register-table td:nth-child(3) { width: 27%; max-width: 400px; }
+.uikit-theme .order-register-table th:nth-child(4),
+.uikit-theme .order-register-table td:nth-child(4) { width: 230px; }
+.uikit-theme .order-register-table th:nth-child(5),
+.uikit-theme .order-register-table td:nth-child(5) { width: 170px; }
+.uikit-theme .order-register-table th:nth-child(6),
+.uikit-theme .order-register-table td:nth-child(6) { width: 170px; }
+
+.uikit-theme .order-register-table .order-register-request small,
+.uikit-theme .order-register-table .order-register-client small,
+.uikit-theme .order-register-table .order-register-route small,
+.uikit-theme .order-register-table .order-register-cargo small,
+.uikit-theme .order-register-table .order-register-finance small,
+.uikit-theme .order-register-table .order-register-status small {
+    display: block;
+    margin-top: 3px;
+    color: #77869a;
+}
+
+.uikit-theme .order-register-table .order-register-cargo small:last-child {
+    margin-top: 7px;
+}
+
+.uikit-theme .order-register-table .order-register-finance .amount-income {
+    display: block;
+    color: #2f3846;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+.uikit-theme .order-register-table .order-register-status > strong {
+    font-weight: 600;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-request small,
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-client small,
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-route small,
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-cargo small,
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-finance small,
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-status small {
+    color: #9aa8ba;
+}
+
+html[data-theme="dark"] body.uikit-theme .order-register-table .order-register-finance .amount-income {
+    color: #eef3fa;
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .order-register-table .order-register-finance .amount-income,
+    .uikit-theme .order-register-table .order-register-finance small {
+        text-align: left !important;
+    }
+}
+
 /* Реестр контрагентов: на телефоне таблица превращается в карточки.
    Это правило намеренно находится в конце файла: десктопное min-width
    таблицы объявлено ниже первоначальных мобильных стилей. */
