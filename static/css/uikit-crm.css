@@ -639,6 +639,159 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     }
 }
 
+/* Карточка рейса повторяет рабочую композицию карточки заказа. */
+body.uikit-theme .transportation-card .transportation-command-header {
+    padding: 24px;
+    border-radius: 0 !important;
+    background: #fff !important;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .form-section-title {
+    align-items: center;
+    margin-bottom: 0;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .onec-back {
+    display: inline-grid;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid #dce4ee;
+    color: #1e87f0;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .order-command-icon {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    color: #1e87f0;
+    background: #eef6fe;
+}
+
+body.uikit-theme .transportation-card .transportation-header-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+    margin-top: 18px;
+    padding: 12px 14px;
+    border: 1px solid #cfe4fb;
+    background: #edf7ff;
+    color: #226db7;
+}
+
+body.uikit-theme .transportation-card .transportation-header-state span {
+    font-weight: 600;
+}
+
+body.uikit-theme .transportation-card .transportation-header-state small {
+    color: #4f7eae;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .transportation-commandbar {
+    margin-top: 18px;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel,
+body.uikit-theme .transportation-card .transportation-status-progress,
+body.uikit-theme .transportation-card .panel,
+body.uikit-theme .transportation-card .transportation-role-card,
+body.uikit-theme .transportation-card .driver-copy-card,
+body.uikit-theme .transportation-card .route-stop-list article,
+body.uikit-theme .transportation-card .onec-details-grid > div,
+body.uikit-theme .transportation-card .trip-finance-card,
+body.uikit-theme .transportation-card .trip-finance-flow,
+body.uikit-theme .transportation-card .trip-finance-settlements article,
+body.uikit-theme .transportation-card .transport-chain-node,
+body.uikit-theme .transportation-card .transport-route-chain .transport-chain-node,
+body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-hero,
+body.uikit-theme .transportation-card .transportation-finance-card .trip-finance-mini-grid article {
+    border-radius: 0 !important;
+}
+
+body.uikit-theme .transportation-card .transportation-summary {
+    padding: 24px;
+}
+
+body.uikit-theme .transportation-card .transportation-summary-grid {
+    margin-top: 0;
+}
+
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+    min-width: 0;
+    padding: 4px 16px 4px 0;
+    border-right: 1px solid #e1e8f0;
+}
+
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div:last-child {
+    border-right: 0;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-command-header {
+    background: #141e2f !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-command-header .onec-back {
+    border-color: #304761;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-command-header .order-command-icon {
+    color: #8fc5ff;
+    background: #203d5e;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-header-state {
+    border-color: #28547e;
+    background: #1a3551;
+    color: #b8dcff;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-header-state small {
+    color: #91bcdf;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+    border-color: #304761;
+}
+
+@media (max-width: 700px) {
+    body.uikit-theme .transportation-card .transportation-command-header,
+    body.uikit-theme .transportation-card .transportation-summary {
+        padding: 16px;
+    }
+
+    body.uikit-theme .transportation-card .transportation-command-header .form-section-title {
+        align-items: flex-start;
+    }
+
+    body.uikit-theme .transportation-card .transportation-command-header .onec-back {
+        display: none;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+        padding: 10px 0;
+        border-right: 0;
+        border-bottom: 1px solid #e1e8f0;
+    }
+
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid > div:last-child {
+        border-bottom: 0;
+    }
+
+    html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+        border-color: #304761;
+    }
+}
+
 /* Карточка рейса повторяет строгую геометрию карточки заказа.
    Логику и цветовую семантику финансов не меняем — выравниваем только оболочки. */
 body.uikit-theme .transportation-card {

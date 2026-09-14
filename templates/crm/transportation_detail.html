@@ -3,21 +3,20 @@
 {% block title %}{{ transportation.number|default:"Черновик заявки" }} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
 <div class="onec-workspace transportation-card">
-<div class="onec-titlebar transportation-titlebar">
-    <a class="onec-back" href="{% url 'transportation-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
-    <div>
-        <span class="eyebrow">Карточка документа</span>
-        <h1>{{ transportation.number|default:"Черновик без номера" }} <small>(Рейс)</small></h1>
-        <p>
-            Карточка № {{ transportation.pk }} · {{ transportation.route }} · {{ transportation.planned_start_date|date:"d.m.Y" }} → {{ transportation.planned_end_date|date:"d.m.Y" }}
-            {% if transportation.source_order %} · Основание: <a href="{{ transportation.source_order.get_absolute_url }}">заказ {{ transportation.source_order.number }}</a>{% endif %}
-        </p>
+<section class="form-section uk-card uk-card-default order-command-header transportation-command-header onec-titlebar transportation-titlebar">
+    <div class="form-section-title order-command-title">
+        <a class="onec-back" href="{% url 'transportation-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
+        <span class="order-command-icon" uk-icon="location"></span>
+        <div>
+            <h2>Рейс {{ transportation.number|default:"без номера" }}</h2>
+            <p>{{ transportation.route }} · {{ transportation.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ transportation.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}{% if transportation.source_order %} · Основание: <a href="{{ transportation.source_order.get_absolute_url }}">заказ {{ transportation.source_order.number }}</a>{% endif %}</p>
+        </div>
     </div>
-</div>
-
-<div class="onec-commandbar transportation-commandbar">
-    <span class="onec-posting-badge {% if transportation.posting_status == 'posted' %}is-posted{% endif %}">{{ transportation.get_posting_status_display }}</span>
-    <span class="badge uk-label transportation-status">{{ transportation.get_status_display }}</span>
+    <div class="transportation-header-state">
+        <span>{{ transportation.get_status_display }}</span>
+        <small>{{ transportation.get_posting_status_display }} · {% if transportation.chain_is_confirmed %}цепочка подтверждена{% else %}цепочка требует внимания{% endif %}</small>
+    </div>
+    <div class="order-command-actions onec-commandbar transportation-commandbar">
     <form method="post" action="{% url 'transportation-epd-prepare' transportation.pk %}" class="inline-form">{% csrf_token %}<button class="uk-button uk-button-default" type="submit" title="Проверить данные и сформировать черновики ЭПД"><span uk-icon="file-edit"></span> Подготовить ЭПД</button></form>
     <a class="uk-button uk-button-default" href="{% url 'transportation-executor-application' transportation.pk %}"><span uk-icon="download"></span> Заявка исполнителю DOCX</a>
     <a class="uk-button uk-button-default" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="users"></span> Назначить исполнение</a>
@@ -33,6 +32,7 @@
     {% endif %}
     <a class="uk-button uk-button-danger" href="{% url 'transportation-delete' transportation.pk %}"><span uk-icon="trash"></span> Удалить</a>
 </div>
+</section>
 
 {% if transportation.posting_status != 'posted' and posting_issues %}
 <section class="transportation-status-progress uk-card uk-card-default uk-card-body uk-margin-bottom">
@@ -57,13 +57,9 @@
 </section>
 {% endif %}
 
-<section class="transportation-summary uk-card uk-card-default uk-card-body uk-margin-bottom">
-    <div class="role-badges large">
-        <span class="uk-label">Рейс</span>
-        {% if transportation.chain_is_confirmed %}<span class="uk-label uk-label-success">Цепочка подтверждена</span>{% else %}<span class="uk-label uk-label-warning">Цепочка неполная</span>{% endif %}
-        {% if transportation.source_order %}<span class="uk-label uk-label-default">Основание: заказ {{ transportation.source_order.number }}</span>{% endif %}
-    </div>
-    <div class="uk-grid-small uk-child-width-1-2@s uk-child-width-1-5@l uk-margin-top" uk-grid>
+<section class="form-section uk-card uk-card-default transportation-summary uk-margin-bottom">
+    <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Маршрут, стороны и ключевой финансовый результат рейса</p></div></div>
+    <div class="uk-grid-small uk-child-width-1-2@s uk-child-width-1-5@l transportation-summary-grid" uk-grid>
         <div><div class="uk-text-meta">Маршрут</div><strong>{{ transportation.route }}</strong></div>
         <div><div class="uk-text-meta">Клиент</div><strong>{% if client_party %}<a href="{{ client_party.organization.get_absolute_url }}">{{ client_party.organization }}</a>{% else %}Не указан{% endif %}</strong></div>
         <div><div class="uk-text-meta">Исполнитель</div><strong>{% if execution_links.0 %}<a href="{{ execution_links.0.contractor_party.organization.get_absolute_url }}">{{ execution_links.0.contractor_party.organization }}</a>{% else %}Не выбран{% endif %}</strong></div>
@@ -72,9 +68,9 @@
     </div>
 </section>
 
-<section class="transport-chain-panel uk-card uk-card-default">
-    <div class="section-title">
-        <div><span class="eyebrow">Цепочка перевозки</span><h2>Клиент → наша компания → исполнитель → маршрут</h2></div>
+<section class="form-section uk-card uk-card-default transport-chain-panel">
+    <div class="form-section-title">
+        <span>02</span><div><h2>Цепочка перевозки</h2><p>Клиент → наша компания → исполнитель → маршрут</p></div>
         <div class="transport-chain-actions">{% if not chain_issues %}<span class="chain-state is-ok"><span uk-icon="check"></span> Цепочка подтверждена</span>{% else %}<span class="chain-state is-danger"><span uk-icon="warning"></span> Требует внимания</span>{% endif %}<a class="uk-button uk-button-default uk-button-small" href="{% url 'transportation-chain-update' transportation.pk %}"><span uk-icon="pencil"></span> Изменить цепочку</a></div>
     </div>
     <div class="transport-chain-group-title">Коммерческая цепочка</div>
