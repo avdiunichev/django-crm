@@ -27,9 +27,8 @@
             <div><h2>Назначение заказа в рейс</h2><p>Заказ {{ object.source_order.number }} · {{ object.route|default:"маршрут уточняется" }}</p></div>
         </div>
         <div class="order-command-actions transportation-form-actions">
-            <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post"><span uk-icon="check"></span> Записать и провести</button>
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
             <button class="uk-button uk-button-default" type="submit" name="action" value="save"><span uk-icon="file-edit"></span> Записать</button>
-            <button class="uk-button uk-button-default" type="submit" name="action" value="save_close">Записать и закрыть</button>
             <a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>
             <a class="uk-button uk-button-default" href="{{ object.get_absolute_url }}">Закрыть</a>
         </div>
