@@ -534,7 +534,7 @@ class CrmTestCase(TestCase):
         assignment_form = self.client.get(
             reverse("transportation-update", args=[transportation.pk])
         )
-        self.assertContains(assignment_form, "Информация по исполнителю")
+        self.assertContains(assignment_form, "Водитель и транспорт")
         self.assertContains(assignment_form, "data-order-route-form")
         self.assertContains(assignment_form, 'name="client_reference"')
         self.assertContains(assignment_form, 'name="transportation_number"')
