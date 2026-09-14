@@ -1884,6 +1884,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.transportation-executor-contract-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .transportation-primary-divider {
     height: 1px;
     margin: 20px 0;
@@ -1927,6 +1931,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .transportation-executor-contract-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .transportation-primary-document-grid > :first-child,
     .transportation-primary-document-grid > :not(:first-child),
     .transportation-primary-pair-grid > * {
@@ -1965,6 +1973,10 @@ html[data-theme="dark"] body.uikit-theme .order-cancel-alert h2 { color: #b8dcff
     }
 
     .transportation-primary-pair-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .transportation-executor-contract-grid {
         grid-template-columns: 1fr;
     }
 

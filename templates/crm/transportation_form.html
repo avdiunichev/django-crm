@@ -89,7 +89,7 @@
             {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
         </div>
-        <div class="form-grid form-grid-four">
+        <div class="form-grid transportation-executor-contract-grid">
             <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}">Создать договор</a></div>
             {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
             {{ form.executor_vat_rate.as_hidden }}{{ form.executor_instruction_number.as_hidden }}
