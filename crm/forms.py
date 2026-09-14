@@ -1935,6 +1935,22 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-money-input": "",
             }
         )
+        for field_name, placeholder in (
+            ("weight_kg", "0,00"),
+            ("volume_m3", "0,00"),
+        ):
+            self.fields[field_name].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control uk-input",
+                    "inputmode": "decimal",
+                    "placeholder": placeholder,
+                    "data-decimal-input": "",
+                }
+            )
+        self.fields["volume_m3"].required = False
+        if not self.is_bound and not self.instance.pk:
+            self.initial["weight_kg"] = ""
+            self.initial["volume_m3"] = ""
         self.fields["package_count"].label = "Количество мест"
         self.fields["package_count"].help_text = ""
         self.fields["pallet_count"].required = False
@@ -2433,6 +2449,7 @@ class TransportationDocumentForm(StyledModelForm):
         total_package_count = package_count + pallet_count
         cleaned["package_count"] = total_package_count or None
         cleaned["pallet_count"] = None
+        cleaned["volume_m3"] = cleaned.get("volume_m3") or Decimal("0")
         return cleaned
 
     @staticmethod
