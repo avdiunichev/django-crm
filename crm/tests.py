@@ -558,10 +558,18 @@ class CrmTestCase(TestCase):
         )
         locked_order_page = self.client.get(reverse("order-update", args=[order.pk]))
         self.assertTrue(locked_order_page.context["form"].fields["rate"].disabled)
+        self.assertTrue(locked_order_page.context["form"].fields["client"].disabled)
+        self.assertTrue(
+            locked_order_page.context["stop_formset"].forms[0]
+            .fields["organization"].disabled
+        )
         self.assertTrue(
             locked_order_page.context["stop_formset"].forms[0]
             .fields["planned_date"].disabled
         )
+        self.assertContains(locked_order_page, "Скачать PDF")
+        self.assertNotContains(locked_order_page, "data-order-save")
+        self.assertNotContains(locked_order_page, "data-order-assign")
         update_attempt = self.client.post(
             reverse("order-update", args=[order.pk]), {"rate": "1"}
         )

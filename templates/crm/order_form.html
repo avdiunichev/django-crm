@@ -10,16 +10,17 @@
             <div><h2>{% if object and object.pk %}Заказ № {{ object.number }}{% else %}Новый заказ{% endif %}</h2><p>{% if object and object.pk %}Редактирование и управление заказом{% else %}Заполните форму заказа{% endif %}</p></div>
         </div>
         <div class="order-command-actions">
-            <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save>Записать и закрыть</button>
-            <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay">Записать</button>
-            {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ">Скачать PDF</button>{% endif %}
-            {% if object.transportation_id %}
-                <a class="uk-button uk-button-secondary" href="{% url 'transportation-update' object.transportation_id %}">Открыть рейс</a>
+            {% if object and object.transportation_id %}
+                <a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
             {% else %}
+                <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save>Записать и закрыть</button>
+                <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay">Записать</button>
+                {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ">Скачать PDF</button>{% endif %}
                 <button class="uk-button uk-button-primary" type="submit" name="action" value="assign" disabled aria-disabled="true" title="Заполните обязательные поля, погрузку и выгрузку" data-order-assign>Назначить</button>
+                {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}">Удалить</a>{% endif %}
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
             {% endif %}
-            {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}">Удалить</a>{% endif %}
-            <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
         </div>
     </section>
 
