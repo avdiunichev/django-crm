@@ -5609,11 +5609,23 @@ class OrganizationWorkspaceMixin:
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if kwargs.get("pk") else None
         required_role = self.get_required_role()
+        request.POST = request.POST.copy()
         if required_role:
             # Запуск из заказа всегда создаёт клиента: даже если чекбокс роли
             # случайно снят в модальном окне, роль сохраняется вместе с карточкой.
-            request.POST = request.POST.copy()
             request.POST.appendlist("roles", required_role)
+        # DaData can fill BIK, bank name and correspondent account before the
+        # user enters a settlement account. Such a draft bank row must not
+        # prevent saving the counterparty itself or create an incomplete bank
+        # account record.
+        try:
+            bank_total = int(request.POST.get("bank_accounts-TOTAL_FORMS", 0))
+        except (TypeError, ValueError):
+            bank_total = 0
+        for index in range(bank_total):
+            account_key = f"bank_accounts-{index}-account_number"
+            if not request.POST.get(account_key, "").strip():
+                request.POST.setlist(f"bank_accounts-{index}-DELETE", ["on"])
         form = self.get_form()
         instance = form.instance
         bank_submitted = "bank_accounts-TOTAL_FORMS" in request.POST

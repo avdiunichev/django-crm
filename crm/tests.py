@@ -588,6 +588,38 @@ class CrmTestCase(TestCase):
         organization = Organization.objects.get(pk=response.json()["item"]["id"])
         self.assertTrue(organization.roles.filter(role="client", is_active=True).exists())
 
+    def test_full_counterparty_card_ignores_bank_draft_without_account_number(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            f"{reverse('organization-create')}?role=carrier",
+            {
+                "kind": Organization.Kind.LEGAL_ENTITY,
+                "name": 'ООО "Контрагент из рейса"',
+                "short_name": "Контрагент из рейса",
+                "tax_id": "7801234576",
+                "roles": [OrganizationRole.Role.CARRIER],
+                "is_active": "on",
+                "bank_accounts-TOTAL_FORMS": "1",
+                "bank_accounts-INITIAL_FORMS": "0",
+                "bank_accounts-MIN_NUM_FORMS": "0",
+                "bank_accounts-MAX_NUM_FORMS": "1000",
+                "bank_accounts-0-account_number": "",
+                "bank_accounts-0-bank_name": "Банк для автозаполнения",
+                "bank_accounts-0-bik": "044525176",
+                "bank_accounts-0-correspondent_account": "30101810200000000593",
+                "bank_accounts-0-currency": "RUB",
+                "bank_accounts-0-is_primary": "True",
+                "bank_accounts-0-is_active": "True",
+                "bank_accounts-0-notes": "",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        organization = Organization.objects.get(pk=response.json()["item"]["id"])
+        self.assertFalse(organization.bank_accounts.exists())
+
     def test_quick_driver_and_vehicle_create_for_selected_carrier(self):
         self.client.force_login(self.user)
         organization = self.carrier.organization
