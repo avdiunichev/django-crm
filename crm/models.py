@@ -2344,6 +2344,20 @@ class TransportOrder(TimestampedModel):
     payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка, дней", default=0
     )
+    customer_contract = models.ForeignKey(
+        Contract,
+        verbose_name="Договор с клиентом",
+        related_name="transport_orders",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    payment_due_basis = models.CharField(
+        "Основание срока оплаты",
+        max_length=30,
+        choices=Transportation.PaymentDueBasis.choices,
+        default=Transportation.PaymentDueBasis.DELIVERY_DATE,
+    )
     cargo_name = models.CharField("Наименование груза", max_length=255)
     cargo_description = models.TextField("Характеристики груза", blank=True)
     cargo_value = models.DecimalField(

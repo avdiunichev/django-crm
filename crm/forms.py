@@ -1017,6 +1017,7 @@ class TransportOrderForm(StyledModelForm):
         fields = [
             "owner_company", "client", "manager", "document_date",
             "rate", "prepayment", "currency", "payment_form", "payment_term_days",
+            "customer_contract", "payment_due_basis",
             "cargo_name", "cargo_value", "weight_kg", "volume_m3",
             "package_count", "pallet_count", "package_type",
             "temperature_regime", "adr_class", "vehicle_requirements",
@@ -1098,6 +1099,8 @@ class TransportOrderForm(StyledModelForm):
                 }
             )
         self.fields["prepayment"].required = False
+        self.fields["payment_due_basis"].required = False
+        self.fields["payment_due_basis"].label = "Основание отсрочки"
         self.fields["cargo_value"].widget = forms.TextInput(
             attrs={
                 "class": "form-control uk-input",
@@ -1118,6 +1121,7 @@ class TransportOrderForm(StyledModelForm):
                     "data-decimal-input": "",
                 }
             )
+        self.fields["volume_m3"].required = False
         if not self.is_bound and not self.instance.pk:
             self.initial["weight_kg"] = ""
             self.initial["volume_m3"] = ""
@@ -1127,6 +1131,18 @@ class TransportOrderForm(StyledModelForm):
         self.fields["payment_term_days"].widget.attrs.update(
             {"min": "0", "step": "1", "inputmode": "numeric", "placeholder": "0"}
         )
+        selected_client_id = self.data.get("client") if self.is_bound else self.instance.client_id
+        selected_owner_id = self.data.get("owner_company") if self.is_bound else self.instance.owner_company_id
+        contract_filter = Q(kind=Contract.Kind.CLIENT_FORWARDING)
+        if selected_client_id:
+            contract_filter &= Q(customer__organization_id=selected_client_id)
+        if selected_owner_id:
+            contract_filter &= Q(expeditor__organization_id=selected_owner_id)
+        if self.instance.customer_contract_id:
+            contract_filter |= Q(pk=self.instance.customer_contract_id)
+        self.fields["customer_contract"].queryset = Contract.objects.exclude(
+            status__in=[Contract.Status.TERMINATED, Contract.Status.ARCHIVED]
+        ).filter(contract_filter).distinct()
         if not self.is_bound:
             client_id = self.initial.get("client") or self.instance.client_id
             if client_id:
@@ -1135,11 +1151,18 @@ class TransportOrderForm(StyledModelForm):
                 ).filter(pk=client_id).first()
                 if client_org:
                     self.initial.setdefault("payment_term_days", client_org.payment_term_days)
+                    self.initial.setdefault("payment_due_basis", client_org.payment_term_basis)
                     self.initial.setdefault(
                         "payment_form",
                         client_org.default_payment_form
                         or TransportOrder.payment_form_for_vat_rate(client_org.default_vat_rate),
                     )
+                    contracts = self.fields["customer_contract"].queryset
+                    contract = contracts.order_by("-status", "-contract_date").first()
+                    if contract:
+                        self.initial.setdefault("customer_contract", contract.pk)
+                        if contract.payment_term_days:
+                            self.initial.setdefault("payment_term_days", contract.payment_term_days)
         if not self.instance.pk and not self.is_bound:
             self.initial.setdefault("temperature_regime", "Отсутствует")
 
@@ -1157,6 +1180,24 @@ class TransportOrderForm(StyledModelForm):
             and cleaned["prepayment"] > cleaned["rate"]
         ):
             self.add_error("prepayment", "Предоплата не может быть больше ставки.")
+        customer_contract = cleaned.get("customer_contract")
+        if customer_contract and client:
+            if (
+                customer_contract.customer_id
+                and customer_contract.customer.organization_id != client.pk
+            ):
+                self.add_error("customer_contract", "Договор должен быть заключён с выбранным клиентом.")
+            if (
+                owner
+                and customer_contract.expeditor_id
+                and customer_contract.expeditor.organization_id != owner.pk
+            ):
+                self.add_error("customer_contract", "Договор относится к другой нашей компании.")
+        cleaned["volume_m3"] = cleaned.get("volume_m3") or Decimal("0")
+        cleaned["payment_due_basis"] = (
+            cleaned.get("payment_due_basis")
+            or Transportation.PaymentDueBasis.DELIVERY_DATE
+        )
         package_count = cleaned.get("package_count") or 0
         pallet_count = cleaned.get("pallet_count") or 0
         total_package_count = package_count + pallet_count

@@ -287,7 +287,7 @@ class CrmTestCase(TestCase):
                 "cargo_name": "Пластиковая тара",
                 "cargo_value": "160000.50",
                 "weight_kg": "15000",
-                "volume_m3": "82",
+                "volume_m3": "",
                 "package_count": "33",
                 "pallet_count": "33",
                 "package_type": "",
@@ -326,6 +326,7 @@ class CrmTestCase(TestCase):
         order = TransportOrder.objects.get(cargo_name="Пластиковая тара")
         self.assertRegex(order.number, r"^ЗК-\d{4}-\d{5}$")
         self.assertEqual(order.cargo_value, Decimal("160000.50"))
+        self.assertEqual(order.volume_m3, Decimal("0"))
         self.assertEqual(order.stops.count(), 3)
         self.assertEqual(order.route, "Санкт-Петербург → Тверь → Москва")
         registry = self.client.get(reverse("order-list"))

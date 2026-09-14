@@ -67,7 +67,7 @@ def assign_order_to_transportation(order, user):
         customer_amount=order.rate,
         customer_prepayment=order.prepayment,
         customer_payment_form=order.payment_form,
-        customer_contract=Contract.objects.filter(
+        customer_contract=order.customer_contract or Contract.objects.filter(
             kind=Contract.Kind.CLIENT_FORWARDING,
             customer__organization=order.client,
             expeditor__organization=order.owner_company,
@@ -77,10 +77,7 @@ def assign_order_to_transportation(order, user):
         currency=order.currency,
         executor_currency=order.currency,
         customer_payment_term_days=order.payment_term_days,
-        payment_due_basis=(
-            order.client.payment_term_basis
-            or Transportation.PaymentDueBasis.DELIVERY_DATE
-        ),
+        payment_due_basis=order.payment_due_basis,
         executor_payment_due_basis=Transportation.PaymentDueBasis.DELIVERY_DATE,
         cargo_name=order.cargo_name,
         cargo_description=order.cargo_description,

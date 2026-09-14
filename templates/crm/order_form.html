@@ -50,6 +50,10 @@
             {% include "crm/includes/form_field.html" with field=form.payment_form %}
             {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
         </div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.customer_contract %}
+            {% include "crm/includes/form_field.html" with field=form.payment_due_basis %}
+        </div>
     </section>
 
     <section class="form-section uk-card uk-card-default">
@@ -187,6 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const owner = document.getElementById("id_owner_company");
     const term = document.getElementById("id_payment_term_days");
     const paymentForm = document.getElementById("id_payment_form");
+    const customerContract = document.getElementById("id_customer_contract");
+    const paymentDueBasis = document.getElementById("id_payment_due_basis");
     if (!form || !client) return;
     const applyDefaults = async () => {
         if (!client.value) return;
@@ -195,9 +201,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(`/api/organizations/${client.value}/defaults/${query}`, {headers: {"Accept": "application/json"}});
             if (!response.ok) return;
             const data = await response.json();
+            const isNewClient = form.dataset.clientDefaultsClient !== client.value;
+            if (customerContract && Array.isArray(data.contracts)) {
+                const selectedContract = customerContract.value;
+                customerContract.innerHTML = '<option value="">---------</option>';
+                data.contracts.forEach((contract) => customerContract.add(new Option(contract.label, contract.id)));
+                customerContract.value = String(isNewClient ? (data.contract_id || "") : selectedContract);
+                customerContract.dispatchEvent(new Event("optionschange", {bubbles: true}));
+            }
             if (term && data.payment_term_days && (form.dataset.clientDefaultsClient !== client.value || !term.value)) {
                 term.value = data.payment_term_days;
                 term.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            if (paymentDueBasis && data.payment_term_basis && (isNewClient || !paymentDueBasis.value)) {
+                paymentDueBasis.value = data.payment_term_basis;
+                paymentDueBasis.dispatchEvent(new Event("change", {bubbles: true}));
             }
             if (paymentForm && data.payment_form) {
                 paymentForm.value = data.payment_form;
