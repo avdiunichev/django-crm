@@ -53,6 +53,21 @@
 {% include "crm/includes/pagination.html" %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const filterPanel = document.querySelector("[data-order-register-filters]");
+    const updateHeaderOffset = () => {
+        if (!filterPanel) return;
+        document.documentElement.style.setProperty(
+            "--order-register-filter-height",
+            `${Math.ceil(filterPanel.getBoundingClientRect().height)}px`,
+        );
+    };
+
+    updateHeaderOffset();
+    if (filterPanel && "ResizeObserver" in window) {
+        new ResizeObserver(updateHeaderOffset).observe(filterPanel);
+    }
+    window.addEventListener("resize", updateHeaderOffset, { passive: true });
+
     const exportButton = document.querySelector("[data-order-export]");
     const selectAll = document.querySelector("[data-order-export-toggle-all]");
     const selectors = Array.from(document.querySelectorAll("[data-order-export-select]"));
