@@ -546,6 +546,10 @@ class CrmTestCase(TestCase):
         self.assertContains(assignment_form, 'name="source_order_date"')
         self.assertContains(assignment_form, 'name="client_contact"')
         self.assertContains(assignment_form, 'name="executor_contact"')
+        assignment_document_form = assignment_form.context["form"]
+        self.assertEqual(assignment_document_form.initial["executor_payment_form"], "")
+        self.assertEqual(assignment_document_form.initial["executor_payment_term_days"], "")
+        self.assertEqual(assignment_document_form.initial["executor_payment_due_basis"], "")
         self.assertContains(
             assignment_form,
             f'value="{order.number} от {order.document_date:%d.%m.%Y}"',

@@ -1960,6 +1960,14 @@ class TransportationDocumentForm(StyledModelForm):
             )
         self.fields["customer_prepayment"].required = False
         self.fields["executor_prepayment"].required = False
+        # Условия исполнителя появляются после его выбора: до этого они не
+        # должны выглядеть обязательными и не должны подставляться из модели.
+        for field_name in (
+            "executor_payment_form",
+            "executor_payment_term_days",
+            "executor_payment_due_basis",
+        ):
+            self.fields[field_name].required = False
         self.fields["customer_amount"].label = "Ставка"
         self.fields["customer_prepayment"].label = "Предоплата"
         self.fields["customer_payment_form"].label = "Форма оплаты"
@@ -2224,6 +2232,15 @@ class TransportationDocumentForm(StyledModelForm):
                 )
             else:
                 self.initial["executor_instruction_number"] = "Будет присвоен после записи"
+        elif not self.is_bound:
+            self.initial.update(
+                {
+                    "executor_payment_form": "",
+                    "executor_payment_term_days": "",
+                    "executor_payment_due_basis": "",
+                    "executor_vat_rate": "",
+                }
+            )
 
         organization_create_url = reverse("organization-create")
         driver_create_url = reverse("quick-driver-create")
@@ -2387,6 +2404,35 @@ class TransportationDocumentForm(StyledModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        executor = cleaned.get("executor")
+        if executor:
+            # Браузер обычно заполняет эти поля сразу после выбора. Это
+            # дополнительно защищает сохранение, если запрос к карточке ещё
+            # не успел завершиться.
+            if not cleaned.get("executor_payment_form"):
+                cleaned["executor_payment_form"] = (
+                    executor.default_payment_form
+                    or TransportOrder.payment_form_for_vat_rate(
+                        executor.default_vat_rate
+                    )
+                )
+            if cleaned.get("executor_payment_term_days") is None:
+                cleaned["executor_payment_term_days"] = executor.payment_term_days
+            if not cleaned.get("executor_payment_due_basis"):
+                cleaned["executor_payment_due_basis"] = executor.payment_term_basis
+        else:
+            # Значения хранятся с безопасными системными значениями, однако
+            # в новой форме они намеренно не показываются до выбора стороны.
+            cleaned["executor_payment_form"] = (
+                cleaned.get("executor_payment_form")
+                or TransportOrder.PaymentForm.BANK_VAT_22
+            )
+            if cleaned.get("executor_payment_term_days") is None:
+                cleaned["executor_payment_term_days"] = 0
+            cleaned["executor_payment_due_basis"] = (
+                cleaned.get("executor_payment_due_basis")
+                or Transportation.PaymentDueBasis.DELIVERY_DATE
+            )
         # Ставка НДС скрыта в интерфейсе: её единственный понятный источник —
         # выбранная пользователем форма оплаты. Это исключает сохранение с
         # незаполненным служебным полем при назначении исполнителя.
@@ -2402,7 +2448,6 @@ class TransportationDocumentForm(StyledModelForm):
             cleaned["executor_vat_rate"] = executor_vat_rate
         owner = cleaned.get("owner_company")
         client = cleaned.get("client")
-        executor = cleaned.get("executor")
         customer_amount = cleaned.get("customer_amount")
         customer_prepayment = cleaned.get("customer_prepayment")
         executor_amount = cleaned.get("executor_amount")
