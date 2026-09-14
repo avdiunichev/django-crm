@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "CRM • FORWARDING",
-  "short_name": "CRM • FORWARDING",
+  "name": "Моя CRM",
+  "short_name": "Моя CRM",
   "description": "CRM для работы с заказами, рейсами, документами и финансами.",
   "lang": "ru",
   "start_url": "/",

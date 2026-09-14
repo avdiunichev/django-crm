@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}CRM • FORWARDING{% endblock %}</title>
+    <title>{% block title %}Моя CRM{% endblock %}</title>
     <script>
         (() => {
             const storageKey = "crm-color-theme";
@@ -31,14 +31,14 @@
     <meta name="theme-color" content="#1e87f0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="CRM • FORWARDING">
+    <meta name="apple-mobile-web-app-title" content="Моя CRM">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
     <header class="crm-topnav uk-navbar-container uk-navbar-transparent" uk-navbar="mode: click">
         <div class="uk-navbar-left">
-            <a class="brand uk-logo" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип CRM • FORWARDING" width="28" height="28"><span><strong>CRM • FORWARDING</strong></span></a>
+            <a class="brand uk-logo" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип Моя CRM" width="28" height="28"><span><strong>Моя CRM</strong></span></a>
             <ul class="uk-navbar-nav crm-navbar">
                 <li class="{% if 'order' in request.resolver_match.url_name or request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' or 'planner' in request.resolver_match.url_name %}uk-active{% endif %}">
                     <a href="#"><span uk-icon="git-fork"></span> Операции <span uk-navbar-parent-icon></span></a>
@@ -115,7 +115,7 @@
     <aside id="crm-mobile-navigation" class="mobile-navigation-overlay" hidden data-mobile-nav>
         <div class="crm-mobile-navigation" role="dialog" aria-modal="true" aria-label="Основное меню">
             <button class="mobile-nav-close" type="button" aria-label="Закрыть меню" data-mobile-nav-close><span uk-icon="close"></span></button>
-            <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип CRM • FORWARDING" width="28" height="28"><span><strong>CRM • FORWARDING</strong><small>Управление перевозками</small></span></a>
+            <a class="brand mobile-nav-brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" alt="Логотип Моя CRM" width="28" height="28"><span><strong>Моя CRM</strong><small>Управление перевозками</small></span></a>
             <nav class="mobile-nav-list" aria-label="Основная навигация">
                 <span class="mobile-nav-group"><span uk-icon="git-fork"></span> Операции</span>
                 <a class="mobile-nav-subitem {% if 'order' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'order-list' %}">Заказы</a>

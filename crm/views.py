@@ -5357,11 +5357,11 @@ class OrganizationPDFView(LoginRequiredMixin, View):
         document = SimpleDocTemplate(
             buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
             topMargin=11 * mm, bottomMargin=12 * mm,
-            title=f"Карточка контрагента {organization}", author="CRM • FORWARDING",
+            title=f"Карточка контрагента {organization}", author="Моя CRM",
         )
         active_roles = [role.get_role_display() for role in organization.roles.all() if role.is_active]
         story = [
-            Paragraph("CRM • FORWARDING", section_style),
+            Paragraph("Моя CRM", section_style),
             Paragraph("Карточка контрагента", title_style),
             Paragraph(
                 f"Сформировано {timezone.localtime().strftime('%d.%m.%Y %H:%M')} · статус ФНС: {text(organization.get_fns_status_display())}",
@@ -5451,7 +5451,7 @@ class OrganizationPDFView(LoginRequiredMixin, View):
             canvas.saveState()
             canvas.setFont(regular_font, 7)
             canvas.setFillColor(colors.HexColor("#7b8797"))
-            canvas.drawString(12 * mm, 7 * mm, "CRM • FORWARDING · Карточка контрагента")
+            canvas.drawString(12 * mm, 7 * mm, "Моя CRM · Карточка контрагента")
             canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
             canvas.restoreState()
 
@@ -6121,10 +6121,10 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
         document = SimpleDocTemplate(
             buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
             topMargin=11 * mm, bottomMargin=12 * mm,
-            title=f"Заказ {order.number}", author="CRM • FORWARDING",
+            title=f"Заказ {order.number}", author="Моя CRM",
         )
         story = [
-            Paragraph("CRM • FORWARDING", section_style),
+            Paragraph("Моя CRM", section_style),
             Paragraph(f"Заказ № {text(order.number)}", title_style),
             Paragraph(
                 f"Дата заказа: {date_value(order.document_date)} · Статус: {text(order.get_status_display())}",
@@ -6195,7 +6195,7 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
             canvas.saveState()
             canvas.setFont(regular_font, 7)
             canvas.setFillColor(colors.HexColor("#7b8797"))
-            canvas.drawString(12 * mm, 7 * mm, "CRM • FORWARDING · Печатная форма заказа")
+            canvas.drawString(12 * mm, 7 * mm, "Моя CRM · Печатная форма заказа")
             canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
             canvas.restoreState()
 
