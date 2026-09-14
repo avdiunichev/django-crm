@@ -4,11 +4,11 @@
     const form = document.querySelector("[data-order-form]");
     const cancelButtons = document.querySelectorAll("[data-order-cancel]");
     const modal = document.querySelector("[data-order-cancel-modal]");
-    if (!form || !cancelButtons.length || !modal) return;
+    if (!form) return;
 
-    const confirmLink = modal.querySelector("[data-order-cancel-confirm]");
+    const confirmLink = modal?.querySelector("[data-order-cancel-confirm]");
     const saveButton = document.querySelector("[data-order-save]");
-    const modalSaveButton = modal.querySelector("[data-order-cancel-save]");
+    const modalSaveButton = modal?.querySelector("[data-order-cancel-save]");
     const assignButtons = form.querySelectorAll("[data-order-assign]");
     const snapshot = new Map();
     const routeDeletionSnapshot = new Map();
@@ -64,18 +64,25 @@
     };
 
     const updateAssignmentAvailability = () => {
-        const ready = form.checkValidity() && hasRequiredRoutePoints();
+        const isPersisted = form.dataset.orderPersisted === "true";
+        const ready = isPersisted && form.checkValidity() && hasRequiredRoutePoints();
         assignButtons.forEach((button) => {
             button.disabled = !ready;
             button.setAttribute("aria-disabled", String(!ready));
-            button.title = ready ? "" : "Заполните обязательные поля, погрузку и выгрузку";
+            button.title = ready ? "" : (isPersisted
+                ? "Заполните обязательные поля, погрузку и выгрузку"
+                : "Сначала запишите заказ");
         });
     };
 
-    const closeModal = () => { modal.hidden = true; };
+    const closeModal = () => { if (modal) modal.hidden = true; };
 
     const requestLeave = (url) => {
         if (isEmptyOrder() || !hasUnsavedChanges()) {
+            window.location.assign(url);
+            return;
+        }
+        if (!modal || !confirmLink) {
             window.location.assign(url);
             return;
         }
@@ -97,7 +104,7 @@
         });
     });
 
-    modal.querySelectorAll("[data-order-cancel-dismiss]").forEach((button) => button.addEventListener("click", closeModal));
+    modal?.querySelectorAll("[data-order-cancel-dismiss]").forEach((button) => button.addEventListener("click", closeModal));
     modalSaveButton?.addEventListener("click", () => {
         closeModal();
         if (form.requestSubmit && saveButton) form.requestSubmit(saveButton);

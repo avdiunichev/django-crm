@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — CRM • НОВЫЙ ПРОЕКТ{% endblock %}
 {% block content %}
-<form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form>
+<form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form data-order-persisted="{% if object and object.pk %}true{% else %}false{% endif %}">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default order-command-header">
