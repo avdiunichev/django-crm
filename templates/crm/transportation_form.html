@@ -51,7 +51,7 @@
         </div>
         <div class="form-grid order-main-client-date-grid">
             {% include "crm/includes/form_field.html" with field=form.client %}
-            {% if object and object.source_order %}{% include "crm/includes/form_field.html" with field=form.source_order_number %}{% else %}{% include "crm/includes/form_field.html" with field=form.client_reference %}{% endif %}
+            {% include "crm/includes/form_field.html" with field=form.client_reference %}
             {% include "crm/includes/form_field.html" with field=form.document_date %}
             {{ form.status.as_hidden }}
         </div>

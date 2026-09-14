@@ -527,7 +527,11 @@ class CrmTestCase(TestCase):
             reverse("transportation-update", args=[transportation.pk])
         )
         self.assertContains(assignment_form, "Информация по исполнителю")
-        self.assertContains(assignment_form, 'name="source_order_number"')
+        self.assertContains(assignment_form, 'name="client_reference"')
+        self.assertContains(
+            assignment_form,
+            f'value="{order.number} от {order.document_date:%d.%m.%Y}"',
+        )
         self.assertEqual(
             timezone.localtime(first_stop.planned_to).time().replace(
                 second=0, microsecond=0
