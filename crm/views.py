@@ -801,6 +801,10 @@ def organization_defaults(request, pk):
         or TransportOrder.payment_form_for_vat_rate(organization.default_vat_rate),
         "contract_id": None,
         "contract_label": "",
+        "contacts": [
+            {"id": contact.pk, "label": str(contact)}
+            for contact in organization.contact_people.filter(is_active=True)
+        ],
     }
     owner_id = request.GET.get("owner")
     if is_executor:

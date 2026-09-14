@@ -1745,6 +1745,22 @@ class TransportationDocumentForm(StyledModelForm):
         required=False,
         disabled=True,
     )
+    source_order_date = forms.DateField(
+        label="Дата заказа", required=False, disabled=True, widget=CRMDateInput()
+    )
+    transportation_number = forms.CharField(
+        label="Номер рейса", required=False, disabled=True
+    )
+    client_contact = forms.ModelChoiceField(
+        label="Ответственный менеджер",
+        queryset=OrganizationContact.objects.none(),
+        required=False,
+    )
+    executor_contact = forms.ModelChoiceField(
+        label="Ответственный менеджер",
+        queryset=OrganizationContact.objects.none(),
+        required=False,
+    )
     executor = OrganizationChoiceField(
         label="Исполнитель",
         queryset=Organization.objects.none(),
@@ -1828,12 +1844,13 @@ class TransportationDocumentForm(StyledModelForm):
         model = Transportation
         fields = [
             "owner_company", "manager", "document_date", "status",
-            "client", "customer_amount", "customer_prepayment", "currency",
+            "client", "client_contact", "customer_amount", "customer_prepayment", "currency",
             "customer_payment_form", "client_reference", "customer_contract",
             "customer_payment_term_days", "payment_due_basis", "customer_vat_rate",
             "executor_amount", "executor_prepayment", "executor_payment_form",
             "executor_vat_rate", "executor_currency", "executor_payment_term_days",
             "executor_payment_due_basis",
+            "executor_contact",
             "cargo_name", "cargo_value",
             "cargo_description", "weight_kg", "volume_m3", "package_count",
             "pallet_count", "package_type", "loading_method",
@@ -2004,8 +2021,12 @@ class TransportationDocumentForm(StyledModelForm):
             ).order_by("-sequence").first()
 
         source_order = getattr(self.instance, "source_order", None)
+        self.initial["transportation_number"] = (
+            self.instance.number or "Будет присвоен автоматически"
+        )
         if source_order:
             self.initial["source_order_number"] = source_order.number
+            self.initial["source_order_date"] = source_order.document_date
             # Рейс, созданный из заказа, всегда хранит ссылку на этот заказ
             # в исходном виде «№ от ДД.ММ.ГГГГ» и не позволяет её менять.
             self.fields["client_reference"].disabled = True
@@ -2016,6 +2037,28 @@ class TransportationDocumentForm(StyledModelForm):
         selected_executor_id = self.data.get("executor") if self.is_bound else (
             link.contractor_party.organization_id if link else None
         )
+        selected_client_contact_id = (
+            self.data.get("client_contact") if self.is_bound else self.instance.client_contact_id
+        )
+        selected_executor_contact_id = (
+            self.data.get("executor_contact") if self.is_bound else self.instance.executor_contact_id
+        )
+        if selected_client_id:
+            self.fields["client_contact"].queryset = OrganizationContact.objects.filter(
+                organization_id=selected_client_id, is_active=True
+            )
+        if selected_client_contact_id:
+            self.fields["client_contact"].queryset |= OrganizationContact.objects.filter(
+                pk=selected_client_contact_id
+            )
+        if selected_executor_id:
+            self.fields["executor_contact"].queryset = OrganizationContact.objects.filter(
+                organization_id=selected_executor_id, is_active=True
+            )
+        if selected_executor_contact_id:
+            self.fields["executor_contact"].queryset |= OrganizationContact.objects.filter(
+                pk=selected_executor_contact_id
+            )
         selected_owner_id = self.data.get("owner_company") if self.is_bound else self.instance.owner_company_id
         customer_contract_filter = Q(kind=Contract.Kind.CLIENT_FORWARDING)
         if selected_client_id:
@@ -2237,12 +2280,32 @@ class TransportationDocumentForm(StyledModelForm):
         self.initial.update(
             {
                 "client": client_party.organization_id if client_party else None,
+                "client_contact": (
+                    self.instance.client_contact_id
+                    or (
+                        client_party.organization.contact_people.filter(is_active=True)
+                        .order_by("-is_primary", "full_name")
+                        .values_list("pk", flat=True)
+                        .first()
+                        if client_party else None
+                    )
+                ),
                 "executor": (
                     link.contractor_party.organization_id if link else None
                 ),
                 "executor_role": (
                     link.contractor_role
                     if link else TransportationLink.ContractorRole.CARRIER
+                ),
+                "executor_contact": (
+                    self.instance.executor_contact_id
+                    or (
+                        link.contractor_party.organization.contact_people.filter(is_active=True)
+                        .order_by("-is_primary", "full_name")
+                        .values_list("pk", flat=True)
+                        .first()
+                        if link else None
+                    )
                 ),
                 "executor_contract": link.contract_id if link else None,
                 "executor_instruction_number": (
@@ -2362,6 +2425,16 @@ class TransportationDocumentForm(StyledModelForm):
                 )
         if owner and client and owner == client:
             self.add_error("client", "Наша компания не может быть клиентом этого рейса.")
+        client_contact = cleaned.get("client_contact")
+        if client_contact and client and client_contact.organization_id != client.pk:
+            self.add_error(
+                "client_contact", "Контакт должен принадлежать выбранному клиенту."
+            )
+        executor_contact = cleaned.get("executor_contact")
+        if executor_contact and executor and executor_contact.organization_id != executor.pk:
+            self.add_error(
+                "executor_contact", "Контакт должен принадлежать выбранному исполнителю."
+            )
         if (
             customer_prepayment is not None
             and customer_amount is not None

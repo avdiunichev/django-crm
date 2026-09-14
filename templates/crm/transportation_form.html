@@ -45,15 +45,27 @@
 
     <section class="form-section uk-card uk-card-default transportation-primary-section">
         <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Клиент, ответственная компания и менеджер</p></div></div>
-        <div class="form-grid">
+        <div class="form-grid form-grid-four">
             {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.transportation_number %}
+            {% include "crm/includes/form_field.html" with field=form.document_date %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
-        <div class="form-grid">
+        <div class="form-grid form-grid-four">
             {% include "crm/includes/form_field.html" with field=form.client %}
-            {% include "crm/includes/form_field.html" with field=form.client_reference %}
-            {{ form.document_date.as_hidden }}
+            {% include "crm/includes/form_field.html" with field=form.source_order_number %}
+            {% include "crm/includes/form_field.html" with field=form.source_order_date %}
+            {% include "crm/includes/form_field.html" with field=form.client_contact %}
             {{ form.status.as_hidden }}
+        </div>
+        {{ form.client_reference.as_hidden }}
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.executor %}
+            {% include "crm/includes/form_field.html" with field=form.executor_role %}
+        </div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.actual_carrier %}
+            {% include "crm/includes/form_field.html" with field=form.executor_contact %}
         </div>
     </section>
 
@@ -162,22 +174,19 @@
 
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>05</span><div><h2>Информация по исполнителю</h2><p>Условия закупки и фактическое исполнение рейса</p></div></div>
-        <div class="form-grid form-grid-five">
-            {% include "crm/includes/form_field.html" with field=form.executor %}
+        <div class="form-grid form-grid-four">
             {% include "crm/includes/form_field.html" with field=form.executor_amount %}
             {% include "crm/includes/form_field.html" with field=form.executor_prepayment %}
             {% include "crm/includes/form_field.html" with field=form.executor_currency %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_form %}
         </div>
         <div class="form-grid form-grid-four">
-            {% include "crm/includes/form_field.html" with field=form.executor_role %}
             <div class="executor-contract-field">{% include "crm/includes/form_field.html" with field=form.executor_contract %}<p class="chain-contract-hint uk-text-warning" data-executor-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-executor-contract-create hidden href="{% url 'contract-create' %}">Создать договор</a></div>
             {% include "crm/includes/form_field.html" with field=form.executor_payment_term_days %}
             {% include "crm/includes/form_field.html" with field=form.executor_payment_due_basis %}
             {{ form.executor_vat_rate.as_hidden }}{{ form.executor_instruction_number.as_hidden }}
         </div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.actual_carrier wide=True %}
             {% include "crm/includes/form_field.html" with field=form.driver %}
             {% include "crm/includes/form_field.html" with field=form.vehicle %}
             {% include "crm/includes/form_field.html" with field=form.combination wide=True %}
@@ -262,6 +271,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const customerPaymentForm = document.getElementById("id_customer_payment_form");
     const customerPaymentTerm = document.getElementById("id_customer_payment_term_days");
     const customerPaymentDueBasis = document.getElementById("id_payment_due_basis");
+    const clientContact = document.getElementById("id_client_contact");
+    const executorContact = document.getElementById("id_executor_contact");
+    const replaceContactOptions = (select, contacts, selected = "") => {
+        if (!select) return;
+        select.innerHTML = '<option value="">---------</option>';
+        (contacts || []).forEach((contact) => select.add(new Option(contact.label, contact.id)));
+        select.value = String(selected || "");
+        select.dispatchEvent(new Event("optionschange", {bubbles: true}));
+    };
     const applyClientDefaults = async () => {
         if (!client?.value) return;
         try {
@@ -270,6 +288,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) return;
             const data = await response.json();
             const isNewClient = form.dataset.clientDefaultsClient !== client.value;
+            replaceContactOptions(
+                clientContact,
+                data.contacts,
+                isNewClient ? (data.contacts?.[0]?.id || "") : clientContact?.value,
+            );
             if (customerContract && Array.isArray(data.contracts)) {
                 const selectedContract = customerContract.value;
                 customerContract.innerHTML = '<option value="">---------</option>';
@@ -381,6 +404,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) return;
             const data = await response.json();
             const isNewExecutor = form.dataset.executorDefaultsExecutor !== executor.value;
+            replaceContactOptions(
+                executorContact,
+                data.contacts,
+                isNewExecutor ? (data.contacts?.[0]?.id || "") : executorContact?.value,
+            );
             if (executorContract && Array.isArray(data.contracts)) {
                 const selectedContract = executorContract.value;
                 executorContract.innerHTML = '<option value="">---------</option>';

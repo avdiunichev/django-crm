@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from .models import (
     Contract,
+    OrganizationContact,
     TransportOrder,
     TransportOrderStop,
     Transportation,
@@ -60,6 +61,9 @@ def assign_order_to_transportation(order, user):
         owner_company=order.owner_company,
         manager=order.manager,
         document_date=order.document_date,
+        client_contact=OrganizationContact.objects.filter(
+            organization=order.client, is_active=True
+        ).order_by("-is_primary", "full_name").first(),
         status=Transportation.Status.EXECUTOR_SELECTED,
         client_reference=(
             f"{order.number} от {order.document_date.strftime('%d.%m.%Y')}"

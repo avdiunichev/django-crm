@@ -1751,6 +1751,22 @@ class Transportation(TimestampedModel):
     client_reference = models.CharField(
         "Номер поручения клиента", max_length=100, blank=True
     )
+    client_contact = models.ForeignKey(
+        OrganizationContact,
+        verbose_name="Ответственный менеджер клиента",
+        related_name="client_contact_transportations",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    executor_contact = models.ForeignKey(
+        OrganizationContact,
+        verbose_name="Ответственный менеджер исполнителя",
+        related_name="executor_contact_transportations",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     customer_contract = models.ForeignKey(
         Contract,
         verbose_name="Договор с клиентом",

@@ -496,8 +496,13 @@ class CrmTestCase(TestCase):
                 planned_date=date.today() + timedelta(days=sequence - 1),
                 planned_time_from=time_from,
                 planned_time_to=time_to,
-            )
+        )
         self.client.force_login(self.user)
+        client_contact = OrganizationContact.objects.create(
+            organization=self.customer.organization,
+            full_name="Мария Клиентова",
+            is_primary=True,
+        )
 
         response = self.client.post(reverse("order-assign", args=[order.pk]))
 
@@ -508,6 +513,7 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(order.status, TransportOrder.Status.ASSIGNED)
         transportation = order.transportation
+        self.assertEqual(transportation.client_contact, client_contact)
         self.assertEqual(transportation.customer_amount, Decimal("90000.00"))
         self.assertEqual(transportation.cargo_value, Decimal("125000.00"))
         self.assertEqual(transportation.stops.count(), 3)
@@ -529,6 +535,11 @@ class CrmTestCase(TestCase):
         self.assertContains(assignment_form, "Информация по исполнителю")
         self.assertContains(assignment_form, "data-order-route-form")
         self.assertContains(assignment_form, 'name="client_reference"')
+        self.assertContains(assignment_form, 'name="transportation_number"')
+        self.assertContains(assignment_form, 'name="source_order_number"')
+        self.assertContains(assignment_form, 'name="source_order_date"')
+        self.assertContains(assignment_form, 'name="client_contact"')
+        self.assertContains(assignment_form, 'name="executor_contact"')
         self.assertContains(
             assignment_form,
             f'value="{order.number} от {order.document_date:%d.%m.%Y}"',
