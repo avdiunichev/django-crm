@@ -1910,7 +1910,7 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["customer_amount"].label = "Ставка"
         self.fields["customer_prepayment"].label = "Предоплата"
         self.fields["customer_payment_form"].label = "Форма оплаты"
-        self.fields["client_reference"].label = "Номер заказа клиента"
+        self.fields["client_reference"].label = "Номер и дата заказа клиента"
         self.fields["payment_due_basis"].label = "Основание отсрочки"
         self.fields["executor_amount"].label = "Ставка исполнителя"
         self.fields["executor_prepayment"].label = "Предоплата исполнителю"
