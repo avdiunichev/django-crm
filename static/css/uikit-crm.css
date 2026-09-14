@@ -11747,6 +11747,55 @@ body.uikit-theme {
     line-height: 1.35;
 }
 
+/* Первый столбец занят выбором строк, поэтому сохраняем ширины рабочих данных. */
+.uikit-theme .order-register-table th:nth-child(2),
+.uikit-theme .order-register-table td:nth-child(2) { width: 150px; }
+.uikit-theme .order-register-table th:nth-child(3),
+.uikit-theme .order-register-table td:nth-child(3) { width: 240px; }
+.uikit-theme .order-register-table th:nth-child(4),
+.uikit-theme .order-register-table td:nth-child(4) {
+    width: 30%;
+    max-width: 420px;
+    white-space: normal !important;
+}
+.uikit-theme .order-register-table th:nth-child(5),
+.uikit-theme .order-register-table td:nth-child(5) { width: 230px; }
+.uikit-theme .order-register-table th:nth-child(6),
+.uikit-theme .order-register-table td:nth-child(6) { width: 160px; }
+.uikit-theme .order-register-table th:nth-child(7),
+.uikit-theme .order-register-table td:nth-child(7) { width: 170px; }
+
+.uikit-theme .order-register-table .order-register-select {
+    width: 42px !important;
+    text-align: center;
+}
+
+.uikit-theme .order-register-table .order-register-select input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #1e87f0;
+}
+
+.uikit-theme .order-export-selected[aria-disabled="true"] {
+    opacity: .45;
+    pointer-events: none;
+}
+
+@media (max-width: 720px) {
+    .uikit-theme .order-register-table td.order-register-select {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100% !important;
+        padding: 0 0 8px;
+    }
+
+    .uikit-theme .order-register-table td.order-register-select::before {
+        display: none;
+    }
+}
+
 .order-status {
     display: inline-flex;
     align-items: center;

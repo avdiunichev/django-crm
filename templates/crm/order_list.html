@@ -15,6 +15,7 @@
     {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
     <a class="uk-button uk-button-primary order-register-create" href="{% url 'order-create' %}"><span uk-icon="plus"></span> Создать заказ</a>
     <a class="uk-button uk-button-default" href="{{ order_export_url }}">Экспорт заказов в XLSX</a>
+    <a class="uk-button uk-button-default order-export-selected" href="{{ order_export_url }}" data-order-export-selected data-export-url="{{ order_export_url }}" aria-disabled="true">Экспорт выбранных</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">
@@ -23,6 +24,7 @@
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table" data-server-sort="true">
             <thead>
                 <tr>
+                    <th class="order-register-select"><input type="checkbox" aria-label="Выбрать все заказы" data-order-export-toggle-all></th>
                     <th><a class="server-sort-link {% if sort_columns.number.active %}is-active{% endif %}" href="{{ sort_columns.number.url }}">Заявка {% if sort_columns.number.active %}<span>{{ sort_columns.number.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.client.active %}is-active{% endif %}" href="{{ sort_columns.client.url }}">Клиент {% if sort_columns.client.active %}<span>{{ sort_columns.client.label }}</span>{% endif %}</a></th>
                     <th><a class="server-sort-link {% if sort_columns.route.active %}is-active{% endif %}" href="{{ sort_columns.route.url }}">Маршрут {% if sort_columns.route.active %}<span>{{ sort_columns.route.label }}</span>{% endif %}</a></th>
@@ -34,6 +36,7 @@
             <tbody>
             {% for order in orders %}
                 <tr>
+                    <td data-label="" class="order-register-select"><input type="checkbox" value="{{ order.pk }}" aria-label="Выбрать заказ {{ order.number }}" data-order-export-select></td>
                     <td data-label="Заявка" class="order-register-request"><a class="primary-link" href="{{ order.get_absolute_url }}">{{ order.number }}</a><small>{{ order.document_date|date:"d.m.Y" }}</small><small>{{ order.manager.get_full_name|default:order.manager.username }}</small></td>
                     <td data-label="Клиент" class="order-register-client"><strong>{{ order.client }}</strong>{% if order.client.tax_id %}<small>ИНН {{ order.client.tax_id }}</small>{% endif %}</td>
                     <td data-label="Маршрут" class="order-register-route"><div class="route-compact" title="{{ order.route }}">{{ order.route }}</div><small>{{ order.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ order.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
@@ -42,11 +45,43 @@
                     <td data-label="Исполнение" class="order-register-status"><strong>{{ order.get_status_display }}</strong>{% if order.transportation_id %}<small><a href="{{ order.transportation.get_absolute_url }}">Рейс {{ order.transportation.number|default:"черновик" }}</a></small>{% else %}<small>Рейс ещё не создан</small>{% endif %}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="6" class="empty-state">Заказов пока нет. Создайте первый заказ клиента.</td></tr>
+                <tr><td colspan="7" class="empty-state">Заказов пока нет. Создайте первый заказ клиента.</td></tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
 {% include "crm/includes/pagination.html" %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const selectedExport = document.querySelector("[data-order-export-selected]");
+    const selectAll = document.querySelector("[data-order-export-toggle-all]");
+    const selectors = Array.from(document.querySelectorAll("[data-order-export-select]"));
+    if (!selectedExport || !selectAll || !selectors.length) return;
+
+    const sync = () => {
+        const selected = selectors.filter((checkbox) => checkbox.checked);
+        selectAll.checked = selected.length === selectors.length;
+        selectAll.indeterminate = selected.length > 0 && selected.length < selectors.length;
+        selectedExport.setAttribute("aria-disabled", String(!selected.length));
+        selectedExport.textContent = selected.length
+            ? `Экспорт выбранных (${selected.length})`
+            : "Экспорт выбранных";
+        const url = new URL(selectedExport.dataset.exportUrl, window.location.origin);
+        url.searchParams.delete("ids");
+        selected.forEach((checkbox) => url.searchParams.append("ids", checkbox.value));
+        selectedExport.href = url.pathname + url.search;
+    };
+
+    selectAll.addEventListener("change", () => {
+        selectors.forEach((checkbox) => { checkbox.checked = selectAll.checked; });
+        sync();
+    });
+    selectors.forEach((checkbox) => checkbox.addEventListener("change", sync));
+    selectedExport.addEventListener("click", (event) => {
+        if (selectedExport.getAttribute("aria-disabled") === "true") event.preventDefault();
+    });
+    sync();
+});
+</script>
 {% endblock %}

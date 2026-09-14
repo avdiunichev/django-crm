@@ -391,9 +391,18 @@ class CrmTestCase(TestCase):
             city="Тверь",
             address="Тверь, ул. Экспортная, 2",
         )
+        not_selected = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization,
+            manager=self.user,
+            document_date=date.today(),
+            cargo_name="Не выбран для экспорта",
+            rate=Decimal("100.00"),
+            weight_kg=Decimal("1"),
+        )
 
         response = self.client.get(
-            reverse("order-export"), {"q": "Экспортируемый"}
+            reverse("order-export"), {"ids": str(order.pk)}
         )
 
         self.assertEqual(response.status_code, 200)
@@ -408,6 +417,7 @@ class CrmTestCase(TestCase):
         self.assertIn("Заказы", workbook)
         self.assertIn(order.number, sheet)
         self.assertIn("Экспортируемый груз", sheet)
+        self.assertNotIn(not_selected.number, sheet)
 
     def test_order_stop_filters_parties_and_keeps_unregistered_name_on_order(self):
         OrganizationRole.objects.create(

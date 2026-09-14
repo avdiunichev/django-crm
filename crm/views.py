@@ -5912,13 +5912,21 @@ class TransportOrderExportView(LoginRequiredMixin, TransportOrderQueryMixin, Vie
     """Download the filtered order register as an XLSX workbook."""
 
     def get(self, request, *args, **kwargs):
+        selected_ids = [
+            int(value)
+            for value in request.GET.getlist("ids")
+            if value.isdigit()
+        ]
+        orders = self.get_queryset()
+        if selected_ids:
+            orders = orders.filter(pk__in=selected_ids)
         rows = [[
             "Номер заказа", "Дата", "Статус", "Наша компания", "Клиент", "ИНН клиента",
             "Маршрут", "Груз", "Вес, кг", "Объём, м³", "Количество мест",
             "Упаковка", "Стоимость груза", "Ставка", "Валюта", "Форма оплаты",
             "НДС", "Рейс",
         ]]
-        for order in self.get_queryset():
+        for order in orders:
             rows.append([
                 order.number,
                 order.document_date,
