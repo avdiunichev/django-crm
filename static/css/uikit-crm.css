@@ -6495,6 +6495,13 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     }
 }
 
+/* На телефоне навигация открывается как полноценный экран, а не боковая панель. */
+@media (max-width: 700px) {
+    .uikit-theme .crm-mobile-navigation {
+        width: 100vw;
+    }
+}
+
 /* Реестр документов использует ту же строгую геометрию, что и реестр заказов. */
 .uikit-theme .document-register-filters {
     margin-bottom: 18px;
