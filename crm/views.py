@@ -796,6 +796,7 @@ def organization_defaults(request, pk):
         "vat_rate_id": organization.default_vat_rate_id,
         "vat_rate_label": str(organization.default_vat_rate) if organization.default_vat_rate_id else "",
         "payment_term_days": organization.payment_term_days,
+        "payment_term_basis": organization.payment_term_basis,
         "payment_form": organization.default_payment_form
         or TransportOrder.payment_form_for_vat_rate(organization.default_vat_rate),
         "contract_id": None,

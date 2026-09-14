@@ -77,7 +77,10 @@ def assign_order_to_transportation(order, user):
         currency=order.currency,
         executor_currency=order.currency,
         customer_payment_term_days=order.payment_term_days,
-        payment_due_basis=Transportation.PaymentDueBasis.DELIVERY_DATE,
+        payment_due_basis=(
+            order.client.payment_term_basis
+            or Transportation.PaymentDueBasis.DELIVERY_DATE
+        ),
         executor_payment_due_basis=Transportation.PaymentDueBasis.DELIVERY_DATE,
         cargo_name=order.cargo_name,
         cargo_description=order.cargo_description,

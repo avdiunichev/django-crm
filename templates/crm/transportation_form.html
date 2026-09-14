@@ -250,6 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const customerVatRate = document.getElementById("id_customer_vat_rate");
     const customerPaymentForm = document.getElementById("id_customer_payment_form");
     const customerPaymentTerm = document.getElementById("id_customer_payment_term_days");
+    const customerPaymentDueBasis = document.getElementById("id_payment_due_basis");
     const applyClientDefaults = async () => {
         if (!client?.value) return;
         try {
@@ -273,6 +274,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 customerPaymentTerm.value = data.payment_term_days;
                 customerPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
             }
+            if (customerPaymentDueBasis && data.payment_term_basis && (isNewClient || !customerPaymentDueBasis.value)) {
+                customerPaymentDueBasis.value = data.payment_term_basis;
+                customerPaymentDueBasis.dispatchEvent(new Event("change", {bubbles: true}));
+            }
             if (customerPaymentForm && data.payment_form && (isNewClient || !customerPaymentForm.value)) {
                 customerPaymentForm.value = data.payment_form;
                 customerPaymentForm.dispatchEvent(new Event("change", {bubbles: true}));
@@ -291,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const executorContract = document.getElementById("id_executor_contract");
     const executorPaymentForm = document.getElementById("id_executor_payment_form");
     const executorPaymentTerm = document.getElementById("id_executor_payment_term_days");
+    const executorPaymentDueBasis = document.getElementById("id_executor_payment_due_basis");
     const contractCreate = form.querySelector("[data-executor-contract-create]");
     const contractHint = form.querySelector("[data-executor-contract-hint]");
     const selects = {
@@ -379,6 +385,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (executorPaymentTerm && data.payment_term_days && (isNewExecutor || !executorPaymentTerm.value)) {
                 executorPaymentTerm.value = data.payment_term_days;
                 executorPaymentTerm.dispatchEvent(new Event("input", {bubbles: true}));
+            }
+            if (executorPaymentDueBasis && data.payment_term_basis && (isNewExecutor || !executorPaymentDueBasis.value)) {
+                executorPaymentDueBasis.value = data.payment_term_basis;
+                executorPaymentDueBasis.dispatchEvent(new Event("change", {bubbles: true}));
             }
             if (executorPaymentForm && data.payment_form && (isNewExecutor || !executorPaymentForm.value)) {
                 executorPaymentForm.value = data.payment_form;
