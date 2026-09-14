@@ -28,7 +28,7 @@
         </div>
         <div id="inn-duplicate-warning" class="uk-alert-danger onec-inn-warning" uk-alert {% if not form.duplicate_organization %}hidden{% endif %}>
             <span data-inn-duplicate-text>Контрагент с таким ИНН уже существует.</span>
-            <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">Открыть карточку{% if form.duplicate_organization %} {{ form.duplicate_organization }}{% endif %}</a>
+            <a data-inn-duplicate-link href="{% if form.duplicate_organization %}{{ form.duplicate_organization.get_absolute_url }}{% else %}#{% endif %}">{% if form.duplicate_organization %}{{ form.duplicate_organization }}{% endif %}</a>
         </div>
         <div class="organization-command-footer">
             <div class="organization-command-inn">
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const showDuplicate = (organization) => {
         duplicateText.textContent = "Контрагент с таким ИНН уже существует.";
         duplicateLink.href = organization.url;
-        duplicateLink.textContent = `Открыть карточку ${organization.name}`;
+        duplicateLink.textContent = organization.name;
         duplicateWarning.hidden = false;
         submitButtons.forEach((button) => { button.disabled = true; });
     };
