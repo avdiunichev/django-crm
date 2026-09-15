@@ -1,0 +1,63 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Новый проект — организация и сопровождение грузовых перевозок.">
+    <title>Новый проект — логистика и экспедирование</title>
+    <link rel="icon" href="{% static 'img/favicon.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/company-landing.css' %}?v=20260915-company-home">
+</head>
+<body class="company-landing">
+    <header class="company-header">
+        <a class="company-brand" href="{% url 'company-landing' %}" aria-label="Новый проект — главная">
+            <img src="{% static 'img/newproject-logo.png' %}" alt="Логотип Новый проект" width="44" height="44">
+            <span>НОВЫЙ ПРОЕКТ</span>
+        </a>
+        <a class="company-login-link" href="{% url 'login' %}?next={% url 'dashboard' %}">Войти в CRM</a>
+    </header>
+
+    <main>
+        <section class="company-hero">
+            <div class="company-hero-copy">
+                <p class="company-eyebrow">Логистика и экспедирование</p>
+                <h1>Перевозки, в&nbsp;которых всё под контролем.</h1>
+                <p class="company-lead">Организуем грузовые перевозки и сопровождаем каждый этап: от заявки до закрывающих документов.</p>
+                <div class="company-hero-actions">
+                    <a class="company-button company-button-primary" href="{% url 'login' %}?next={% url 'dashboard' %}">Войти в CRM</a>
+                    <a class="company-button company-button-secondary" href="#services">Наши возможности</a>
+                </div>
+            </div>
+            <div class="company-hero-card" aria-label="Этапы работы">
+                <span class="company-card-label">Как работаем</span>
+                <ol>
+                    <li><span>01</span> Получаем и уточняем заявку</li>
+                    <li><span>02</span> Подбираем транспорт и исполнителя</li>
+                    <li><span>03</span> Контролируем рейс и документы</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="company-services" id="services">
+            <div>
+                <p class="company-eyebrow">О компании</p>
+                <h2>Единая команда для вашей логистики</h2>
+            </div>
+            <div class="company-service-grid">
+                <article><span>01</span><h3>Организация перевозок</h3><p>Подбираем маршрут, транспорт и условия под конкретный груз.</p></article>
+                <article><span>02</span><h3>Контроль исполнения</h3><p>Держим в фокусе сроки, водителя, транспорт и движение груза.</p></article>
+                <article><span>03</span><h3>Документы и расчёты</h3><p>Собираем документы и ведём взаиморасчёты в одном процессе.</p></article>
+            </div>
+        </section>
+
+        <section class="company-cta">
+            <div><p class="company-eyebrow">Для сотрудников</p><h2>Рабочая система уже ждёт вас.</h2></div>
+            <a class="company-button company-button-primary" href="{% url 'login' %}?next={% url 'dashboard' %}">Войти в CRM</a>
+        </section>
+    </main>
+
+    <footer class="company-footer"><span>© {% now "Y" %} Новый проект</span><a href="{% url 'login' %}?next={% url 'dashboard' %}">Вход в систему</a></footer>
+</body>
+</html>

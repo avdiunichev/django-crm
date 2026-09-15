@@ -1537,6 +1537,12 @@ class ChatMessageAttachmentView(LoginRequiredMixin, View):
         )
 
 
+class CompanyLandingView(TemplateView):
+    """Public company page shown before entering the private CRM."""
+
+    template_name = "crm/company_landing.html"
+
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "crm/dashboard.html"
 

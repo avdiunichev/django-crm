@@ -56,7 +56,8 @@ urlpatterns = [
         views.organization_defaults,
         name="organization-defaults",
     ),
-    path("", views.DashboardView.as_view(), name="dashboard"),
+    path("", views.CompanyLandingView.as_view(), name="company-landing"),
+    path("crm/", views.DashboardView.as_view(), name="dashboard"),
     path("chat/", views.ChatView.as_view(), name="chat"),
     path("chat/start/", views.ChatStartView.as_view(), name="chat-start"),
     path(
