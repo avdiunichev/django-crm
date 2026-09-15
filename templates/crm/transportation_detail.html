@@ -8,13 +8,13 @@
         <a class="onec-back" href="{% url 'transportation-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
         <span class="order-command-icon" uk-icon="location"></span>
         <div>
-            <h2>Рейс {{ transportation.number|default:"без номера" }}</h2>
+            <h2>Рейс № {{ transportation.number|default:"Черновик" }}</h2>
             <p>{{ transportation.route }} · {{ transportation.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ transportation.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}{% if transportation.source_order %} · Основание: <a href="{{ transportation.source_order.get_absolute_url }}">заказ {{ transportation.source_order.number }}</a>{% endif %}</p>
+            <div class="transportation-header-state">
+                <span>{{ transportation.get_status_display }}</span>
+                <small>{{ transportation.get_posting_status_display }} · {% if transportation.chain_is_confirmed %}цепочка подтверждена{% else %}цепочка требует внимания{% endif %}</small>
+            </div>
         </div>
-    </div>
-    <div class="transportation-header-state">
-        <span>{{ transportation.get_status_display }}</span>
-        <small>{{ transportation.get_posting_status_display }} · {% if transportation.chain_is_confirmed %}цепочка подтверждена{% else %}цепочка требует внимания{% endif %}</small>
     </div>
     <div class="order-command-actions onec-commandbar transportation-commandbar">
     <a class="uk-button uk-button-default" href="{% url 'transportation-executor-application' transportation.pk %}"><span uk-icon="download"></span> Заявка исполнителю DOCX</a>

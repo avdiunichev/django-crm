@@ -893,6 +893,118 @@ body.uikit-theme .transportation-card .transportation-tabs > * > a {
     border-radius: 0 !important;
 }
 
+/* Просмотр рейса: единая строгая карточка вместо набора разрозненных панелей. */
+body.uikit-theme .transportation-card {
+    display: grid;
+    gap: 18px;
+}
+
+body.uikit-theme .transportation-card > .form-section,
+body.uikit-theme .transportation-card > .transportation-status-progress,
+body.uikit-theme .transportation-card > .transportation-tabs,
+body.uikit-theme .transportation-card > .onec-switcher {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 !important;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .order-command-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .transportation-header-state {
+    width: max-content;
+    max-width: 100%;
+    margin: 12px 0 0;
+}
+
+body.uikit-theme .transportation-card .transportation-command-header .transportation-commandbar {
+    flex: 0 0 auto;
+    max-width: 56%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel,
+body.uikit-theme .transportation-card .transportation-status-progress,
+body.uikit-theme .transportation-card .onec-switcher > li > .panel {
+    padding: 24px;
+    border: 1px solid #e1e8f0;
+    box-shadow: none;
+}
+
+body.uikit-theme .transportation-card .transportation-summary > .form-section-title,
+body.uikit-theme .transportation-card .transport-chain-panel > .form-section-title {
+    margin: 0 0 20px;
+    padding-bottom: 17px;
+    border-bottom: 1px solid #e1e8f0;
+}
+
+body.uikit-theme .transportation-card .transportation-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+}
+
+body.uikit-theme .transportation-card .transportation-summary-grid > div {
+    min-width: 0;
+    padding: 4px 16px;
+    border-right: 1px solid #e1e8f0;
+}
+
+body.uikit-theme .transportation-card .transportation-summary-grid > div:first-child { padding-left: 0; }
+body.uikit-theme .transportation-card .transportation-summary-grid > div:last-child { padding-right: 0; border-right: 0; }
+body.uikit-theme .transportation-card .transportation-summary-grid strong { display: block; margin-top: 6px; overflow-wrap: anywhere; }
+
+body.uikit-theme .transportation-card .transport-chain-panel > .form-section-title {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 13px;
+}
+
+body.uikit-theme .transportation-card .transport-chain-panel > .form-section-title > div:nth-child(2) { min-width: 0; }
+body.uikit-theme .transportation-card .transport-chain-actions { justify-self: end; }
+
+body.uikit-theme .transportation-card .transportation-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+@media (max-width: 1100px) {
+    body.uikit-theme .transportation-card .transportation-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 0; }
+    body.uikit-theme .transportation-card .transportation-summary-grid > div:nth-child(odd) { padding-left: 0; }
+    body.uikit-theme .transportation-card .transportation-summary-grid > div:nth-child(even) { border-right: 0; }
+}
+
+@media (max-width: 700px) {
+    body.uikit-theme .transportation-card { gap: 14px; }
+    body.uikit-theme .transportation-card .transportation-command-header { display: block; padding: 16px; }
+    body.uikit-theme .transportation-card .transportation-command-header .transportation-commandbar { max-width: none; margin-top: 16px; }
+    body.uikit-theme .transportation-card .transportation-summary,
+    body.uikit-theme .transportation-card .transport-chain-panel,
+    body.uikit-theme .transportation-card .transportation-status-progress,
+    body.uikit-theme .transportation-card .onec-switcher > li > .panel { padding: 16px; }
+    body.uikit-theme .transportation-card .transportation-summary-grid { grid-template-columns: 1fr; gap: 0; }
+    body.uikit-theme .transportation-card .transportation-summary-grid > div { padding: 11px 0; border-right: 0; border-bottom: 1px solid #e1e8f0; }
+    body.uikit-theme .transportation-card .transportation-summary-grid > div:last-child { border-bottom: 0; }
+    body.uikit-theme .transportation-card .transport-chain-panel > .form-section-title { grid-template-columns: 34px minmax(0, 1fr); align-items: start; }
+    body.uikit-theme .transportation-card .transport-chain-actions { grid-column: 1 / -1; justify-self: stretch; margin-top: 12px; }
+}
+
 body.uikit-theme .transportation-card .uk-table,
 body.uikit-theme .transportation-card .table-wrap {
     border-radius: 0 !important;
