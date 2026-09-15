@@ -6865,8 +6865,8 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 }
 
 .crm-driver-dialog [data-driver-form] .driver-command-icon svg {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
 }
 
 /* Полоса прокрутки не отвлекает, но колесо, трекпад и жесты продолжают работать. */
