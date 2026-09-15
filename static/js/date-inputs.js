@@ -111,7 +111,10 @@
             previous.addEventListener("mousedown", (event) => event.preventDefault());
             previous.addEventListener("click", () => { viewDate = new Date(year, month - 1, 1); render(); });
             const title = document.createElement("strong");
-            title.textContent = monthTitle.format(viewDate).replace(/^./, (letter) => letter.toUpperCase());
+            title.textContent = monthTitle
+                .format(viewDate)
+                .replace(/\sг\.$/, " год")
+                .replace(/^./, (letter) => letter.toUpperCase());
             const next = document.createElement("button");
             next.type = "button";
             next.className = "crm-date-nav";
