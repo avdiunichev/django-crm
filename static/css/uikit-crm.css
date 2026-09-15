@@ -6823,6 +6823,14 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 
 .crm-driver-dialog [data-driver-form] .driver-command-panel {
     top: 0 !important;
+    width: calc(100% + 56px);
+    margin: -28px -28px 0;
+    padding: 14px 28px;
+    border-top: 0;
+    border-right: 0;
+    border-left: 0;
+    background: #f0f3f7;
+    box-shadow: 0 10px 22px rgba(24, 39, 75, .10);
 }
 
 /* Полоса прокрутки не отвлекает, но колесо, трекпад и жесты продолжают работать. */
@@ -6837,6 +6845,11 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 
 html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-panel {
     background: rgba(20, 30, 47, .98);
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-driver-dialog [data-driver-form] .driver-command-panel {
+    background: #172235;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, .28);
 }
 
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */
@@ -10938,6 +10951,12 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 @media (max-width: 720px) {
     .driver-form-page.crm-driver-dialog {
         padding: 18px;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-command-panel {
+        width: calc(100% + 36px);
+        margin: -18px -18px 0;
+        padding: 12px 18px;
     }
 }
 
