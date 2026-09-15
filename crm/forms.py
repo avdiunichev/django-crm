@@ -3088,7 +3088,6 @@ class DriverForm(StyledModelForm):
         label="ИНН",
         max_length=20,
         required=False,
-        help_text="ИНН физического лица — 12 цифр.",
     )
     class Meta:
         model = Driver
@@ -3153,8 +3152,9 @@ class DriverForm(StyledModelForm):
         )
         self.fields["phone"].required = False
         self.fields["tax_id"].widget.attrs.update(
-            {"inputmode": "numeric", "placeholder": "12 цифр", "maxlength": "12"}
+            {"inputmode": "numeric", "placeholder": "ИНН физического лица", "maxlength": "12"}
         )
+        self.fields["tax_id"].help_text = ""
         self.fields["license_number"].widget.attrs.update(
             {"placeholder": "00 00 000000"}
         )

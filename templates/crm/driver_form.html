@@ -21,7 +21,10 @@
 
     <section class="driver-modal-titlebar">
         <span class="driver-command-icon" uk-icon="user"></span>
-        <h1>Новый водитель</h1>
+        <div>
+            <h1>Новый водитель</h1>
+            <p>Заполните данные о водителе.</p>
+        </div>
     </section>
 
     <section class="form-section">
@@ -30,7 +33,6 @@
             {% include "crm/includes/form_field.html" with field=form.full_name wide=True %}
             {% include "crm/includes/form_field.html" with field=form.birth_date %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}
-            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
     </section>
 
@@ -178,6 +180,7 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add><span uk-icon="plus"></span> Добавить перевозчика</button>
         <div class="form-grid driver-status-grid">
             {% include "crm/includes/form_field.html" with field=form.is_active %}
+            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
     </section>
 

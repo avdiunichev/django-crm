@@ -6830,7 +6830,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     margin: 0 -28px 18px;
     padding: 22px 28px 14px;
     border: 0;
-    background: #f3f5f8;
+    background: #fff;
     box-shadow: none;
 }
 
@@ -6851,10 +6851,17 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     line-height: 1.2;
 }
 
+.crm-driver-dialog [data-driver-form] .driver-modal-titlebar p {
+    margin: 3px 0 0;
+    color: #7b8794;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
 .crm-driver-dialog [data-driver-form] .driver-command-icon {
     display: inline-flex;
     flex: 0 0 auto;
-    color: #1e87f0;
+    color: #d10000;
 }
 
 .crm-driver-dialog [data-driver-form] .driver-command-icon svg {
@@ -6877,12 +6884,16 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-pane
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-driver-dialog [data-driver-form] .driver-command-panel {
-    background: #152033;
+    background: #111b2c;
     box-shadow: none;
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-driver-dialog [data-driver-form] .driver-modal-titlebar h1 {
     color: #eef3fa;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-driver-dialog [data-driver-form] .driver-modal-titlebar p {
+    color: #aeb8c8;
 }
 
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */
