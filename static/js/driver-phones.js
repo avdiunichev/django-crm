@@ -10,6 +10,16 @@
         form.dataset.driverPhonesReady = "true";
 
         const rows = () => Array.from(list.querySelectorAll("[data-driver-phone-form]")).filter((row) => !row.hidden);
+        const updateRemoveState = () => {
+            const activeRows = rows();
+            activeRows.forEach((row) => {
+                const remove = row.querySelector("[data-driver-phone-remove]");
+                const disabled = activeRows.length <= 1;
+                if (!remove) return;
+                remove.classList.toggle("is-disabled", disabled);
+                remove.setAttribute("aria-disabled", disabled ? "true" : "false");
+            });
+        };
         const choosePrimary = (selected) => {
             rows().forEach((row) => {
                 const radio = row.querySelector("[data-driver-phone-primary]");
@@ -19,6 +29,7 @@
                 if (value) value.value = selectedRow ? "on" : "";
                 row.classList.toggle("is-current", selectedRow);
             });
+            updateRemoveState();
         };
         const ensurePrimary = () => {
             const current = rows().find((row) => row.querySelector("[data-driver-phone-primary]")?.checked);
@@ -33,11 +44,16 @@
             const remove = event.target.closest("[data-driver-phone-remove]");
             if (!remove) return;
             event.preventDefault();
+            if (remove.getAttribute("aria-disabled") === "true" || rows().length <= 1) {
+                updateRemoveState();
+                return;
+            }
             const row = remove.closest("[data-driver-phone-form]");
             const deleted = row?.querySelector("input[name$='-DELETE']");
             if (deleted) deleted.checked = true;
             if (row) row.hidden = true;
             ensurePrimary();
+            updateRemoveState();
         });
         form.querySelector("[data-driver-phone-add]")?.addEventListener("click", () => {
             const index = Number.parseInt(totalInput.value, 10);
@@ -48,9 +64,11 @@
             if (!rows().some((row) => row.querySelector("[data-driver-phone-primary]")?.checked)) {
                 choosePrimary(added.querySelector("[data-driver-phone-primary]"));
             }
+            updateRemoveState();
             added?.querySelector("input[name$='-phone']")?.focus();
         });
         ensurePrimary();
+        updateRemoveState();
     };
 
     const enhanceWithin = (root = document) => {

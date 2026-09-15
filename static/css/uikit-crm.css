@@ -3679,7 +3679,7 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     top: 50%;
     right: 12px;
     content: "DaData";
-    color: #287fdb;
+    color: #d10000;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: .04em;
@@ -3905,7 +3905,7 @@ html[data-theme="dark"] body.uikit-theme .organization-command-header .onec-inn-
     position: absolute;
     right: 10px;
     bottom: 11px;
-    color: #287fdb;
+    color: #d10000;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: .04em;
@@ -9339,7 +9339,7 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     top: 50%;
     right: 11px;
     content: "DaData";
-    color: #438dd1;
+    color: #d10000;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: .04em;
@@ -10903,20 +10903,18 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 
 [data-driver-form] .driver-phone-list {
     display: grid;
-    gap: 10px;
+    gap: 12px;
     padding: 16px;
 }
 
 [data-driver-form] .driver-phone-card {
-    padding: 12px 14px;
-    border: 1px solid #d6d6d6;
-    border-left: 4px solid #aeb7c4;
-    background: #fff;
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
 [data-driver-form] .driver-phone-card.is-current {
-    border-left-color: #1e87f0;
-    background: #f6fbff;
+    background: transparent;
 }
 
 [data-driver-form] .driver-phone-card input[name$="-DELETE"] {
@@ -10925,7 +10923,7 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 
 [data-driver-form] .driver-phone-card-row {
     display: grid;
-    grid-template-columns: minmax(240px, 1fr) auto auto;
+    grid-template-columns: minmax(260px, .5fr) auto auto minmax(0, 1fr);
     align-items: end;
     gap: 14px;
 }
@@ -10939,7 +10937,38 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     white-space: nowrap;
 }
 
-[data-driver-form] .driver-phone-card .organization-bank-remove-text {
+[data-driver-form] .driver-phone-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    margin: 0 0 10px;
+    padding: 0 14px;
+    border: 1px solid #d10000;
+    color: #d10000;
+    background: transparent;
+    font-size: 13px;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+[data-driver-form] .driver-phone-remove:hover,
+[data-driver-form] .driver-phone-remove:focus {
+    color: #a80000;
+    border-color: #a80000;
+    background: transparent;
+    text-decoration: none;
+}
+
+[data-driver-form] .driver-phone-remove.is-disabled,
+[data-driver-form] .driver-phone-remove[aria-disabled="true"] {
+    border-color: #d7dce3;
+    color: #a9b2bf;
+    pointer-events: none;
+}
+
+[data-driver-form] .driver-phone-card .driver-phone-remove {
     margin-bottom: 10px;
 }
 
@@ -10962,7 +10991,7 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     }
 
     [data-driver-form] .driver-phone-primary,
-    [data-driver-form] .driver-phone-card .organization-bank-remove-text {
+    [data-driver-form] .driver-phone-card .driver-phone-remove {
         margin: 0;
     }
 }
