@@ -6829,9 +6829,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     width: calc(100% + 56px);
     margin: 0 -28px 18px;
     padding: 14px 28px;
-    border-top: 0;
-    border-right: 0;
-    border-left: 0;
+    border: 0;
     background: #f0f3f7;
     box-shadow: 0 10px 22px rgba(24, 39, 75, .10);
 }
