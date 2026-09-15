@@ -49,6 +49,17 @@
         };
         const choose = (suggestion) => {
             input.value = suggestion.value;
+            const targets = {
+                surname: input.dataset.dadataSurnameTarget,
+                name: input.dataset.dadataNameTarget,
+                patronymic: input.dataset.dadataPatronymicTarget
+            };
+            Object.entries(targets).forEach(([key, id]) => {
+                const target = id ? document.getElementById(id) : null;
+                if (!target) return;
+                target.value = suggestion[key] || "";
+                target.dispatchEvent(new Event("change", {bubbles: true}));
+            });
             close();
             input.dispatchEvent(new Event("change", {bubbles: true}));
             input.focus();

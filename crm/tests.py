@@ -807,8 +807,7 @@ class CrmTestCase(TestCase):
         driver_response = self.client.post(
             f"{reverse('quick-driver-create')}?organization={organization.pk}",
             {
-                "last_name": "Петров",
-                "first_name": "Пётр",
+                "full_name": "Петров Пётр Петрович",
                 "phone": "+7 900 111-22-33",
                 "license_number": "QUICK-DRIVER",
                 "license_categories": "C, CE",
@@ -2920,10 +2919,12 @@ class CrmTestCase(TestCase):
         form = response.context["form"]
         for field_name in ("email", "address", "medical_certificate_expiry"):
             self.assertNotIn(field_name, form.fields)
+        self.assertIn("full_name", form.fields)
+        self.assertEqual(form.fields["full_name"].widget.attrs["data-dadata-driver"], "fio")
+        self.assertEqual(form.fields["full_name"].widget.attrs["data-dadata-part"], "FULL")
+        self.assertContains(response, 'name="full_name"')
         for field_name in ("last_name", "first_name", "middle_name"):
-            self.assertEqual(
-                form.fields[field_name].widget.attrs["data-dadata-driver"], "fio"
-            )
+            self.assertEqual(form.fields[field_name].widget.input_type, "hidden")
         passport_form = response.context["passport_formset"].forms[0]
         self.assertEqual(
             passport_form.fields["issued_by"].widget.attrs["data-dadata-driver"],
@@ -2951,8 +2952,7 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("driver-create"),
             {
-                "last_name": "Сидоров",
-                "first_name": "Семён",
+                "full_name": "Сидоров Семён Сергеевич",
                 "phone": "+7 900 333-44-55",
                 "tax_id": "7812 3456 7890",
                 "is_active": "on",
@@ -3030,8 +3030,7 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("driver-create"),
             {
-                "last_name": "Безправов",
-                "first_name": "Павел",
+                "full_name": "Безправов Павел",
                 "phone": "+7 900 444-55-66",
                 "tax_id": "",
                 "is_active": "on",
@@ -3065,7 +3064,7 @@ class CrmTestCase(TestCase):
         listing = self.client.get(reverse("driver-list"), {"q": "Безправов"})
         self.assertContains(listing, "Внесите ВУ")
         detail = self.client.get(driver.get_absolute_url())
-        self.assertContains(detail, "Внесите ВУ")
+        self.assertContains(detail, "Водительские удостоверения не добавлены.")
 
     def test_driver_passport_history_keeps_one_current_and_syncs_legacy_fields(self):
         first = DriverPassport.objects.create(
@@ -3170,8 +3169,7 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("driver-update", args=[self.driver.pk]),
             {
-                "last_name": self.driver.last_name,
-                "first_name": self.driver.first_name,
+                "full_name": self.driver.full_name,
                 "phone": self.driver.phone,
                 "tax_id": "",
                 "is_active": "on",

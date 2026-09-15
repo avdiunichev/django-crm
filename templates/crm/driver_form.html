@@ -53,11 +53,9 @@
     </section>
 
     <section class="form-section">
-        <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет фамилию, имя и отчество во время ввода.</p></div></div>
+        <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет ФИО во время ввода.</p></div></div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.last_name %}
-            {% include "crm/includes/form_field.html" with field=form.first_name %}
-            {% include "crm/includes/form_field.html" with field=form.middle_name %}
+            {% include "crm/includes/form_field.html" with field=form.full_name wide=True %}
             {% include "crm/includes/form_field.html" with field=form.phone %}
             {% include "crm/includes/form_field.html" with field=form.birth_date %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}

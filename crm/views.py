@@ -888,7 +888,7 @@ def dadata_fio_suggestions(request):
     part = request.GET.get("part", "").upper()
     if len(query) < 2:
         return JsonResponse({"suggestions": []})
-    if len(query) > 300 or part not in {"SURNAME", "NAME", "PATRONYMIC"}:
+    if len(query) > 300 or part not in {"FULL", "SURNAME", "NAME", "PATRONYMIC"}:
         return JsonResponse({"error": "Некорректный запрос ФИО."}, status=400)
     try:
         suggestions = suggest_person_names(query, part=part, count=10)

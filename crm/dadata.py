@@ -234,10 +234,10 @@ def find_bank_by_bik(bik):
 
 
 def suggest_person_names(query, part, count=10):
-    """Return granular surname, name or patronymic suggestions."""
+    """Return full-name or granular person name suggestions."""
 
     part = str(part or "").upper()
-    if part not in {"SURNAME", "NAME", "PATRONYMIC"}:
+    if part not in {"FULL", "SURNAME", "NAME", "PATRONYMIC"}:
         raise ValueError("Unsupported FIO part")
     query = " ".join(str(query or "").split())
     digest = hashlib.sha256(f"{part}:{query.casefold()}".encode("utf-8")).hexdigest()
@@ -251,7 +251,9 @@ def suggest_person_names(query, part, count=10):
         {
             "query": query,
             "count": max(1, min(int(count), 20)),
-            "parts": [part],
+            "parts": ["SURNAME", "NAME", "PATRONYMIC"]
+            if part == "FULL"
+            else [part],
         },
     )
     suggestions = []

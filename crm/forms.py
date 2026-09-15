@@ -3039,6 +3039,11 @@ class DriverForm(StyledModelForm):
         label="Основная компания",
         queryset=Carrier.objects.none(),
     )
+    full_name = forms.CharField(
+        label="ФИО",
+        max_length=300,
+        help_text="Введите фамилию, имя и отчество одной строкой.",
+    )
     tax_id = forms.CharField(
         label="ИНН",
         max_length=20,
@@ -3048,12 +3053,15 @@ class DriverForm(StyledModelForm):
     class Meta:
         model = Driver
         fields = [
-            "carrier", "last_name", "first_name", "middle_name", "phone",
+            "carrier", "full_name", "last_name", "first_name", "middle_name", "phone",
             "birth_date", "tax_id", "license_number",
             "license_categories", "license_issue_date",
             "license_expiry_date", "notes", "is_active",
         ]
         widgets = {
+            "last_name": forms.HiddenInput(),
+            "first_name": forms.HiddenInput(),
+            "middle_name": forms.HiddenInput(),
             "birth_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             "license_issue_date": forms.DateInput(
                 format="%Y-%m-%d", attrs={"type": "date"}
@@ -3083,19 +3091,23 @@ class DriverForm(StyledModelForm):
                 self.fields[field_name].required = False
                 self.fields[field_name].widget = forms.HiddenInput()
         fio_url = reverse("dadata-fio-suggestions")
-        for field_name, part in (
-            ("last_name", "SURNAME"),
-            ("first_name", "NAME"),
-            ("middle_name", "PATRONYMIC"),
-        ):
-            self.fields[field_name].widget.attrs.update(
-                {
-                    "autocomplete": "off",
-                    "data-dadata-driver": "fio",
-                    "data-dadata-url": fio_url,
-                    "data-dadata-part": part,
-                }
-            )
+        self.fields["full_name"].initial = self.initial.get("full_name") or (
+            self.instance.full_name if self.instance.pk else ""
+        )
+        self.fields["full_name"].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-driver": "fio",
+                "data-dadata-url": fio_url,
+                "data-dadata-part": "FULL",
+                "data-dadata-surname-target": "id_last_name",
+                "data-dadata-name-target": "id_first_name",
+                "data-dadata-patronymic-target": "id_middle_name",
+                "placeholder": "Иванов Иван Иванович",
+            }
+        )
+        for field_name in ("last_name", "first_name", "middle_name"):
+            self.fields[field_name].required = False
         self.fields["phone"].widget.attrs.update(
             {"autocomplete": "tel", "inputmode": "tel", "placeholder": "+7 900 000-00-00"}
         )
@@ -3108,6 +3120,14 @@ class DriverForm(StyledModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        full_name = " ".join((cleaned.get("full_name") or "").split())
+        parts = full_name.split()
+        if len(parts) < 2:
+            self.add_error("full_name", "Укажите минимум фамилию и имя.")
+        else:
+            cleaned["last_name"] = parts[0][:100]
+            cleaned["first_name"] = parts[1][:100]
+            cleaned["middle_name"] = " ".join(parts[2:])[:100] if len(parts) > 2 else ""
         issued = cleaned.get("license_issue_date") if not self.register_mode else None
         expires = cleaned.get("license_expiry_date") if not self.register_mode else None
         if issued and expires and expires < issued:
