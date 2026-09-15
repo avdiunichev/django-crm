@@ -11925,7 +11925,19 @@ body.uikit-theme {
 }
 
 .uikit-theme .order-register-filters .order-register-create {
-    margin-left: auto;
+    margin-left: 0;
+}
+
+.uikit-theme .order-register-filter-spacer,
+.uikit-theme .transportation-filter-spacer {
+    flex: 1 1 auto;
+}
+
+/* Фильтры всегда составляют одну компактную группу слева. */
+.uikit-theme .transportation-register-filters > .uk-input,
+.uikit-theme .transportation-register-filters > .uk-select {
+    flex: 0 0 auto;
+    margin-left: 0 !important;
 }
 
 /* На широком экране фильтры реестра остаются под главным навбаром. */
@@ -11985,6 +11997,9 @@ body.uikit-theme {
     .uikit-theme .order-register-filters .order-register-create {
         margin-left: 0;
     }
+
+    .uikit-theme .order-register-filter-spacer,
+    .uikit-theme .transportation-filter-spacer { display: none; }
 }
 
 .uikit-theme .order-register-filters .crm-smart-dropdown,
