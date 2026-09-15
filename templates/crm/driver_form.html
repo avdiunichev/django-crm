@@ -36,7 +36,7 @@
         </div>
     </section>
 
-    <section class="form-section">
+    <section class="form-section driver-phone-section">
         <div class="form-section-title"><div><h2>Контактный телефон</h2><p>Укажите один основной номер для документов и назначения в рейс.</p></div></div>
         {{ phone_formset.management_form }}
         {% if phone_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ phone_formset.non_form_errors }}</div>{% endif %}

@@ -10901,20 +10901,29 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     padding: 0 0 4px;
 }
 
-[data-driver-form] .driver-phone-list {
-    display: grid;
-    gap: 12px;
-    padding: 16px;
-}
-
-[data-driver-form] .driver-phone-card {
+body.uikit-theme [data-driver-form] .driver-phone-section.form-section {
     padding: 0;
     border: 0;
     background: transparent;
+    box-shadow: none;
 }
 
-[data-driver-form] .driver-phone-card.is-current {
+[data-driver-form] .driver-phone-section .form-section-title {
+    padding: 0 0 17px;
+}
+
+[data-driver-form] .driver-phone-list {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+}
+
+body.uikit-theme [data-driver-form] .driver-phone-card,
+body.uikit-theme [data-driver-form] .driver-phone-card.is-current {
+    padding: 0;
+    border: 0;
     background: transparent;
+    box-shadow: none;
 }
 
 [data-driver-form] .driver-phone-card input[name$="-DELETE"] {
