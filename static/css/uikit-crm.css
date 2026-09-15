@@ -11944,6 +11944,18 @@ body.uikit-theme {
     justify-content: flex-start !important;
 }
 
+@media (min-width: 721px) {
+    .uikit-theme .transportation-register-filters > .search {
+        width: 356px;
+        min-width: 356px;
+    }
+
+    .uikit-theme .transportation-register-filters > .uk-select {
+        width: 242px;
+        min-width: 242px;
+    }
+}
+
 /* На широком экране фильтры реестра остаются под главным навбаром. */
 @media (min-width: 1181px) {
     .uikit-theme .order-register-filters[data-order-register-filters] {
