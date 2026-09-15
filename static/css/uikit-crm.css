@@ -11945,6 +11945,14 @@ body.uikit-theme {
 }
 
 @media (min-width: 721px) {
+    .uikit-theme .transportation-register-filters {
+        display: grid !important;
+        grid-template-columns: 356px 242px 242px minmax(0, 1fr) max-content max-content;
+        align-items: center;
+        column-gap: 12px;
+        row-gap: 12px;
+    }
+
     .uikit-theme .transportation-register-filters > .search {
         width: 356px;
         min-width: 356px;
@@ -11953,6 +11961,19 @@ body.uikit-theme {
     .uikit-theme .transportation-register-filters > .uk-select {
         width: 242px;
         min-width: 242px;
+    }
+
+    .uikit-theme .transportation-register-filters > .transportation-filter-spacer {
+        grid-column: 4;
+    }
+
+    .uikit-theme .transportation-register-filters > .clear-link {
+        grid-column: 4;
+        justify-self: start;
+    }
+
+    .uikit-theme .transportation-register-filters:has(.clear-link) > .transportation-filter-spacer {
+        display: none;
     }
 }
 
