@@ -1,38 +1,38 @@
-:root { color-scheme: light; }
+:root { color-scheme: light; --np-red: #d10000; --np-red-dark: #a90000; --np-graphite: #2f2f2f; --np-surface: #f5f5f7; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body.company-landing { margin: 0; min-width: 320px; background: #f5f7fb; color: #172338; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body.company-landing { margin: 0; min-width: 320px; background: var(--np-surface); color: var(--np-graphite); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 .company-header { width: min(1240px, calc(100% - 64px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .company-brand { display: inline-flex; align-items: center; gap: 13px; color: inherit; font-weight: 750; letter-spacing: .04em; text-decoration: none; }
 .company-brand img { width: 36px; height: 36px; object-fit: contain; }
 .company-login-link { color: #1677ee; font-weight: 650; text-decoration: none; }
 .company-login-link:hover { color: #075dc7; }
-.company-hero { width: min(1240px, calc(100% - 64px)); min-height: 552px; margin: 0 auto 56px; padding: 76px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .75fr); align-items: center; gap: 64px; overflow: hidden; position: relative; background: #0d1b30; color: #fff; }
-.company-hero::after { content: ""; position: absolute; width: 520px; height: 520px; right: -170px; top: -250px; border: 1px solid rgba(92, 160, 255, .28); transform: rotate(28deg); box-shadow: 0 0 0 90px rgba(48, 125, 230, .07), 0 0 0 180px rgba(48, 125, 230, .05); }
+.company-hero { width: min(1240px, calc(100% - 64px)); min-height: 552px; margin: 0 auto 56px; padding: 76px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .75fr); align-items: center; gap: 64px; overflow: hidden; position: relative; background: var(--np-graphite); color: #fff; }
+.company-hero::after { content: ""; position: absolute; width: 520px; height: 520px; right: -170px; top: -250px; border: 1px solid rgba(209, 0, 0, .38); transform: rotate(28deg); box-shadow: 0 0 0 90px rgba(209, 0, 0, .08), 0 0 0 180px rgba(209, 0, 0, .05); }
 .company-hero-copy, .company-hero-card { position: relative; z-index: 1; }
-.company-eyebrow { margin: 0 0 16px; color: #2187ff; font-size: 12px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+.company-eyebrow { margin: 0 0 16px; color: var(--np-red); font-size: 12px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
 .company-hero h1, .company-services h2, .company-cta h2 { margin: 0; font-weight: 700; letter-spacing: -.035em; }
 .company-hero h1 { max-width: 740px; font-size: clamp(40px, 5vw, 68px); line-height: 1.04; }
 .company-lead { max-width: 630px; margin: 26px 0 0; color: #b9c7da; font-size: 20px; line-height: 1.55; }
 .company-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
 .company-button { min-height: 48px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; text-decoration: none; transition: background .16s ease, color .16s ease, border-color .16s ease; }
-.company-button-primary { background: #2388f4; color: #fff; border: 1px solid #2388f4; }
-.company-button-primary:hover { background: #0874df; border-color: #0874df; color: #fff; }
-.company-button-secondary { border: 1px solid rgba(216, 231, 250, .42); color: #eef5ff; }
-.company-button-secondary:hover { border-color: #77b8fc; color: #fff; }
+.company-button-primary { background: var(--np-red); color: #fff; border: 1px solid var(--np-red); }
+.company-button-primary:hover { background: var(--np-red-dark); border-color: var(--np-red-dark); color: #fff; }
+.company-button-secondary { border: 1px solid rgba(255, 255, 255, .42); color: #fff; }
+.company-button-secondary:hover { border-color: #fff; color: #fff; }
 .company-hero-card { padding: 30px; border: 1px solid rgba(150, 190, 237, .28); background: rgba(19, 42, 70, .66); backdrop-filter: blur(6px); }
 .company-card-label { color: #8ca5c3; font-size: 13px; }
 .company-hero-card ol { padding: 0; margin: 20px 0 0; list-style: none; }
 .company-hero-card li { padding: 17px 0; border-top: 1px solid rgba(169, 195, 225, .19); color: #e8f0fb; font-size: 15px; line-height: 1.35; }
-.company-hero-card li span { display: inline-block; width: 36px; color: #3f9cff; font-size: 12px; font-weight: 750; letter-spacing: .08em; }
+.company-hero-card li span { display: inline-block; width: 36px; color: #ff5757; font-size: 12px; font-weight: 750; letter-spacing: .08em; }
 .company-services { width: min(1240px, calc(100% - 64px)); margin: 0 auto 72px; display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.7fr); gap: 64px; }
 .company-services h2, .company-cta h2 { font-size: clamp(30px, 3vw, 44px); line-height: 1.1; }
 .company-service-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #dce4ee; border-left: 1px solid #dce4ee; }
 .company-service-grid article { min-height: 224px; padding: 28px; border-right: 1px solid #dce4ee; border-bottom: 1px solid #dce4ee; background: #fff; }
-.company-service-grid span { color: #2288f3; font-size: 13px; font-weight: 750; letter-spacing: .1em; }
+.company-service-grid span { color: var(--np-red); font-size: 13px; font-weight: 750; letter-spacing: .1em; }
 .company-service-grid h3 { margin: 38px 0 10px; font-size: 17px; line-height: 1.25; }
 .company-service-grid p { margin: 0; color: #66768b; font-size: 14px; line-height: 1.55; }
-.company-cta { width: min(1240px, calc(100% - 64px)); margin: 0 auto 34px; padding: 42px 52px; display: flex; justify-content: space-between; align-items: center; gap: 28px; background: #e7f2ff; }
+.company-cta { width: min(1240px, calc(100% - 64px)); margin: 0 auto 34px; padding: 42px 52px; display: flex; justify-content: space-between; align-items: center; gap: 28px; border-left: 4px solid var(--np-red); background: #fff; }
 .company-cta .company-button { flex: 0 0 auto; }
 .company-footer { width: min(1240px, calc(100% - 64px)); margin: 0 auto; min-height: 76px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #dce4ee; color: #718096; font-size: 13px; }
 .company-footer a { color: #4c6079; text-decoration: none; }

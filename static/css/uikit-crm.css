@@ -6793,6 +6793,61 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Фирменная система «НОВЫЙ ПРОЕКТ»: нейтральная рабочая база и красный акцент логотипа. */
+body.uikit-theme {
+    --np-red: #d10000;
+    --np-red-dark: #a90000;
+    --np-graphite: #2f2f2f;
+    --np-steel: #687280;
+    --np-line: #e5e7eb;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--np-graphite);
+}
+
+body.uikit-theme .uk-button-primary,
+body.uikit-theme .btn-primary {
+    border-color: var(--np-red) !important;
+    background: var(--np-red) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+body.uikit-theme .uk-button-primary:hover,
+body.uikit-theme .btn-primary:hover {
+    border-color: var(--np-red-dark) !important;
+    background: var(--np-red-dark) !important;
+}
+
+body.uikit-theme .uk-button-default:hover,
+body.uikit-theme .btn-secondary:hover {
+    border-color: var(--np-red) !important;
+    color: var(--np-red) !important;
+}
+
+body.uikit-theme .primary-link,
+body.uikit-theme .row-action,
+body.uikit-theme .eyebrow,
+body.uikit-theme .back-link {
+    color: var(--np-red) !important;
+}
+
+body.uikit-theme .crm-topnav .crm-navbar > li.uk-active > a,
+body.uikit-theme .crm-topnav .crm-navbar > li:hover > a {
+    color: var(--np-red) !important;
+    background: #fff1f1 !important;
+}
+
+body.uikit-theme .uk-tab > .uk-active > a {
+    border-color: var(--np-red) !important;
+    color: var(--np-red) !important;
+}
+
+body.uikit-theme .uk-checkbox:checked,
+body.uikit-theme .uk-radio:checked {
+    border-color: var(--np-red) !important;
+    background-color: var(--np-red) !important;
+}
+
 /* В установленной на iPhone CRM шапка продолжается под вырезом экрана,
    но её элементы остаются в безопасной области. */
 @supports (padding: env(safe-area-inset-top)) {
