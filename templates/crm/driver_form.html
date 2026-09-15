@@ -10,10 +10,6 @@
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
-        <div class="driver-command-title">
-            <span class="driver-command-icon" uk-icon="user"></span>
-            <h2>Новый водитель</h2>
-        </div>
         <div class="order-command-actions">
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
             <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
@@ -21,6 +17,11 @@
             {% if object %}<a class="uk-button uk-button-danger" href="{% url delete_url_name object.pk %}">Удалить</a>{% else %}<button class="uk-button uk-button-danger" type="button" disabled title="Сначала сохраните карточку">Удалить</button>{% endif %}
             <a class="uk-button uk-button-default" href="{{ cancel_url }}">Закрыть</a>
         </div>
+    </section>
+
+    <section class="driver-modal-titlebar">
+        <span class="driver-command-icon" uk-icon="user"></span>
+        <h1>Новый водитель</h1>
     </section>
 
     <section class="form-section">
