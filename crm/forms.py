@@ -13,6 +13,7 @@ from django.utils.html import format_html
 
 from .models import (
     Carrier,
+    CargoHandlingMethod,
     ChatMessage,
     BankStatement,
     BankStatementLine,
@@ -1246,7 +1247,7 @@ class TransportOrderStopForm(StyledModelForm):
         fields = [
             "sequence", "kind", "organization", "organization_text", "city", "address", "planned_date",
             "planned_time_from", "planned_time_to", "contact_name",
-            "contact_phone", "instructions",
+            "contact_phone", "handling_method", "instructions",
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
@@ -1297,6 +1298,20 @@ class TransportOrderStopForm(StyledModelForm):
             }
         )
         self.fields["organization_text"].widget = forms.HiddenInput()
+        self.fields["handling_method"].queryset = CargoHandlingMethod.objects.filter(
+            is_active=True
+        )
+        self.fields["handling_method"].label = (
+            "Вид выгрузки"
+            if kind == TransportOrderStop.Kind.DELIVERY
+            else "Вид погрузки"
+        )
+        if not self.is_bound and not self.instance.pk and not self.initial.get("handling_method"):
+            self.initial["handling_method"] = (
+                CargoHandlingMethod.objects.filter(name="Задняя", is_active=True)
+                .values_list("pk", flat=True)
+                .first()
+            )
         self.fields["city"].required = False
         self.fields["city"].widget = forms.HiddenInput()
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
@@ -1488,7 +1503,7 @@ class TransportationStopForm(StyledModelForm):
         fields = [
             "sequence", "kind", "organization", "organization_text", "city",
             "address", "planned_date", "planned_time_from", "planned_time_to",
-            "contact_name", "contact_phone", "instructions",
+            "contact_name", "contact_phone", "handling_method", "instructions",
         ]
         widgets = {
             "sequence": forms.HiddenInput(),
@@ -1537,6 +1552,20 @@ class TransportationStopForm(StyledModelForm):
             }
         )
         self.fields["organization_text"].widget = forms.HiddenInput()
+        self.fields["handling_method"].queryset = CargoHandlingMethod.objects.filter(
+            is_active=True
+        )
+        self.fields["handling_method"].label = (
+            "Вид выгрузки"
+            if kind == TransportationStop.Kind.DELIVERY
+            else "Вид погрузки"
+        )
+        if not self.is_bound and not self.instance.pk and not self.initial.get("handling_method"):
+            self.initial["handling_method"] = (
+                CargoHandlingMethod.objects.filter(name="Задняя", is_active=True)
+                .values_list("pk", flat=True)
+                .first()
+            )
         self.fields["city"].required = False
         self.fields["city"].widget = forms.HiddenInput()
         # StyledModelForm уже задаёт общий CRM-вид даты. Повторно создаём
@@ -2704,6 +2733,10 @@ class TransportationDocumentForm(StyledModelForm):
             }
 
         if not getattr(self, "use_route_formset", False):
+            default_handling_method = (
+                CargoHandlingMethod.objects.filter(name="Задняя", is_active=True)
+                .first()
+            )
             pickup = transportation.stops.filter(
                 kind=TransportationStop.Kind.PICKUP
             ).order_by("sequence").first()
@@ -2714,6 +2747,8 @@ class TransportationDocumentForm(StyledModelForm):
                 "city": self.cleaned_data["pickup_city"],
                 "address": self.cleaned_data.get("pickup_address", ""),
                 "planned_from": self._planned_datetime(self.cleaned_data["pickup_date"]),
+                "handling_method": self.cleaned_data.get("loading_method")
+                or default_handling_method,
             }
             pickup_values.update(address_values("pickup"))
             if pickup:
@@ -2737,6 +2772,8 @@ class TransportationDocumentForm(StyledModelForm):
                 "city": self.cleaned_data["delivery_city"],
                 "address": self.cleaned_data.get("delivery_address", ""),
                 "planned_from": self._planned_datetime(self.cleaned_data["delivery_date"]),
+                "handling_method": self.cleaned_data.get("unloading_method")
+                or default_handling_method,
             }
             delivery_values.update(address_values("delivery"))
             if delivery:

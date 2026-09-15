@@ -30,6 +30,7 @@ from .models import (
     BankStatement,
     BankStatementLine,
     Carrier,
+    CargoHandlingMethod,
     ChatMessage,
     CompanyProfile,
     Contract,
@@ -272,6 +273,10 @@ class CrmTestCase(TestCase):
         self.assertContains(create_page, "Добавить выгрузку")
         self.assertContains(create_page, "Грузоотправитель")
         self.assertContains(create_page, "Грузополучатель")
+        self.assertContains(create_page, "Вид погрузки")
+        self.assertContains(create_page, "Вид выгрузки")
+        self.assertContains(create_page, 'name="route_stops-0-handling_method"')
+        self.assertContains(create_page, 'name="route_stops-1-handling_method"')
         self.assertContains(create_page, "Стоимость груза")
         self.assertContains(create_page, 'name="number"')
         self.assertContains(create_page, 'data-dadata-address')
@@ -527,6 +532,10 @@ class CrmTestCase(TestCase):
             list(transportation.stops.values_list("city", flat=True)),
             ["Псков", "Тверь", "Москва"],
         )
+        rear_method = CargoHandlingMethod.objects.get(name="Задняя")
+        self.assertFalse(
+            transportation.stops.exclude(handling_method=rear_method).exists()
+        )
         first_stop = transportation.stops.order_by("sequence").first()
         self.assertEqual(first_stop.organization, self.carrier.organization)
         self.assertEqual(
@@ -546,6 +555,9 @@ class CrmTestCase(TestCase):
         self.assertContains(assignment_form, 'name="source_order_date"')
         self.assertContains(assignment_form, 'name="client_contact"')
         self.assertContains(assignment_form, 'name="executor_contact"')
+        self.assertContains(assignment_form, "Вид погрузки")
+        self.assertContains(assignment_form, "Вид выгрузки")
+        self.assertContains(assignment_form, 'name="route_stops-0-handling_method"')
         assignment_document_form = assignment_form.context["form"]
         self.assertEqual(assignment_document_form.initial["executor_payment_form"], "")
         self.assertEqual(assignment_document_form.initial["executor_payment_term_days"], "")

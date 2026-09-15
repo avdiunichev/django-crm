@@ -2202,6 +2202,14 @@ class TransportationStop(TimestampedModel):
     address_flat = models.CharField("Квартира", max_length=30, blank=True)
     contact_name = models.CharField("Контактное лицо", max_length=150, blank=True)
     contact_phone = models.CharField("Телефон", max_length=30, blank=True)
+    handling_method = models.ForeignKey(
+        CargoHandlingMethod,
+        verbose_name="Вид погрузки / выгрузки",
+        related_name="transportation_stops",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
     planned_from = models.DateTimeField("План с", null=True, blank=True)
     planned_to = models.DateTimeField("План до", null=True, blank=True)
     actual_arrival = models.DateTimeField("Фактическое прибытие", null=True, blank=True)
@@ -2221,6 +2229,13 @@ class TransportationStop(TimestampedModel):
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"
+
+    def save(self, *args, **kwargs):
+        if not self.handling_method_id:
+            self.handling_method = CargoHandlingMethod.objects.filter(
+                name="Задняя", is_active=True
+            ).first()
+        return super().save(*args, **kwargs)
 
 
 class TransportOrderNumberSequence(TimestampedModel):
@@ -2555,6 +2570,14 @@ class TransportOrderStop(TimestampedModel):
     planned_time_to = models.TimeField("Время до", null=True, blank=True)
     contact_name = models.CharField("Контактное лицо", max_length=150, blank=True)
     contact_phone = models.CharField("Телефон", max_length=30, blank=True)
+    handling_method = models.ForeignKey(
+        CargoHandlingMethod,
+        verbose_name="Вид погрузки / выгрузки",
+        related_name="transport_order_stops",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
     instructions = models.TextField("Инструкции", blank=True)
 
     class Meta:
@@ -2581,6 +2604,13 @@ class TransportOrderStop(TimestampedModel):
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"
+
+    def save(self, *args, **kwargs):
+        if not self.handling_method_id:
+            self.handling_method = CargoHandlingMethod.objects.filter(
+                name="Задняя", is_active=True
+            ).first()
+        return super().save(*args, **kwargs)
 
     @property
     def route_point(self):

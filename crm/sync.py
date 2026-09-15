@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from .models import (
     Carrier,
+    CargoHandlingMethod,
     CompanyProfile,
     Contract,
     Customer,
@@ -34,6 +35,10 @@ COMMON_FIELDS = (
     "correspondent_account",
     "is_active",
 )
+
+
+def default_handling_method():
+    return CargoHandlingMethod.objects.filter(name="Задняя", is_active=True).first()
 
 
 def _legacy_role(instance):
@@ -227,6 +232,7 @@ def sync_shipment_to_transportation(shipment):
             "city": shipment.pickup_city,
             "address": shipment.pickup_address,
             "planned_from": _planned_datetime(shipment.pickup_date),
+            "handling_method": default_handling_method(),
         },
     )
     TransportationStop.objects.update_or_create(
@@ -237,6 +243,7 @@ def sync_shipment_to_transportation(shipment):
             "city": shipment.delivery_city,
             "address": shipment.delivery_address,
             "planned_from": _planned_datetime(shipment.delivery_date),
+            "handling_method": default_handling_method(),
         },
     )
     own_party, _ = TransportationParty.objects.update_or_create(

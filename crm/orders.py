@@ -144,6 +144,7 @@ def assign_order_to_transportation(order, user):
             address_flat=route_stop.address_flat,
             contact_name=route_stop.contact_name,
             contact_phone=route_stop.contact_phone,
+            handling_method=route_stop.handling_method,
             planned_from=_planned_datetime(route_stop, route_stop.planned_time_from),
             planned_to=_planned_datetime(route_stop, route_stop.planned_time_to),
             instructions=route_stop.instructions,
@@ -227,7 +228,7 @@ def sync_order_from_transportation(transportation):
         "address_fias_id", "address_postal_code", "address_region_code",
         "address_region", "address_area", "address_city", "address_settlement",
         "address_street", "address_house", "address_block", "address_flat",
-        "contact_name", "contact_phone", "instructions",
+        "contact_name", "contact_phone", "handling_method", "instructions",
     )
     stops = list(transportation.stops.order_by("sequence", "pk"))
     for sequence, stop in enumerate(stops, start=1):
