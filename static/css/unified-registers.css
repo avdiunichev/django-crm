@@ -264,6 +264,39 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
     background: #fff;
 }
 
+/* The trip register follows the order register toolbar exactly. Keep its
+   filters in a flex row: grid auto-columns previously created empty tracks. */
+@media (min-width: 721px) {
+    .uikit-theme .transportation-register-filters {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .uikit-theme .transportation-register-filters > .search {
+        flex: 0 0 356px;
+        width: 356px;
+        min-width: 356px;
+    }
+
+    .uikit-theme .transportation-register-filters > .uk-select {
+        flex: 0 0 242px;
+        width: 242px;
+        min-width: 242px;
+    }
+
+    .uikit-theme .transportation-register-filters > .transportation-filter-spacer {
+        display: block;
+        flex: 1 1 auto;
+    }
+
+    .uikit-theme .transportation-register-filters .transportation-register-create {
+        grid-column: auto;
+        justify-self: auto;
+    }
+}
+
 .uikit-theme .driver-register-filters > *,
 .uikit-theme .vehicle-register-filters > *,
 .uikit-theme .transportation-register-filters > * {
