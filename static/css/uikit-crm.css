@@ -6793,6 +6793,19 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Неактивные действия остаются визуально неподвижными: без hover и клика. */
+body.uikit-theme .uk-button:disabled,
+body.uikit-theme .uk-button:disabled:hover,
+body.uikit-theme .uk-button[aria-disabled="true"],
+body.uikit-theme .uk-button[aria-disabled="true"]:hover,
+body.uikit-theme .btn:disabled,
+body.uikit-theme .btn:disabled:hover,
+body.uikit-theme .btn[aria-disabled="true"],
+body.uikit-theme .btn[aria-disabled="true"]:hover {
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 /* Фирменная система «НОВЫЙ ПРОЕКТ»: нейтральная рабочая база и красный акцент логотипа. */
 body.uikit-theme {
     --np-red: #d10000;
