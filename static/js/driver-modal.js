@@ -27,16 +27,19 @@
 
     const render = (html, sourceUrl) => {
         const page = new DOMParser().parseFromString(html, "text/html");
-        const heading = page.querySelector(".page-heading");
         const form = page.querySelector("[data-driver-form]");
-        if (!heading || !form) throw new Error("Форма водителя не найдена");
+        const heading = page.querySelector(".page-heading");
+        if (!form) throw new Error("Форма водителя не найдена");
 
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-driver-dialog bootstrap-driver-page";
         dialog.innerHTML = '<button class="uk-modal-close-default" type="button" uk-close aria-label="Закрыть"></button>';
-        dialog.append(heading, form);
+        // The renewed card keeps its command panel inside the form.  The old
+        // version had a separate page heading, so support both structures.
+        if (heading && !form.contains(heading)) dialog.append(heading);
+        dialog.append(form);
         form.action = sourceUrl;
-        form.querySelectorAll(".back-link, .form-actions a[href]").forEach((link) => {
+        form.querySelectorAll(".back-link, .form-actions a[href], .driver-command-panel a[href]").forEach((link) => {
             if (link.matches(".uk-button-danger")) return;
             link.addEventListener("click", (event) => {
                 event.preventDefault();
