@@ -6824,6 +6824,16 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     top: 0;
 }
 
+/* Полоса прокрутки не отвлекает, но колесо, трекпад и жесты продолжают работать. */
+.crm-driver-dialog {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.crm-driver-dialog::-webkit-scrollbar {
+    display: none;
+}
+
 html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-panel {
     background: rgba(20, 30, 47, .98);
 }
