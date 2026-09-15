@@ -2,9 +2,10 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body.company-landing { margin: 0; min-width: 320px; background: var(--np-surface); color: var(--np-graphite); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.company-header { width: min(1240px, calc(100% - 64px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.company-header { width: min(1240px, calc(100% - 64px)); min-height: 92px; margin: 0 auto; display: flex; align-items: center; justify-content: flex-start; gap: 24px; }
 .company-brand { display: inline-flex; align-items: center; gap: 13px; color: inherit; font-weight: 750; letter-spacing: .04em; text-decoration: none; }
 .company-brand img { width: 36px; height: 36px; object-fit: contain; }
+.company-brand .company-wordmark { width: 264px; height: 88px; object-fit: contain; mix-blend-mode: multiply; }
 .company-login-link { color: #1677ee; font-weight: 650; text-decoration: none; }
 .company-login-link:hover { color: #075dc7; }
 .company-hero { width: min(1240px, calc(100% - 64px)); min-height: 552px; margin: 0 auto 56px; padding: 76px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .75fr); align-items: center; gap: 64px; overflow: hidden; position: relative; background: var(--np-graphite); color: #fff; }
@@ -43,4 +44,4 @@ body.company-landing { margin: 0; min-width: 320px; background: var(--np-surface
 .company-contacts { display: flex; align-items: center; gap: 18px; font-style: normal; }
 .company-contacts a:hover { color: var(--np-red); }
 @media (max-width: 860px) { .company-header, .company-hero, .company-about, .company-services, .company-cta, .company-footer { width: min(100% - 32px, 620px); } .company-header { min-height: 76px; } .company-hero { min-height: auto; padding: 52px 30px; grid-template-columns: 1fr; gap: 40px; } .company-hero h1 { font-size: 43px; } .company-lead { font-size: 17px; } .company-about { padding: 36px 30px; grid-template-columns: 1fr; gap: 24px; } .company-services { grid-template-columns: 1fr; gap: 28px; } .company-service-grid { grid-template-columns: 1fr; } .company-service-grid article { min-height: 0; } .company-service-grid h3 { margin-top: 18px; } .company-cta { padding: 32px 30px; align-items: flex-start; flex-direction: column; } }
-@media (max-width: 460px) { .company-brand { gap: 9px; font-size: 13px; } .company-brand img { width: 30px; height: 30px; } .company-login-link { font-size: 13px; } .company-hero { padding: 42px 24px; } .company-hero h1 { font-size: 37px; } .company-hero-actions, .company-hero-actions .company-button, .company-cta .company-button { width: 100%; } .company-footer { min-height: 104px; align-items: flex-start; flex-direction: column; justify-content: center; gap: 10px; } .company-contacts { align-items: flex-start; flex-direction: column; gap: 6px; } }
+@media (max-width: 460px) { .company-brand { gap: 9px; font-size: 13px; } .company-brand .company-wordmark { width: 198px; height: 66px; } .company-login-link { font-size: 13px; } .company-hero { padding: 42px 24px; } .company-hero h1 { font-size: 37px; } .company-hero-actions, .company-hero-actions .company-button, .company-cta .company-button { width: 100%; } .company-footer { min-height: 104px; align-items: flex-start; flex-direction: column; justify-content: center; gap: 10px; } .company-contacts { align-items: flex-start; flex-direction: column; gap: 6px; } }
