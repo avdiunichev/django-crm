@@ -485,6 +485,7 @@ document.addEventListener("DOMContentLoaded", () => {
     role.addEventListener("change", updateContractAction);
     executorContract?.addEventListener("change", updateContractAction);
     carrier.addEventListener("change", loadResources);
+    carrier.addEventListener("optionschange", loadResources);
     owner?.addEventListener("change", () => {
         delete form.dataset.clientDefaultsClient;
         delete form.dataset.executorDefaultsExecutor;
@@ -492,6 +493,10 @@ document.addEventListener("DOMContentLoaded", () => {
         applyExecutorDefaults();
     });
     updateContractAction();
+    // Populate the resources for a carrier that was preselected from the
+    // order, and for a carrier filled automatically from the executor.
+    syncDirectCarrier();
+    loadResources();
     selects.combinations?.addEventListener("change", () => {
         const option = selects.combinations.options[selects.combinations.selectedIndex];
         if (!option?.dataset.tractorId) return;

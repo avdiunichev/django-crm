@@ -582,6 +582,9 @@
         executor?.addEventListener("change", syncDirectCarrier);
         role?.addEventListener("change", syncDirectCarrier);
         carrier?.addEventListener("change", loadResources);
+        carrier?.addEventListener("optionschange", loadResources);
+        syncDirectCarrier();
+        loadResources();
 
         const revenue = form.querySelector("#id_customer_amount");
         const cost = form.querySelector("#id_executor_amount");
