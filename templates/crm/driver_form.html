@@ -23,11 +23,39 @@
         <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет ФИО во время ввода.</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.full_name wide=True %}
-            {% include "crm/includes/form_field.html" with field=form.phone %}
             {% include "crm/includes/form_field.html" with field=form.birth_date %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}
             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
+    </section>
+
+    <section class="form-section">
+        <div class="form-section-title"><div><h2>Телефоны</h2><p>Укажите один основной номер для документов и назначения в рейс.</p></div></div>
+        {{ phone_formset.management_form }}
+        {% if phone_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ phone_formset.non_form_errors }}</div>{% endif %}
+        <div class="driver-phone-list" data-driver-phone-list>
+            {% for phone_form in phone_formset %}
+                <article class="driver-phone-card{% if phone_form.is_primary.value %} is-current{% endif %}" data-driver-phone-form>
+                    {{ phone_form.id }}{{ phone_form.is_primary }}{{ phone_form.DELETE }}
+                    <div class="driver-phone-card-row">
+                        <div class="field driver-phone-field"><label>{{ phone_form.phone.label }}</label>{{ phone_form.phone }}{{ phone_form.phone.errors }}</div>
+                        <label class="driver-phone-primary"><input class="uk-radio" type="radio" name="driver-phone-primary" value="{{ forloop.counter0 }}" data-driver-phone-primary {% if phone_form.is_primary.value %}checked{% endif %}> Основной</label>
+                        <a class="organization-bank-remove-text" href="#" data-driver-phone-remove>Удалить</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <template data-driver-phone-empty-form>
+            <article class="driver-phone-card" data-driver-phone-form>
+                {{ phone_formset.empty_form.id }}{{ phone_formset.empty_form.is_primary }}{{ phone_formset.empty_form.DELETE }}
+                <div class="driver-phone-card-row">
+                    <div class="field driver-phone-field"><label>{{ phone_formset.empty_form.phone.label }}</label>{{ phone_formset.empty_form.phone }}{{ phone_formset.empty_form.phone.errors }}</div>
+                    <label class="driver-phone-primary"><input class="uk-radio" type="radio" name="driver-phone-primary" value="__prefix__" data-driver-phone-primary> Основной</label>
+                    <a class="organization-bank-remove-text" href="#" data-driver-phone-remove>Удалить</a>
+                </div>
+            </article>
+        </template>
+        <button class="uk-button uk-button-default uk-button-small" type="button" data-driver-phone-add><span uk-icon="plus"></span> Добавить номер</button>
     </section>
 
     <section class="form-section">
@@ -159,7 +187,7 @@
     copyButton.addEventListener("click", async () => {
         const rows = [
             ["ФИО", value("#id_full_name")],
-            ["Телефон", value("#id_phone")],
+            ["Телефон", value("[name='phones-0-phone']")],
             ["Дата рождения", value("#id_birth_date")],
             ["ИНН", value("#id_tax_id")],
         ].filter(([, item]) => item);

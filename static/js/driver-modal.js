@@ -62,6 +62,7 @@
         addRows("employments", "[data-employment-add]");
         addRows("passports", "[data-passport-add]");
         addRows("licenses", "[data-license-add]");
+        addRows("phones", "[data-driver-phone-add]");
         draft.fields.forEach((saved) => {
             const field = form.elements.namedItem(saved.name);
             if (!field || field instanceof RadioNodeList) return;
@@ -98,6 +99,7 @@
         window.CRMDriverPassports?.enhanceWithin(dialog);
         window.CRMDriverLicenses?.enhanceWithin(dialog);
         window.CRMDriverCarriers?.enhanceWithin(dialog);
+        window.CRMDriverPhones?.enhanceWithin(dialog);
         restoreDraft(form, draft);
         window.UIkit?.update?.(modalElement);
 

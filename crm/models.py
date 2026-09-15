@@ -1022,6 +1022,34 @@ class Driver(TimestampedModel):
         return reverse("driver-detail", kwargs={"pk": self.pk})
 
 
+class DriverPhone(TimestampedModel):
+    """Телефоны водителя; ``Driver.phone`` хранит актуальный основной номер."""
+
+    driver = models.ForeignKey(
+        Driver,
+        verbose_name="Водитель",
+        related_name="phone_numbers",
+        on_delete=models.CASCADE,
+    )
+    phone = models.CharField("Телефон", max_length=30)
+    is_primary = models.BooleanField("Основной номер", default=False)
+
+    class Meta:
+        verbose_name = "телефон водителя"
+        verbose_name_plural = "телефоны водителя"
+        ordering = ("-is_primary", "phone")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("driver",),
+                condition=models.Q(is_primary=True),
+                name="unique_primary_phone_per_driver",
+            )
+        ]
+
+    def __str__(self):
+        return self.phone
+
+
 class DriverEmployment(TimestampedModel):
     driver = models.ForeignKey(
         Driver,

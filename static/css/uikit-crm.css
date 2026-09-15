@@ -10841,6 +10841,72 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     padding: 0 0 4px;
 }
 
+[data-driver-form] .driver-phone-list {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+}
+
+[data-driver-form] .driver-phone-card {
+    padding: 12px 14px;
+    border: 1px solid #d6d6d6;
+    border-left: 4px solid #aeb7c4;
+    background: #fff;
+}
+
+[data-driver-form] .driver-phone-card.is-current {
+    border-left-color: #1e87f0;
+    background: #f6fbff;
+}
+
+[data-driver-form] .driver-phone-card input[name$="-DELETE"] {
+    display: none;
+}
+
+[data-driver-form] .driver-phone-card-row {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) auto auto;
+    align-items: end;
+    gap: 14px;
+}
+
+[data-driver-form] .driver-phone-field {
+    min-width: 0;
+}
+
+[data-driver-form] .driver-phone-primary {
+    margin: 0 0 10px;
+    white-space: nowrap;
+}
+
+[data-driver-form] .driver-phone-card .organization-bank-remove-text {
+    margin-bottom: 10px;
+}
+
+.phone-input-warning {
+    display: block;
+    margin-top: 5px;
+    color: #d10000;
+    font-size: 12px;
+}
+
+.uikit-theme .uk-input.is-phone-invalid {
+    border-color: #d10000 !important;
+    box-shadow: 0 0 0 3px rgba(209, 0, 0, .10) !important;
+}
+
+@media (max-width: 720px) {
+    [data-driver-form] .driver-phone-card-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    [data-driver-form] .driver-phone-primary,
+    [data-driver-form] .driver-phone-card .organization-bank-remove-text {
+        margin: 0;
+    }
+}
+
 @media (max-width: 720px) {
     .driver-form-page.crm-driver-dialog {
         padding: 18px;

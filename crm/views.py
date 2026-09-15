@@ -278,6 +278,7 @@ from .forms import (
     DriverEmploymentFormSet,
     DriverLicenseFormSet,
     DriverPassportFormSet,
+    DriverPhoneFormSet,
     ForwardingOrderForm,
     OrganizationBankAccountEditFormSet,
     OrganizationBankAccountFormSet,
@@ -8806,6 +8807,7 @@ class DriverRegistersFormSetMixin:
     passport_prefix = "passports"
     license_prefix = "licenses"
     employment_prefix = "employments"
+    phone_prefix = "phones"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -8851,6 +8853,20 @@ class DriverRegistersFormSetMixin:
             ]
         return DriverEmploymentFormSet(**kwargs)
 
+    def get_phone_formset(self, form, data=None):
+        instance = form.instance
+        kwargs = {
+            "data": data,
+            "instance": instance,
+            "prefix": self.phone_prefix,
+        }
+        if data is None and (not instance.pk or not instance.phone_numbers.exists()):
+            kwargs["initial"] = [{
+                "phone": instance.phone if instance.pk else "",
+                "is_primary": True,
+            }]
+        return DriverPhoneFormSet(**kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "passport_formset" not in context:
@@ -8865,6 +8881,8 @@ class DriverRegistersFormSetMixin:
             context["employment_formset"] = self.get_employment_formset(
                 context["form"]
             )
+        if "phone_formset" not in context:
+            context["phone_formset"] = self.get_phone_formset(context["form"])
         return context
 
     def post(self, request, *args, **kwargs):
@@ -8873,13 +8891,28 @@ class DriverRegistersFormSetMixin:
         passport_formset = self.get_passport_formset(form, data=request.POST)
         license_formset = self.get_license_formset(form, data=request.POST)
         employment_formset = self.get_employment_formset(form, data=request.POST)
+        phone_data = request.POST
+        # Совместимость с сохранениями старой карточки, где был один ``phone``.
+        if f"{self.phone_prefix}-TOTAL_FORMS" not in request.POST:
+            phone_data = request.POST.copy()
+            phone_data.update({
+                f"{self.phone_prefix}-TOTAL_FORMS": "1",
+                f"{self.phone_prefix}-INITIAL_FORMS": "0",
+                f"{self.phone_prefix}-MIN_NUM_FORMS": "0",
+                f"{self.phone_prefix}-MAX_NUM_FORMS": "1000",
+                f"{self.phone_prefix}-0-phone": request.POST.get("phone", ""),
+                f"{self.phone_prefix}-0-is_primary": "on",
+            })
+        phone_formset = self.get_phone_formset(form, data=phone_data)
         form_valid = form.is_valid()
         passport_valid = passport_formset.is_valid()
         license_valid = license_formset.is_valid()
         employment_valid = employment_formset.is_valid()
-        if form_valid and passport_valid and license_valid and employment_valid:
+        phone_valid = phone_formset.is_valid()
+        if form_valid and passport_valid and license_valid and employment_valid and phone_valid:
             current_license = license_formset.current_data()
             form.instance.carrier = employment_formset.primary_carrier()
+            form.instance.phone = phone_formset.primary_phone()
             if current_license:
                 form.instance.license_number = current_license["number"]
                 form.instance.license_categories = current_license["categories"]
@@ -8893,6 +8926,7 @@ class DriverRegistersFormSetMixin:
             with transaction.atomic():
                 self.object = form.save()
                 employment_formset.save_register(self.object)
+                phone_formset.save_register(self.object)
                 passport_formset.instance = self.object
                 passport_formset.save()
                 license_formset.save_register(self.object)
@@ -8915,6 +8949,7 @@ class DriverRegistersFormSetMixin:
                 passport_formset=passport_formset,
                 license_formset=license_formset,
                 employment_formset=employment_formset,
+                phone_formset=phone_formset,
             )
         )
 

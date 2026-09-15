@@ -21,6 +21,7 @@ from .models import (
     Contract,
     Customer,
     Driver,
+    DriverPhone,
     DocumentBatch,
     DriverEmployment,
     DriverLicense,
@@ -53,6 +54,22 @@ from .models import (
 
 CRM_DATE_DISPLAY_FORMAT = "%d.%m.%Y"
 CRM_DATE_INPUT_FORMATS = (CRM_DATE_DISPLAY_FORMAT, "%Y-%m-%d")
+
+
+def normalize_russian_phone(value):
+    """Convert common Russian phone input variants into ``+7 900 000-00-00``."""
+
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    digits = re.sub(r"\D", "", raw)
+    if len(digits) == 10 and digits.startswith("9"):
+        digits = f"7{digits}"
+    elif len(digits) == 11 and digits.startswith("8"):
+        digits = f"7{digits[1:]}"
+    if len(digits) != 11 or not digits.startswith("7"):
+        raise forms.ValidationError("Введите российский номер в формате +7 900 000-00-00.")
+    return f"+7 {digits[1:4]} {digits[4:7]}-{digits[7:9]}-{digits[9:11]}"
 
 
 def vat_rate_for_payment_form(payment_form):
@@ -256,7 +273,7 @@ class StyledModelForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         configure_crm_date_fields(self)
         configure_crm_time_fields(self)
-        for field in self.fields.values():
+        for field_name, field in self.fields.items():
             if isinstance(
                 field.widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple)
             ):
@@ -267,6 +284,29 @@ class StyledModelForm(forms.ModelForm):
                 field.widget.attrs["class"] = "form-control uk-textarea"
             else:
                 field.widget.attrs["class"] = "form-control uk-input"
+            if field_name == "phone" or field_name.endswith("_phone"):
+                field.widget.attrs.update(
+                    {
+                        "autocomplete": "tel",
+                        "inputmode": "tel",
+                        "placeholder": "+7 900 000-00-00",
+                        "data-phone-input": "",
+                    }
+                )
+
+    def clean(self):
+        cleaned = super().clean()
+        for name in self.fields:
+            if name != "phone" and not name.endswith("_phone"):
+                continue
+            value = cleaned.get(name)
+            if not value:
+                continue
+            try:
+                cleaned[name] = normalize_russian_phone(value)
+            except forms.ValidationError as error:
+                self.add_error(name, error)
+        return cleaned
 
 
 class OrganizationRoleSelect(forms.Select):
@@ -3111,6 +3151,7 @@ class DriverForm(StyledModelForm):
         self.fields["phone"].widget.attrs.update(
             {"autocomplete": "tel", "inputmode": "tel", "placeholder": "+7 900 000-00-00"}
         )
+        self.fields["phone"].required = False
         self.fields["tax_id"].widget.attrs.update(
             {"inputmode": "numeric", "placeholder": "12 цифр", "maxlength": "12"}
         )
@@ -3149,6 +3190,76 @@ class DriverForm(StyledModelForm):
                 f"Водитель с таким ИНН уже существует: {duplicate.full_name}."
             )
         return tax_id
+
+
+class DriverPhoneForm(StyledModelForm):
+    class Meta:
+        model = DriverPhone
+        fields = ["phone", "is_primary"]
+        widgets = {"is_primary": forms.HiddenInput()}
+
+
+class BaseDriverPhoneFormSet(BaseInlineFormSet):
+    def active_forms(self):
+        return [
+            form for form in self.forms
+            if hasattr(form, "cleaned_data")
+            and not form.cleaned_data.get("DELETE")
+            and form.cleaned_data.get("phone")
+        ]
+
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        rows = self.active_forms()
+        if not rows:
+            raise forms.ValidationError("Добавьте хотя бы один номер телефона.")
+        phones = set()
+        primary_count = 0
+        for form in rows:
+            phone = form.cleaned_data["phone"]
+            if phone in phones:
+                form.add_error("phone", "Этот номер уже указан в карточке.")
+            phones.add(phone)
+            if form.cleaned_data.get("is_primary"):
+                primary_count += 1
+        if primary_count != 1:
+            raise forms.ValidationError("Укажите ровно один основной номер.")
+
+    def primary_phone(self):
+        return next(
+            form.cleaned_data["phone"]
+            for form in self.active_forms()
+            if form.cleaned_data.get("is_primary")
+        )
+
+    def save_register(self, driver):
+        rows = [form.cleaned_data for form in self.active_forms()]
+        DriverPhone.objects.filter(driver=driver).delete()
+        DriverPhone.objects.bulk_create(
+            [
+                DriverPhone(
+                    driver=driver,
+                    phone=row["phone"],
+                    is_primary=row.get("is_primary", False),
+                )
+                for row in rows
+            ]
+        )
+        primary_phone = self.primary_phone()
+        Driver.objects.filter(pk=driver.pk).update(phone=primary_phone, updated_at=timezone.now())
+        driver.phone = primary_phone
+
+
+DriverPhoneFormSet = inlineformset_factory(
+    Driver,
+    DriverPhone,
+    form=DriverPhoneForm,
+    formset=BaseDriverPhoneFormSet,
+    extra=0,
+    can_delete=True,
+)
 
 class IgnoreRegisterFlagConstraintMixin:
     register_flag_field = ""
