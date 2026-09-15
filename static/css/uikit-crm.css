@@ -1911,6 +1911,74 @@ body.uikit-theme #transportation-form .crm-smart-option {
     background: #dce4ee;
 }
 
+/* Единая геометрия редактора рейса: все секции используют одну ширину,
+   шаг сетки и вертикальный ритм, как форма заказа. */
+body.uikit-theme #transportation-form {
+    max-width: none;
+    display: grid;
+    gap: 18px;
+}
+
+body.uikit-theme #transportation-form > .form-section {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    overflow: hidden;
+}
+
+body.uikit-theme #transportation-form > .form-section > .form-section-title {
+    margin: 0 0 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #dfe6ee;
+}
+
+body.uikit-theme #transportation-form > .transportation-assignment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+body.uikit-theme #transportation-form > .transportation-assignment-header > .form-section-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body.uikit-theme #transportation-form .transportation-primary-document-grid,
+body.uikit-theme #transportation-form .transportation-primary-pair-grid {
+    margin: 0;
+}
+
+body.uikit-theme #transportation-form .transportation-primary-document-grid + .transportation-primary-document-grid,
+body.uikit-theme #transportation-form .transportation-primary-pair-grid {
+    margin-top: 18px;
+}
+
+/* Each of these rows is deliberately two equal cells. It keeps executor and
+   actual carrier aligned with the company/client rows rather than leaving a
+   half-empty six-column grid. */
+.transportation-primary-pair-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.transportation-primary-pair-grid > * {
+    grid-column: span 6;
+}
+
+body.uikit-theme #transportation-form .form-grid > * { min-width: 0; }
+
+@media (max-width: 700px) {
+    body.uikit-theme #transportation-form { gap: 14px; }
+    body.uikit-theme #transportation-form > .form-section { padding: 16px; }
+    body.uikit-theme #transportation-form > .form-section > .form-section-title { margin-bottom: 16px; padding-bottom: 14px; }
+    body.uikit-theme #transportation-form > .transportation-assignment-header { display: block; }
+    body.uikit-theme #transportation-form > .transportation-assignment-header .transportation-form-actions { margin-top: 16px; }
+}
+
 .cargo-details-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

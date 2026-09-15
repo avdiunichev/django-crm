@@ -34,13 +34,19 @@
         </div>
     </section>
     {% else %}
-    <div class="onec-command-bar">
-        <button class="onec-primary-command uk-button uk-button-primary" type="submit" name="action" value="post">Записать и провести</button>
-        <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
-        <button class="uk-button uk-button-default" type="submit" name="action" value="save_close">Записать и закрыть</button>
-        {% if object %}<a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}">Удалить</a>{% endif %}
-        <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">Закрыть</a>
-    </div>
+    <section class="form-section uk-card uk-card-default order-command-header transportation-assignment-header">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon order-command-document-icon" uk-icon="git-fork"></span>
+            <div><h2>{% if object and object.pk %}Рейс № {{ object.number|default:"Черновик" }}{% else %}Новый рейс{% endif %}</h2><p>{% if object and object.pk %}Редактирование и управление рейсом{% else %}Заполните данные для создания рейса{% endif %}</p></div>
+        </div>
+        <div class="order-command-actions transportation-form-actions">
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="post">Записать и провести</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save_close">Записать и закрыть</button>
+            {% if object %}<a class="uk-button uk-button-danger" href="{% url 'transportation-delete' object.pk %}">Удалить</a>{% endif %}
+            <a class="uk-button uk-button-default" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'transportation-list' %}{% endif %}">Закрыть</a>
+        </div>
+    </section>
     {% endif %}
 
     <section class="form-section uk-card uk-card-default transportation-primary-section">
