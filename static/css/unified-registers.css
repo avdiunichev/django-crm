@@ -241,7 +241,9 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
 }
 
 .uikit-theme .transportation-register-filters {
-    grid-template-columns: minmax(220px, 1.7fr) repeat(3, minmax(150px, 1fr)) auto auto auto;
+    /* Same rhythm as the order register: three contiguous filters, then a
+       flexible spacer and the two actions at the right edge. */
+    grid-template-columns: 356px 242px 242px minmax(0, 1fr) max-content max-content;
 }
 
 .uikit-theme .transportation-register-filters .transportation-register-create {
