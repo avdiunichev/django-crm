@@ -6793,6 +6793,21 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+body.uikit-theme .organization-command-inn::after,
+body.uikit-theme .crm-address-suggest::after,
+body.uikit-theme .organization-bank-bik > span {
+    color: #d10000 !important;
+}
+
+body.uikit-theme [data-driver-form] .uk-input:focus,
+body.uikit-theme [data-driver-form] .uk-select:focus,
+body.uikit-theme [data-driver-form] .uk-textarea:focus,
+body.uikit-theme [data-driver-form] .form-control:focus,
+body.uikit-theme [data-driver-form] .form-select:focus {
+    border-color: #d10000 !important;
+    box-shadow: 0 0 0 3px rgba(209, 0, 0, .12) !important;
+}
+
 /* Карточка водителя: строгая форма и неподвижная панель действий. */
 .crm-driver-dialog,
 [data-driver-form] .form-section,
