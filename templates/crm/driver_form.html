@@ -22,7 +22,7 @@
     <section class="driver-modal-titlebar">
         <span class="driver-command-icon" uk-icon="user"></span>
         <div>
-            <h1>Новый водитель</h1>
+            <h1>{% if object %}Редактирование карточки водителя{% else %}Новый водитель{% endif %}</h1>
             <p>Заполните данные о водителе.</p>
         </div>
     </section>
