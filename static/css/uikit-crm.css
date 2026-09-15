@@ -6809,9 +6809,10 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 }
 
 [data-driver-form] .driver-command-panel {
-    position: sticky;
-    top: 72px;
+    position: sticky !important;
+    top: 72px !important;
     z-index: 80;
+    align-self: start;
     margin: 0;
     background: rgba(255, 255, 255, .98);
 }
@@ -6821,7 +6822,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
 }
 
 .crm-driver-dialog [data-driver-form] .driver-command-panel {
-    top: 0;
+    top: 0 !important;
 }
 
 /* Полоса прокрутки не отвлекает, но колесо, трекпад и жесты продолжают работать. */
@@ -10831,13 +10832,19 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 .driver-form-page.crm-driver-dialog {
     max-width: 1120px;
     max-height: calc(100vh - 44px);
-    padding: 18px;
+    padding: 28px;
     overflow-y: auto;
 }
 
 /* В диалоге внешний отступ задаёт окно, чтобы блоки ровно держали общий край. */
 .crm-driver-dialog [data-driver-form] {
     padding: 0 0 4px;
+}
+
+@media (max-width: 720px) {
+    .driver-form-page.crm-driver-dialog {
+        padding: 18px;
+    }
 }
 
 /* Планировщик: компактная agenda в стиле реестров 1С/UIkit. */
