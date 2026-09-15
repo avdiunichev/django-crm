@@ -6793,6 +6793,41 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Карточка водителя: строгая форма и неподвижная панель действий. */
+.crm-driver-dialog,
+[data-driver-form] .form-section,
+[data-driver-form] .driver-passport-card,
+[data-driver-form] .form-section-title > span,
+[data-driver-form] .uk-alert,
+[data-driver-form] .uk-button,
+[data-driver-form] .uk-input,
+[data-driver-form] .uk-select,
+[data-driver-form] .uk-textarea,
+[data-driver-form] .form-control,
+[data-driver-form] .form-select {
+    border-radius: 0 !important;
+}
+
+[data-driver-form] .driver-command-panel {
+    position: sticky;
+    top: 72px;
+    z-index: 80;
+    margin: 0;
+    background: rgba(255, 255, 255, .98);
+}
+
+[data-driver-form] .driver-command-panel .order-command-actions {
+    margin-top: 0;
+}
+
+.crm-driver-dialog [data-driver-form] .driver-command-panel {
+    top: 0;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-panel {
+    background: rgba(20, 30, 47, .98);
+}
+
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */
 body.uikit-theme .uk-button:disabled,
 body.uikit-theme .uk-button:disabled:hover,

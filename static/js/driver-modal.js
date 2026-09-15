@@ -78,7 +78,7 @@
         if (!form) throw new Error("Форма водителя не найдена");
 
         const dialog = document.createElement("div");
-        dialog.className = "uk-modal-dialog uk-modal-body crm-driver-dialog bootstrap-driver-page";
+        dialog.className = "uk-modal-dialog uk-modal-body crm-driver-dialog bootstrap-driver-page driver-form-page";
         // The renewed card keeps its command panel inside the form.  The old
         // version had a separate page heading, so support both structures.
         if (heading && !form.contains(heading)) dialog.append(heading);
