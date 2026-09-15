@@ -11940,6 +11940,10 @@ body.uikit-theme {
     margin-left: 0 !important;
 }
 
+.uikit-theme .transportation-register-filters {
+    justify-content: flex-start !important;
+}
+
 /* На широком экране фильтры реестра остаются под главным навбаром. */
 @media (min-width: 1181px) {
     .uikit-theme .order-register-filters[data-order-register-filters] {
