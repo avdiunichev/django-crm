@@ -79,16 +79,21 @@
         field.parentNode.insertBefore(wrapper, field);
         wrapper.appendChild(field);
         field.classList.add("crm-date-input");
+        field.readOnly = true;
+        field.setAttribute("role", "button");
+        field.setAttribute("aria-haspopup", "dialog");
         const dropdown = document.createElement("div");
         dropdown.className = "crm-smart-dropdown crm-date-dropdown";
         dropdown.hidden = true;
         wrapper.appendChild(dropdown);
         let viewDate = parseDate(field.value) || new Date();
-        const close = () => { dropdown.hidden = true; };
+        const close = () => {
+            dropdown.hidden = true;
+            field.setAttribute("aria-expanded", "false");
+        };
         const select = (date) => {
             field.value = dateValue(date);
             field.setCustomValidity("");
-            field.dispatchEvent(new Event("input", {bubbles: true}));
             field.dispatchEvent(new Event("change", {bubbles: true}));
             close();
         };
@@ -135,8 +140,8 @@
             const yearSelect = document.createElement("select");
             yearSelect.className = "crm-date-select";
             yearSelect.setAttribute("aria-label", "Год");
-            const startYear = year - 7;
-            for (let itemYear = startYear; itemYear <= year + 7; itemYear += 1) {
+            const startYear = year - 10;
+            for (let itemYear = startYear; itemYear <= year + 10; itemYear += 1) {
                 const option = document.createElement("option");
                 option.value = String(itemYear);
                 option.textContent = String(itemYear);
@@ -189,21 +194,20 @@
             }
             dropdown.append(header, controls, weekdays, days);
             dropdown.hidden = false;
-        };
-        const syncCalendarWithTypedDate = () => {
-            // Форматирование ввода выполняется делегированным обработчиком выше по DOM.
-            // Откладываем чтение на один тик, чтобы календарь получил уже ДД.ММ.ГГГГ.
-            setTimeout(() => {
-                const typedDate = parseDate(field.value);
-                if (!typedDate) return;
-                viewDate = typedDate;
-                if (!dropdown.hidden) render();
-            }, 0);
+            field.setAttribute("aria-expanded", "true");
         };
         field.addEventListener("focus", () => { viewDate = parseDate(field.value) || new Date(); render(); });
-        field.addEventListener("input", syncCalendarWithTypedDate);
-        field.addEventListener("change", syncCalendarWithTypedDate);
-        field.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+        field.addEventListener("click", () => { viewDate = parseDate(field.value) || viewDate || new Date(); render(); });
+        field.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") close();
+            if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
+                event.preventDefault();
+                viewDate = parseDate(field.value) || viewDate || new Date();
+                render();
+            }
+        });
+        field.addEventListener("beforeinput", (event) => event.preventDefault());
+        field.addEventListener("paste", (event) => event.preventDefault());
         wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement)) close(); }, 0));
     };
 
@@ -232,6 +236,7 @@
     document.addEventListener("input", (event) => {
         const field = event.target.closest?.(DATE_SELECTOR);
         if (!field) return;
+        if (field.readOnly) return;
         field.value = formatDateDigits(field.value);
         field.setCustomValidity("");
     });
