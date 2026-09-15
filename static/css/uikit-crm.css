@@ -9226,25 +9226,6 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     text-align: center;
 }
 
-.crm-date-controls {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 78px;
-    gap: 5px;
-    margin-bottom: 7px;
-}
-
-.crm-date-select {
-    height: 28px;
-    min-width: 0;
-    padding: 0 22px 0 7px;
-    border: 1px solid #d7e0ea;
-    border-radius: 3px;
-    background: #fff;
-    color: #263445;
-    font-size: 12px;
-    line-height: 1;
-}
-
 .crm-date-nav,
 .crm-date-day {
     border: 0;
@@ -9511,12 +9492,6 @@ html[data-theme="dark"] body.uikit-theme .crm-date-nav {
 html[data-theme="dark"] body.uikit-theme .crm-date-weekdays,
 html[data-theme="dark"] body.uikit-theme .crm-date-day.is-outside {
     color: #94a3b8;
-}
-
-html[data-theme="dark"] body.uikit-theme .crm-date-select {
-    border-color: #34465c;
-    background: #101827;
-    color: #dce4ef;
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-date-input {

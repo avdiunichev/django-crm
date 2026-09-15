@@ -67,9 +67,6 @@
     const dateValue = (date) => `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
     const sameDay = (first, second) => first && second && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate();
     const monthTitle = new Intl.DateTimeFormat("ru-RU", {month: "long", year: "numeric"});
-    const monthNames = Array.from({length: 12}, (_, index) => (
-        new Intl.DateTimeFormat("ru-RU", {month: "long"}).format(new Date(2026, index, 1))
-    ));
 
     const enhanceCalendar = (field) => {
         if (!field || field.dataset.crmCalendarReady === "true") return;
@@ -123,41 +120,6 @@
             next.addEventListener("mousedown", (event) => event.preventDefault());
             next.addEventListener("click", () => { viewDate = new Date(year, month + 1, 1); render(); });
             header.append(previous, title, next);
-            const controls = document.createElement("div");
-            controls.className = "crm-date-controls";
-            const monthSelect = document.createElement("select");
-            monthSelect.className = "crm-date-select";
-            monthSelect.setAttribute("aria-label", "Месяц");
-            monthNames.forEach((name, index) => {
-                const option = document.createElement("option");
-                option.value = String(index);
-                option.textContent = name.replace(/^./, (letter) => letter.toUpperCase());
-                option.selected = index === month;
-                monthSelect.appendChild(option);
-            });
-            const yearSelect = document.createElement("select");
-            yearSelect.className = "crm-date-select";
-            yearSelect.setAttribute("aria-label", "Год");
-            const startYear = year - 10;
-            for (let itemYear = startYear; itemYear <= year + 10; itemYear += 1) {
-                const option = document.createElement("option");
-                option.value = String(itemYear);
-                option.textContent = String(itemYear);
-                option.selected = itemYear === year;
-                yearSelect.appendChild(option);
-            }
-            [monthSelect, yearSelect].forEach((control) => {
-                control.addEventListener("mousedown", (event) => event.preventDefault());
-            });
-            monthSelect.addEventListener("change", () => {
-                viewDate = new Date(year, Number(monthSelect.value), 1);
-                render();
-            });
-            yearSelect.addEventListener("change", () => {
-                viewDate = new Date(Number(yearSelect.value), month, 1);
-                render();
-            });
-            controls.append(monthSelect, yearSelect);
             const weekdays = document.createElement("div");
             weekdays.className = "crm-date-weekdays";
             ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].forEach((label) => {
@@ -181,7 +143,7 @@
                 button.addEventListener("click", () => select(dayDate));
                 days.appendChild(button);
             }
-            dropdown.append(header, controls, weekdays, days);
+            dropdown.append(header, weekdays, days);
             dropdown.hidden = false;
             field.setAttribute("aria-expanded", "true");
         };
@@ -195,6 +157,12 @@
                 render();
             }
         });
+        field.addEventListener("input", () => setTimeout(() => {
+            const parsed = parseDate(field.value);
+            if (!parsed) return;
+            viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+            if (!dropdown.hidden) render();
+        }, 0));
         wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement)) close(); }, 0));
     };
 
