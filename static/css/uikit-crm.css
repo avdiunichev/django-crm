@@ -6828,9 +6828,9 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     top: 0 !important;
     width: calc(100% + 56px);
     margin: 0 -28px 18px;
-    padding: 14px 28px;
+    padding: 22px 28px 14px;
     border: 0;
-    background: transparent;
+    background: #f3f5f8;
     box-shadow: none;
 }
 
@@ -6877,7 +6877,7 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-pane
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-driver-dialog [data-driver-form] .driver-command-panel {
-    background: transparent;
+    background: #152033;
     box-shadow: none;
 }
 
@@ -10964,7 +10964,7 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     .crm-driver-dialog [data-driver-form] .driver-command-panel {
         width: calc(100% + 36px);
         margin: 0 -18px 18px;
-        padding: 12px 18px;
+        padding: 18px 18px 12px;
     }
 }
 
