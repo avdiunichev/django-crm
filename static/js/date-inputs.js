@@ -66,7 +66,6 @@
     };
     const dateValue = (date) => `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
     const sameDay = (first, second) => first && second && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate();
-    const monthTitle = new Intl.DateTimeFormat("ru-RU", {month: "long", year: "numeric"});
     const monthNames = Array.from({length: 12}, (_, index) => (
         new Intl.DateTimeFormat("ru-RU", {month: "long"}).format(new Date(2026, index, 1))
     ));
@@ -106,25 +105,6 @@
             const offset = (firstDay.getDay() + 6) % 7;
             const start = new Date(year, month, 1 - offset);
             dropdown.replaceChildren();
-            const header = document.createElement("div");
-            header.className = "crm-date-header";
-            const previous = document.createElement("button");
-            previous.type = "button";
-            previous.className = "crm-date-nav";
-            previous.textContent = "‹";
-            previous.setAttribute("aria-label", "Предыдущий месяц");
-            previous.addEventListener("mousedown", (event) => event.preventDefault());
-            previous.addEventListener("click", () => { viewDate = new Date(year, month - 1, 1); render(); });
-            const title = document.createElement("strong");
-            title.textContent = monthTitle.format(viewDate).replace(/^./, (letter) => letter.toUpperCase());
-            const next = document.createElement("button");
-            next.type = "button";
-            next.className = "crm-date-nav";
-            next.textContent = "›";
-            next.setAttribute("aria-label", "Следующий месяц");
-            next.addEventListener("mousedown", (event) => event.preventDefault());
-            next.addEventListener("click", () => { viewDate = new Date(year, month + 1, 1); render(); });
-            header.append(previous, title, next);
             const controls = document.createElement("div");
             controls.className = "crm-date-controls";
             const monthSelect = document.createElement("select");
@@ -148,11 +128,7 @@
                 option.selected = itemYear === year;
                 yearSelect.appendChild(option);
             }
-            const todayButton = document.createElement("button");
-            todayButton.type = "button";
-            todayButton.className = "crm-date-today";
-            todayButton.textContent = "Сегодня";
-            [monthSelect, yearSelect, todayButton].forEach((control) => {
+            [monthSelect, yearSelect].forEach((control) => {
                 control.addEventListener("mousedown", (event) => event.preventDefault());
             });
             monthSelect.addEventListener("change", () => {
@@ -163,12 +139,7 @@
                 viewDate = new Date(Number(yearSelect.value), month, 1);
                 render();
             });
-            todayButton.addEventListener("click", () => {
-                const now = new Date();
-                viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                select(now);
-            });
-            controls.append(monthSelect, yearSelect, todayButton);
+            controls.append(monthSelect, yearSelect);
             const weekdays = document.createElement("div");
             weekdays.className = "crm-date-weekdays";
             ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].forEach((label) => {
@@ -192,7 +163,7 @@
                 button.addEventListener("click", () => select(dayDate));
                 days.appendChild(button);
             }
-            dropdown.append(header, controls, weekdays, days);
+            dropdown.append(controls, weekdays, days);
             dropdown.hidden = false;
             field.setAttribute("aria-expanded", "true");
         };

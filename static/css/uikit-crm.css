@@ -9085,29 +9085,14 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     overflow: visible;
 }
 
-.crm-date-header {
-    display: grid;
-    grid-template-columns: 28px 1fr 28px;
-    align-items: center;
-    margin-bottom: 6px;
-    text-align: center;
-}
-
-.crm-date-header strong {
-    color: #263445;
-    font-size: 13px;
-    font-weight: 600;
-}
-
 .crm-date-controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 76px 68px;
+    grid-template-columns: minmax(0, 1fr) 78px;
     gap: 5px;
     margin-bottom: 7px;
 }
 
-.crm-date-select,
-.crm-date-today {
+.crm-date-select {
     height: 28px;
     border: 1px solid #d7e0ea;
     border-radius: 3px;
@@ -9117,25 +9102,10 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     line-height: 1;
 }
 
-.crm-date-select {
     min-width: 0;
     padding: 0 22px 0 7px;
 }
 
-.crm-date-today {
-    padding: 0 8px;
-    cursor: pointer;
-}
-
-.crm-date-today:hover,
-.crm-date-today:focus {
-    outline: 0;
-    border-color: #8dc5fc;
-    background: #edf6ff;
-    color: #0b69b7;
-}
-
-.crm-date-nav,
 .crm-date-day {
     border: 0;
     background: transparent;
@@ -9143,15 +9113,6 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     cursor: pointer;
 }
 
-.crm-date-nav {
-    width: 28px;
-    height: 28px;
-    border-radius: 3px;
-    font-size: 22px;
-    line-height: 1;
-}
-
-.crm-date-nav:hover,
 .crm-date-day:hover,
 .crm-date-day:focus {
     outline: 0;
@@ -9389,8 +9350,6 @@ html[data-theme="dark"] body.uikit-theme .crm-smart-option.is-selected {
     background: #17283d;
 }
 
-html[data-theme="dark"] body.uikit-theme .crm-date-header strong,
-html[data-theme="dark"] body.uikit-theme .crm-date-nav,
 html[data-theme="dark"] body.uikit-theme .crm-date-day {
     color: #dce4ef;
 }
@@ -9400,8 +9359,7 @@ html[data-theme="dark"] body.uikit-theme .crm-date-day.is-outside {
     color: #94a3b8;
 }
 
-html[data-theme="dark"] body.uikit-theme .crm-date-select,
-html[data-theme="dark"] body.uikit-theme .crm-date-today {
+html[data-theme="dark"] body.uikit-theme .crm-date-select {
     border-color: #34465c;
     background: #101827;
     color: #dce4ef;
@@ -9411,11 +9369,8 @@ html[data-theme="dark"] body.uikit-theme .crm-date-input {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5.5' width='17' height='15' rx='2'/%3E%3Cpath d='M8 3.5v4M16 3.5v4M3.5 10h17'/%3E%3C/svg%3E") !important;
 }
 
-html[data-theme="dark"] body.uikit-theme .crm-date-nav:hover,
 html[data-theme="dark"] body.uikit-theme .crm-date-day:hover,
-html[data-theme="dark"] body.uikit-theme .crm-date-day:focus,
-html[data-theme="dark"] body.uikit-theme .crm-date-today:hover,
-html[data-theme="dark"] body.uikit-theme .crm-date-today:focus {
+html[data-theme="dark"] body.uikit-theme .crm-date-day:focus {
     background: #17283d;
     color: #8dc5fc;
 }
