@@ -10831,8 +10831,13 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
 .driver-form-page.crm-driver-dialog {
     max-width: 1120px;
     max-height: calc(100vh - 44px);
-    padding: 0;
+    padding: 18px;
     overflow-y: auto;
+}
+
+/* В диалоге внешний отступ задаёт окно, чтобы блоки ровно держали общий край. */
+.crm-driver-dialog [data-driver-form] {
+    padding: 0 0 4px;
 }
 
 /* Планировщик: компактная agenda в стиле реестров 1С/UIkit. */
