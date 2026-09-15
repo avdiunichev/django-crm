@@ -6839,7 +6839,7 @@ body.uikit-theme [data-driver-form] .form-select:focus {
 .crm-driver-dialog [data-driver-form] .driver-command-panel {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     top: 0 !important;
     width: calc(100% + 56px);
     margin: 0 -28px 18px;
