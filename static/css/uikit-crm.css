@@ -10701,6 +10701,14 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     margin: 0;
 }
 
+.driver-form-page .driver-command-panel {
+    border-radius: 0;
+}
+
+.driver-form-page .driver-command-panel .order-command-actions {
+    padding: 0;
+}
+
 .driver-form-page .driver-register-list,
 .driver-form-page .driver-passport-list {
     display: grid;

@@ -8918,6 +8918,16 @@ class DriverRegistersFormSetMixin:
             )
         )
 
+    def get_success_url(self):
+        """Keep the card open for «Записать» and close it for the primary command."""
+
+        action = self.request.POST.get("action")
+        if action == "save":
+            return reverse("driver-update", kwargs={"pk": self.object.pk})
+        if action == "save_close":
+            return reverse("driver-list")
+        return self.object.get_absolute_url()
+
 
 class DriverCreateView(
     LoginRequiredMixin,

@@ -4,17 +4,24 @@
 {% block body_class %}driver-form-page{% endblock %}
 {% block content %}
 <div class="onec-workspace driver-form-workspace">
-<div class="page-heading with-action driver-titlebar">
-    <div>
-        <a class="back-link" href="{{ cancel_url }}">← Назад</a>
-        <h1>{% if object %}Изменить{% else %}Добавить{% endif %}: {{ entity_title|lower }}</h1>
-        <p>Один водитель может работать у нескольких перевозчиков, а документы сохраняются в истории.</p>
-    </div>
-</div>
 <form method="post" class="entity-form" data-driver-form>
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
+        <div class="form-section-title order-command-title">
+            <span class="order-command-icon" uk-icon="social"></span>
+            <div><h2>{% if object %}Водитель {{ object.full_name }}{% else %}Новый водитель{% endif %}</h2><p>Личная карточка, документы и привязка к перевозчикам</p></div>
+        </div>
+        <div class="order-command-actions">
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
+            <button class="uk-button uk-button-default" type="button" data-driver-copy {% if not object %}disabled title="Сначала сохраните карточку"{% endif %}>Скопировать в буфер обмена</button>
+            {% if object %}<a class="uk-button uk-button-danger" href="{% url delete_url_name object.pk %}">Удалить</a>{% else %}<button class="uk-button uk-button-danger" type="button" disabled title="Сначала сохраните карточку">Удалить</button>{% endif %}
+            <a class="uk-button uk-button-default" href="{{ cancel_url }}">Закрыть</a>
+        </div>
+    </section>
 
     <section class="form-section">
         <div class="form-section-title"><div><h2>Перевозчики</h2><p>Добавьте все компании, в которых работает водитель. Ровно одну отметьте основной.</p></div></div>
@@ -145,11 +152,30 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-license-add><span uk-icon="plus"></span> Добавить ещё удостоверение</button>
     </section>
 
-    <div class="form-actions">
-        <a class="uk-button uk-button-default" href="{{ cancel_url }}">Отмена</a>
-        {% if object and delete_url_name %}<a class="uk-button uk-button-danger" href="{% url delete_url_name object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-        <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить</button>
-    </div>
 </form>
 </div>
+<script>
+(() => {
+    const form = document.querySelector("[data-driver-form]");
+    const copyButton = document.querySelector("[data-driver-copy]");
+    if (!form || !copyButton || copyButton.disabled) return;
+    const value = (selector) => form.querySelector(selector)?.value?.trim() || "";
+    copyButton.addEventListener("click", async () => {
+        const rows = [
+            ["ФИО", value("#id_full_name")],
+            ["Телефон", value("#id_phone")],
+            ["Дата рождения", value("#id_birth_date")],
+            ["ИНН", value("#id_tax_id")],
+        ].filter(([, item]) => item);
+        const text = rows.map(([label, item]) => `${label}: ${item}`).join("\n");
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            if (window.UIkit) UIkit.notification({message: "Карточка водителя скопирована в буфер обмена.", status: "success"});
+        } catch (_error) {
+            if (window.UIkit) UIkit.notification({message: "Не удалось скопировать данные.", status: "danger"});
+        }
+    });
+})();
+</script>
 {% endblock %}
