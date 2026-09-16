@@ -11009,7 +11009,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 [data-driver-form] .driver-phone-card-row {
     display: grid;
     grid-template-columns: 24px minmax(320px, 590px) 250px minmax(0, 1fr);
-    align-items: center;
+    align-items: end;
     gap: 14px;
 }
 
@@ -11019,7 +11019,8 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 
 [data-driver-form] .driver-phone-radio {
     align-self: center;
-    margin: 21px 0 0;
+    margin: 0;
+    transform: translateY(-11px);
 }
 
 [data-driver-form] .driver-phone-remove {
@@ -11027,8 +11028,8 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
     align-items: center;
     justify-content: center;
     width: 250px;
-    min-height: 38px;
-    margin: 21px 0 0;
+    min-height: 40px;
+    margin: 0;
     padding: 0 14px;
     border: 1px solid #d10000;
     color: #d10000;
