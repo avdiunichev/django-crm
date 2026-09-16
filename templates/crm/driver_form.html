@@ -241,7 +241,8 @@
             .join(", ");
     };
     copyButton.addEventListener("click", async () => {
-        const nameText = [value("#id_full_name"), value("#id_tax_id")].filter(Boolean).join(" ");
+        const taxId = value("#id_tax_id");
+        const nameText = [value("#id_full_name"), taxId ? `ИНН ${taxId}` : ""].filter(Boolean).join(" ");
         const rows = [
             nameText,
             currentPassportText(),

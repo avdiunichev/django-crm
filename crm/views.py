@@ -8781,7 +8781,14 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
         )
         if not phones and driver.phone:
             phones = [driver.phone]
-        name_text = " ".join(part for part in (driver.full_name, driver.tax_id) if part)
+        name_text = " ".join(
+            part
+            for part in (
+                driver.full_name,
+                f"ИНН {driver.tax_id}" if driver.tax_id else "",
+            )
+            if part
+        )
         context["driver_copy_text"] = "\n".join(
             part
             for part in (
