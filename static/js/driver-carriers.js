@@ -14,9 +14,20 @@
         );
         const isDeleted = (row) => row?.querySelector("input[name$='-DELETE']")?.checked;
         const refreshCards = () => {
+            const activeRows = Array.from(list.querySelectorAll("[data-employment-form]"))
+                .filter((row) => !isDeleted(row));
             primaryInputs().forEach((input) => {
                 const row = input.closest("[data-employment-form]");
                 row?.classList.toggle("is-current", input.checked && !isDeleted(row));
+                const radio = row?.querySelector("[data-employment-primary]");
+                if (radio) radio.checked = input.checked && !isDeleted(row);
+            });
+            activeRows.forEach((row) => {
+                const remove = row.querySelector("[data-employment-remove]");
+                if (!remove) return;
+                const disabled = activeRows.length <= 1;
+                remove.classList.toggle("is-disabled", disabled);
+                remove.setAttribute("aria-disabled", disabled ? "true" : "false");
             });
         };
         const choosePrimary = (selected) => {
@@ -33,6 +44,15 @@
         });
 
         form.addEventListener("change", (event) => {
+            if (event.target.matches("[data-employment-primary]")) {
+                const row = event.target.closest("[data-employment-form]");
+                const primary = row?.querySelector("input[name$='-is_primary']");
+                if (primary) {
+                    primary.checked = true;
+                    choosePrimary(primary);
+                }
+                return;
+            }
             if (event.target.matches("input[name^='employments-'][name$='-is_primary']")) {
                 choosePrimary(event.target);
                 return;
@@ -51,6 +71,38 @@
             }
         });
 
+        form.addEventListener("click", (event) => {
+            const remove = event.target.closest("[data-employment-remove]");
+            if (!remove) return;
+            event.preventDefault();
+            if (remove.dataset.linked === "true") {
+                window.UIkit?.notification?.({
+                    message: "Нельзя удалить контрагента: водитель уже назначался на его рейсы.",
+                    status: "danger",
+                    pos: "top-center"
+                });
+                return;
+            }
+            if (remove.getAttribute("aria-disabled") === "true") return;
+            const row = remove.closest("[data-employment-form]");
+            const deleted = row?.querySelector("input[name$='-DELETE']");
+            const wasPrimary = row?.querySelector("input[name$='-is_primary']")?.checked;
+            if (!row || !deleted) return;
+            deleted.checked = true;
+            row.hidden = true;
+            if (wasPrimary) {
+                const replacement = Array.from(list.querySelectorAll("[data-employment-form]"))
+                    .find((candidate) => !isDeleted(candidate) && candidate.querySelector("select[name$='-carrier']")?.value);
+                const primary = replacement?.querySelector("input[name$='-is_primary']");
+                if (primary) {
+                    primary.checked = true;
+                    choosePrimary(primary);
+                }
+            }
+            refreshCards();
+            form.dispatchEvent(new Event("change", {bubbles: true}));
+        });
+
         form.querySelector("[data-employment-add]")?.addEventListener("click", () => {
             const index = Number.parseInt(totalInput.value, 10);
             list.insertAdjacentHTML(
@@ -63,6 +115,7 @@
             const search = added?.querySelector(".crm-smart-search");
             const select = added?.querySelector("select[name$='-carrier']");
             (search || select)?.focus();
+            refreshCards();
         });
 
         refreshCards();

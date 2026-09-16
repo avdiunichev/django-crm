@@ -16,6 +16,7 @@ from django.utils import timezone
 from docx import Document
 
 from .forms import (
+    DriverEmploymentFormSet,
     ShipmentForm,
     ShipmentDocumentForm,
     TransportOrderStopForm,
@@ -2936,9 +2937,9 @@ class CrmTestCase(TestCase):
         self.assertIn("tax_id", form.fields)
         self.assertIn("employment_formset", response.context)
         self.assertIn("license_formset", response.context)
-        self.assertContains(response, "Добавить перевозчика")
-        self.assertContains(response, "Добавить ещё паспорт")
-        self.assertContains(response, "Добавить ещё удостоверение")
+        self.assertContains(response, "Добавить контрагента")
+        self.assertContains(response, "Добавить паспорт")
+        self.assertContains(response, "Добавить водительское удостоверение")
         self.assertContains(response, "js/driver-suggestions.js")
 
     def test_driver_create_opens_in_modal_and_saves_inn_and_passport(self):
@@ -3239,6 +3240,40 @@ class CrmTestCase(TestCase):
         self.assertIn(
             self.driver.pk,
             [item["id"] for item in response.json()["drivers"]],
+        )
+
+    def test_driver_counterparty_cannot_be_removed_after_trip_assignment(self):
+        second_carrier = Carrier.objects.create(name="Второй перевозчик")
+        primary_employment = self.driver.employments.get(carrier=self.carrier)
+        second_employment = DriverEmployment.objects.create(
+            driver=self.driver,
+            carrier=second_carrier,
+            is_active=True,
+        )
+        self.shipment.driver = self.driver
+        self.shipment.save(update_fields=["driver", "updated_at"])
+
+        formset = DriverEmploymentFormSet(
+            data={
+                "employments-TOTAL_FORMS": "2",
+                "employments-INITIAL_FORMS": "2",
+                "employments-MIN_NUM_FORMS": "0",
+                "employments-MAX_NUM_FORMS": "1000",
+                "employments-0-id": str(primary_employment.pk),
+                "employments-0-carrier": str(self.carrier.pk),
+                "employments-0-DELETE": "on",
+                "employments-1-id": str(second_employment.pk),
+                "employments-1-carrier": str(second_carrier.pk),
+                "employments-1-is_primary": "on",
+            },
+            instance=self.driver,
+            prefix="employments",
+        )
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn(
+            "Нельзя удалить контрагента: водитель уже назначался на его рейсы.",
+            str(formset.non_form_errors()),
         )
 
     def test_driver_pages_do_not_show_removed_personal_fields(self):

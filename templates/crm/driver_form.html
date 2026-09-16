@@ -162,36 +162,33 @@
     </section>
 
     <section class="form-section driver-employment-section">
-        <div class="form-section-title"><div><h2>Перевозчики</h2><p>Добавьте все компании, в которых работает водитель. Ровно одну отметьте основной.</p></div></div>
+        <div class="form-section-title"><div><h2>Контрагенты</h2><p>Добавьте контрагентов, с которыми работает водитель. Одного отметьте основным.</p></div></div>
         {{ employment_formset.management_form }}
         {% if employment_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_formset.non_form_errors }}</div>{% endif %}
         <div class="driver-register-list" data-employment-list>
             {% for employment_form in employment_formset %}
                 <article class="driver-passport-card{% if employment_form.instance.is_primary %} is-current{% endif %}" data-employment-form>
-                    {{ employment_form.id }}
-                    <div class="driver-passport-card-head">
-                        <strong>{% if employment_form.instance.pk %}{{ employment_form.instance.carrier.name }}{% else %}Новый перевозчик{% endif %}</strong>
-                        {% if employment_form.instance.pk %}<label class="passport-delete">{{ employment_form.DELETE }} Удалить из списка</label>{% endif %}
-                    </div>
+                    {{ employment_form.id }}{{ employment_form.is_primary }}{{ employment_form.DELETE }}
                     {% if employment_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_form.non_field_errors }}</div>{% endif %}
-                    <div class="form-grid employment-grid">
-                        {% include "crm/includes/form_field.html" with field=employment_form.carrier %}
-                        {% include "crm/includes/form_field.html" with field=employment_form.is_primary %}
+                    <div class="driver-employment-row">
+                        <input class="uk-radio driver-employment-radio" type="radio" name="driver-employment-primary" value="{{ forloop.counter0 }}" data-employment-primary aria-label="Основной контрагент" {% if employment_form.instance.is_primary %}checked{% endif %}>
+                        <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_form.carrier %}</div>
+                        <a class="driver-employment-remove{% if employment_form.is_used_in_transportations %} is-linked{% endif %}" href="#" data-employment-remove{% if employment_form.is_used_in_transportations %} data-linked="true" title="Водитель уже назначался на рейсы этого контрагента"{% endif %}>Удалить</a>
                     </div>
                 </article>
             {% endfor %}
         </div>
         <template data-employment-empty-form>
             <article class="driver-passport-card" data-employment-form>
-                {{ employment_formset.empty_form.id }}
-                <div class="driver-passport-card-head"><strong>Новый перевозчик</strong></div>
-                <div class="form-grid employment-grid">
-                    {% include "crm/includes/form_field.html" with field=employment_formset.empty_form.carrier %}
-                    {% include "crm/includes/form_field.html" with field=employment_formset.empty_form.is_primary %}
+                {{ employment_formset.empty_form.id }}{{ employment_formset.empty_form.is_primary }}{{ employment_formset.empty_form.DELETE }}
+                <div class="driver-employment-row">
+                    <input class="uk-radio driver-employment-radio" type="radio" name="driver-employment-primary" value="__prefix__" data-employment-primary aria-label="Основной контрагент">
+                    <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_formset.empty_form.carrier %}</div>
+                    <a class="driver-employment-remove" href="#" data-employment-remove>Удалить</a>
                 </div>
             </article>
         </template>
-        <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add>Добавить к контрагенту</button>
+        <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add>Добавить контрагента</button>
         <div class="form-grid driver-status-grid">
             {% include "crm/includes/form_field.html" with field=form.is_active %}
             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}

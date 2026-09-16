@@ -3708,13 +3708,25 @@ class DriverEmploymentForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.is_used_in_transportations = False
         carriers = Carrier.objects.filter(is_active=True)
         if self.instance.carrier_id:
             carriers |= Carrier.objects.filter(pk=self.instance.carrier_id)
+            self.is_used_in_transportations = (
+                VehicleAssignment.objects.filter(
+                    driver_id=self.instance.driver_id,
+                    actual_carrier_id=self.instance.carrier.organization_id,
+                ).exists()
+                if self.instance.carrier.organization_id
+                else False
+            ) or Shipment.objects.filter(
+                driver_id=self.instance.driver_id,
+                carrier_id=self.instance.carrier_id,
+            ).exists()
         self.fields["carrier"].queryset = carriers.distinct()
-        self.fields["carrier"].label = "Перевозчик"
+        self.fields["carrier"].label = "Контрагент"
         self.fields["carrier"].widget.attrs.update(
-            {"data-search-placeholder": "Введите название или ИНН перевозчика"}
+            {"data-search-placeholder": "Введите название или ИНН контрагента"}
         )
         if not self.instance.pk:
             self.initial["is_primary"] = False
@@ -3722,6 +3734,21 @@ class DriverEmploymentForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
 
 
 class BaseDriverEmploymentFormSet(BaseInlineFormSet):
+    @staticmethod
+    def employment_is_used(driver, carrier):
+        organization_id = carrier.organization_id
+        return (
+            VehicleAssignment.objects.filter(
+                driver_id=driver.pk,
+                actual_carrier_id=organization_id,
+            ).exists()
+            if organization_id
+            else False
+        ) or Shipment.objects.filter(
+            driver_id=driver.pk,
+            carrier_id=carrier.pk,
+        ).exists()
+
     def active_forms(self):
         return [
             form for form in self.forms
@@ -3734,6 +3761,20 @@ class BaseDriverEmploymentFormSet(BaseInlineFormSet):
         super().clean()
         if any(self.errors):
             return
+        blocked_deletions = []
+        for form in self.forms:
+            carrier = form.cleaned_data.get("carrier")
+            if (
+                form.cleaned_data.get("DELETE")
+                and form.instance.pk
+                and carrier
+                and self.employment_is_used(self.instance, carrier)
+            ):
+                blocked_deletions.append(carrier.name)
+        if blocked_deletions:
+            raise forms.ValidationError(
+                "Нельзя удалить контрагента: водитель уже назначался на его рейсы."
+            )
         forms_with_data = self.active_forms()
         if not forms_with_data:
             raise forms.ValidationError("Добавьте хотя бы одного перевозчика.")
