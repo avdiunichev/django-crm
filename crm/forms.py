@@ -3577,13 +3577,11 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         cleaned = super().clean()
         has_license_data = any(
             cleaned.get(field_name)
-            for field_name in ("number", "categories", "issue_date", "expiry_date")
+            for field_name in ("number", "issue_date", "expiry_date")
         )
         if has_license_data:
             if not cleaned.get("number"):
                 self.add_error("number", "Укажите номер водительского удостоверения.")
-            if not cleaned.get("categories"):
-                self.add_error("categories", "Укажите категории.")
             if not cleaned.get("expiry_date"):
                 self.add_error("expiry_date", "Укажите срок действия.")
         issued = cleaned.get("issue_date")
