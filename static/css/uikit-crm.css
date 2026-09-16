@@ -6836,6 +6836,19 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     margin-top: 0;
 }
 
+[data-driver-form] .driver-command-panel .driver-delete-button:not(:disabled) {
+    border-color: #d10000 !important;
+    background: transparent !important;
+    color: #d10000 !important;
+}
+
+[data-driver-form] .driver-command-panel .driver-delete-button:not(:disabled):hover,
+[data-driver-form] .driver-command-panel .driver-delete-button:not(:disabled):focus {
+    border-color: #a90000 !important;
+    background: transparent !important;
+    color: #a90000 !important;
+}
+
 [data-driver-form] > .form-section:not(.driver-command-panel) > .form-section-title {
     min-height: 0;
     margin: 0 0 20px;
@@ -11066,6 +11079,14 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
     margin-left: 38px;
     width: calc(100% - 38px);
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] [data-driver-phone-add] {
+    min-height: 40px;
+    line-height: 38px;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-grid {
