@@ -11136,11 +11136,13 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
     margin-left: 38px;
     width: calc(100% - 38px);
+    box-sizing: border-box;
 }
 
 body.uikit-theme [data-driver-form] .driver-license-section [data-license-add] {
     margin-left: 38px;
     width: calc(100% - 38px);
+    box-sizing: border-box;
 }
 
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
@@ -11212,7 +11214,9 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 }
 
 [data-driver-form] [data-driver-phone-add] {
+    display: block;
     width: calc(100% - 38px);
+    box-sizing: border-box;
     margin: 18px 0 0 38px;
 }
 
@@ -11252,6 +11256,11 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
     [data-driver-form] .driver-phone-radio,
     [data-driver-form] .driver-phone-card .driver-phone-remove {
         margin: 0;
+    }
+
+    [data-driver-form] [data-driver-phone-add] {
+        width: 100%;
+        margin-left: 0;
     }
 }
 
