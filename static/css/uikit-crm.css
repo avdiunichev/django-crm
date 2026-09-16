@@ -11234,19 +11234,46 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 
 [data-driver-form] .driver-employment-row {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) 250px;
+    grid-template-columns: minmax(0, 1fr) 250px;
     align-items: end;
     gap: 14px;
 }
 
-[data-driver-form] .driver-employment-radio {
-    align-self: center;
-    margin: 0;
-    transform: translateY(-11px);
-}
-
 [data-driver-form] .driver-employment-field {
     min-width: 0;
+}
+
+[data-driver-form] .driver-employment-field .field > label {
+    display: none;
+}
+
+[data-driver-form] .driver-personal-primary-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 250px;
+    align-items: end;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+[data-driver-form] .driver-personal-primary-row .field {
+    min-width: 0;
+}
+
+[data-driver-form] .driver-visibility-toggle {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    gap: 10px;
+}
+
+[data-driver-form] .driver-visibility-toggle label {
+    margin: 0;
+    color: #263445;
+    cursor: pointer;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-visibility-toggle label {
+    color: #dce4ef;
 }
 
 [data-driver-form] .driver-employment-remove {
@@ -11288,10 +11315,10 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 }
 
 body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-add] {
-    width: calc(100% - 38px);
+    width: 100%;
     min-height: 40px;
     box-sizing: border-box;
-    margin: 18px 0 0 38px;
+    margin: 18px 0 0;
     border-color: #d10000 !important;
     background: transparent !important;
     color: #d10000 !important;
@@ -11322,7 +11349,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 [data-driver-form] .driver-phone-radio {
     align-self: center;
     margin: 0;
-    transform: translateY(-11px);
+    transform: none;
 }
 
 [data-driver-form] .driver-phone-remove {
@@ -11467,24 +11494,26 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
     }
 
     [data-driver-form] .driver-employment-row {
-        grid-template-columns: 20px minmax(0, 1fr);
-        align-items: start;
-        gap: 8px 10px;
-    }
-
-    [data-driver-form] .driver-employment-radio {
-        grid-row: 1;
-        margin-top: 31px;
-        transform: none;
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
 
     [data-driver-form] .driver-employment-remove {
-        grid-column: 2;
+        grid-column: 1;
     }
 
     body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-add] {
-        width: calc(100% - 30px);
-        margin-left: 30px;
+        width: 100%;
+        margin-left: 0;
+    }
+
+    [data-driver-form] .driver-personal-primary-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    [data-driver-form] .driver-personal-spacer {
+        display: none;
     }
 }
 

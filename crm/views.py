@@ -276,6 +276,7 @@ from .forms import (
     DocumentBatchForm,
     DriverForm,
     DriverEmploymentFormSet,
+    DriverEmploymentInitialFormSet,
     DriverLicenseEditFormSet,
     DriverLicenseFormSet,
     DriverPassportEditFormSet,
@@ -8868,17 +8869,19 @@ class DriverRegistersFormSetMixin:
             "instance": instance,
             "prefix": self.employment_prefix,
         }
+        formset_class = DriverEmploymentFormSet
         if queryset is not None:
             kwargs["queryset"] = queryset
         elif data is None and form.initial.get("carrier"):
             carrier = form.initial["carrier"]
+            formset_class = DriverEmploymentInitialFormSet
             kwargs["initial"] = [
                 {
                     "carrier": getattr(carrier, "pk", carrier),
                     "is_primary": True,
                 }
             ]
-        return DriverEmploymentFormSet(**kwargs)
+        return formset_class(**kwargs)
 
     def get_phone_formset(self, form, data=None):
         instance = form.instance

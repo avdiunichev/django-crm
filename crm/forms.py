@@ -917,6 +917,11 @@ class TransportationChainForm(forms.Form):
                 ),
                 is_active=True,
             ).distinct()
+            if assignment and assignment.driver_id:
+                available_driver_ids = self.fields["driver"].queryset.values("pk")
+                self.fields["driver"].queryset = Driver.objects.filter(
+                    Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
+                ).distinct()
             carrier_filter = {"carrier__organization_id": actual_id}
             self.fields["vehicle"].queryset = Vehicle.objects.filter(
                 is_active=True, **carrier_filter
@@ -2207,6 +2212,11 @@ class TransportationDocumentForm(StyledModelForm):
                 ),
                 is_active=True,
             ).distinct()
+            if assignment and assignment.driver_id:
+                available_driver_ids = self.fields["driver"].queryset.values("pk")
+                self.fields["driver"].queryset = Driver.objects.filter(
+                    Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
+                ).distinct()
             carrier_filter = {"carrier__organization_id": actual_id}
             self.fields["vehicle"].queryset = Vehicle.objects.filter(
                 is_active=True, **carrier_filter
@@ -3083,7 +3093,7 @@ class DriverForm(StyledModelForm):
     full_name = forms.CharField(
         label="ФИО",
         max_length=300,
-        help_text="Введите фамилию, имя и отчество одной строкой.",
+        help_text="",
     )
     tax_id = forms.CharField(
         label="ИНН",
@@ -3156,6 +3166,7 @@ class DriverForm(StyledModelForm):
             {"inputmode": "numeric", "placeholder": "ИНН физического лица", "maxlength": "12"}
         )
         self.fields["tax_id"].help_text = ""
+        self.fields["is_active"].label = "Отображается"
         self.fields["license_number"].widget.attrs.update(
             {"placeholder": "00 00 000000"}
         )
@@ -3824,6 +3835,15 @@ DriverEmploymentFormSet = inlineformset_factory(
     DriverEmployment,
     form=DriverEmploymentForm,
     formset=BaseDriverEmploymentFormSet,
+    extra=0,
+    can_delete=True,
+)
+
+DriverEmploymentInitialFormSet = inlineformset_factory(
+    Driver,
+    DriverEmployment,
+    form=DriverEmploymentForm,
+    formset=BaseDriverEmploymentFormSet,
     extra=1,
     can_delete=True,
 )
@@ -3951,9 +3971,10 @@ class ShipmentForm(StyledModelForm):
             self.fields["driver"].queryset = Driver.objects.filter(is_active=True)
             self.fields["vehicle"].queryset = Vehicle.objects.filter(is_active=True)
         if self.instance.driver_id:
-            self.fields["driver"].queryset |= Driver.objects.filter(
-                pk=self.instance.driver_id
-            )
+            available_driver_ids = self.fields["driver"].queryset.values("pk")
+            self.fields["driver"].queryset = Driver.objects.filter(
+                Q(pk__in=available_driver_ids) | Q(pk=self.instance.driver_id)
+            ).distinct()
         if self.instance.vehicle_id:
             self.fields["vehicle"].queryset |= Vehicle.objects.filter(
                 pk=self.instance.vehicle_id

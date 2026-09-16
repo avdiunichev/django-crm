@@ -3276,6 +3276,41 @@ class CrmTestCase(TestCase):
             str(formset.non_form_errors()),
         )
 
+    def test_driver_form_does_not_render_spare_counterparty_row(self):
+        self.client.force_login(self.user)
+
+        create_response = self.client.get(reverse("driver-create"))
+        self.assertEqual(
+            create_response.context["employment_formset"].total_form_count(), 0
+        )
+
+        edit_response = self.client.get(
+            reverse("driver-update", args=[self.driver.pk])
+        )
+        self.assertEqual(
+            edit_response.context["employment_formset"].total_form_count(), 1
+        )
+
+    def test_hidden_driver_is_excluded_from_selection_but_kept_in_old_trip(self):
+        self.shipment.driver = self.driver
+        self.shipment.save(update_fields=["driver", "updated_at"])
+        self.driver.is_active = False
+        self.driver.save(update_fields=["is_active", "updated_at"])
+
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("carrier-resources"), {"carrier": self.carrier.pk}
+        )
+        self.assertNotIn(
+            self.driver.pk,
+            [item["id"] for item in response.json()["drivers"]],
+        )
+
+        self.shipment.refresh_from_db()
+        self.assertEqual(self.shipment.driver, self.driver)
+        form = ShipmentForm(instance=self.shipment)
+        self.assertIn(self.driver, form.fields["driver"].queryset)
+
     def test_driver_pages_do_not_show_removed_personal_fields(self):
         self.driver.email = "hidden-driver@example.test"
         self.driver.address = "Скрытый адрес регистрации"

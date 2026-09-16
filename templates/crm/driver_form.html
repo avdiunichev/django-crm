@@ -29,8 +29,16 @@
 
     <section class="form-section">
         <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет ФИО во время ввода.</p></div></div>
+        <div class="driver-personal-primary-row">
+            <span class="driver-personal-spacer" aria-hidden="true"></span>
+            {% include "crm/includes/form_field.html" with field=form.full_name %}
+            <div class="driver-visibility-toggle">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" data-driver-visibility-label>{% if form.is_active.value %}Отображается{% else %}Не отображается{% endif %}</label>
+                {{ form.is_active.errors }}
+            </div>
+        </div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.full_name wide=True %}
             {% include "crm/includes/form_field.html" with field=form.birth_date %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}
         </div>
@@ -46,7 +54,7 @@
                     {{ phone_form.id }}{{ phone_form.is_primary }}{{ phone_form.DELETE }}
                     <div class="driver-phone-card-row">
                         <input class="uk-radio driver-phone-radio" type="radio" name="driver-phone-primary" value="{{ forloop.counter0 }}" data-driver-phone-primary aria-label="Основной номер" {% if phone_form.is_primary.value %}checked{% endif %}>
-                        <div class="field driver-phone-field"><label>{{ phone_form.phone.label }}</label>{{ phone_form.phone }}{{ phone_form.phone.errors }}</div>
+                        <div class="field driver-phone-field">{{ phone_form.phone }}{{ phone_form.phone.errors }}</div>
                         <a class="driver-phone-remove" href="#" data-driver-phone-remove>Удалить номер</a>
                     </div>
                 </article>
@@ -57,7 +65,7 @@
                 {{ phone_formset.empty_form.id }}{{ phone_formset.empty_form.is_primary }}{{ phone_formset.empty_form.DELETE }}
                 <div class="driver-phone-card-row">
                     <input class="uk-radio driver-phone-radio" type="radio" name="driver-phone-primary" value="__prefix__" data-driver-phone-primary aria-label="Основной номер">
-                    <div class="field driver-phone-field"><label>{{ phone_formset.empty_form.phone.label }}</label>{{ phone_formset.empty_form.phone }}{{ phone_formset.empty_form.phone.errors }}</div>
+                    <div class="field driver-phone-field">{{ phone_formset.empty_form.phone }}{{ phone_formset.empty_form.phone.errors }}</div>
                     <a class="driver-phone-remove" href="#" data-driver-phone-remove>Удалить номер</a>
                 </div>
             </article>
@@ -162,7 +170,7 @@
     </section>
 
     <section class="form-section driver-employment-section">
-        <div class="form-section-title"><div><h2>Контрагенты</h2><p>Добавьте контрагентов, с которыми работает водитель. Одного отметьте основным.</p></div></div>
+        <div class="form-section-title"><div><h2>Контрагенты</h2><p>Добавьте контрагентов, с которыми работает водитель.</p></div></div>
         {{ employment_formset.management_form }}
         {% if employment_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_formset.non_form_errors }}</div>{% endif %}
         <div class="driver-register-list" data-employment-list>
@@ -171,7 +179,6 @@
                     {{ employment_form.id }}{{ employment_form.is_primary }}{{ employment_form.DELETE }}
                     {% if employment_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_form.non_field_errors }}</div>{% endif %}
                     <div class="driver-employment-row">
-                        <input class="uk-radio driver-employment-radio" type="radio" name="driver-employment-primary" value="{{ forloop.counter0 }}" data-employment-primary aria-label="Основной контрагент" {% if employment_form.instance.is_primary %}checked{% endif %}>
                         <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_form.carrier %}</div>
                         <a class="driver-employment-remove{% if employment_form.is_used_in_transportations %} is-linked{% endif %}" href="#" data-employment-remove{% if employment_form.is_used_in_transportations %} data-linked="true" title="Водитель уже назначался на рейсы этого контрагента"{% endif %}>Удалить</a>
                     </div>
@@ -182,7 +189,6 @@
             <article class="driver-passport-card" data-employment-form>
                 {{ employment_formset.empty_form.id }}{{ employment_formset.empty_form.is_primary }}{{ employment_formset.empty_form.DELETE }}
                 <div class="driver-employment-row">
-                    <input class="uk-radio driver-employment-radio" type="radio" name="driver-employment-primary" value="__prefix__" data-employment-primary aria-label="Основной контрагент">
                     <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_formset.empty_form.carrier %}</div>
                     <a class="driver-employment-remove" href="#" data-employment-remove>Удалить</a>
                 </div>
@@ -190,7 +196,6 @@
         </template>
         <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add>Добавить контрагента</button>
         <div class="form-grid driver-status-grid">
-            {% include "crm/includes/form_field.html" with field=form.is_active %}
             {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
         </div>
     </section>

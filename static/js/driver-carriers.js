@@ -3,6 +3,17 @@
 
     const enhance = (form) => {
         if (!form || form.dataset.driverCarriersReady === "true") return;
+        const visibilityInput = form.querySelector("#id_is_active");
+        const visibilityLabel = form.querySelector("[data-driver-visibility-label]");
+        const syncVisibilityLabel = () => {
+            if (visibilityInput && visibilityLabel) {
+                visibilityLabel.textContent = visibilityInput.checked
+                    ? "Отображается"
+                    : "Не отображается";
+            }
+        };
+        visibilityInput?.addEventListener("change", syncVisibilityLabel);
+        syncVisibilityLabel();
         const list = form.querySelector("[data-employment-list]");
         const template = form.querySelector("template[data-employment-empty-form]");
         const totalInput = form.querySelector("input[name='employments-TOTAL_FORMS']");
@@ -19,8 +30,6 @@
             primaryInputs().forEach((input) => {
                 const row = input.closest("[data-employment-form]");
                 row?.classList.toggle("is-current", input.checked && !isDeleted(row));
-                const radio = row?.querySelector("[data-employment-primary]");
-                if (radio) radio.checked = input.checked && !isDeleted(row);
             });
             activeRows.forEach((row) => {
                 const remove = row.querySelector("[data-employment-remove]");
@@ -44,15 +53,6 @@
         });
 
         form.addEventListener("change", (event) => {
-            if (event.target.matches("[data-employment-primary]")) {
-                const row = event.target.closest("[data-employment-form]");
-                const primary = row?.querySelector("input[name$='-is_primary']");
-                if (primary) {
-                    primary.checked = true;
-                    choosePrimary(primary);
-                }
-                return;
-            }
             if (event.target.matches("input[name^='employments-'][name$='-is_primary']")) {
                 choosePrimary(event.target);
                 return;
