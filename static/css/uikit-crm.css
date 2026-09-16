@@ -11152,6 +11152,22 @@ body.uikit-theme [data-driver-form] [data-driver-phone-add] {
     padding-bottom: 0;
 }
 
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] [data-driver-phone-add] {
+    border-color: #d10000 !important;
+    background: transparent !important;
+    color: #d10000 !important;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add]:hover,
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add]:focus,
+body.uikit-theme [data-driver-form] [data-driver-phone-add]:hover,
+body.uikit-theme [data-driver-form] [data-driver-phone-add]:focus {
+    border-color: #a80000 !important;
+    background: transparent !important;
+    color: #a80000 !important;
+}
+
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-grid {
     padding: 14px 0 0;
 }
