@@ -206,14 +206,49 @@
     const copyButton = document.querySelector("[data-driver-copy]");
     if (!form || !copyButton || copyButton.disabled) return;
     const value = (selector) => form.querySelector(selector)?.value?.trim() || "";
+    const activeRow = (selector, hiddenName) => Array.from(form.querySelectorAll(selector)).find((row) => {
+        const hidden = row.querySelector(`input[name$='-${hiddenName}']`);
+        return hidden?.checked || hidden?.value === "True" || hidden?.value === "true" || hidden?.value === "on";
+    });
+    const rowValue = (row, selector) => row?.querySelector(selector)?.value?.trim() || "";
+    const currentPassportText = () => {
+        const row = activeRow("[data-passport-form]", "is_current");
+        if (!row) return "";
+        return [
+            rowValue(row, "input[name$='-series']"),
+            rowValue(row, "input[name$='-number']"),
+            rowValue(row, "input[name$='-issued_by']"),
+            rowValue(row, "input[name$='-issue_date']"),
+        ].filter(Boolean).join(" ");
+    };
+    const currentLicenseText = () => {
+        const row = activeRow("[data-license-form]", "is_current");
+        if (!row) return "";
+        const number = rowValue(row, "input[name$='-number']");
+        if (!number) return "";
+        const issueDate = rowValue(row, "input[name$='-issue_date']");
+        const expiryDate = rowValue(row, "input[name$='-expiry_date']");
+        return ["ВУ", number, [issueDate, expiryDate].filter(Boolean).join(" - ")].filter(Boolean).join(" ");
+    };
+    const phonesText = () => {
+        const rows = Array.from(form.querySelectorAll("[data-driver-phone-form]"))
+            .filter((row) => !row.querySelector("input[name$='-DELETE']")?.checked);
+        const primary = rows.find((row) => row.querySelector("[data-driver-phone-primary]")?.checked);
+        const ordered = [primary, ...rows.filter((row) => row !== primary)].filter(Boolean);
+        return ordered
+            .map((row) => row.querySelector("input[name$='-phone']")?.value?.trim() || "")
+            .filter(Boolean)
+            .join(", ");
+    };
     copyButton.addEventListener("click", async () => {
+        const nameText = [value("#id_full_name"), value("#id_tax_id")].filter(Boolean).join(" ");
         const rows = [
-            ["ФИО", value("#id_full_name")],
-            ["Телефон", value("[name='phones-0-phone']")],
-            ["Дата рождения", value("#id_birth_date")],
-            ["ИНН", value("#id_tax_id")],
-        ].filter(([, item]) => item);
-        const text = rows.map(([label, item]) => `${label}: ${item}`).join("\n");
+            nameText,
+            currentPassportText(),
+            currentLicenseText(),
+            phonesText(),
+        ].filter(Boolean);
+        const text = rows.join("\n");
         if (!text) return;
         try {
             await navigator.clipboard.writeText(text);

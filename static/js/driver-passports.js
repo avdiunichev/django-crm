@@ -80,6 +80,7 @@
             currentInputs().forEach((input) => {
                 const row = input.closest("[data-passport-form]");
                 input.checked = row === selectedRow;
+                input.value = input.checked ? "True" : "False";
                 row?.classList.toggle("is-current", input.checked);
                 const radio = row?.querySelector("[data-passport-current-radio]");
                 if (radio) radio.checked = input.checked;

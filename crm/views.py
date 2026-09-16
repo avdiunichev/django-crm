@@ -8749,7 +8749,7 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
                     current_passport.series,
                     current_passport.number,
                     current_passport.issued_by,
-                    f"от {current_passport.issue_date:%d.%m.%Y}" if current_passport.issue_date else "",
+                    f"{current_passport.issue_date:%d.%m.%Y}" if current_passport.issue_date else "",
                 )
                 if part
             )
@@ -8758,30 +8758,37 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
             license_text = " ".join(
                 part
                 for part in (
+                    "ВУ",
                     current_license.number,
-                    f"от {current_license.issue_date:%d.%m.%Y}" if current_license.issue_date else "",
+                    (
+                        f"{current_license.issue_date:%d.%m.%Y}"
+                        if current_license.issue_date
+                        else ""
+                    ),
+                    "-",
+                    (
+                        f"{current_license.expiry_date:%d.%m.%Y}"
+                        if current_license.expiry_date
+                        else ""
+                    ),
                 )
                 if part
             )
-        vehicle_text = ""
-        if vehicle:
-            vehicle_text = " ".join(
-                part
-                for part in (
-                    vehicle.make,
-                    vehicle.registration_number,
-                    trailer_number,
-                )
-                if part
+        phones = list(
+            self.object.phone_numbers.order_by("-is_primary", "phone").values_list(
+                "phone", flat=True
             )
-        context["driver_copy_text"] = " ".join(
+        )
+        if not phones and driver.phone:
+            phones = [driver.phone]
+        name_text = " ".join(part for part in (driver.full_name, driver.tax_id) if part)
+        context["driver_copy_text"] = "\n".join(
             part
             for part in (
-                driver.full_name,
+                name_text,
                 passport_text,
                 license_text,
-                driver.phone,
-                vehicle_text,
+                ", ".join(phones),
             )
             if part
         )
