@@ -37,7 +37,7 @@
     </section>
 
     <section class="form-section driver-phone-section">
-        <div class="form-section-title"><div><h2>Контактный телефон</h2><p>Укажите один основной номер для документов и назначения в рейс.</p></div></div>
+        <div class="form-section-title"><div><h2>Контактные данные</h2><p>Укажите один основной номер для документов и назначения в рейс.</p></div></div>
         {{ phone_formset.management_form }}
         {% if phone_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ phone_formset.non_form_errors }}</div>{% endif %}
         <div class="driver-phone-list" data-driver-phone-list>
@@ -66,7 +66,7 @@
     </section>
 
     <section class="form-section driver-passport-section">
-        <div class="form-section-title"><div><h2>Паспорта</h2><p>Серия и номер уникальны во всей системе. При вводе нового паспорта прежний останется в истории.</p></div></div>
+        <div class="form-section-title"><div><h2>Паспортные данные</h2><p>Серия и номер уникальны во всей системе. При вводе нового паспорта прежний останется в истории.</p></div></div>
         {{ passport_formset.management_form }}
         {% if passport_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_formset.non_form_errors }}</div>{% endif %}
         <div class="driver-passport-list" data-passport-list>

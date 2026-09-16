@@ -11041,6 +11041,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
     margin-left: 38px;
+    width: calc(100% - 38px);
 }
 
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-grid {
@@ -11086,7 +11087,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 }
 
 [data-driver-form] [data-driver-phone-add] {
-    width: 250px;
+    width: calc(100% - 38px);
     margin: 18px 0 0 38px;
 }
 
