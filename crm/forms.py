@@ -3294,6 +3294,7 @@ class DriverPassportForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         if not self.instance.pk:
             self.initial["is_current"] = False
             self.fields["is_current"].initial = False
+        self.fields["is_current"].widget = forms.HiddenInput()
         self.fields["country"].required = False
         self.fields["country"].initial = DriverDocumentCountry.RUSSIA
         self.fields["country"].widget.attrs.update({"data-driver-document-country": ""})
@@ -3391,6 +3392,7 @@ class BaseDriverPassportFormSet(BaseInlineFormSet):
         current_count = 0
         identities = set()
         has_passports = False
+        passport_forms = []
         for form in self.forms:
             if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
                 continue
@@ -3399,12 +3401,24 @@ class BaseDriverPassportFormSet(BaseInlineFormSet):
             if not series and not number:
                 continue
             has_passports = True
+            passport_forms.append(form)
             identity = (form.cleaned_data.get("country"), series, number)
             if identity in identities:
                 form.add_error("number", "Такой паспорт уже указан в этой карточке.")
             identities.add(identity)
             if form.cleaned_data.get("is_current"):
                 current_count += 1
+        if has_passports and current_count == 0:
+            latest_form = max(
+                passport_forms,
+                key=lambda item: (
+                    item.cleaned_data.get("issue_date") or timezone.datetime.min.date(),
+                    item.cleaned_data.get("number") or "",
+                ),
+            )
+            latest_form.cleaned_data["is_current"] = True
+            latest_form.instance.is_current = True
+            current_count = 1
         if has_passports and current_count != 1:
             raise forms.ValidationError(
                 "Укажите ровно один действующий паспорт водителя."

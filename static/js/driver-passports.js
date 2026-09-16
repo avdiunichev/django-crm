@@ -45,23 +45,66 @@
             list.querySelectorAll("input[name$='-is_current']")
         );
 
-        const chooseCurrent = (selected) => {
-            if (!selected.checked) return;
+        const visibleRows = () => Array.from(
+            list.querySelectorAll("[data-passport-form]")
+        ).filter((row) => !row.querySelector("input[name$='-DELETE']")?.checked);
+
+        const parseDateValue = (value) => {
+            const text = (value || "").trim();
+            let match = text.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+            if (match) return Number(`${match[3]}${match[2]}${match[1]}`);
+            match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) return Number(`${match[1]}${match[2]}${match[3]}`);
+            return 0;
+        };
+
+        const chooseCurrent = (selected, {manual = false} = {}) => {
+            if (!selected) return;
+            selected.checked = true;
+            const selectedRow = selected.closest("[data-passport-form]");
             currentInputs().forEach((input) => {
-                if (input !== selected) input.checked = false;
-                input.closest("[data-passport-form]")?.classList.toggle(
-                    "is-current", input.checked
-                );
+                const row = input.closest("[data-passport-form]");
+                input.checked = row === selectedRow;
+                row?.classList.toggle("is-current", input.checked);
+                const radio = row?.querySelector("[data-passport-current-radio]");
+                if (radio) radio.checked = input.checked;
             });
-            selected.closest("[data-passport-form]")?.classList.add("is-current");
+            if (manual && selectedRow) selectedRow.dataset.currentManual = "true";
+        };
+
+        const autoChooseByIssueDate = () => {
+            const manual = list.querySelector("[data-passport-form][data-current-manual='true'] input[name$='-is_current']");
+            if (manual) {
+                chooseCurrent(manual);
+                return;
+            }
+            const rows = visibleRows();
+            let best = null;
+            rows.forEach((row) => {
+                const hasIdentity = row.querySelector("input[name$='-series']")?.value.trim()
+                    || row.querySelector("input[name$='-number']")?.value.trim();
+                if (!hasIdentity) return;
+                const dateScore = parseDateValue(row.querySelector("input[name$='-issue_date']")?.value);
+                if (!best || dateScore > best.dateScore) {
+                    best = {row, dateScore};
+                }
+            });
+            const input = best?.row.querySelector("input[name$='-is_current']");
+            if (input) chooseCurrent(input);
         };
 
         form.addEventListener("change", (event) => {
-            if (event.target.matches("input[name$='-is_current']")) {
-                chooseCurrent(event.target);
+            if (event.target.matches("[data-passport-current-radio]")) {
+                const current = event.target
+                    .closest("[data-passport-form]")
+                    ?.querySelector("input[name$='-is_current']");
+                chooseCurrent(current, {manual: true});
             }
             if (event.target.matches("[data-driver-document-country]")) {
                 formatPassportRow(event.target.closest("[data-passport-form]"));
+            }
+            if (event.target.matches("input[name$='-issue_date'], input[name$='-DELETE']")) {
+                autoChooseByIssueDate();
             }
         });
 
@@ -72,17 +115,11 @@
             if (event.target.matches("[data-uppercase]")) {
                 event.target.value = event.target.value.toUpperCase();
             }
-            if (!event.target.matches("input[name$='-series'], input[name$='-number']")) return;
+            if (!event.target.matches("input[name$='-series'], input[name$='-number'], input[name$='-issue_date']")) return;
             const passportForm = event.target.closest("[data-passport-form]");
-            if (!passportForm || passportForm.dataset.currentChosen === "true") return;
-            const idInput = passportForm.querySelector("input[name$='-id']");
-            if (idInput?.value || !event.target.value.trim()) return;
-            passportForm.dataset.currentChosen = "true";
-            const current = passportForm.querySelector("input[name$='-is_current']");
-            if (current) {
-                current.checked = true;
-                chooseCurrent(current);
-            }
+            if (!passportForm || passportForm.dataset.currentManual === "true") return;
+            if (!event.target.value.trim()) return;
+            autoChooseByIssueDate();
         });
 
         form.querySelector("[data-passport-add]")?.addEventListener("click", () => {
@@ -92,11 +129,14 @@
             totalInput.value = String(index + 1);
             const added = list.lastElementChild;
             window.CRMDriverSuggestions?.enhanceWithin(added);
+            window.CRMDateInputs?.enhanceWithin?.(added);
             formatPassportRow(added);
+            autoChooseByIssueDate();
             added?.querySelector("input[name$='-series']")?.focus();
         });
 
         formatAllRows();
+        autoChooseByIssueDate();
     };
 
     const enhanceWithin = (root = document) => {
