@@ -10102,6 +10102,26 @@ html[data-theme="dark"] body.uikit-theme .driver-passport-card.is-current {
     .license-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    /* Сбрасываем десктопные номера колонок: иначе браузер создаёт на
+       планшете скрытые третью и четвёртую колонки и форма уезжает вправо. */
+    .passport-grid > .field:nth-child(1),
+    .passport-grid > .field:nth-child(4) {
+        grid-column: 1 / -1;
+    }
+
+    .passport-grid > .field:nth-child(2),
+    .passport-grid > .field:nth-child(5),
+    .license-grid > .field:nth-child(1),
+    .license-grid > .field:nth-child(3) {
+        grid-column: 1;
+    }
+
+    .passport-grid > .field:nth-child(3),
+    .license-grid > .field:nth-child(2),
+    .license-grid > .field:nth-child(4) {
+        grid-column: 2;
+    }
 }
 
 @media (max-width: 560px) {
@@ -10109,6 +10129,11 @@ html[data-theme="dark"] body.uikit-theme .driver-passport-card.is-current {
     .license-grid,
     .employment-grid {
         grid-template-columns: 1fr;
+    }
+
+    .passport-grid > .field,
+    .license-grid > .field {
+        grid-column: 1 / -1 !important;
     }
 
     .driver-passport-card-head {
@@ -11292,13 +11317,73 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 
 @media (max-width: 720px) {
     .driver-form-page.crm-driver-dialog {
-        padding: 0 18px 18px;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100dvh;
+        padding: 0 16px max(18px, env(safe-area-inset-bottom));
+        overscroll-behavior: contain;
     }
 
     .crm-driver-dialog [data-driver-form] .driver-command-panel {
-        width: calc(100% + 36px);
-        margin: 0 -18px 18px;
-        padding: 18px 18px 12px;
+        width: calc(100% + 32px);
+        margin: 0 -16px 18px;
+        padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-command-panel::after {
+        right: 16px;
+        left: 16px;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-command-panel .order-command-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        gap: 8px;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-command-panel .order-command-actions > :first-child {
+        grid-column: 1 / -1;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-command-panel .uk-button {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        height: auto;
+        padding: 8px 10px;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-modal-titlebar {
+        align-items: flex-start;
+        margin-bottom: 14px;
+    }
+
+    .crm-driver-dialog [data-driver-form] .driver-modal-titlebar h1 {
+        font-size: 21px;
+    }
+
+    body.uikit-theme [data-driver-form] .driver-phone-section.form-section,
+    body.uikit-theme [data-driver-form] .driver-passport-section.form-section,
+    body.uikit-theme [data-driver-form] .driver-license-section.form-section,
+    body.uikit-theme [data-driver-form] .driver-employment-section.form-section,
+    body.uikit-theme [data-driver-form] > .form-section:not(.driver-command-panel) {
+        padding: 18px 16px;
+    }
+
+    [data-driver-form] .driver-passport-row,
+    [data-driver-form] .driver-license-row {
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+    body.uikit-theme [data-driver-form] .driver-license-section [data-license-add] {
+        width: calc(100% - 30px);
+        margin-left: 30px;
     }
 }
 
