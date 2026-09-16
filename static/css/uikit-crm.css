@@ -10923,7 +10923,19 @@ body.uikit-theme [data-driver-form] .driver-phone-section.form-section {
     box-shadow: none;
 }
 
-[data-driver-form] .driver-phone-section .form-section-title {
+body.uikit-theme [data-driver-form] .driver-passport-section.form-section,
+body.uikit-theme [data-driver-form] .driver-license-section.form-section,
+body.uikit-theme [data-driver-form] .driver-employment-section.form-section {
+    padding: 24px;
+    border: 1px solid #e1e8f0;
+    background: #fff;
+    box-shadow: none;
+}
+
+[data-driver-form] .driver-phone-section .form-section-title,
+[data-driver-form] .driver-passport-section .form-section-title,
+[data-driver-form] .driver-license-section .form-section-title,
+[data-driver-form] .driver-employment-section .form-section-title {
     padding: 0 0 17px;
 }
 
@@ -10939,6 +10951,55 @@ body.uikit-theme [data-driver-form] .driver-phone-card.is-current {
     border: 0;
     background: transparent;
     box-shadow: none;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-list,
+body.uikit-theme [data-driver-form] .driver-license-section .driver-register-list,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-register-list {
+    display: grid;
+    gap: 14px;
+    padding: 0;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card,
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card.is-current,
+body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card,
+body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card.is-current,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card.is-current {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card-head,
+body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card-head,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card-head {
+    min-height: 0;
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card .form-grid,
+body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card .form-grid,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card .form-grid {
+    padding: 0;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add],
+body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-add] {
+    margin: 14px 0 0;
+}
+
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-grid {
+    padding: 14px 0 0;
 }
 
 [data-driver-form] .driver-phone-card input[name$="-DELETE"] {

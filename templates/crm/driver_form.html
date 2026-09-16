@@ -65,7 +65,7 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-driver-phone-add>Добавить номер</button>
     </section>
 
-    <section class="form-section">
+    <section class="form-section driver-passport-section">
         <div class="form-section-title"><div><h2>Паспорта</h2><p>Серия и номер уникальны во всей системе. При вводе нового паспорта прежний останется в истории.</p></div></div>
         {{ passport_formset.management_form }}
         {% if passport_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_formset.non_form_errors }}</div>{% endif %}
@@ -106,7 +106,7 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-passport-add><span uk-icon="plus"></span> Добавить ещё паспорт</button>
     </section>
 
-    <section class="form-section">
+    <section class="form-section driver-license-section">
         <div class="form-section-title"><div><h2>Водительские удостоверения</h2><p>Добавление нового удостоверения не удаляет старое. Ровно одно удостоверение должно быть действующим.</p></div></div>
         {{ license_formset.management_form }}
         {% if license_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ license_formset.non_form_errors }}</div>{% endif %}
@@ -147,7 +147,7 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-license-add><span uk-icon="plus"></span> Добавить ещё удостоверение</button>
     </section>
 
-    <section class="form-section">
+    <section class="form-section driver-employment-section">
         <div class="form-section-title"><div><h2>Перевозчики</h2><p>Добавьте все компании, в которых работает водитель. Ровно одну отметьте основной.</p></div></div>
         {{ employment_formset.management_form }}
         {% if employment_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_formset.non_form_errors }}</div>{% endif %}
