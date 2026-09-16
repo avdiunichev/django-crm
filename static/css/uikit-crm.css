@@ -11039,6 +11039,10 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
     margin: 14px 0 0;
 }
 
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
+    margin-left: 38px;
+}
+
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-grid {
     padding: 14px 0 0;
 }
