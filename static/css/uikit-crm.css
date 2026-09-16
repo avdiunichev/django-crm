@@ -11077,6 +11077,11 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-
     box-shadow: none;
 }
 
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card + .driver-passport-card {
+    padding-top: 16px;
+    border-top: 1px solid #e1e8f0;
+}
+
 body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card-head,
 body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card-head,
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card-head {
