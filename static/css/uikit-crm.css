@@ -9659,6 +9659,30 @@ html[data-theme="dark"] body.uikit-theme .crm-quick-inn-tools {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.passport-grid > .field:nth-child(1) {
+    grid-column: 1 / span 2;
+}
+
+.passport-grid > .field:nth-child(2) {
+    grid-column: 3;
+}
+
+.passport-grid > .field:nth-child(3) {
+    grid-column: 4;
+}
+
+.passport-grid > .field:nth-child(4) {
+    grid-column: 1 / span 3;
+}
+
+.passport-grid > .field:nth-child(5) {
+    grid-column: 4;
+}
+
+.passport-grid > .field:nth-child(6) {
+    grid-column: 1 / -1;
+}
+
 .employment-grid {
     grid-template-columns: minmax(280px, 2fr) minmax(190px, 1fr);
 }

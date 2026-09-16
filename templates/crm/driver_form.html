@@ -83,7 +83,7 @@
                                 {% include "crm/includes/form_field.html" with field=passport_form.country %}
                                 {% include "crm/includes/form_field.html" with field=passport_form.series %}
                                 {% include "crm/includes/form_field.html" with field=passport_form.number %}
-                                {% include "crm/includes/form_field.html" with field=passport_form.issued_by wide=True %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.issued_by %}
                                 {% include "crm/includes/form_field.html" with field=passport_form.issue_date %}
                                 {% include "crm/includes/form_field.html" with field=passport_form.notes wide=True %}
                             </div>
@@ -103,7 +103,7 @@
                             {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.country %}
                             {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.series %}
                             {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.number %}
-                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issued_by wide=True %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issued_by %}
                             {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issue_date %}
                             {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.notes wide=True %}
                         </div>
