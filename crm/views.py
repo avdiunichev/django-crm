@@ -276,7 +276,9 @@ from .forms import (
     DocumentBatchForm,
     DriverForm,
     DriverEmploymentFormSet,
+    DriverLicenseEditFormSet,
     DriverLicenseFormSet,
+    DriverPassportEditFormSet,
     DriverPassportFormSet,
     DriverPhoneFormSet,
     ForwardingOrderForm,
@@ -8816,16 +8818,27 @@ class DriverRegistersFormSetMixin:
 
     def get_passport_formset(self, form, data=None):
         instance = form.instance
-        return DriverPassportFormSet(
+        formset_class = (
+            DriverPassportEditFormSet
+            if instance.pk and data is None
+            else DriverPassportFormSet
+        )
+        return formset_class(
             data=data,
             instance=instance,
             prefix=self.passport_prefix,
         )
 
     def get_license_formset(self, form, data=None):
-        return DriverLicenseFormSet(
+        instance = form.instance
+        formset_class = (
+            DriverLicenseEditFormSet
+            if instance.pk and data is None
+            else DriverLicenseFormSet
+        )
+        return formset_class(
             data=data,
-            instance=form.instance,
+            instance=instance,
             prefix=self.license_prefix,
         )
 

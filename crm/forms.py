@@ -3434,6 +3434,15 @@ DriverPassportFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+DriverPassportEditFormSet = inlineformset_factory(
+    Driver,
+    DriverPassport,
+    form=DriverPassportForm,
+    formset=BaseDriverPassportFormSet,
+    extra=0,
+    can_delete=True,
+)
+
 
 class DriverLicenseCategoryWidget(forms.CheckboxSelectMultiple):
     """Compact category checkboxes with a description on hover."""
@@ -3490,7 +3499,7 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
     register_flag_field = "is_current"
     categories = DriverLicenseCategoryField(
         label="Категории",
-        help_text="Наведите курсор на код категории, чтобы увидеть описание.",
+        help_text="",
     )
 
     class Meta:
@@ -3517,6 +3526,7 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         if not self.instance.pk:
             self.initial["is_current"] = False
             self.fields["is_current"].initial = False
+        self.fields["is_current"].widget = forms.HiddenInput()
         self.fields["number"].widget.attrs.update(
             {
                 "placeholder": "00 00 000000",
@@ -3615,6 +3625,18 @@ class BaseDriverLicenseFormSet(BaseInlineFormSet):
             identities.add(identity)
             if form.cleaned_data.get("is_current"):
                 current_count += 1
+        if current_count == 0:
+            latest_form = max(
+                forms_with_data,
+                key=lambda item: (
+                    item.cleaned_data.get("expiry_date") or timezone.datetime.min.date(),
+                    item.cleaned_data.get("issue_date") or timezone.datetime.min.date(),
+                    item.cleaned_data.get("number") or "",
+                ),
+            )
+            latest_form.cleaned_data["is_current"] = True
+            latest_form.instance.is_current = True
+            current_count = 1
         if current_count != 1:
             raise forms.ValidationError(
                 "Укажите ровно одно действующее водительское удостоверение."
@@ -3662,6 +3684,15 @@ DriverLicenseFormSet = inlineformset_factory(
     form=DriverLicenseForm,
     formset=BaseDriverLicenseFormSet,
     extra=1,
+    can_delete=True,
+)
+
+DriverLicenseEditFormSet = inlineformset_factory(
+    Driver,
+    DriverLicense,
+    form=DriverLicenseForm,
+    formset=BaseDriverLicenseFormSet,
+    extra=0,
     can_delete=True,
 )
 

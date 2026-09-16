@@ -9303,6 +9303,7 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     max-width: calc(100vw - 32px);
     padding: 8px;
     overflow: visible;
+    border-radius: 0 !important;
 }
 
 .crm-date-header {
@@ -9331,7 +9332,7 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
 .crm-date-nav {
     width: 28px;
     height: 28px;
-    border-radius: 3px;
+    border-radius: 0;
     font-size: 22px;
     line-height: 1;
 }
@@ -9360,15 +9361,15 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
 
 .crm-date-day {
     height: 28px;
-    border-radius: 3px;
+    border-radius: 0;
     font-size: 12px;
 }
 
 .crm-date-day.is-outside { color: #a8b3c2; }
 .crm-date-day.is-today { box-shadow: inset 0 0 0 1px #7fb8eb; }
-.crm-date-day.is-selected { color: #fff; background: #1e87f0; }
+.crm-date-day.is-selected { color: #fff; background: #d10000; }
 .crm-date-day.is-selected:hover,
-.crm-date-day.is-selected:focus { color: #fff; background: #1675d1; }
+.crm-date-day.is-selected:focus { color: #fff; background: #a90000; }
 
 .crm-address-suggest {
     position: relative;
@@ -9563,6 +9564,21 @@ html[data-theme="dark"] body.uikit-theme .crm-driver-dialog {
     background: #141e2f;
 }
 
+html[data-theme="dark"] body.uikit-theme [data-driver-form] > .form-section:not(.driver-command-panel),
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-phone-section.form-section,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-passport-section.form-section,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-license-section.form-section,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-employment-section.form-section {
+    color: #dce4ef;
+    border-color: #3a4960;
+    background: #141e2f;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-driver-form] > .form-section:not(.driver-command-panel) > .form-section-title {
+    border-color: #3a4960;
+    background: transparent;
+}
+
 html[data-theme="dark"] body.uikit-theme .crm-smart-option {
     color: #dce4ef;
 }
@@ -9597,6 +9613,13 @@ html[data-theme="dark"] body.uikit-theme .crm-date-day:hover,
 html[data-theme="dark"] body.uikit-theme .crm-date-day:focus {
     background: #17283d;
     color: #8dc5fc;
+}
+
+html[data-theme="dark"] body.uikit-theme .crm-date-day.is-selected,
+html[data-theme="dark"] body.uikit-theme .crm-date-day.is-selected:hover,
+html[data-theme="dark"] body.uikit-theme .crm-date-day.is-selected:focus {
+    color: #fff;
+    background: #d10000;
 }
 
 html[data-theme="dark"] body.uikit-theme .crm-address-option {
@@ -9704,11 +9727,32 @@ html[data-theme="dark"] body.uikit-theme .crm-quick-inn-tools {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.license-grid > .field:nth-child(1) {
+    grid-column: 1;
+}
+
+.license-grid > .field:nth-child(2) {
+    grid-column: 2;
+}
+
+.license-grid > .field:nth-child(3) {
+    grid-column: 3;
+}
+
+.license-grid > .field:nth-child(4) {
+    grid-column: 4;
+}
+
+.license-grid > .field:nth-child(5),
+.license-grid > .field:nth-child(6) {
+    grid-column: 1 / -1;
+}
+
 .driver-license-category-picker {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-    gap: 8px;
-    padding: 4px 0;
+    grid-template-columns: repeat(auto-fit, minmax(76px, max-content));
+    gap: 8px 16px;
+    padding: 0;
 }
 
 .driver-license-category-picker > div {
@@ -9719,33 +9763,31 @@ html[data-theme="dark"] body.uikit-theme .crm-quick-inn-tools {
     display: flex;
     align-items: center;
     gap: 7px;
-    min-height: 38px;
-    padding: 7px 9px;
-    border: 1px solid #dce1e7;
-    border-radius: 4px;
-    background: #fafbfd;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
     cursor: help;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .driver-license-category-picker label:hover {
-    border-color: #1e87f0;
-    background: #f1f8ff;
+    color: #d10000;
+    background: transparent;
 }
 
 .driver-license-category-name {
-    border-bottom: 1px dotted currentColor;
+    border-bottom: 0;
     cursor: help;
 }
 
 html[data-theme="dark"] body.uikit-theme .driver-license-category-picker label {
-    border-color: #30445d;
-    background: #17263a;
+    background: transparent;
 }
 
 html[data-theme="dark"] body.uikit-theme .driver-license-category-picker label:hover {
-    border-color: #4ea1f3;
-    background: #1b3551;
+    color: #ff7b7b;
+    background: transparent;
 }
 
 .driver-status-grid {
@@ -11058,11 +11100,26 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-
     gap: 14px;
 }
 
+[data-driver-form] .driver-license-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+}
+
 [data-driver-form] .driver-passport-current-radio {
     margin: 29px 0 0;
 }
 
+[data-driver-form] .driver-license-current-radio {
+    margin: 29px 0 0;
+}
+
 [data-driver-form] .driver-passport-fields {
+    min-width: 0;
+}
+
+[data-driver-form] .driver-license-fields {
     min-width: 0;
 }
 
@@ -11081,7 +11138,13 @@ body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add]
     width: calc(100% - 38px);
 }
 
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add] {
+    margin-left: 38px;
+    width: calc(100% - 38px);
+}
+
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add],
 body.uikit-theme [data-driver-form] [data-driver-phone-add] {
     min-height: 40px;
     line-height: 38px;
@@ -11099,7 +11162,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
 
 [data-driver-form] .driver-phone-card-row {
     display: grid;
-    grid-template-columns: 24px minmax(320px, 590px) 250px minmax(0, 1fr);
+    grid-template-columns: 24px minmax(0, 1fr) 250px;
     align-items: end;
     gap: 14px;
 }
@@ -11128,6 +11191,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-status-gr
     font-size: 13px;
     line-height: 1;
     text-decoration: none;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
