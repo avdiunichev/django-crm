@@ -41,6 +41,21 @@
             list.querySelectorAll("[data-passport-form]").forEach(formatPassportRow);
         };
 
+        const focusNextRussianPassportField = (input) => {
+            const row = input?.closest("[data-passport-form]");
+            if (!row || !isRussia(row)) return;
+            const series = row.querySelector("[data-driver-passport-series]");
+            const number = row.querySelector("[data-driver-passport-number]");
+            const issuedBy = row.querySelector("[data-uppercase]");
+            if (input === series && series.value.replace(/\D/g, "").length >= 4) {
+                number?.focus();
+                number?.select?.();
+            } else if (input === number && number.value.replace(/\D/g, "").length >= 6) {
+                issuedBy?.focus();
+                issuedBy?.select?.();
+            }
+        };
+
         const currentInputs = () => Array.from(
             list.querySelectorAll("input[name$='-is_current']")
         );
@@ -111,6 +126,7 @@
         form.addEventListener("input", (event) => {
             if (event.target.matches("[data-driver-passport-series], [data-driver-passport-number]")) {
                 formatPassportRow(event.target.closest("[data-passport-form]"));
+                focusNextRussianPassportField(event.target);
             }
             if (event.target.matches("[data-uppercase]")) {
                 event.target.value = event.target.value.toUpperCase();
