@@ -9,6 +9,32 @@
         if (!list || !template || !totalInput) return;
         form.dataset.driverLicensesReady = "true";
 
+        const isRussia = (row) => (
+            row?.querySelector("[data-driver-document-country]")?.value || "RU"
+        ) === "RU";
+
+        const formatLicenseNumber = (input) => {
+            const row = input?.closest("[data-license-form]");
+            const russian = isRussia(row);
+            if (!input) return;
+            input.placeholder = russian ? "00 00 000000" : "Номер удостоверения";
+            input.inputMode = russian ? "numeric" : "text";
+            if (russian) {
+                const digits = input.value.replace(/\D/g, "").slice(0, 10);
+                input.value = [
+                    digits.slice(0, 2),
+                    digits.slice(2, 4),
+                    digits.slice(4, 10),
+                ].filter(Boolean).join(" ");
+            } else {
+                input.value = input.value.toUpperCase();
+            }
+        };
+
+        const formatAllRows = () => {
+            list.querySelectorAll("[data-driver-license-number]").forEach(formatLicenseNumber);
+        };
+
         const currentInputs = () => Array.from(
             list.querySelectorAll("input[name^='licenses-'][name$='-is_current']")
         );
@@ -29,9 +55,18 @@
             if (event.target.matches("input[name^='licenses-'][name$='-is_current']")) {
                 chooseCurrent(event.target);
             }
+            if (event.target.matches("[data-driver-document-country]")) {
+                const input = event.target
+                    .closest("[data-license-form]")
+                    ?.querySelector("[data-driver-license-number]");
+                formatLicenseNumber(input);
+            }
         });
 
         form.addEventListener("input", (event) => {
+            if (event.target.matches("[data-driver-license-number]")) {
+                formatLicenseNumber(event.target);
+            }
             if (!event.target.matches("input[name^='licenses-'][name$='-number']")) return;
             const row = event.target.closest("[data-license-form]");
             if (!row || row.dataset.currentChosen === "true") return;
@@ -54,8 +89,11 @@
             totalInput.value = String(index + 1);
             const added = list.lastElementChild;
             window.CRMDateInputs?.enhanceWithin?.(added);
+            formatLicenseNumber(added?.querySelector("[data-driver-license-number]"));
             added?.querySelector("input[name$='-number']")?.focus();
         });
+
+        formatAllRows();
     };
 
     const enhanceWithin = (root = document) => {

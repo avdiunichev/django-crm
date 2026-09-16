@@ -21,6 +21,7 @@ from .models import (
     Contract,
     Customer,
     Driver,
+    DriverDocumentCountry,
     DriverPhone,
     DocumentBatch,
     DriverEmployment,
@@ -3279,7 +3280,8 @@ class DriverPassportForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
     class Meta:
         model = DriverPassport
         fields = [
-            "series", "number", "issued_by", "issue_date", "is_current", "notes"
+            "country", "series", "number", "issued_by", "issue_date",
+            "is_current", "notes",
         ]
         widgets = {
             "issue_date": forms.DateInput(
@@ -3292,11 +3294,24 @@ class DriverPassportForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         if not self.instance.pk:
             self.initial["is_current"] = False
             self.fields["is_current"].initial = False
+        self.fields["country"].required = False
+        self.fields["country"].initial = DriverDocumentCountry.RUSSIA
+        self.fields["country"].widget.attrs.update({"data-driver-document-country": ""})
         self.fields["series"].widget.attrs.update(
-            {"inputmode": "numeric", "placeholder": "0000", "maxlength": "4"}
+            {
+                "inputmode": "numeric",
+                "placeholder": "0000",
+                "maxlength": "30",
+                "data-driver-passport-series": "",
+            }
         )
         self.fields["number"].widget.attrs.update(
-            {"inputmode": "numeric", "placeholder": "000000", "maxlength": "6"}
+            {
+                "inputmode": "numeric",
+                "placeholder": "000000",
+                "maxlength": "30",
+                "data-driver-passport-number": "",
+            }
         )
         self.fields["issued_by"].widget.attrs.update(
             {
@@ -3304,28 +3319,58 @@ class DriverPassportForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
                 "data-dadata-driver": "fms",
                 "data-dadata-url": reverse("dadata-fms-unit-suggestions"),
                 "placeholder": "Введите код или название подразделения",
+                "data-uppercase": "",
             }
         )
 
+    def clean_country(self):
+        country = self.cleaned_data.get("country")
+        if country:
+            return country
+        raw_number = self.data.get(self.add_prefix("number"), "")
+        if raw_number and re.search(r"[^\d\s-]", raw_number):
+            return DriverDocumentCountry.OTHER
+        return DriverDocumentCountry.RUSSIA
+
     def clean_series(self):
-        value = DriverPassport.normalize_part(self.cleaned_data.get("series"))
-        if len(value) != 4:
+        country = self.cleaned_data.get("country")
+        raw_value = self.cleaned_data.get("series")
+        if country == DriverDocumentCountry.RUSSIA:
+            value = DriverPassport.normalize_part(raw_value)
+        else:
+            value = DriverPassport.normalize_foreign_part(raw_value)
+        if country == DriverDocumentCountry.RUSSIA and len(value) != 4:
             raise forms.ValidationError("Серия должна содержать 4 цифры.")
+        if country != DriverDocumentCountry.RUSSIA and not value:
+            raise forms.ValidationError("Укажите серию или идентификатор документа.")
         return value
 
     def clean_number(self):
-        value = DriverPassport.normalize_part(self.cleaned_data.get("number"))
-        if len(value) != 6:
+        country = self.cleaned_data.get("country")
+        raw_value = self.cleaned_data.get("number")
+        if country == DriverDocumentCountry.RUSSIA:
+            value = DriverPassport.normalize_part(raw_value)
+        else:
+            value = DriverPassport.normalize_foreign_part(raw_value)
+        if country == DriverDocumentCountry.RUSSIA and len(value) != 6:
             raise forms.ValidationError("Номер должен содержать 6 цифр.")
+        if country != DriverDocumentCountry.RUSSIA and not value:
+            raise forms.ValidationError("Укажите номер документа.")
         return value
+
+    def clean_issued_by(self):
+        return DriverPassport.normalize_foreign_part(
+            self.cleaned_data.get("issued_by")
+        )
 
     def clean(self):
         cleaned = super().clean()
+        country = cleaned.get("country")
         series = cleaned.get("series")
         number = cleaned.get("number")
-        if series and number:
+        if country and series and number:
             duplicate = DriverPassport.objects.filter(
-                series=series, number=number
+                country=country, series=series, number=number
             ).exclude(pk=self.instance.pk).select_related("driver").first()
             if duplicate:
                 self.add_error(
@@ -3354,7 +3399,7 @@ class BaseDriverPassportFormSet(BaseInlineFormSet):
             if not series and not number:
                 continue
             has_passports = True
-            identity = (series, number)
+            identity = (form.cleaned_data.get("country"), series, number)
             if identity in identities:
                 form.add_error("number", "Такой паспорт уже указан в этой карточке.")
             identities.add(identity)
@@ -3418,6 +3463,8 @@ class DriverLicenseCategoryField(forms.MultipleChoiceField):
         return split_driver_license_categories(value)
 
     def to_python(self, value):
+        if isinstance(value, str):
+            value = split_driver_license_categories(value)
         return split_driver_license_categories(value)
 
     def clean(self, value):
@@ -3435,7 +3482,7 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
     class Meta:
         model = DriverLicense
         fields = [
-            "number", "categories", "issue_date", "expiry_date",
+            "country", "number", "categories", "issue_date", "expiry_date",
             "is_current", "notes",
         ]
         widgets = {
@@ -3451,18 +3498,44 @@ class DriverLicenseForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         super().__init__(*args, **kwargs)
         for field_name in ("number", "categories", "issue_date", "expiry_date"):
             self.fields[field_name].required = False
+        self.fields["country"].required = False
+        self.fields["country"].initial = DriverDocumentCountry.RUSSIA
         if not self.instance.pk:
             self.initial["is_current"] = False
             self.fields["is_current"].initial = False
         self.fields["number"].widget.attrs.update(
-            {"placeholder": "00 00 000000", "autocomplete": "off"}
+            {
+                "placeholder": "00 00 000000",
+                "autocomplete": "off",
+                "maxlength": "30",
+                "data-driver-license-number": "",
+            }
         )
+        self.fields["country"].widget.attrs.update({"data-driver-document-country": ""})
         self.fields["categories"].widget.attrs["class"] = (
             "driver-license-category-picker"
         )
 
+    def clean_country(self):
+        country = self.cleaned_data.get("country")
+        if country:
+            return country
+        raw_number = self.data.get(self.add_prefix("number"), "")
+        if raw_number and re.search(r"[^\d\s-]", raw_number):
+            return DriverDocumentCountry.OTHER
+        return DriverDocumentCountry.RUSSIA
+
     def clean_number(self):
-        number = " ".join((self.cleaned_data.get("number") or "").split())
+        country = self.cleaned_data.get("country")
+        number = " ".join((self.cleaned_data.get("number") or "").upper().split())
+        if country == DriverDocumentCountry.RUSSIA:
+            digits = re.sub(r"\D", "", number)
+            if digits:
+                if len(digits) != 10:
+                    raise forms.ValidationError(
+                        "Российское ВУ должно быть в формате 00 00 000000."
+                    )
+                number = f"{digits[:2]} {digits[2:4]} {digits[4:]}"
         identity = DriverLicense.identity_from_number(number)
         if not identity:
             return ""
@@ -3558,6 +3631,7 @@ class BaseDriverLicenseFormSet(BaseInlineFormSet):
                 driver=driver,
                 identity_key=identity,
                 defaults={
+                    "country": row.get("country") or DriverDocumentCountry.RUSSIA,
                     "number": row["number"],
                     "categories": row["categories"],
                     "issue_date": row.get("issue_date"),

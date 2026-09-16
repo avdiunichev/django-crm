@@ -79,6 +79,7 @@
                     </div>
                     {% if passport_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_form.non_field_errors }}</div>{% endif %}
                     <div class="form-grid passport-grid">
+                        {% include "crm/includes/form_field.html" with field=passport_form.country %}
                         {% include "crm/includes/form_field.html" with field=passport_form.series %}
                         {% include "crm/includes/form_field.html" with field=passport_form.number %}
                         {% include "crm/includes/form_field.html" with field=passport_form.issue_date %}
@@ -94,6 +95,7 @@
                 {{ passport_formset.empty_form.id }}
                 <div class="driver-passport-card-head"><strong>Новый паспорт</strong></div>
                 <div class="form-grid passport-grid">
+                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.country %}
                     {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.series %}
                     {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.number %}
                     {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issue_date %}
@@ -120,6 +122,7 @@
                     </div>
                     {% if license_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ license_form.non_field_errors }}</div>{% endif %}
                     <div class="form-grid license-grid">
+                        {% include "crm/includes/form_field.html" with field=license_form.country %}
                         {% include "crm/includes/form_field.html" with field=license_form.number %}
                         {% include "crm/includes/form_field.html" with field=license_form.categories wide=True %}
                         {% include "crm/includes/form_field.html" with field=license_form.issue_date %}
@@ -135,6 +138,7 @@
                 {{ license_formset.empty_form.id }}
                 <div class="driver-passport-card-head"><strong>Новое удостоверение</strong></div>
                 <div class="form-grid license-grid">
+                    {% include "crm/includes/form_field.html" with field=license_formset.empty_form.country %}
                     {% include "crm/includes/form_field.html" with field=license_formset.empty_form.number %}
                     {% include "crm/includes/form_field.html" with field=license_formset.empty_form.categories wide=True %}
                     {% include "crm/includes/form_field.html" with field=license_formset.empty_form.issue_date %}

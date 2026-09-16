@@ -951,8 +951,14 @@ class Driver(TimestampedModel):
             if self.license_number and not DriverLicense.objects.filter(
                 driver=self, is_current=True
             ).exists():
+                license_country = (
+                    DriverDocumentCountry.OTHER
+                    if re.search(r"[^\d\s-]", self.license_number)
+                    else DriverDocumentCountry.RUSSIA
+                )
                 DriverLicense.objects.create(
                     driver=self,
+                    country=license_country,
                     number=self.license_number,
                     categories=self.license_categories,
                     issue_date=self.license_issue_date,
@@ -1086,6 +1092,19 @@ class DriverEmployment(TimestampedModel):
         return f"{self.driver.full_name} — {self.carrier.name}"
 
 
+class DriverDocumentCountry(models.TextChoices):
+    RUSSIA = "RU", "Россия"
+    BELARUS = "BY", "Беларусь"
+    KAZAKHSTAN = "KZ", "Казахстан"
+    KYRGYZSTAN = "KG", "Кыргызстан"
+    ARMENIA = "AM", "Армения"
+    UZBEKISTAN = "UZ", "Узбекистан"
+    TAJIKISTAN = "TJ", "Таджикистан"
+    AZERBAIJAN = "AZ", "Азербайджан"
+    MOLDOVA = "MD", "Молдова"
+    OTHER = "OTHER", "Другая страна"
+
+
 class DriverPassport(TimestampedModel):
     driver = models.ForeignKey(
         Driver,
@@ -1093,15 +1112,19 @@ class DriverPassport(TimestampedModel):
         related_name="passports",
         on_delete=models.CASCADE,
     )
+    country = models.CharField(
+        "Страна документа",
+        max_length=10,
+        choices=DriverDocumentCountry.choices,
+        default=DriverDocumentCountry.RUSSIA,
+    )
     series = models.CharField(
         "Серия",
-        max_length=4,
-        validators=[RegexValidator(r"^\d{4}$", "Серия должна содержать 4 цифры.")],
+        max_length=30,
     )
     number = models.CharField(
         "Номер",
-        max_length=6,
-        validators=[RegexValidator(r"^\d{6}$", "Номер должен содержать 6 цифр.")],
+        max_length=30,
     )
     issued_by = models.CharField("Кем выдан", max_length=255, blank=True)
     issue_date = models.DateField("Дата выдачи", null=True, blank=True)
@@ -1114,7 +1137,7 @@ class DriverPassport(TimestampedModel):
         ordering = ("-is_current", "-issue_date", "-created_at")
         constraints = [
             models.UniqueConstraint(
-                fields=("series", "number"),
+                fields=("country", "series", "number"),
                 name="unique_driver_passport_identity",
                 violation_error_message=(
                     "Водитель с такой серией и номером паспорта уже существует."
@@ -1131,14 +1154,28 @@ class DriverPassport(TimestampedModel):
     def normalize_part(value):
         return re.sub(r"\D", "", value or "")
 
+    @staticmethod
+    def normalize_foreign_part(value):
+        return re.sub(r"\s+", " ", (value or "").strip().upper())
+
     def clean(self):
-        self.series = self.normalize_part(self.series)
-        self.number = self.normalize_part(self.number)
+        if self.country == DriverDocumentCountry.RUSSIA:
+            self.series = self.normalize_part(self.series)
+            self.number = self.normalize_part(self.number)
+        else:
+            self.series = self.normalize_foreign_part(self.series)
+            self.number = self.normalize_foreign_part(self.number)
+        self.issued_by = self.normalize_foreign_part(self.issued_by)
         super().clean()
 
     def save(self, *args, **kwargs):
-        self.series = self.normalize_part(self.series)
-        self.number = self.normalize_part(self.number)
+        if self.country == DriverDocumentCountry.RUSSIA:
+            self.series = self.normalize_part(self.series)
+            self.number = self.normalize_part(self.number)
+        else:
+            self.series = self.normalize_foreign_part(self.series)
+            self.number = self.normalize_foreign_part(self.number)
+        self.issued_by = self.normalize_foreign_part(self.issued_by)
         with transaction.atomic():
             if self.is_current and self.driver_id:
                 DriverPassport.objects.filter(
@@ -1185,6 +1222,12 @@ class DriverLicense(TimestampedModel):
         related_name="licenses",
         on_delete=models.CASCADE,
     )
+    country = models.CharField(
+        "Страна документа",
+        max_length=10,
+        choices=DriverDocumentCountry.choices,
+        default=DriverDocumentCountry.RUSSIA,
+    )
     number = models.CharField("Номер удостоверения", max_length=30)
     identity_key = models.CharField(
         "Нормализованный номер", max_length=30, unique=True, editable=False
@@ -1213,7 +1256,17 @@ class DriverLicense(TimestampedModel):
     def identity_from_number(value):
         return re.sub(r"[^0-9A-ZА-Я]", "", (value or "").upper())
 
+    @staticmethod
+    def normalize_number(value, country=DriverDocumentCountry.RUSSIA):
+        if country == DriverDocumentCountry.RUSSIA:
+            digits = re.sub(r"\D", "", value or "")
+            if len(digits) == 10:
+                return f"{digits[:2]} {digits[2:4]} {digits[4:]}"
+            return digits
+        return re.sub(r"\s+", " ", (value or "").strip().upper())
+
     def clean(self):
+        self.number = self.normalize_number(self.number, self.country)
         self.identity_key = self.identity_from_number(self.number)
         super().clean()
         if self.issue_date and self.expiry_date and self.expiry_date < self.issue_date:
@@ -1222,6 +1275,7 @@ class DriverLicense(TimestampedModel):
             )
 
     def save(self, *args, **kwargs):
+        self.number = self.normalize_number(self.number, self.country)
         self.identity_key = self.identity_from_number(self.number)
         with transaction.atomic():
             if self.is_current and self.driver_id:
