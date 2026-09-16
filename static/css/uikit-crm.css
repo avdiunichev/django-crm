@@ -11161,6 +11161,7 @@ body.uikit-theme [data-driver-form] [data-driver-phone-add] {
 }
 
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add],
 body.uikit-theme [data-driver-form] [data-driver-phone-add] {
     border-color: #d10000 !important;
     background: transparent !important;
@@ -11169,6 +11170,8 @@ body.uikit-theme [data-driver-form] [data-driver-phone-add] {
 
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add]:hover,
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add]:focus,
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add]:hover,
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add]:focus,
 body.uikit-theme [data-driver-form] [data-driver-phone-add]:hover,
 body.uikit-theme [data-driver-form] [data-driver-phone-add]:focus {
     border-color: #a80000 !important;
