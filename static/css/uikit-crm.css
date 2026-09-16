@@ -11014,6 +11014,25 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-
     padding: 0;
 }
 
+[data-driver-form] .driver-passport-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+}
+
+[data-driver-form] .driver-passport-current-radio {
+    margin: 29px 0 0;
+}
+
+[data-driver-form] .driver-passport-fields {
+    min-width: 0;
+}
+
+[data-driver-form] .driver-passport-fields .passport-delete {
+    margin: 0 0 10px;
+}
+
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
 body.uikit-theme [data-driver-form] .driver-license-section [data-license-add],
 body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-add] {

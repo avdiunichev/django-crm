@@ -73,23 +73,21 @@
             {% for passport_form in passport_formset %}
                 <article class="driver-passport-card{% if passport_form.instance.is_current %} is-current{% endif %}" data-passport-form>
                     {{ passport_form.id }}
-                    <div class="driver-passport-card-head">
-                        <strong>{% if passport_form.instance.pk %}Паспорт {{ passport_form.instance.series }} {{ passport_form.instance.number }}{% else %}Новый паспорт{% endif %}</strong>
-                        {% if passport_form.instance.pk %}<label class="passport-delete">{{ passport_form.DELETE }} Удалить из истории</label>{% endif %}
-                    </div>
                     {% if passport_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ passport_form.non_field_errors }}</div>{% endif %}
-                    <div class="form-grid passport-grid">
-                        {% include "crm/includes/form_field.html" with field=passport_form.country %}
-                        {% include "crm/includes/form_field.html" with field=passport_form.series %}
-                        {% include "crm/includes/form_field.html" with field=passport_form.number %}
-                        {% include "crm/includes/form_field.html" with field=passport_form.issue_date %}
+                    <div class="driver-passport-row">
                         {{ passport_form.is_current }}
-                        <div class="field mb-3">
-                            <label class="uk-form-label form-label">Действующий паспорт</label>
-                            <input class="uk-radio driver-passport-current-radio" type="radio" name="driver-passport-current" data-passport-current-radio aria-label="Действующий паспорт" {% if passport_form.instance.is_current %}checked{% endif %}>
+                        <input class="uk-radio driver-passport-current-radio" type="radio" name="driver-passport-current" data-passport-current-radio aria-label="Действующий паспорт" {% if passport_form.instance.is_current %}checked{% endif %}>
+                        <div class="driver-passport-fields">
+                            {% if passport_form.instance.pk %}<label class="passport-delete">{{ passport_form.DELETE }} Удалить из истории</label>{% endif %}
+                            <div class="form-grid passport-grid">
+                                {% include "crm/includes/form_field.html" with field=passport_form.country %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.series %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.number %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.issue_date %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.issued_by wide=True %}
+                                {% include "crm/includes/form_field.html" with field=passport_form.notes wide=True %}
+                            </div>
                         </div>
-                        {% include "crm/includes/form_field.html" with field=passport_form.issued_by wide=True %}
-                        {% include "crm/includes/form_field.html" with field=passport_form.notes wide=True %}
                     </div>
                 </article>
             {% endfor %}
@@ -97,19 +95,19 @@
         <template data-passport-empty-form>
             <article class="driver-passport-card" data-passport-form>
                 {{ passport_formset.empty_form.id }}
-                <div class="driver-passport-card-head"><strong>Новый паспорт</strong></div>
-                <div class="form-grid passport-grid">
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.country %}
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.series %}
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.number %}
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issue_date %}
+                <div class="driver-passport-row">
                     {{ passport_formset.empty_form.is_current }}
-                    <div class="field mb-3">
-                        <label class="uk-form-label form-label">Действующий паспорт</label>
-                        <input class="uk-radio driver-passport-current-radio" type="radio" name="driver-passport-current" data-passport-current-radio aria-label="Действующий паспорт">
+                    <input class="uk-radio driver-passport-current-radio" type="radio" name="driver-passport-current" data-passport-current-radio aria-label="Действующий паспорт">
+                    <div class="driver-passport-fields">
+                        <div class="form-grid passport-grid">
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.country %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.series %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.number %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issue_date %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issued_by wide=True %}
+                            {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.notes wide=True %}
+                        </div>
                     </div>
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.issued_by wide=True %}
-                    {% include "crm/includes/form_field.html" with field=passport_formset.empty_form.notes wide=True %}
                 </div>
             </article>
         </template>
