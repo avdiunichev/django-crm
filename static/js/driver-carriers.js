@@ -3,17 +3,6 @@
 
     const enhance = (form) => {
         if (!form || form.dataset.driverCarriersReady === "true") return;
-        const visibilityInput = form.querySelector("#id_is_active");
-        const visibilityLabel = form.querySelector("[data-driver-visibility-label]");
-        const syncVisibilityLabel = () => {
-            if (visibilityInput && visibilityLabel) {
-                visibilityLabel.textContent = visibilityInput.checked
-                    ? "Отображается"
-                    : "Не отображается";
-            }
-        };
-        visibilityInput?.addEventListener("change", syncVisibilityLabel);
-        syncVisibilityLabel();
         const list = form.querySelector("[data-employment-list]");
         const template = form.querySelector("template[data-employment-empty-form]");
         const totalInput = form.querySelector("input[name='employments-TOTAL_FORMS']");

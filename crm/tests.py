@@ -3291,6 +3291,50 @@ class CrmTestCase(TestCase):
             edit_response.context["employment_formset"].total_form_count(), 1
         )
 
+    def test_driver_visibility_is_configured_per_counterparty(self):
+        second_carrier = Carrier.objects.create(name="Скрытый перевозчик")
+        primary_employment = self.driver.employments.get(carrier=self.carrier)
+        hidden_employment = DriverEmployment.objects.create(
+            driver=self.driver,
+            carrier=second_carrier,
+            is_active=True,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("driver-update", args=[self.driver.pk]),
+            {
+                "full_name": self.driver.full_name,
+                "phone": self.driver.phone,
+                "employments-TOTAL_FORMS": "2",
+                "employments-INITIAL_FORMS": "2",
+                "employments-MIN_NUM_FORMS": "0",
+                "employments-MAX_NUM_FORMS": "1000",
+                "employments-0-id": str(primary_employment.pk),
+                "employments-0-carrier": str(self.carrier.pk),
+                "employments-0-is_primary": "on",
+                "employments-0-is_active": "on",
+                "employments-1-id": str(hidden_employment.pk),
+                "employments-1-carrier": str(second_carrier.pk),
+                "passports-TOTAL_FORMS": "0",
+                "passports-INITIAL_FORMS": "0",
+                "passports-MIN_NUM_FORMS": "0",
+                "passports-MAX_NUM_FORMS": "1000",
+                "licenses-TOTAL_FORMS": "0",
+                "licenses-INITIAL_FORMS": "0",
+                "licenses-MIN_NUM_FORMS": "0",
+                "licenses-MAX_NUM_FORMS": "1000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        primary_employment.refresh_from_db()
+        hidden_employment.refresh_from_db()
+        self.driver.refresh_from_db()
+        self.assertTrue(primary_employment.is_active)
+        self.assertFalse(hidden_employment.is_active)
+        self.assertTrue(self.driver.is_active)
+
     def test_hidden_driver_is_excluded_from_selection_but_kept_in_old_trip(self):
         self.shipment.driver = self.driver
         self.shipment.save(update_fields=["driver", "updated_at"])

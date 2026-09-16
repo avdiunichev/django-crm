@@ -3166,7 +3166,7 @@ class DriverForm(StyledModelForm):
             {"inputmode": "numeric", "placeholder": "ИНН физического лица", "maxlength": "12"}
         )
         self.fields["tax_id"].help_text = ""
-        self.fields["is_active"].label = "Отображается"
+        self.fields["is_active"].widget = forms.HiddenInput()
         self.fields["license_number"].widget.attrs.update(
             {"placeholder": "00 00 000000"}
         )
@@ -3715,7 +3715,7 @@ class DriverEmploymentForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
 
     class Meta:
         model = DriverEmployment
-        fields = ["carrier", "is_primary"]
+        fields = ["carrier", "is_primary", "is_active"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -3742,6 +3742,8 @@ class DriverEmploymentForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
         if not self.instance.pk:
             self.initial["is_primary"] = False
             self.fields["is_primary"].initial = False
+            self.initial["is_active"] = True
+            self.fields["is_active"].initial = True
 
 
 class BaseDriverEmploymentFormSet(BaseInlineFormSet):
@@ -3825,7 +3827,7 @@ class BaseDriverEmploymentFormSet(BaseInlineFormSet):
                 carrier=row["carrier"],
                 defaults={
                     "is_primary": row.get("is_primary", False),
-                    "is_active": True,
+                    "is_active": row.get("is_active", False),
                 },
             )
 
