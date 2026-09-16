@@ -36,6 +36,19 @@
             if (current) choosePrimary(current.querySelector("[data-driver-phone-primary]"));
             else if (rows()[0]) choosePrimary(rows()[0].querySelector("[data-driver-phone-primary]"));
         };
+        const addPhoneRow = ({focus = true} = {}) => {
+            const index = Number.parseInt(totalInput.value, 10);
+            list.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", String(index)));
+            totalInput.value = String(index + 1);
+            const added = list.lastElementChild;
+            window.CRMPhoneInputs?.enhanceWithin(added);
+            if (!rows().some((row) => row.querySelector("[data-driver-phone-primary]")?.checked)) {
+                choosePrimary(added.querySelector("[data-driver-phone-primary]"));
+            }
+            updateRemoveState();
+            if (focus) added?.querySelector("input[name$='-phone']")?.focus();
+            return added;
+        };
 
         form.addEventListener("change", (event) => {
             if (event.target.matches("[data-driver-phone-primary]")) choosePrimary(event.target);
@@ -56,17 +69,9 @@
             updateRemoveState();
         });
         form.querySelector("[data-driver-phone-add]")?.addEventListener("click", () => {
-            const index = Number.parseInt(totalInput.value, 10);
-            list.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("__prefix__", String(index)));
-            totalInput.value = String(index + 1);
-            const added = list.lastElementChild;
-            window.CRMPhoneInputs?.enhanceWithin(added);
-            if (!rows().some((row) => row.querySelector("[data-driver-phone-primary]")?.checked)) {
-                choosePrimary(added.querySelector("[data-driver-phone-primary]"));
-            }
-            updateRemoveState();
-            added?.querySelector("input[name$='-phone']")?.focus();
+            addPhoneRow();
         });
+        if (rows().length === 0) addPhoneRow({focus: false});
         ensurePrimary();
         updateRemoveState();
     };
