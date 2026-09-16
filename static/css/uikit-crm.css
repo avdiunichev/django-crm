@@ -6865,7 +6865,7 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     top: 0 !important;
     width: calc(100% + 72px);
     margin: 0 -36px 22px;
-    padding: 28px 36px 22px;
+    padding: 36px 36px 32px;
     border: 0;
     background: #fff;
     box-shadow: none;
