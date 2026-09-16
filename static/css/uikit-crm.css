@@ -6829,6 +6829,8 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     z-index: 80;
     align-self: start;
     margin: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e1e8f0;
     background: rgba(255, 255, 255, .98);
 }
 
@@ -6878,8 +6880,9 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     top: 0 !important;
     width: calc(100% + 72px);
     margin: 0 -36px 22px;
-    padding: 36px 36px 32px;
+    padding: 36px 36px 24px;
     border: 0;
+    border-bottom: 1px solid #e1e8f0;
     background: #fff;
     box-shadow: none;
 }
