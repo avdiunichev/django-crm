@@ -10,20 +10,19 @@
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
+        <div class="driver-modal-titlebar">
+            <span class="driver-command-icon" uk-icon="user"></span>
+            <div>
+                <h1>{% if object %}Редактирование карточки водителя{% else %}Новая карточка водителя{% endif %}</h1>
+                <p>Заполните данные о водителе.</p>
+            </div>
+        </div>
         <div class="order-command-actions">
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
             <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
             <button class="uk-button uk-button-default" type="button" data-driver-copy {% if not object %}disabled title="Сначала сохраните карточку"{% endif %}>Скопировать данные</button>
             {% if object %}<a class="uk-button uk-button-default driver-delete-button" href="{% url delete_url_name object.pk %}">Удалить</a>{% else %}<button class="uk-button uk-button-default driver-delete-button" type="button" disabled title="Сначала сохраните карточку">Удалить</button>{% endif %}
             <a class="uk-button uk-button-default" href="{{ cancel_url }}">Закрыть</a>
-        </div>
-    </section>
-
-    <section class="driver-modal-titlebar">
-        <span class="driver-command-icon" uk-icon="user"></span>
-        <div>
-            <h1>{% if object %}Редактирование карточки водителя{% else %}Новая карточка водителя{% endif %}</h1>
-            <p>Заполните данные о водителе.</p>
         </div>
     </section>
 
