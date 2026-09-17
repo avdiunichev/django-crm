@@ -6918,7 +6918,7 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     top: 0 !important;
     width: calc(100% + 72px);
     margin: 0 -36px 22px;
-    padding: 36px 36px 24px;
+    padding: 36px 36px 18px;
     border: 0;
     background: #fff;
     box-shadow: none;
@@ -11436,7 +11436,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
     .crm-driver-dialog [data-driver-form] .driver-command-panel {
         width: calc(100% + 32px);
         margin: 0 -16px 18px;
-        padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+        padding: max(14px, env(safe-area-inset-top)) 16px 14px;
     }
 
     .crm-driver-dialog [data-driver-form] .driver-command-panel::after {
