@@ -6965,6 +6965,10 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-pane
     border-bottom-color: #2b3b50;
 }
 
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card {
+    border-bottom-color: #2b3b50;
+}
+
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */
 body.uikit-theme .uk-button:disabled,
 body.uikit-theme .uk-button:disabled:hover,
@@ -11134,6 +11138,12 @@ body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-car
 body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card {
     margin-bottom: 8px;
     padding-bottom: 22px;
+    border-bottom: 1px solid #e1e8f0;
+}
+
+body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
     border-bottom: 1px solid #e1e8f0;
 }
 
