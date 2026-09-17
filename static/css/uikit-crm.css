@@ -6847,9 +6847,9 @@ body.uikit-theme [data-driver-form] .form-select:focus {
 [data-driver-form] .driver-command-panel .driver-modal-titlebar h1 {
     margin: 0;
     color: #263445;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.2;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.25;
 }
 
 [data-driver-form] .driver-command-panel .driver-modal-titlebar p {
@@ -6867,8 +6867,8 @@ body.uikit-theme [data-driver-form] .form-select:focus {
 
 [data-driver-form] .driver-command-panel .driver-command-icon svg,
 [data-driver-form] .driver-command-panel .driver-command-icon img {
-    width: 52px;
-    height: 52px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
 }
 
@@ -11526,6 +11526,14 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
     margin: 14px 0 0;
 }
 
+body.uikit-theme [data-driver-form] [data-driver-phone-add],
+body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add],
+body.uikit-theme [data-driver-form] .driver-license-section [data-license-add],
+body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-add] {
+    width: 100% !important;
+    margin: 18px 0 0 !important;
+}
+
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
     margin-top: 18px;
     margin-left: 38px;
@@ -11726,12 +11734,6 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 }
 
 @media (max-width: 720px) {
-    [data-driver-form] .driver-command-panel .driver-command-icon svg,
-    [data-driver-form] .driver-command-panel .driver-command-icon img {
-        width: 48px;
-        height: 48px;
-    }
-
     [data-driver-form] .driver-phone-card-row {
         grid-template-columns: 1fr;
         gap: 8px;
@@ -11796,7 +11798,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
     }
 
     .crm-driver-dialog [data-driver-form] .driver-command-panel .driver-modal-titlebar h1 {
-        font-size: 21px;
+        font-size: 18px;
     }
 
     body.uikit-theme [data-driver-form] .driver-phone-section.form-section,
