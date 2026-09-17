@@ -1333,7 +1333,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
     display: grid;
     place-items: center;
     padding: 24px;
-    background: rgba(20, 32, 48, .38);
+    background: rgba(31, 35, 40, .42);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
@@ -1361,8 +1361,8 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
     place-items: center;
     width: 34px;
     height: 34px;
-    color: #d23f56 !important;
-    background: #fdebed !important;
+    color: #d10000 !important;
+    background: #f5f5f7 !important;
     font-size: 12px;
 }
 
@@ -1373,15 +1373,16 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
 .safe-delete-alert {
     margin: 0 !important;
     padding: 18px 20px !important;
-    border: 1px solid #f3d6db;
+    border: 1px solid #dfe3e8;
+    border-left: 4px solid #d10000;
     border-radius: 0 !important;
-    color: #9e3544;
-    background: #fff1f3 !important;
+    color: #333;
+    background: #f5f5f7 !important;
 }
 
 .safe-delete-alert h2 {
     margin: 0 0 7px;
-    color: #b63e50;
+    color: #d10000;
     font-size: 16px;
     font-weight: 500;
 }
@@ -1391,7 +1392,7 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
     border-radius: 0 !important;
 }
 
-.safe-delete-alert h2 .uk-icon { color: #c74859; }
+.safe-delete-alert h2 .uk-icon { color: #d10000; }
 .safe-delete-alert p { margin: 0; font-size: 14px; }
 .safe-delete-alert p:last-child {
     margin-bottom: 0;
@@ -1400,6 +1401,31 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
 .safe-delete-actions {
     justify-content: flex-end;
     margin-top: 22px;
+}
+
+.safe-delete-dialog .uk-button-danger {
+    border-color: #d10000 !important;
+    background: #d10000 !important;
+    color: #fff !important;
+}
+
+.safe-delete-dialog .uk-button-danger:hover,
+.safe-delete-dialog .uk-button-danger:focus {
+    border-color: #a80000 !important;
+    background: #a80000 !important;
+}
+
+.safe-delete-dialog .safe-delete-actions .uk-button-default {
+    border-color: #d10000 !important;
+    background: transparent !important;
+    color: #d10000 !important;
+}
+
+.safe-delete-dialog .safe-delete-actions .uk-button-default:hover,
+.safe-delete-dialog .safe-delete-actions .uk-button-default:focus {
+    border-color: #a80000 !important;
+    background: #f5f5f7 !important;
+    color: #a80000 !important;
 }
 
 .safe-delete-dependencies {
@@ -1434,8 +1460,8 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
 }
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header.form-section-title > .safe-delete-heading-icon {
-    color: #ff9dab !important;
-    background: #4b2630 !important;
+    color: #ff4d4d !important;
+    background: #252a31 !important;
 }
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog {
@@ -1447,8 +1473,8 @@ html[data-theme="dark"] body.uikit-theme .safe-delete-dialog {
 
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header p { color: #9ba9bd; }
 html[data-theme="dark"] body.uikit-theme .safe-delete-dialog-header { border-color: #30445e; }
-html[data-theme="dark"] body.uikit-theme .safe-delete-alert { border-color: #633542; color: #ffc0c8; background: #42252e !important; }
-html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ffbac4; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-alert { border-color: #424852; border-left-color: #d10000; color: #e5e7eb; background: #252a31 !important; }
+html[data-theme="dark"] body.uikit-theme .safe-delete-alert h2 { color: #ff4d4d; }
 
 @media (max-width: 560px) {
     .safe-delete-modal {
