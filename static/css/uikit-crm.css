@@ -6875,6 +6875,7 @@ body.uikit-theme [data-driver-form] .form-select:focus {
 }
 
 [data-driver-form] .driver-command-panel .order-command-actions {
+    justify-content: flex-start;
     margin-top: 0;
 }
 
