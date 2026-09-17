@@ -11329,6 +11329,64 @@ body.uikit-theme [data-vehicle-form] > .form-section:not(.vehicle-command-panel)
     background: #fbfcfd;
 }
 
+[data-vehicle-form] .vehicle-carrier-list {
+    display: grid;
+    gap: 14px;
+}
+
+[data-vehicle-form] .vehicle-carrier-card.is-current {
+    border-left-color: #d10000;
+}
+
+[data-vehicle-form] .vehicle-carrier-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 250px;
+    align-items: center;
+    gap: 14px;
+}
+
+[data-vehicle-form] .vehicle-carrier-row input[name$="-is_primary"],
+[data-vehicle-form] .vehicle-carrier-row input[name$="-DELETE"] {
+    display: none;
+}
+
+[data-vehicle-form] .vehicle-carrier-field,
+[data-vehicle-form] .vehicle-carrier-field .field {
+    min-width: 0;
+}
+
+[data-vehicle-form] .vehicle-carrier-field .field > label {
+    display: none;
+}
+
+[data-vehicle-form] .vehicle-carrier-remove,
+body.uikit-theme [data-vehicle-form] .vehicle-carrier-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    border: 1px solid #d10000 !important;
+    border-radius: 0;
+    color: #d10000 !important;
+    background: transparent !important;
+    font-size: 13px;
+    line-height: 38px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+[data-vehicle-form] .vehicle-carrier-remove.is-disabled {
+    border-color: #d7dce3 !important;
+    color: #a9b2bf !important;
+    pointer-events: none;
+}
+
+body.uikit-theme [data-vehicle-form] .vehicle-carrier-add {
+    margin-top: 18px;
+}
+
 [data-vehicle-form] .vehicle-attachment-toggle {
     margin-bottom: 16px;
 }
@@ -11393,6 +11451,15 @@ html[data-theme="dark"] body.uikit-theme [data-vehicle-form] .vehicle-attachment
 
     [data-vehicle-form] .vehicle-attachment-grid {
         grid-template-columns: 1fr;
+    }
+
+    [data-vehicle-form] .vehicle-carrier-row {
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    [data-vehicle-form] .vehicle-carrier-remove {
+        grid-column: 2;
     }
 }
 

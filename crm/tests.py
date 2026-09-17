@@ -72,6 +72,7 @@ from .models import (
     VehicleAssignment,
     VehicleCombination,
     Vehicle,
+    VehicleCarrier,
 )
 
 
@@ -2592,6 +2593,45 @@ class CrmTestCase(TestCase):
         self.assertEqual(trailer.carrier, truck.carrier)
         combination = VehicleCombination.objects.get(tractor=truck, is_active=True)
         self.assertEqual(combination.trailer, trailer)
+
+    def test_vehicle_form_supports_multiple_carriers(self):
+        self.client.force_login(self.user)
+        second_carrier = Carrier.objects.create(
+            name="Второй перевозчик",
+            tax_id="7801000000",
+            is_active=True,
+        )
+        response = self.client.post(
+            reverse("vehicle-create"),
+            {
+                "kind": Vehicle.Kind.TRUCK,
+                "make": "КАМАЗ",
+                "registration_number": "А777АА198",
+                "body_type": "Тент",
+                "capacity_kg": "20000",
+                "volume_m3": "82",
+                "pallet_capacity": "33",
+                "vehicle_carriers-TOTAL_FORMS": "2",
+                "vehicle_carriers-INITIAL_FORMS": "0",
+                "vehicle_carriers-MIN_NUM_FORMS": "0",
+                "vehicle_carriers-MAX_NUM_FORMS": "1000",
+                "vehicle_carriers-0-carrier": self.carrier.pk,
+                "vehicle_carriers-0-is_primary": "on",
+                "vehicle_carriers-0-is_active": "on",
+                "vehicle_carriers-1-carrier": second_carrier.pk,
+                "vehicle_carriers-1-is_active": "on",
+                "action": "save_close",
+            },
+        )
+
+        self.assertRedirects(response, reverse("vehicle-list"))
+        vehicle = Vehicle.objects.get(registration_number="А777АА198")
+        self.assertEqual(vehicle.carrier, self.carrier)
+        self.assertEqual(VehicleCarrier.objects.filter(vehicle=vehicle).count(), 2)
+        resources = self.client.get(
+            reverse("carrier-resources"), {"carrier": second_carrier.pk}
+        ).json()
+        self.assertIn(vehicle.pk, [item["id"] for item in resources["vehicles"]])
 
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):
         self.client.force_login(self.user)

@@ -1368,6 +1368,12 @@ class Vehicle(TimestampedModel):
     )
     notes = models.TextField("Комментарий", blank=True)
     is_active = models.BooleanField("В эксплуатации", default=True)
+    carriers = models.ManyToManyField(
+        Carrier,
+        verbose_name="Контрагенты",
+        related_name="associated_vehicles",
+        through="VehicleCarrier",
+    )
 
     class Meta:
         verbose_name = "транспортное средство"
@@ -1377,6 +1383,47 @@ class Vehicle(TimestampedModel):
     def __str__(self):
         vehicle_name = " ".join(part for part in (self.make, self.model) if part)
         return f"{self.registration_number} · {vehicle_name} — {self.carrier.name}"
+
+    def save(self, *args, **kwargs):
+        """Keep the legacy primary carrier aligned with the carrier register."""
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            VehicleCarrier.objects.filter(
+                vehicle=self, is_primary=True
+            ).exclude(carrier_id=self.carrier_id).update(is_primary=False)
+            relation, _ = VehicleCarrier.objects.get_or_create(
+                vehicle=self,
+                carrier_id=self.carrier_id,
+                defaults={"is_primary": True, "is_active": True},
+            )
+            changes = []
+            if not relation.is_primary:
+                relation.is_primary = True
+                changes.append("is_primary")
+            if not relation.is_active:
+                relation.is_active = True
+                changes.append("is_active")
+            if changes:
+                relation.save(update_fields=[*changes, "updated_at"])
+
+    def works_for_carrier(self, carrier):
+        carrier_id = getattr(carrier, "pk", carrier)
+        if not carrier_id:
+            return False
+        return self.carrier_id == carrier_id or self.carrier_links.filter(
+            carrier_id=carrier_id, is_active=True
+        ).exists()
+
+    def works_for_organization(self, organization):
+        organization_id = getattr(organization, "pk", organization)
+        if not organization_id:
+            return False
+        if self.carrier.organization_id == organization_id:
+            return True
+        return self.carrier_links.filter(
+            carrier__organization_id=organization_id, is_active=True
+        ).exists()
 
     @property
     def is_trailer(self):
@@ -1412,6 +1459,42 @@ class Vehicle(TimestampedModel):
 
     def get_absolute_url(self):
         return reverse("vehicle-detail", kwargs={"pk": self.pk})
+
+
+class VehicleCarrier(TimestampedModel):
+    vehicle = models.ForeignKey(
+        Vehicle,
+        verbose_name="Транспортное средство",
+        related_name="carrier_links",
+        on_delete=models.CASCADE,
+    )
+    carrier = models.ForeignKey(
+        Carrier,
+        verbose_name="Контрагент",
+        related_name="vehicle_links",
+        on_delete=models.PROTECT,
+    )
+    is_primary = models.BooleanField("Основной контрагент", default=False)
+    is_active = models.BooleanField("Отображается", default=True)
+
+    class Meta:
+        verbose_name = "контрагент транспортного средства"
+        verbose_name_plural = "контрагенты транспортных средств"
+        ordering = ("-is_primary", "carrier__name")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("vehicle", "carrier"),
+                name="unique_vehicle_carrier",
+            ),
+            models.UniqueConstraint(
+                fields=("vehicle",),
+                condition=models.Q(is_primary=True),
+                name="unique_primary_vehicle_carrier",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.vehicle.registration_number} — {self.carrier.name}"
 
 
 class VehicleCombination(TimestampedModel):
@@ -1631,7 +1714,7 @@ class Shipment(TimestampedModel):
             errors["driver"] = "Водитель должен принадлежать выбранному перевозчику."
         if self.vehicle_id and not self.carrier_id:
             errors["vehicle"] = "Сначала выберите перевозчика."
-        elif self.vehicle_id and self.vehicle.carrier_id != self.carrier_id:
+        elif self.vehicle_id and not self.vehicle.works_for_carrier(self.carrier_id):
             errors["vehicle"] = "Транспорт должен принадлежать выбранному перевозчику."
         if errors:
             raise ValidationError(errors)
@@ -2933,9 +3016,9 @@ class VehicleAssignment(TimestampedModel):
             self.actual_carrier_id
         ):
             errors["driver"] = "Водитель должен принадлежать фактическому перевозчику."
-        if self.vehicle_id and self.vehicle.carrier.organization_id != self.actual_carrier_id:
+        if self.vehicle_id and not self.vehicle.works_for_organization(self.actual_carrier_id):
             errors["vehicle"] = "Транспорт должен принадлежать фактическому перевозчику."
-        if self.trailer_id and self.trailer.carrier.organization_id != self.actual_carrier_id:
+        if self.trailer_id and not self.trailer.works_for_organization(self.actual_carrier_id):
             errors["trailer"] = "Прицеп должен принадлежать фактическому перевозчику."
         if self.vehicle_id and self.vehicle.is_trailer:
             errors["vehicle"] = "В качестве основного автомобиля нельзя выбрать прицеп."

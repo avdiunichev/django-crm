@@ -47,6 +47,7 @@ from .models import (
     UserProfile,
     VATRate,
     VehicleAssignment,
+    VehicleCarrier,
     VehicleCombination,
     Vehicle,
 )
@@ -393,6 +394,11 @@ class DriverEmploymentInline(admin.TabularInline):
     extra = 0
 
 
+class VehicleCarrierInline(admin.TabularInline):
+    model = VehicleCarrier
+    extra = 0
+
+
 class DriverPassportInline(admin.TabularInline):
     model = DriverPassport
     extra = 0
@@ -430,6 +436,7 @@ class VehicleAdmin(admin.ModelAdmin):
         "model", "carrier__name",
     )
     autocomplete_fields = ("carrier",)
+    inlines = (VehicleCarrierInline,)
 
 
 @admin.register(VehicleCombination)

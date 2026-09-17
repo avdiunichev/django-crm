@@ -49,6 +49,7 @@ from .models import (
     TransportationStop,
     VehicleAssignment,
     Vehicle,
+    VehicleCarrier,
     VATRate,
 )
 
@@ -3879,7 +3880,7 @@ class VehicleForm(StyledModelForm):
             "capacity_kg", "volume_m3", "pallet_capacity",
         ]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, register_mode=False, **kwargs):
         super().__init__(*args, **kwargs)
         allowed_kinds = {
             Vehicle.Kind.TRACTOR,
@@ -3902,6 +3903,9 @@ class VehicleForm(StyledModelForm):
         self.fields["volume_m3"].label = "Объём, м³"
         self.fields["pallet_capacity"].label = "Кол-во паллет"
         self.fields["carrier"].label = "Контрагент"
+        if register_mode:
+            self.fields["carrier"].required = False
+            self.fields["carrier"].widget = forms.HiddenInput()
         self.fields["kind"].widget.attrs["data-vehicle-kind"] = ""
         for field_name in ("body_type", "capacity_kg", "volume_m3", "pallet_capacity"):
             self.fields[field_name].required = False
@@ -3920,6 +3924,104 @@ class VehicleForm(StyledModelForm):
             cleaned["volume_m3"] = Decimal("0")
             cleaned["pallet_capacity"] = 0
         return cleaned
+
+
+class VehicleCarrierForm(IgnoreRegisterFlagConstraintMixin, StyledModelForm):
+    register_flag_field = "is_primary"
+    carrier = CarrierChoiceField(
+        label="Контрагент",
+        queryset=Carrier.objects.none(),
+    )
+
+    class Meta:
+        model = VehicleCarrier
+        fields = ["carrier", "is_primary", "is_active"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        carriers = Carrier.objects.filter(is_active=True)
+        if self.instance.carrier_id:
+            carriers |= Carrier.objects.filter(pk=self.instance.carrier_id)
+        self.fields["carrier"].queryset = carriers.distinct()
+        self.fields["carrier"].widget.attrs.update(
+            {"data-search-placeholder": "Введите название или ИНН контрагента"}
+        )
+        if not self.instance.pk:
+            self.initial.update({"is_primary": False, "is_active": True})
+            self.fields["is_primary"].initial = False
+            self.fields["is_active"].initial = True
+
+
+class BaseVehicleCarrierFormSet(BaseInlineFormSet):
+    def active_forms(self):
+        return [
+            form for form in self.forms
+            if hasattr(form, "cleaned_data")
+            and not form.cleaned_data.get("DELETE")
+            and form.cleaned_data.get("carrier")
+        ]
+
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        rows = self.active_forms()
+        if not rows:
+            raise forms.ValidationError("Добавьте хотя бы одного контрагента.")
+        carrier_ids = set()
+        primary_count = 0
+        for form in rows:
+            carrier = form.cleaned_data["carrier"]
+            if carrier.pk in carrier_ids:
+                form.add_error("carrier", "Этот контрагент уже указан в карточке ТС.")
+            carrier_ids.add(carrier.pk)
+            if form.cleaned_data.get("is_primary"):
+                primary_count += 1
+        if primary_count != 1:
+            raise forms.ValidationError("Укажите ровно одного основного контрагента.")
+
+    def primary_carrier(self):
+        return next(
+            form.cleaned_data["carrier"]
+            for form in self.active_forms()
+            if form.cleaned_data.get("is_primary")
+        )
+
+    def save_register(self, vehicle):
+        rows = [form.cleaned_data for form in self.active_forms()]
+        carrier_ids = {row["carrier"].pk for row in rows}
+        VehicleCarrier.objects.filter(vehicle=vehicle).exclude(
+            carrier_id__in=carrier_ids
+        ).delete()
+        VehicleCarrier.objects.filter(vehicle=vehicle).update(is_primary=False)
+        for row in rows:
+            VehicleCarrier.objects.update_or_create(
+                vehicle=vehicle,
+                carrier=row["carrier"],
+                defaults={
+                    "is_primary": row.get("is_primary", False),
+                    "is_active": row.get("is_active", False),
+                },
+            )
+
+
+VehicleCarrierFormSet = inlineformset_factory(
+    Vehicle,
+    VehicleCarrier,
+    form=VehicleCarrierForm,
+    formset=BaseVehicleCarrierFormSet,
+    extra=0,
+    can_delete=True,
+)
+
+VehicleCarrierInitialFormSet = inlineformset_factory(
+    Vehicle,
+    VehicleCarrier,
+    form=VehicleCarrierForm,
+    formset=BaseVehicleCarrierFormSet,
+    extra=1,
+    can_delete=True,
+)
 
 
 class VehicleAttachmentForm(StyledModelForm):

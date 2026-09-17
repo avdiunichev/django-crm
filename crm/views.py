@@ -303,6 +303,8 @@ from .forms import (
     TransportationIncidentForm,
     VehicleForm,
     VehicleAttachmentForm,
+    VehicleCarrierFormSet,
+    VehicleCarrierInitialFormSet,
     VehicleCombinationForm,
 )
 from .models import (
@@ -999,7 +1001,11 @@ def carrier_resources(request):
         | Q(employments__carrier_id=carrier_id, employments__is_active=True),
         is_active=True,
     ).distinct()
-    vehicles = Vehicle.objects.filter(carrier_id=carrier_id, is_active=True)
+    vehicles = Vehicle.objects.filter(
+        Q(carrier_id=carrier_id)
+        | Q(carrier_links__carrier_id=carrier_id, carrier_links__is_active=True),
+        is_active=True,
+    ).distinct()
     return JsonResponse(
         {
             "drivers": [
@@ -1032,12 +1038,21 @@ def organization_resources(request):
         is_active=True,
     ).distinct()
     vehicles = Vehicle.objects.filter(
-        carrier__organization_id=organization_id, is_active=True
-    )
-    combinations = VehicleCombination.objects.filter(
-        tractor__carrier__organization_id=organization_id,
+        Q(carrier__organization_id=organization_id)
+        | Q(
+            carrier_links__carrier__organization_id=organization_id,
+            carrier_links__is_active=True,
+        ),
         is_active=True,
-    ).select_related("tractor", "trailer")
+    ).distinct()
+    combinations = VehicleCombination.objects.filter(
+        Q(tractor__carrier__organization_id=organization_id)
+        | Q(
+            tractor__carrier_links__carrier__organization_id=organization_id,
+            tractor__carrier_links__is_active=True,
+        ),
+        is_active=True,
+    ).select_related("tractor", "trailer").distinct()
     return JsonResponse(
         {
             "drivers": [
@@ -8621,7 +8636,10 @@ class CarrierDetailView(LoginRequiredMixin, DetailView):
             Q(carrier=self.object)
             | Q(employments__carrier=self.object, employments__is_active=True)
         ).distinct()[:8]
-        context["vehicles"] = self.object.vehicles.all()[:8]
+        context["vehicles"] = Vehicle.objects.filter(
+            Q(carrier=self.object)
+            | Q(carrier_links__carrier=self.object, carrier_links__is_active=True)
+        ).distinct()[:8]
         return context
 
 
@@ -9094,7 +9112,7 @@ class VehicleListView(SearchableDirectoryListView):
     context_object_name = "vehicles"
     search_fields = (
         "registration_number", "trailer_registration_number", "vin", "make",
-        "model", "body_type", "carrier__name",
+        "model", "body_type", "carrier__name", "carrier_links__carrier__name",
     )
     ordering_field = "registration_number"
 
@@ -9120,7 +9138,10 @@ class VehicleListView(SearchableDirectoryListView):
             queryset = queryset.filter(kind=kind)
         carrier = self.request.GET.get("carrier", "").strip()
         if carrier.isdigit():
-            queryset = queryset.filter(carrier_id=carrier)
+            queryset = queryset.filter(
+                Q(carrier_id=carrier)
+                | Q(carrier_links__carrier_id=carrier, carrier_links__is_active=True)
+            )
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
@@ -9188,6 +9209,9 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
             .select_related("tractor", "trailer")
             .first()
         )
+        context["vehicle_carriers"] = self.object.carrier_links.filter(
+            is_active=True
+        ).select_related("carrier", "carrier__organization")
         history = [
             {
                 "created_at": self.object.created_at,
@@ -9210,6 +9234,33 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
 
 class VehicleAttachmentFormMixin:
     attachment_prefix = "attachment"
+    carrier_prefix = "vehicle_carriers"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["register_mode"] = True
+        return kwargs
+
+    def get_carrier_formset(self, form, data=None):
+        instance = form.instance
+        kwargs = {
+            "data": data,
+            "instance": instance,
+            "prefix": self.carrier_prefix,
+        }
+        formset_class = VehicleCarrierFormSet
+        if instance.pk:
+            kwargs["queryset"] = instance.carrier_links.all()
+        elif data is None:
+            formset_class = VehicleCarrierInitialFormSet
+            carrier = form.initial.get("carrier")
+            if carrier:
+                kwargs["initial"] = [{
+                    "carrier": getattr(carrier, "pk", carrier),
+                    "is_primary": True,
+                    "is_active": True,
+                }]
+        return formset_class(**kwargs)
 
     def get_attachment(self):
         if not self.object or not self.object.pk:
@@ -9233,17 +9284,37 @@ class VehicleAttachmentFormMixin:
         context = super().get_context_data(**kwargs)
         if "attachment_form" not in context:
             context["attachment_form"] = self.get_attachment_form()
+        if "vehicle_carrier_formset" not in context:
+            context["vehicle_carrier_formset"] = self.get_carrier_formset(
+                context["form"]
+            )
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if self.kwargs.get("pk") else None
         form = self.get_form()
         attachment_form = self.get_attachment_form(data=request.POST)
+        carrier_data = request.POST
+        if f"{self.carrier_prefix}-TOTAL_FORMS" not in request.POST:
+            carrier_data = request.POST.copy()
+            carrier_data.update({
+                f"{self.carrier_prefix}-TOTAL_FORMS": "1",
+                f"{self.carrier_prefix}-INITIAL_FORMS": "0",
+                f"{self.carrier_prefix}-MIN_NUM_FORMS": "0",
+                f"{self.carrier_prefix}-MAX_NUM_FORMS": "1000",
+                f"{self.carrier_prefix}-0-carrier": request.POST.get("carrier", ""),
+                f"{self.carrier_prefix}-0-is_primary": "on",
+                f"{self.carrier_prefix}-0-is_active": "on",
+            })
+        carrier_formset = self.get_carrier_formset(form, data=carrier_data)
         form_valid = form.is_valid()
         attachment_valid = attachment_form.is_valid()
-        if form_valid and attachment_valid:
+        carriers_valid = carrier_formset.is_valid()
+        if form_valid and attachment_valid and carriers_valid:
+            form.instance.carrier = carrier_formset.primary_carrier()
             with transaction.atomic():
                 self.object = form.save()
+                carrier_formset.save_register(self.object)
                 enabled = attachment_form.cleaned_data.get("enabled", False)
                 current_combination = (
                     self.object.combinations_as_tractor.filter(is_active=True)
@@ -9264,6 +9335,17 @@ class VehicleAttachmentFormMixin:
                     trailer.is_active = True
                     trailer.full_clean()
                     trailer.save()
+                    trailer.carrier_links.exclude(
+                        carrier_id__in=self.object.carrier_links.values("carrier_id")
+                    ).delete()
+                    for relation in self.object.carrier_links.all():
+                        trailer.carrier_links.update_or_create(
+                            carrier=relation.carrier,
+                            defaults={
+                                "is_primary": relation.is_primary,
+                                "is_active": relation.is_active,
+                            },
+                        )
                     if current_combination:
                         current_combination.trailer = trailer
                         current_combination.is_active = True
@@ -9283,7 +9365,11 @@ class VehicleAttachmentFormMixin:
             messages.success(request, self.success_message)
             return redirect(self.get_success_url())
         return self.render_to_response(
-            self.get_context_data(form=form, attachment_form=attachment_form)
+            self.get_context_data(
+                form=form,
+                attachment_form=attachment_form,
+                vehicle_carrier_formset=carrier_formset,
+            )
         )
 
 
