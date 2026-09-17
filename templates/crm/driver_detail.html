@@ -61,21 +61,3 @@
     <section class="form-section uk-card uk-card-default order-command-header order-command-footer driver-command-panel"><div class="form-section-title order-command-title"><span class="order-command-icon" uk-icon="cog"></span><div><h2>Панель управления</h2><p>Действия с карточкой водителя</p></div></div><div class="order-command-actions driver-command-actions"><a class="onec-save-close uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal><span uk-icon="pencil"></span> Изменить</a><button class="onec-command uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные</button><a class="onec-command uk-button uk-button-default" href="{% url 'transportation-create' %}"><span uk-icon="plus"></span> Новый рейс</a><a class="onec-command uk-button uk-button-default" href="{% url 'driver-list' %}">Закрыть</a></div></section>
 </div>
 {% endblock %}
-{% block extra_scripts %}
-{{ block.super }}
-<script>
-document.addEventListener("click", async (event) => {
-    const button = event.target.closest(".copy-driver-data");
-    if (!button) return;
-    const text = button.dataset.copyText || "";
-    if (!text) return;
-    const originalHtml = button.innerHTML;
-    try {
-        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
-        else { const textarea = document.createElement("textarea"); textarea.value = text; textarea.style.position = "fixed"; textarea.style.opacity = "0"; document.body.appendChild(textarea); textarea.focus(); textarea.select(); document.execCommand("copy"); textarea.remove(); }
-        button.innerHTML = "Скопировано";
-        setTimeout(() => { button.innerHTML = originalHtml; }, 1800);
-    } catch (error) { button.innerHTML = "Не удалось скопировать"; setTimeout(() => { button.innerHTML = originalHtml; }, 2200); }
-});
-</script>
-{% endblock %}

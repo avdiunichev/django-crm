@@ -6840,7 +6840,8 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     gap: 12px;
     min-width: 0;
     margin: 0 0 18px;
-    padding: 0;
+    padding: 0 0 18px;
+    border-bottom: 1px solid #e1e8f0;
 }
 
 [data-driver-form] .driver-command-panel .driver-modal-titlebar h1 {
@@ -6958,6 +6959,10 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-pane
 
 html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-panel .driver-modal-titlebar p {
     color: #aeb8c8;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-command-panel .driver-modal-titlebar {
+    border-bottom-color: #2b3b50;
 }
 
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */

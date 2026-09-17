@@ -2389,6 +2389,10 @@ class CrmTestCase(TestCase):
         driver_response = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
         self.assertContains(driver_response, self.driver.license_number)
         self.assertContains(driver_response, self.driver.license_categories)
+        copy_text = driver_response.context["driver_copy_text"]
+        self.assertIn(f"ФИО: {self.driver.full_name}", copy_text)
+        self.assertIn(f"ВУ: {self.driver.license_number}", copy_text)
+        self.assertIn(f"ТЕЛ: {self.driver.phone}", copy_text)
         vehicle_response = self.client.get(
             reverse("vehicle-detail", args=[self.vehicle.pk])
         )

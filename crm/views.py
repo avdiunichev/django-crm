@@ -8704,6 +8704,41 @@ class DriverListView(SearchableDirectoryListView):
         return context
 
 
+def driver_vehicle_copy_text(driver):
+    """Return the latest vehicle and trailer used by the driver."""
+
+    assignment = (
+        driver.transportation_assignments.filter(is_active=True)
+        .select_related("vehicle", "trailer")
+        .order_by("-created_at")
+        .first()
+    )
+    vehicle = assignment.vehicle if assignment else None
+    trailer_number = ""
+    if assignment:
+        trailer_number = (
+            assignment.trailer.registration_number
+            if assignment.trailer_id
+            else assignment.trailer_registration_number
+        )
+    if vehicle is None:
+        shipment = (
+            driver.shipments.exclude(vehicle=None)
+            .select_related("vehicle")
+            .order_by("-created_at")
+            .first()
+        )
+        vehicle = shipment.vehicle if shipment else None
+        if vehicle:
+            trailer_number = vehicle.trailer_registration_number
+    if not vehicle:
+        return ""
+    vehicle_name = " ".join(
+        part for part in (vehicle.make, vehicle.model, vehicle.registration_number) if part
+    )
+    return f"{vehicle_name} - {trailer_number}".rstrip()
+
+
 class DriverDetailView(LoginRequiredMixin, DetailView):
     model = Driver
     template_name = "crm/driver_detail.html"
@@ -8782,21 +8817,16 @@ class DriverDetailView(LoginRequiredMixin, DetailView):
         )
         if not phones and driver.phone:
             phones = [driver.phone]
-        name_text = " ".join(
-            part
-            for part in (
-                driver.full_name,
-                f"ИНН {driver.tax_id}" if driver.tax_id else "",
-            )
-            if part
-        )
+        vehicle_text = driver_vehicle_copy_text(driver)
         context["driver_copy_text"] = "\n".join(
             part
             for part in (
-                name_text,
-                passport_text,
-                license_text,
-                ", ".join(phones),
+                f"ФИО: {driver.full_name}",
+                f"ИНН: {driver.tax_id}" if driver.tax_id else "",
+                f"ПАСПОРТ: {passport_text}" if passport_text else "",
+                f"ВУ: {license_text.removeprefix('ВУ ')}" if license_text else "",
+                f"ТЕЛ: {', '.join(phones)}" if phones else "",
+                f"ТС: {vehicle_text}" if vehicle_text else "",
             )
             if part
         )
@@ -8913,6 +8943,9 @@ class DriverRegistersFormSetMixin:
             )
         if "phone_formset" not in context:
             context["phone_formset"] = self.get_phone_formset(context["form"])
+        context["driver_vehicle_copy_text"] = (
+            driver_vehicle_copy_text(self.object) if self.object else ""
+        )
         return context
 
     def post(self, request, *args, **kwargs):

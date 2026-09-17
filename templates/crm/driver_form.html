@@ -4,7 +4,7 @@
 {% block body_class %}driver-form-page{% endblock %}
 {% block content %}
 <div class="onec-workspace driver-form-workspace">
-<form method="post" class="entity-form" data-driver-form novalidate>
+<form method="post" class="entity-form" data-driver-form data-driver-vehicle-text="{{ driver_vehicle_copy_text|default:''|escape }}" novalidate>
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
@@ -195,66 +195,4 @@
 
 </form>
 </div>
-<script>
-(() => {
-    const form = document.querySelector("[data-driver-form]");
-    const copyButton = document.querySelector("[data-driver-copy]");
-    if (!form || !copyButton || copyButton.disabled) return;
-    const value = (selector) => form.querySelector(selector)?.value?.trim() || "";
-    const activeRow = (selector, hiddenName) => Array.from(form.querySelectorAll(selector)).find((row) => {
-        const hidden = row.querySelector(`input[name$='-${hiddenName}']`);
-        return hidden?.checked || hidden?.value === "True" || hidden?.value === "true" || hidden?.value === "on";
-    });
-    const rowValue = (row, selector) => row?.querySelector(selector)?.value?.trim() || "";
-    const currentPassportText = () => {
-        const row = activeRow("[data-passport-form]", "is_current");
-        if (!row) return "";
-        return [
-            rowValue(row, "input[name$='-series']"),
-            rowValue(row, "input[name$='-number']"),
-            rowValue(row, "input[name$='-issued_by']"),
-            rowValue(row, "input[name$='-issue_date']"),
-        ].filter(Boolean).join(" ");
-    };
-    const currentLicenseText = () => {
-        const row = activeRow("[data-license-form]", "is_current");
-        if (!row) return "";
-        const number = rowValue(row, "input[name$='-number']");
-        if (!number) return "";
-        const issueDate = rowValue(row, "input[name$='-issue_date']");
-        const expiryDate = rowValue(row, "input[name$='-expiry_date']");
-        return ["ВУ", number, [issueDate, expiryDate].filter(Boolean).join(" - ")].filter(Boolean).join(" ");
-    };
-    const phonesText = () => {
-        const rows = Array.from(form.querySelectorAll("[data-driver-phone-form]"))
-            .filter((row) => !row.querySelector("input[name$='-DELETE']")?.checked);
-        const primary = rows.find((row) => row.querySelector("[data-driver-phone-primary]")?.checked);
-        const ordered = [primary, ...rows.filter((row) => row !== primary)].filter(Boolean);
-        return ordered
-            .map((row) => row.querySelector("input[name$='-phone']")?.value?.trim() || "")
-            .filter(Boolean)
-            .join(", ");
-    };
-    copyButton.addEventListener("click", async () => {
-        const taxId = value("#id_tax_id");
-        const nameText = [value("#id_full_name"), taxId ? `ИНН ${taxId}` : ""].filter(Boolean).join(" ");
-        const rows = [
-            nameText,
-            currentPassportText(),
-            currentLicenseText(),
-            phonesText(),
-        ].filter(Boolean);
-        const text = rows.join("\n");
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-            if (window.CRMToasts) window.CRMToasts.show("Карточка водителя скопирована в буфер обмена.", "success", 5000);
-            else if (window.UIkit) UIkit.notification({message: "Карточка водителя скопирована в буфер обмена.", status: "success", timeout: 5000});
-        } catch (_error) {
-            if (window.CRMToasts) window.CRMToasts.show("Не удалось скопировать данные.", "error", 5000);
-            else if (window.UIkit) UIkit.notification({message: "Не удалось скопировать данные.", status: "danger", timeout: 5000});
-        }
-    });
-})();
-</script>
 {% endblock %}
