@@ -3902,9 +3902,22 @@ class VehicleForm(StyledModelForm):
         self.fields["volume_m3"].label = "Объём, м³"
         self.fields["pallet_capacity"].label = "Кол-во паллет"
         self.fields["carrier"].label = "Контрагент"
+        self.fields["kind"].widget.attrs["data-vehicle-kind"] = ""
+        for field_name in ("body_type", "capacity_kg", "volume_m3", "pallet_capacity"):
+            self.fields[field_name].required = False
+            self.fields[field_name].widget.attrs["data-vehicle-tractor-optional"] = ""
         self.fields["registration_number"].widget.attrs.update(
             {"placeholder": "А000АА000"}
         )
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("kind") == Vehicle.Kind.TRACTOR:
+            cleaned["body_type"] = ""
+            cleaned["capacity_kg"] = Decimal("0")
+            cleaned["volume_m3"] = Decimal("0")
+            cleaned["pallet_capacity"] = 0
+        return cleaned
 
 
 class VehicleCombinationForm(StyledModelForm):

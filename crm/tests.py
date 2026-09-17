@@ -375,6 +375,7 @@ class CrmTestCase(TestCase):
         )
 
         self.assertTrue(form.is_valid(), form.errors)
+
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
     def test_order_stop_exposes_route_city_and_prefers_it_for_route(self):
@@ -2539,6 +2540,24 @@ class CrmTestCase(TestCase):
             }
         )
         self.assertTrue(form.is_valid(), form.errors)
+
+        tractor_form = VehicleForm(
+            data={
+                "carrier": self.carrier.pk,
+                "kind": Vehicle.Kind.TRACTOR,
+                "make": "КАМАЗ",
+                "registration_number": "А124АА198",
+                "body_type": "Тент",
+                "capacity_kg": "",
+                "volume_m3": "",
+                "pallet_capacity": "",
+            }
+        )
+        self.assertTrue(tractor_form.is_valid(), tractor_form.errors)
+        self.assertEqual(tractor_form.cleaned_data["body_type"], "")
+        self.assertEqual(tractor_form.cleaned_data["capacity_kg"], Decimal("0"))
+        self.assertEqual(tractor_form.cleaned_data["volume_m3"], Decimal("0"))
+        self.assertEqual(tractor_form.cleaned_data["pallet_capacity"], 0)
 
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):
         self.client.force_login(self.user)
