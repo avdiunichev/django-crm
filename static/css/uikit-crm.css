@@ -6970,6 +6970,10 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-phone-sectio
     border-bottom-color: #2b3b50;
 }
 
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card {
+    border-bottom-color: #2b3b50;
+}
+
 /* Неактивные действия остаются визуально неподвижными: без hover и клика. */
 body.uikit-theme .uk-button:disabled,
 body.uikit-theme .uk-button:disabled:hover,
@@ -11112,6 +11116,10 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-register-
     padding: 0;
 }
 
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-list {
+    gap: 18px;
+}
+
 body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card,
 body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card.is-current,
 body.uikit-theme [data-driver-form] .driver-license-section .driver-passport-card,
@@ -11144,6 +11152,12 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-
 }
 
 body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card {
+    margin-bottom: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e1e8f0;
+}
+
+body.uikit-theme [data-driver-form] .driver-passport-section .driver-passport-card {
     margin-bottom: 0;
     padding-bottom: 18px;
     border-bottom: 1px solid #e1e8f0;
@@ -11211,6 +11225,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 }
 
 body.uikit-theme [data-driver-form] .driver-passport-section [data-passport-add] {
+    margin-top: 18px;
     margin-left: 38px;
     width: calc(100% - 38px);
     box-sizing: border-box;
