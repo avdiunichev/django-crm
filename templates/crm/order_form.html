@@ -97,12 +97,14 @@
                     </div>
                     {% if stop_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ stop_form.non_field_errors }}</div>{% endif %}
                     <div class="form-grid order-route-grid">
-                        <div class="route-city-address-grid field-wide">
+                        <div class="route-party-grid field-wide">
                             {% include "crm/includes/form_field.html" with field=stop_form.organization %}
                             {{ stop_form.organization_text }}
+                            {% include "crm/includes/form_field.html" with field=stop_form.handling_method %}
+                        </div>
+                        <div class="route-city-address-grid field-wide">
                             {% include "crm/includes/form_field.html" with field=stop_form.city %}
                             {% include "crm/includes/form_field.html" with field=stop_form.address %}
-                            {% include "crm/includes/form_field.html" with field=stop_form.handling_method %}
                         </div>
                         {{ stop_form.address_meta }}
                         <div class="route-schedule-grid field-wide">
@@ -126,12 +128,14 @@
                     <button class="uk-button uk-button-text route-delete-button" type="button" data-route-delete {% if object and object.transportation_id %}disabled aria-disabled="true"{% endif %}>Удалить точку</button>
                 </div>
                 <div class="form-grid order-route-grid">
-                    <div class="route-city-address-grid field-wide">
+                    <div class="route-party-grid field-wide">
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.organization %}
                         {{ stop_formset.empty_form.organization_text }}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.handling_method %}
+                    </div>
+                    <div class="route-city-address-grid field-wide">
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address %}
-                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.handling_method %}
                     </div>
                     {{ stop_formset.empty_form.address_meta }}
                     <div class="route-schedule-grid field-wide">

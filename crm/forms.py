@@ -1366,8 +1366,10 @@ class TransportOrderStopForm(StyledModelForm):
         )
         self.fields["city"].widget.attrs.update(
             {
-                "autocomplete": "address-level2",
-                "placeholder": "Введите город",
+                "autocomplete": "off",
+                "data-dadata-city": "",
+                "data-dadata-city-url": reverse("dadata-address-suggestions"),
+                "placeholder": "Начните вводить город или населённый пункт",
             }
         )
         self.fields["planned_time_from"].input_formats = ("%H:%M",)

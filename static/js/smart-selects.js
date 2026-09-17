@@ -44,6 +44,7 @@
 
         const freeTextTarget = document.getElementById(select.dataset.freeTextTarget || "");
         const allowsFreeText = select.dataset.allowFreeText !== undefined && Boolean(freeTextTarget);
+        wrapper.classList.toggle("allows-free-text", allowsFreeText);
 
         let activeIndex = -1;
         let committedValue = "";
@@ -129,20 +130,24 @@
                 button.addEventListener("click", () => choose(option));
                 dropdown.appendChild(button);
             });
+            const typedText = search.value.trim();
+            const hasExactOption = options.some(
+                (option) => normalize(option.textContent) === normalize(typedText)
+            );
+            if (allowsFreeText && typedText && !hasExactOption) {
+                const useText = document.createElement("button");
+                useText.type = "button";
+                useText.className = "crm-smart-option crm-smart-option-free";
+                useText.textContent = `Использовать «${typedText}» только в этом заказе`;
+                useText.addEventListener("mousedown", (event) => event.preventDefault());
+                useText.addEventListener("click", () => {
+                    commitFreeText();
+                    close();
+                    search.focus();
+                });
+                dropdown.appendChild(useText);
+            }
             if (!options.length) {
-                if (allowsFreeText && search.value.trim()) {
-                    const useText = document.createElement("button");
-                    useText.type = "button";
-                    useText.className = "crm-smart-option crm-smart-option-free";
-                    useText.textContent = `Использовать «${search.value.trim()}» только в этом заказе`;
-                    useText.addEventListener("mousedown", (event) => event.preventDefault());
-                    useText.addEventListener("click", () => {
-                        commitFreeText();
-                        close();
-                        search.focus();
-                    });
-                    dropdown.appendChild(useText);
-                }
                 const empty = document.createElement("div");
                 empty.className = "crm-smart-empty";
                 empty.textContent = allowsFreeText

@@ -383,6 +383,9 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(form.fields["city"].label, "Город отправления")
         self.assertNotEqual(form.fields["city"].widget.input_type, "hidden")
+        self.assertIn("data-dadata-city", form.fields["city"].widget.attrs)
+        self.assertIn("data-dadata-city-url", form.fields["city"].widget.attrs)
+        self.assertIn("data-allow-free-text", form.fields["organization"].widget.attrs)
 
         bound = TransportOrderStopForm(
             data={

@@ -9272,6 +9272,11 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     background-repeat: no-repeat;
 }
 
+.crm-smart-select.allows-free-text .crm-smart-search {
+    padding-right: 10px;
+    background-image: none;
+}
+
 .crm-smart-dropdown {
     position: absolute;
     z-index: 1100;
@@ -10907,18 +10912,19 @@ html[data-theme="dark"] body.uikit-theme .driver-history-facts div {
     opacity: .55;
 }
 
+.route-party-grid,
 .route-city-address-grid,
 .route-schedule-grid {
     display: grid;
     gap: 16px;
 }
 
+.route-party-grid {
+    grid-template-columns: minmax(280px, 2fr) minmax(180px, 1fr);
+}
+
 .route-city-address-grid {
-    grid-template-columns:
-        minmax(240px, 1.35fr)
-        minmax(170px, .85fr)
-        minmax(280px, 1.7fr)
-        minmax(170px, .8fr);
+    grid-template-columns: minmax(220px, 1fr) minmax(360px, 2fr);
 }
 
 .order-route-stop textarea[data-dadata-address] {
@@ -10983,6 +10989,10 @@ html[data-theme="dark"] body.uikit-theme .route-delete-button:disabled:hover {
     }
 
     .route-city-address-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .route-party-grid {
         grid-template-columns: 1fr;
     }
 
