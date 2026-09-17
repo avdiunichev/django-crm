@@ -8925,6 +8925,8 @@ class DriverRegistersFormSetMixin:
                     "is_primary": True,
                 }
             ]
+        elif data is None and not instance.pk:
+            formset_class = DriverEmploymentInitialFormSet
         return formset_class(**kwargs)
 
     def get_phone_formset(self, form, data=None):

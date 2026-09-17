@@ -11230,6 +11230,29 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-license-sect
     background: #1b2638;
 }
 
+body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card,
+body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card.is-current,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card,
+body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card.is-current {
+    margin: 0;
+    padding: 18px 18px 18px 14px;
+    overflow: visible;
+    border: 1px solid #dfe5ec;
+    border-left: 4px solid #d10000;
+    border-radius: 0;
+    background: #f5f7fa;
+    box-shadow: none;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card.is-current,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card,
+html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-card.is-current {
+    border-color: #3a4960;
+    border-left-color: #d10000;
+    background: #1b2638;
+}
+
 [data-driver-form] .driver-personal-grid {
     padding-bottom: 22px;
     border-bottom: 1px solid #e1e8f0;

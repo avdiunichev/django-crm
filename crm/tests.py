@@ -3354,12 +3354,12 @@ class CrmTestCase(TestCase):
             str(formset.non_form_errors()),
         )
 
-    def test_driver_form_does_not_render_spare_counterparty_row(self):
+    def test_driver_form_starts_with_one_counterparty_row(self):
         self.client.force_login(self.user)
 
         create_response = self.client.get(reverse("driver-create"))
         self.assertEqual(
-            create_response.context["employment_formset"].total_form_count(), 0
+            create_response.context["employment_formset"].total_form_count(), 1
         )
 
         edit_response = self.client.get(
