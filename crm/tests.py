@@ -2559,6 +2559,40 @@ class CrmTestCase(TestCase):
         self.assertEqual(tractor_form.cleaned_data["volume_m3"], Decimal("0"))
         self.assertEqual(tractor_form.cleaned_data["pallet_capacity"], 0)
 
+    def test_vehicle_form_creates_trailer_as_separate_linked_vehicle(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("vehicle-create"),
+            {
+                "carrier": self.carrier.pk,
+                "kind": Vehicle.Kind.TRUCK,
+                "make": "КАМАЗ",
+                "registration_number": "А555АА198",
+                "body_type": "Тент",
+                "capacity_kg": "20000",
+                "volume_m3": "82",
+                "pallet_capacity": "33",
+                "attachment-enabled": "on",
+                "attachment-kind": Vehicle.Kind.TRAILER,
+                "attachment-make": "НЕФАЗ",
+                "attachment-registration_number": "В555АА198",
+                "attachment-body_type": "Тент",
+                "attachment-capacity_kg": "18000",
+                "attachment-volume_m3": "82",
+                "attachment-pallet_capacity": "33",
+                "action": "save_close",
+            },
+        )
+
+        self.assertRedirects(response, reverse("vehicle-list"))
+        truck = Vehicle.objects.get(registration_number="А555АА198")
+        trailer = Vehicle.objects.get(registration_number="В555АА198")
+        self.assertEqual(truck.kind, Vehicle.Kind.TRUCK)
+        self.assertEqual(trailer.kind, Vehicle.Kind.TRAILER)
+        self.assertEqual(trailer.carrier, truck.carrier)
+        combination = VehicleCombination.objects.get(tractor=truck, is_active=True)
+        self.assertEqual(combination.trailer, trailer)
+
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):
         self.client.force_login(self.user)
         trailer = Vehicle.objects.create(

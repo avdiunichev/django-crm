@@ -11329,6 +11329,21 @@ body.uikit-theme [data-vehicle-form] > .form-section:not(.vehicle-command-panel)
     background: #fbfcfd;
 }
 
+[data-vehicle-form] .vehicle-attachment-toggle {
+    margin-bottom: 16px;
+}
+
+[data-vehicle-form] .vehicle-attachment-card {
+    padding: 18px 18px 18px 14px;
+    border: 1px solid #dfe5ec;
+    border-left: 4px solid #d10000;
+    background: #fbfcfd;
+}
+
+[data-vehicle-form] .vehicle-attachment-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 [data-vehicle-form] .uk-input,
 [data-vehicle-form] .uk-select,
 [data-vehicle-form] .uk-button,
@@ -11355,14 +11370,28 @@ html[data-theme="dark"] body.uikit-theme [data-vehicle-form] .vehicle-carrier-ca
     background: #1b2638;
 }
 
+html[data-theme="dark"] body.uikit-theme [data-vehicle-form] .vehicle-attachment-card {
+    border-color: #3a4960;
+    border-left-color: #d10000;
+    background: #1b2638;
+}
+
 @media (max-width: 1000px) {
     [data-vehicle-form] .vehicle-main-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    [data-vehicle-form] .vehicle-attachment-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 720px) {
     [data-vehicle-form] .vehicle-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    [data-vehicle-form] .vehicle-attachment-grid {
         grid-template-columns: 1fr;
     }
 }

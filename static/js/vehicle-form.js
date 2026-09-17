@@ -13,6 +13,11 @@
         const optionalFields = () => Array.from(
             form.querySelectorAll(OPTIONAL_SELECTOR)
         );
+        const attachmentSection = form.querySelector("[data-vehicle-attachment-section]");
+        const attachmentCard = form.querySelector("[data-vehicle-attachment-card]");
+        const attachmentToggle = form.querySelector("input[name$='-enabled']");
+        const attachmentKind = form.querySelector("[data-vehicle-attachment-kind]");
+        const attachmentTitle = form.querySelector("[data-vehicle-attachment-title]");
         const sync = () => {
             const hidden = kindField.value === TRACTOR;
             optionalFields().forEach((field) => {
@@ -21,9 +26,25 @@
                 field.setAttribute("aria-hidden", hidden ? "true" : "false");
             });
             form.classList.toggle("is-tractor", hidden);
+            const canAttach = [TRACTOR, "truck"].includes(kindField.value);
+            if (attachmentSection) attachmentSection.hidden = !canAttach;
+            const expectedKind = kindField.value === TRACTOR ? "semitrailer" : "trailer";
+            if (attachmentKind && canAttach) {
+                attachmentKind.value = expectedKind;
+                Array.from(attachmentKind.options).forEach((option) => {
+                    option.hidden = option.value && option.value !== expectedKind;
+                });
+            }
+            if (attachmentTitle) {
+                attachmentTitle.textContent = kindField.value === TRACTOR ? "Полуприцеп" : "Прицеп";
+            }
+            if (attachmentCard) {
+                attachmentCard.hidden = !canAttach || !attachmentToggle?.checked;
+            }
         };
 
         kindField.addEventListener("change", sync);
+        attachmentToggle?.addEventListener("change", sync);
         sync();
     };
 

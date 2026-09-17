@@ -3909,6 +3909,8 @@ class VehicleForm(StyledModelForm):
         self.fields["registration_number"].widget.attrs.update(
             {"placeholder": "А000АА000"}
         )
+        if not self.is_bound and not self.instance.pk and not self.initial.get("kind"):
+            self.initial["kind"] = Vehicle.Kind.TRACTOR
 
     def clean(self):
         cleaned = super().clean()
@@ -3917,6 +3919,54 @@ class VehicleForm(StyledModelForm):
             cleaned["capacity_kg"] = Decimal("0")
             cleaned["volume_m3"] = Decimal("0")
             cleaned["pallet_capacity"] = 0
+        return cleaned
+
+
+class VehicleAttachmentForm(StyledModelForm):
+    enabled = forms.BooleanField(
+        label="Добавить прицепной состав",
+        required=False,
+    )
+
+    class Meta:
+        model = Vehicle
+        fields = [
+            "kind", "make", "registration_number", "body_type",
+            "capacity_kg", "volume_m3", "pallet_capacity",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["kind"].choices = [
+            (Vehicle.Kind.SEMITRAILER, "Полуприцеп"),
+            (Vehicle.Kind.TRAILER, "Прицеп"),
+        ]
+        self.fields["kind"].label = "Тип"
+        self.fields["registration_number"].label = "Госномер"
+        self.fields["capacity_kg"].label = "Вес, кг"
+        self.fields["volume_m3"].label = "Объём, м³"
+        self.fields["pallet_capacity"].label = "Кол-во паллет"
+        self.fields["kind"].widget.attrs["data-vehicle-attachment-kind"] = ""
+        for field_name in self.Meta.fields:
+            self.fields[field_name].required = False
+        if self.instance.pk:
+            self.initial["enabled"] = True
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("enabled"):
+            return cleaned
+        required_fields = {
+            "kind": "Укажите тип прицепного состава.",
+            "make": "Укажите марку.",
+            "registration_number": "Укажите госномер.",
+        }
+        for field_name, message in required_fields.items():
+            if not cleaned.get(field_name):
+                self.add_error(field_name, message)
+        cleaned["capacity_kg"] = cleaned.get("capacity_kg") or Decimal("0")
+        cleaned["volume_m3"] = cleaned.get("volume_m3") or Decimal("0")
+        cleaned["pallet_capacity"] = cleaned.get("pallet_capacity") or 0
         return cleaned
 
 

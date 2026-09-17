@@ -43,6 +43,25 @@
             {% include "crm/includes/form_field.html" with field=form.carrier %}
         </div>
     </section>
+
+    <section class="form-section vehicle-attachment-section" data-vehicle-attachment-section>
+        <div class="form-section-title"><div><h2 data-vehicle-attachment-title>Полуприцеп</h2><p>Прицепной состав сохранится отдельной карточкой и будет объединён с основным автомобилем в сцепку.</p></div></div>
+        {% if attachment_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ attachment_form.non_field_errors }}</div>{% endif %}
+        <div class="vehicle-attachment-toggle">
+            {% include "crm/includes/form_field.html" with field=attachment_form.enabled %}
+        </div>
+        <div class="vehicle-attachment-card" data-vehicle-attachment-card>
+            <div class="form-grid vehicle-attachment-grid">
+                {% include "crm/includes/form_field.html" with field=attachment_form.kind %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.make %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.registration_number %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.body_type %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.capacity_kg %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.volume_m3 %}
+                {% include "crm/includes/form_field.html" with field=attachment_form.pallet_capacity %}
+            </div>
+        </div>
+    </section>
 </form>
 </div>
 {% endblock %}

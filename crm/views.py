@@ -302,6 +302,7 @@ from .forms import (
     TransportationStopFormSet,
     TransportationIncidentForm,
     VehicleForm,
+    VehicleAttachmentForm,
     VehicleCombinationForm,
 )
 from .models import (
@@ -9207,8 +9208,91 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+class VehicleAttachmentFormMixin:
+    attachment_prefix = "attachment"
+
+    def get_attachment(self):
+        if not self.object or not self.object.pk:
+            return None
+        combination = (
+            self.object.combinations_as_tractor.filter(is_active=True)
+            .select_related("trailer")
+            .first()
+        )
+        return combination.trailer if combination else None
+
+    def get_attachment_form(self, data=None):
+        attachment = self.get_attachment()
+        return VehicleAttachmentForm(
+            data=data,
+            instance=attachment,
+            prefix=self.attachment_prefix,
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "attachment_form" not in context:
+            context["attachment_form"] = self.get_attachment_form()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object() if self.kwargs.get("pk") else None
+        form = self.get_form()
+        attachment_form = self.get_attachment_form(data=request.POST)
+        form_valid = form.is_valid()
+        attachment_valid = attachment_form.is_valid()
+        if form_valid and attachment_valid:
+            with transaction.atomic():
+                self.object = form.save()
+                enabled = attachment_form.cleaned_data.get("enabled", False)
+                current_combination = (
+                    self.object.combinations_as_tractor.filter(is_active=True)
+                    .select_related("trailer")
+                    .first()
+                )
+                if enabled and self.object.kind in {
+                    Vehicle.Kind.TRACTOR,
+                    Vehicle.Kind.TRUCK,
+                }:
+                    trailer = attachment_form.save(commit=False)
+                    trailer.carrier = self.object.carrier
+                    trailer.kind = (
+                        Vehicle.Kind.SEMITRAILER
+                        if self.object.kind == Vehicle.Kind.TRACTOR
+                        else Vehicle.Kind.TRAILER
+                    )
+                    trailer.is_active = True
+                    trailer.full_clean()
+                    trailer.save()
+                    if current_combination:
+                        current_combination.trailer = trailer
+                        current_combination.is_active = True
+                        current_combination.full_clean()
+                        current_combination.save()
+                    else:
+                        combination = VehicleCombination(
+                            tractor=self.object,
+                            trailer=trailer,
+                            is_active=True,
+                        )
+                        combination.full_clean()
+                        combination.save()
+                elif current_combination:
+                    current_combination.is_active = False
+                    current_combination.save(update_fields=["is_active", "updated_at"])
+            messages.success(request, self.success_message)
+            return redirect(self.get_success_url())
+        return self.render_to_response(
+            self.get_context_data(form=form, attachment_form=attachment_form)
+        )
+
+
 class VehicleCreateView(
-    LoginRequiredMixin, CarrierInitialMixin, SuccessMessageMixin, CreateView
+    LoginRequiredMixin,
+    CarrierInitialMixin,
+    VehicleAttachmentFormMixin,
+    SuccessMessageMixin,
+    CreateView,
 ):
     model = Vehicle
     form_class = VehicleForm
@@ -9227,7 +9311,12 @@ class VehicleCreateView(
         return reverse("vehicle-list")
 
 
-class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+class VehicleUpdateView(
+    LoginRequiredMixin,
+    VehicleAttachmentFormMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
     model = Vehicle
     form_class = VehicleForm
     template_name = "crm/vehicle_form.html"
