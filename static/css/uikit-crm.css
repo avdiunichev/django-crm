@@ -6865,9 +6865,11 @@ body.uikit-theme [data-driver-form] .form-select:focus {
     color: #d10000;
 }
 
-[data-driver-form] .driver-command-panel .driver-command-icon svg {
+[data-driver-form] .driver-command-panel .driver-command-icon svg,
+[data-driver-form] .driver-command-panel .driver-command-icon img {
     width: 52px;
     height: 52px;
+    object-fit: contain;
 }
 
 [data-driver-form] .driver-command-panel::after {
@@ -11724,7 +11726,8 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 }
 
 @media (max-width: 720px) {
-    [data-driver-form] .driver-command-panel .driver-command-icon svg {
+    [data-driver-form] .driver-command-panel .driver-command-icon svg,
+    [data-driver-form] .driver-command-panel .driver-command-icon img {
         width: 48px;
         height: 48px;
     }

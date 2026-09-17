@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load static %}
 {% block title %}{{ entity_title }} — Моя CRM{% endblock %}
 {% block body_class %}driver-form-page{% endblock %}
 {% block content %}
@@ -11,7 +12,7 @@
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
         <div class="driver-modal-titlebar">
-            <span class="driver-command-icon" uk-icon="user"></span>
+            <span class="driver-command-icon"><img src="{% static 'img/driver-header-icon.png' %}?v=20260917" alt="" width="52" height="52"></span>
             <div>
                 <h1>{% if object %}Редактирование карточки водителя{% else %}Добавление нового водителя{% endif %}</h1>
                 <p>Заполните форму</p>
