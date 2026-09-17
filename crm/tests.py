@@ -287,6 +287,15 @@ class CrmTestCase(TestCase):
             len(create_page.context["stop_formset"].forms), 2
         )
 
+        modal_page = self.client.get(f'{reverse("order-create")}?modal=1')
+        self.assertEqual(modal_page.status_code, 200)
+        self.assertContains(modal_page, "order-modal-page")
+        self.assertContains(modal_page, 'name="modal" value="1"')
+        self.assertContains(modal_page, "data-order-modal-close")
+
+        registry_page = self.client.get(reverse("order-list"))
+        self.assertContains(registry_page, "data-order-create-modal")
+
         response = self.client.post(
             reverse("order-create"),
             {

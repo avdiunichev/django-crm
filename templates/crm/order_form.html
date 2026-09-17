@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}Заказ {{ object.number }}{% else %}Создать заказ{% endif %} — Моя CRM{% endblock %}
+{% block body_class %}{% if request.GET.modal == "1" %}order-modal-page{% endif %}{% endblock %}
 {% block content %}
 <form method="post" class="entity-form uk-form-stacked onec-document-form" data-order-form data-order-persisted="{% if object and object.pk %}true{% else %}false{% endif %}" data-order-route-locked="{% if object and object.transportation_id %}true{% else %}false{% endif %}">
     {% csrf_token %}
+    {% if request.GET.modal == "1" %}<input type="hidden" name="modal" value="1">{% endif %}
     {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default order-command-header">
         <div class="form-section-title order-command-title">
@@ -13,14 +15,14 @@
             {% if object and object.transportation_id %}
                 <a class="uk-button uk-button-primary" href="{% url 'transportation-update' object.transportation_id %}">Открыть рейс</a>
                 <a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>
-                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}" data-order-modal-close>Закрыть</a>
             {% else %}
                 <button class="uk-button uk-button-primary" type="submit" name="action" value="save" data-order-save>Записать и закрыть</button>
                 <button class="uk-button uk-button-default" type="submit" name="action" value="save_stay">Записать</button>
                 {% if object and object.pk %}<a class="uk-button uk-button-default" href="{% url 'order-pdf' object.pk %}" target="_blank" rel="noopener" data-order-pdf-download>Скачать PDF</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled title="Сначала сохраните заказ">Скачать PDF</button>{% endif %}
                 <button class="uk-button uk-button-primary" type="submit" name="action" value="assign" disabled aria-disabled="true" title="Заполните обязательные поля, погрузку и выгрузку" data-order-assign>Назначить</button>
                 {% if object %}<a class="uk-button uk-button-danger" href="{% url 'order-delete' object.pk %}">Удалить</a>{% endif %}
-                <a class="uk-button uk-button-default" href="{% url 'order-list' %}">Закрыть</a>
+                <a class="uk-button uk-button-default" href="{% url 'order-list' %}" data-order-modal-close>Закрыть</a>
             {% endif %}
         </div>
     </section>

@@ -6088,7 +6088,10 @@ class TransportOrderEditMixin:
                 return redirect("transportation-update", pk=transportation.pk)
             messages.success(request, f"Заказ {self.object.number} сохранён.")
             if action == "save_stay":
-                return redirect("order-update", pk=self.object.pk)
+                update_url = reverse("order-update", kwargs={"pk": self.object.pk})
+                if request.POST.get("modal") == "1":
+                    update_url = f"{update_url}?modal=1"
+                return redirect(update_url)
             return redirect("order-list")
         return self.render_to_response(
             self.get_context_data(form=form, stop_formset=stop_formset)
