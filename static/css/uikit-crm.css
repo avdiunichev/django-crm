@@ -11086,12 +11086,13 @@ body.uikit-theme [data-driver-form] .driver-employment-section.form-section {
 [data-driver-form] .driver-passport-section .form-section-title,
 [data-driver-form] .driver-license-section .form-section-title,
 [data-driver-form] .driver-employment-section .form-section-title {
+    margin-bottom: 18px;
     padding: 0 0 17px;
 }
 
 [data-driver-form] .driver-phone-list {
     display: grid;
-    gap: 12px;
+    gap: 18px;
     padding: 0;
 }
 
@@ -11143,7 +11144,7 @@ body.uikit-theme [data-driver-form] .driver-employment-section .driver-passport-
 }
 
 body.uikit-theme [data-driver-form] .driver-phone-section .driver-phone-card {
-    margin-bottom: 18px;
+    margin-bottom: 0;
     padding-bottom: 18px;
     border-bottom: 1px solid #e1e8f0;
 }
