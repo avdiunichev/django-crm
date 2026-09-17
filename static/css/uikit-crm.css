@@ -6866,8 +6866,8 @@ body.uikit-theme [data-driver-form] .form-select:focus {
 }
 
 [data-driver-form] .driver-command-panel .driver-command-icon svg {
-    width: 34px;
-    height: 34px;
+    width: 52px;
+    height: 52px;
 }
 
 [data-driver-form] .driver-command-panel::after {
@@ -11724,6 +11724,11 @@ body.uikit-theme [data-driver-form] .driver-employment-section [data-employment-
 }
 
 @media (max-width: 720px) {
+    [data-driver-form] .driver-command-panel .driver-command-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+
     [data-driver-form] .driver-phone-card-row {
         grid-template-columns: 1fr;
         gap: 8px;
