@@ -1359,7 +1359,17 @@ class TransportOrderStopForm(StyledModelForm):
                 .first()
             )
         self.fields["city"].required = False
-        self.fields["city"].widget = forms.HiddenInput()
+        self.fields["city"].label = (
+            "Город получения"
+            if kind == TransportOrderStop.Kind.DELIVERY
+            else "Город отправления"
+        )
+        self.fields["city"].widget.attrs.update(
+            {
+                "autocomplete": "address-level2",
+                "placeholder": "Введите город",
+            }
+        )
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
         self.fields["address"].widget = forms.Textarea(

@@ -376,6 +376,39 @@ class CrmTestCase(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
+    def test_order_stop_exposes_route_city_and_prefers_it_for_route(self):
+        form = TransportOrderStopForm(
+            initial={"kind": TransportOrderStop.Kind.PICKUP}
+        )
+
+        self.assertEqual(form.fields["city"].label, "Город отправления")
+        self.assertNotEqual(form.fields["city"].widget.input_type, "hidden")
+
+        bound = TransportOrderStopForm(
+            data={
+                "sequence": "1",
+                "kind": TransportOrderStop.Kind.DELIVERY,
+                "organization": "",
+                "organization_text": "АШАН",
+                "city": "Казань",
+                "address": "Республика Татарстан, складской комплекс",
+                "planned_date": date.today().isoformat(),
+                "planned_time_from": "",
+                "planned_time_to": "",
+                "contact_name": "",
+                "contact_phone": "",
+                "handling_method": "",
+                "instructions": "",
+                "address_meta": "",
+            }
+        )
+
+        self.assertEqual(bound.fields["city"].label, "Город получения")
+        self.assertTrue(bound.is_valid(), bound.errors)
+        stop = bound.save(commit=False)
+        self.assertEqual(stop.city, "Казань")
+        self.assertEqual(stop.organization_text, "АШАН")
+
     def test_order_register_exports_filtered_xlsx(self):
         self.client.force_login(self.user)
         order = TransportOrder.objects.create(

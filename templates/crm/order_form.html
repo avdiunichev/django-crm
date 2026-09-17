@@ -99,7 +99,8 @@
                     <div class="form-grid order-route-grid">
                         <div class="route-city-address-grid field-wide">
                             {% include "crm/includes/form_field.html" with field=stop_form.organization %}
-                            {{ stop_form.organization_text }}{{ stop_form.city }}
+                            {{ stop_form.organization_text }}
+                            {% include "crm/includes/form_field.html" with field=stop_form.city %}
                             {% include "crm/includes/form_field.html" with field=stop_form.address %}
                             {% include "crm/includes/form_field.html" with field=stop_form.handling_method %}
                         </div>
@@ -127,7 +128,8 @@
                 <div class="form-grid order-route-grid">
                     <div class="route-city-address-grid field-wide">
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.organization %}
-                        {{ stop_formset.empty_form.organization_text }}{{ stop_formset.empty_form.city }}
+                        {{ stop_formset.empty_form.organization_text }}
+                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address %}
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.handling_method %}
                     </div>
