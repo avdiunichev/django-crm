@@ -315,6 +315,8 @@ from .models import (
     DocumentBatch,
     DocumentBatchLine,
     Driver,
+    DriverLicense,
+    DriverPassport,
     DirectConversation,
     ForwardingOrder,
     Organization,
@@ -8653,6 +8655,7 @@ class DriverListView(SearchableDirectoryListView):
     search_fields = (
         "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
         "license_categories", "licenses__number", "licenses__categories",
+        "passports__series", "passports__number", "passports__issued_by",
         "carrier__name", "employments__carrier__name",
     )
     ordering_field = "last_name"
@@ -8661,8 +8664,19 @@ class DriverListView(SearchableDirectoryListView):
         queryset = (
             super()
             .get_queryset()
-            .select_related("carrier")
-            .prefetch_related("employments__carrier")
+            .select_related("carrier", "carrier__organization")
+            .prefetch_related(
+                Prefetch(
+                    "passports",
+                    queryset=DriverPassport.objects.filter(is_current=True),
+                    to_attr="registry_current_passports",
+                ),
+                Prefetch(
+                    "licenses",
+                    queryset=DriverLicense.objects.filter(is_current=True),
+                    to_attr="registry_current_licenses",
+                ),
+            )
             .distinct()
         )
         active = self.request.GET.get("active", "").strip()

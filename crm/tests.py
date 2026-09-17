@@ -2401,6 +2401,25 @@ class CrmTestCase(TestCase):
 
     def test_driver_directory_and_card_follow_counterparty_workspace(self):
         self.client.force_login(self.user)
+        self.driver.tax_id = "770100000001"
+        self.driver.birth_date = date(1988, 4, 15)
+        self.driver.save(update_fields=["tax_id", "birth_date", "updated_at"])
+        DriverPassport.objects.create(
+            driver=self.driver,
+            series="4501",
+            number="123456",
+            issued_by="ГУ МВД РОССИИ ПО Г. МОСКВЕ",
+            issue_date=date(2020, 5, 12),
+            is_current=True,
+        )
+        DriverLicense.objects.create(
+            driver=self.driver,
+            number="77 01 654321",
+            categories="B, C",
+            issue_date=date(2022, 6, 1),
+            expiry_date=date(2032, 6, 1),
+            is_current=True,
+        )
         listing = self.client.get(
             reverse("driver-list"),
             {"q": self.driver.last_name, "active": "1", "carrier": self.carrier.pk},
@@ -2408,6 +2427,16 @@ class CrmTestCase(TestCase):
         self.assertEqual(listing.context["page_obj"].paginator.count, 1)
         self.assertContains(listing, "driver-directory-table")
         self.assertContains(listing, "Карточки водителей")
+        self.assertContains(listing, "ФИО / ИНН / дата рождения")
+        self.assertContains(listing, "Основной контрагент")
+        self.assertContains(listing, "Действующий паспорт")
+        self.assertContains(listing, "Водительское удостоверение")
+        self.assertContains(listing, "770100000001")
+        self.assertContains(listing, "15.04.1988")
+        self.assertContains(listing, "4501 123456")
+        self.assertContains(listing, "ГУ МВД РОССИИ ПО Г. МОСКВЕ")
+        self.assertContains(listing, "77 01 654321")
+        self.assertContains(listing, "с 01.06.2022 по 01.06.2032")
         detail = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
         self.assertContains(detail, "driver-view-workspace")
         self.assertContains(detail, "01 Основные данные")

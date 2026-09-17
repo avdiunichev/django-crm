@@ -10194,8 +10194,24 @@ html[data-theme="dark"] body.uikit-theme .driver-passport-card.is-current {
 }
 
 .driver-directory-table {
-    min-width: 980px;
+    min-width: 1500px;
+    table-layout: fixed;
 }
+
+.driver-directory-table th:nth-child(1),
+.driver-directory-table td:nth-child(1) { width: 220px; }
+.driver-directory-table th:nth-child(2),
+.driver-directory-table td:nth-child(2) { width: 220px; }
+.driver-directory-table th:nth-child(3),
+.driver-directory-table td:nth-child(3) { width: 390px; }
+.driver-directory-table th:nth-child(4),
+.driver-directory-table td:nth-child(4) { width: 230px; }
+.driver-directory-table th:nth-child(5),
+.driver-directory-table td:nth-child(5) { width: 170px; }
+.driver-directory-table th:nth-child(6),
+.driver-directory-table td:nth-child(6) { width: 150px; }
+.driver-directory-table th:nth-child(7),
+.driver-directory-table td:nth-child(7) { width: 130px; }
 
 .driver-directory-table td {
     height: 58px;
@@ -10206,6 +10222,15 @@ html[data-theme="dark"] body.uikit-theme .driver-passport-card.is-current {
     margin-top: 3px;
     color: #888;
     font-size: 11px;
+}
+
+.driver-directory-table td strong {
+    display: block;
+    font-weight: 600;
+}
+
+.driver-directory-table .driver-document-expired {
+    color: #d10000;
 }
 
 .driver-row-actions {
@@ -12439,6 +12464,26 @@ body.uikit-theme {
     min-width: 980px;
     font-size: 14px;
 }
+
+.uikit-theme .driver-directory-table {
+    min-width: 1500px;
+    table-layout: fixed;
+}
+
+.uikit-theme .driver-directory-table th:nth-child(1),
+.uikit-theme .driver-directory-table td:nth-child(1) { width: 220px; }
+.uikit-theme .driver-directory-table th:nth-child(2),
+.uikit-theme .driver-directory-table td:nth-child(2) { width: 220px; }
+.uikit-theme .driver-directory-table th:nth-child(3),
+.uikit-theme .driver-directory-table td:nth-child(3) { width: 390px; max-width: none; }
+.uikit-theme .driver-directory-table th:nth-child(4),
+.uikit-theme .driver-directory-table td:nth-child(4) { width: 230px; max-width: none; }
+.uikit-theme .driver-directory-table th:nth-child(5),
+.uikit-theme .driver-directory-table td:nth-child(5) { width: 170px; }
+.uikit-theme .driver-directory-table th:nth-child(6),
+.uikit-theme .driver-directory-table td:nth-child(6) { width: 150px; }
+.uikit-theme .driver-directory-table th:nth-child(7),
+.uikit-theme .driver-directory-table td:nth-child(7) { width: 130px; }
 
 .uikit-theme .driver-directory-table td,
 .uikit-theme .vehicle-directory-table td {
