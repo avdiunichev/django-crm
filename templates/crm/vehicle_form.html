@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Редактирование транспортного средства{% else %}Добавление транспортного средства{% endif %} — Моя CRM{% endblock %}
+{% block body_class %}driver-form-page vehicle-form-page{% endblock %}
+{% block content %}
+<div class="onec-workspace vehicle-form-workspace">
+<form method="post" class="entity-form uk-form-stacked" data-vehicle-form novalidate>
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="form-section uk-card uk-card-default order-command-header driver-command-panel vehicle-command-panel">
+        <div class="driver-modal-titlebar">
+            <span class="driver-command-icon vehicle-command-icon" uk-icon="settings"></span>
+            <div>
+                <h1>{% if object %}Редактирование транспортного средства{% else %}Добавление транспортного средства{% endif %}</h1>
+                <p>Заполните основные характеристики транспортного средства.</p>
+            </div>
+        </div>
+        <div class="order-command-actions">
+            <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
+            <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
+            {% if object %}<a class="uk-button uk-button-default driver-delete-button" href="{% url delete_url_name object.pk %}">Удалить</a>{% else %}<button class="uk-button uk-button-default driver-delete-button" type="button" disabled title="Сначала сохраните карточку">Удалить</button>{% endif %}
+            <a class="uk-button uk-button-default" href="{{ cancel_url }}">Закрыть</a>
+        </div>
+    </section>
+
+    <section class="form-section vehicle-main-section">
+        <div class="form-section-title"><div><h2>Основные данные</h2><p>Регистрационные данные и характеристики транспорта.</p></div></div>
+        <div class="form-grid vehicle-main-grid">
+            {% include "crm/includes/form_field.html" with field=form.kind %}
+            {% include "crm/includes/form_field.html" with field=form.make %}
+            {% include "crm/includes/form_field.html" with field=form.registration_number %}
+            {% include "crm/includes/form_field.html" with field=form.body_type %}
+            {% include "crm/includes/form_field.html" with field=form.capacity_kg %}
+            {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
+            {% include "crm/includes/form_field.html" with field=form.pallet_capacity %}
+        </div>
+    </section>
+
+    <section class="form-section vehicle-carrier-section">
+        <div class="form-section-title"><div><h2>Контрагент</h2><p>Владелец или перевозчик, за которым закреплено транспортное средство.</p></div></div>
+        <div class="vehicle-carrier-card">
+            {% include "crm/includes/form_field.html" with field=form.carrier %}
+        </div>
+    </section>
+</form>
+</div>
+{% endblock %}

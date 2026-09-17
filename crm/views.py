@@ -9212,7 +9212,7 @@ class VehicleCreateView(
 ):
     model = Vehicle
     form_class = VehicleForm
-    template_name = "crm/resource_form.html"
+    template_name = "crm/vehicle_form.html"
     success_message = "Транспорт добавлен."
     extra_context = {
         "entity_title": "Транспорт",
@@ -9221,11 +9221,16 @@ class VehicleCreateView(
         "delete_url_name": "vehicle-delete",
     }
 
+    def get_success_url(self):
+        if self.request.POST.get("action") == "save":
+            return reverse("vehicle-update", kwargs={"pk": self.object.pk})
+        return reverse("vehicle-list")
+
 
 class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Vehicle
     form_class = VehicleForm
-    template_name = "crm/resource_form.html"
+    template_name = "crm/vehicle_form.html"
     success_message = "Данные транспорта обновлены."
     extra_context = {
         "entity_title": "Транспорт",
@@ -9233,6 +9238,11 @@ class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         "cancel_url": reverse_lazy("vehicle-list"),
         "delete_url_name": "vehicle-delete",
     }
+
+    def get_success_url(self):
+        if self.request.POST.get("action") == "save":
+            return reverse("vehicle-update", kwargs={"pk": self.object.pk})
+        return reverse("vehicle-list")
 
 
 class VehicleCombinationCreateView(

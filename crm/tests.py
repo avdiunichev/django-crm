@@ -23,6 +23,7 @@ from .forms import (
     TransportationChainForm,
     TransportationDocumentForm,
     VehicleCombinationForm,
+    VehicleForm,
 )
 from .accounting import post_transportation
 from .epd import epd_validation_errors, prepare_documents
@@ -2498,6 +2499,46 @@ class CrmTestCase(TestCase):
         self.assertContains(detail, "01 Основные данные")
         self.assertContains(detail, "Связи тягача с прицепами")
         self.assertContains(detail, "История карточки")
+
+    def test_vehicle_form_uses_compact_transport_card_fields(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("vehicle-create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "crm/vehicle_form.html")
+        self.assertContains(response, "Добавление транспортного средства")
+        self.assertContains(response, "Основные данные")
+        form = response.context["form"]
+        self.assertEqual(
+            list(form.fields),
+            [
+                "carrier", "kind", "make", "registration_number", "body_type",
+                "capacity_kg", "volume_m3", "pallet_capacity",
+            ],
+        )
+        self.assertEqual(
+            list(form.fields["kind"].choices),
+            [
+                (Vehicle.Kind.TRACTOR, "Седельный тягач"),
+                (Vehicle.Kind.SEMITRAILER, "Полуприцеп"),
+                (Vehicle.Kind.TRUCK, "Грузовик"),
+                (Vehicle.Kind.TRAILER, "Прицеп"),
+            ],
+        )
+
+        form = VehicleForm(
+            data={
+                "carrier": self.carrier.pk,
+                "kind": Vehicle.Kind.TRUCK,
+                "make": "КАМАЗ",
+                "registration_number": "А123АА198",
+                "body_type": "Тент",
+                "capacity_kg": "20000",
+                "volume_m3": "82",
+                "pallet_capacity": "33",
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):
         self.client.force_login(self.user)

@@ -3875,20 +3875,36 @@ class VehicleForm(StyledModelForm):
     class Meta:
         model = Vehicle
         fields = [
-            "carrier", "kind", "registration_number",
-            "vin", "make", "model", "year", "body_type", "capacity_kg",
-            "volume_m3", "pallet_capacity", "insurance_expiry_date",
-            "inspection_expiry_date", "notes", "is_active",
+            "carrier", "kind", "make", "registration_number", "body_type",
+            "capacity_kg", "volume_m3", "pallet_capacity",
         ]
-        widgets = {
-            "insurance_expiry_date": forms.DateInput(
-                format="%Y-%m-%d", attrs={"type": "date"}
-            ),
-            "inspection_expiry_date": forms.DateInput(
-                format="%Y-%m-%d", attrs={"type": "date"}
-            ),
-            "notes": forms.Textarea(attrs={"rows": 3}),
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        allowed_kinds = {
+            Vehicle.Kind.TRACTOR,
+            Vehicle.Kind.SEMITRAILER,
+            Vehicle.Kind.TRUCK,
+            Vehicle.Kind.TRAILER,
         }
+        choices = [
+            (Vehicle.Kind.TRACTOR, "Седельный тягач"),
+            (Vehicle.Kind.SEMITRAILER, "Полуприцеп"),
+            (Vehicle.Kind.TRUCK, "Грузовик"),
+            (Vehicle.Kind.TRAILER, "Прицеп"),
+        ]
+        if self.instance.pk and self.instance.kind not in allowed_kinds:
+            choices.append((self.instance.kind, self.instance.get_kind_display()))
+        self.fields["kind"].choices = choices
+        self.fields["kind"].label = "Тип"
+        self.fields["registration_number"].label = "Госномер"
+        self.fields["capacity_kg"].label = "Вес, кг"
+        self.fields["volume_m3"].label = "Объём, м³"
+        self.fields["pallet_capacity"].label = "Кол-во паллет"
+        self.fields["carrier"].label = "Контрагент"
+        self.fields["registration_number"].widget.attrs.update(
+            {"placeholder": "А000АА000"}
+        )
 
 
 class VehicleCombinationForm(StyledModelForm):

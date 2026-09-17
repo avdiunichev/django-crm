@@ -11253,6 +11253,120 @@ html[data-theme="dark"] body.uikit-theme [data-driver-form] .driver-employment-s
     background: #1b2638;
 }
 
+/* Карточка транспортного средства повторяет строгую геометрию водителя. */
+.vehicle-form-workspace {
+    max-width: none;
+}
+
+[data-vehicle-form] .vehicle-command-panel {
+    position: sticky;
+    top: 72px;
+    z-index: 80;
+    margin: 0;
+    padding-bottom: 18px;
+    border-radius: 0;
+    border-bottom: 1px solid #e1e8f0;
+    background: rgba(255, 255, 255, .98);
+}
+
+[data-vehicle-form] .vehicle-command-panel .driver-modal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    margin: 0 0 18px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid #e1e8f0;
+}
+
+[data-vehicle-form] .vehicle-command-panel .driver-modal-titlebar h1 {
+    margin: 0;
+    color: #263445;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+[data-vehicle-form] .vehicle-command-panel .driver-modal-titlebar p {
+    margin: 3px 0 0;
+    color: #7b8794;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+[data-vehicle-form] .vehicle-command-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: #d10000;
+}
+
+[data-vehicle-form] .vehicle-command-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+[data-vehicle-form] .vehicle-command-panel .order-command-actions {
+    justify-content: flex-start;
+    margin-top: 0;
+}
+
+body.uikit-theme [data-vehicle-form] > .form-section:not(.vehicle-command-panel) {
+    padding: 24px;
+    border: 1px solid #e1e8f0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+}
+
+[data-vehicle-form] .vehicle-main-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+[data-vehicle-form] .vehicle-carrier-card {
+    padding: 18px 18px 18px 14px;
+    border: 1px solid #dfe5ec;
+    border-left: 4px solid #d10000;
+    background: #fbfcfd;
+}
+
+[data-vehicle-form] .uk-input,
+[data-vehicle-form] .uk-select,
+[data-vehicle-form] .uk-button,
+[data-vehicle-form] .vehicle-carrier-card,
+[data-vehicle-form] .form-section {
+    border-radius: 0 !important;
+}
+
+[data-vehicle-form] .uk-input:focus,
+[data-vehicle-form] .uk-select:focus {
+    border-color: #d10000 !important;
+    box-shadow: 0 0 0 3px rgba(209, 0, 0, .12) !important;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-vehicle-form] .vehicle-command-panel,
+html[data-theme="dark"] body.uikit-theme [data-vehicle-form] > .form-section:not(.vehicle-command-panel) {
+    border-color: #344257;
+    background: #141e2f;
+}
+
+html[data-theme="dark"] body.uikit-theme [data-vehicle-form] .vehicle-carrier-card {
+    border-color: #3a4960;
+    border-left-color: #d10000;
+    background: #1b2638;
+}
+
+@media (max-width: 1000px) {
+    [data-vehicle-form] .vehicle-main-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    [data-vehicle-form] .vehicle-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 [data-driver-form] .driver-personal-grid {
     padding-bottom: 22px;
     border-bottom: 1px solid #e1e8f0;
