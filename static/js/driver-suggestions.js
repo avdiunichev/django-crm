@@ -3,6 +3,11 @@
 
     const SELECTOR = "input[data-dadata-driver]";
     const DELAY = 260;
+    const titleCaseName = (value) => value
+        .toLocaleLowerCase("ru-RU")
+        .replace(/(^|[\s-])(\p{L})/gu, (_match, separator, letter) => (
+            `${separator}${letter.toLocaleUpperCase("ru-RU")}`
+        ));
 
     const enhance = (input) => {
         if (!input || input.dataset.dadataDriverReady === "true") return;
@@ -30,6 +35,17 @@
         let activeIndex = -1;
         let requestNumber = 0;
 
+        const normalizeName = () => {
+            const normalized = titleCaseName(input.value);
+            if (normalized === input.value) return;
+            const selectionStart = input.selectionStart;
+            const selectionEnd = input.selectionEnd;
+            input.value = normalized;
+            if (selectionStart !== null && selectionEnd !== null) {
+                input.setSelectionRange(selectionStart, selectionEnd);
+            }
+        };
+
         const close = () => {
             dropdown.hidden = true;
             input.setAttribute("aria-expanded", "false");
@@ -48,7 +64,7 @@
             open();
         };
         const choose = (suggestion) => {
-            input.value = suggestion.value;
+            input.value = titleCaseName(suggestion.value);
             const targets = {
                 surname: input.dataset.dadataSurnameTarget,
                 name: input.dataset.dadataNameTarget,
@@ -127,6 +143,7 @@
         };
 
         input.addEventListener("input", () => {
+            normalizeName();
             clearTimeout(timer);
             controller?.abort();
             if (input.value.trim().length < 2) {
@@ -135,6 +152,7 @@
             }
             timer = window.setTimeout(load, DELAY);
         });
+        input.addEventListener("blur", normalizeName);
         input.addEventListener("keydown", (event) => {
             const buttons = Array.from(dropdown.querySelectorAll(".crm-driver-option"));
             if (event.key === "ArrowDown") {

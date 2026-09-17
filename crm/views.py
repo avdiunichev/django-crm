@@ -8966,14 +8966,17 @@ class DriverRegistersFormSetMixin:
                 license_formset.save_register(self.object)
             messages.success(request, self.success_message)
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                action = request.POST.get("action") or "save"
                 return JsonResponse(
                     {
                         "ok": True,
+                        "action": action,
+                        "message": self.success_message,
                         "item": {
                             "id": self.object.pk,
                             "label": self.object.full_name,
                         },
-                        "url": self.object.get_absolute_url(),
+                        "url": self.get_success_url(),
                     }
                 )
             return redirect(self.get_success_url())

@@ -48,7 +48,21 @@
     };
 
     const notify = (message, status = "warning") => {
-        window.UIkit?.notification?.({message, status, pos: "top-center"});
+        const kind = status === "danger" ? "error" : status;
+        if (window.CRMToasts?.show) {
+            window.CRMToasts.show(message, kind, 5000);
+            return;
+        }
+        window.UIkit?.notification?.({message, status, pos: "top-center", timeout: 5000});
+    };
+
+    const validationMessages = (page) => {
+        const messages = Array.from(page.querySelectorAll(
+            "[data-driver-form] .errorlist li, [data-driver-form] .uk-alert-danger"
+        ))
+            .map((node) => node.textContent.replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+        return [...new Set(messages)];
     };
 
     const restoreDraft = (form, draft) => {
@@ -72,11 +86,12 @@
         });
     };
 
-    const render = (html, sourceUrl, draft = null) => {
+    const render = (html, sourceUrl, draft = null, showErrors = false) => {
         const page = new DOMParser().parseFromString(html, "text/html");
         const form = page.querySelector("[data-driver-form]");
         const heading = page.querySelector(".page-heading");
         if (!form) throw new Error("Форма водителя не найдена");
+        const errors = showErrors ? validationMessages(form) : [];
 
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-driver-dialog bootstrap-driver-page driver-form-page";
@@ -86,7 +101,7 @@
         dialog.append(form);
         form.action = sourceUrl;
         form.querySelectorAll(".back-link, .form-actions a[href], .driver-command-panel a[href]").forEach((link) => {
-            if (link.matches(".uk-button-danger")) return;
+            if (link.matches(".uk-button-danger, .driver-delete-button, a[href*='/delete/']")) return;
             link.addEventListener("click", (event) => {
                 event.preventDefault();
                 clearDraft();
@@ -102,6 +117,12 @@
         window.CRMDriverPhones?.enhanceWithin(dialog);
         restoreDraft(form, draft);
         window.UIkit?.update?.(modalElement);
+        if (showErrors) {
+            notify(
+                errors.length ? errors.join(" ") : "Проверьте заполнение формы.",
+                "danger"
+            );
+        }
 
         const remember = () => saveDraft(sourceUrl, form);
         form.addEventListener("input", remember);
@@ -110,12 +131,14 @@
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-            const submit = form.querySelector('[type="submit"]');
+            const submit = event.submitter || form.querySelector('[type="submit"]');
             if (submit) submit.disabled = true;
             try {
+                const data = new FormData(form);
+                if (submit?.name) data.set(submit.name, submit.value);
                 const response = await fetch(sourceUrl, {
                     method: "POST",
-                    body: new FormData(form),
+                    body: data,
                     headers: {
                         "Accept": "application/json, text/html",
                         "X-Requested-With": "XMLHttpRequest"
@@ -125,12 +148,16 @@
                 if (response.ok && contentType.includes("application/json")) {
                     const result = await response.json();
                     clearDraft();
-                    modal()?.hide();
-                    notify("Водитель создан.", "success");
-                    window.location.assign(result.url);
+                    notify(result.message || "Карточка водителя сохранена.", "success");
+                    if (result.action === "save") {
+                        await open(result.url);
+                    } else {
+                        modal()?.hide();
+                        window.location.assign(result.url);
+                    }
                     return;
                 }
-                render(await response.text(), sourceUrl);
+                render(await response.text(), sourceUrl, null, true);
             } catch (_error) {
                 notify("Не удалось сохранить водителя. Проверьте соединение.", "danger");
                 if (submit?.isConnected) submit.disabled = false;
@@ -162,6 +189,8 @@
     });
 
     window.addEventListener("DOMContentLoaded", () => {
+        const pageErrors = validationMessages(document);
+        if (pageErrors.length) notify(pageErrors.join(" "), "danger");
         const draft = loadDraft();
         if (draft?.sourceUrl) open(draft.sourceUrl, draft);
     });

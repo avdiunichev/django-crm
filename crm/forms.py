@@ -3174,6 +3174,14 @@ class DriverForm(StyledModelForm):
     def clean(self):
         cleaned = super().clean()
         full_name = " ".join((cleaned.get("full_name") or "").split())
+        full_name = " ".join(
+            "-".join(
+                part[:1].upper() + part[1:].lower()
+                for part in word.split("-")
+            )
+            for word in full_name.split()
+        )
+        cleaned["full_name"] = full_name
         parts = full_name.split()
         if len(parts) < 2:
             self.add_error("full_name", "Укажите минимум фамилию и имя.")

@@ -8,15 +8,15 @@
         window.setTimeout(() => toast.remove(), 240);
     };
 
-    const bind = (toast) => {
+    const bind = (toast, timeout = 5000) => {
         toast.querySelector("[data-crm-toast-close]")?.addEventListener(
             "click",
             () => dismiss(toast),
         );
-        window.setTimeout(() => dismiss(toast), 3000);
+        window.setTimeout(() => dismiss(toast), Math.max(5000, timeout));
     };
 
-    const show = (message, kind = "info") => {
+    const show = (message, kind = "info", timeout = 5000) => {
         let stack = document.querySelector(".crm-toast-stack");
         if (!stack) {
             stack = document.createElement("div");
@@ -41,7 +41,7 @@
         close.textContent = "×";
         toast.append(icon, text, close);
         stack.append(toast);
-        bind(toast);
+        bind(toast, timeout);
     };
 
     const initialize = () => {

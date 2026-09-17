@@ -4,7 +4,7 @@
 {% block body_class %}driver-form-page{% endblock %}
 {% block content %}
 <div class="onec-workspace driver-form-workspace">
-<form method="post" class="entity-form" data-driver-form>
+<form method="post" class="entity-form" data-driver-form novalidate>
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
@@ -248,9 +248,11 @@
         if (!text) return;
         try {
             await navigator.clipboard.writeText(text);
-            if (window.UIkit) UIkit.notification({message: "Карточка водителя скопирована в буфер обмена.", status: "success"});
+            if (window.CRMToasts) window.CRMToasts.show("Карточка водителя скопирована в буфер обмена.", "success", 5000);
+            else if (window.UIkit) UIkit.notification({message: "Карточка водителя скопирована в буфер обмена.", status: "success", timeout: 5000});
         } catch (_error) {
-            if (window.UIkit) UIkit.notification({message: "Не удалось скопировать данные.", status: "danger"});
+            if (window.CRMToasts) window.CRMToasts.show("Не удалось скопировать данные.", "error", 5000);
+            else if (window.UIkit) UIkit.notification({message: "Не удалось скопировать данные.", status: "danger", timeout: 5000});
         }
     });
 })();

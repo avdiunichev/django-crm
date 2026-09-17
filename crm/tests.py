@@ -2953,18 +2953,22 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("driver-create"),
             {
-                "full_name": "Сидоров Семён Сергеевич",
+                "full_name": "сидоров семён сергеевич",
                 "phone": "+7 900 333-44-55",
                 "tax_id": "7812 3456 7890",
                 "is_active": "on",
+                "action": "save",
                 "employments-TOTAL_FORMS": "3",
                 "employments-INITIAL_FORMS": "0",
                 "employments-MIN_NUM_FORMS": "0",
                 "employments-MAX_NUM_FORMS": "1000",
                 "employments-0-carrier": str(self.carrier.pk),
                 "employments-0-is_primary": "on",
+                "employments-0-is_active": "on",
                 "employments-1-carrier": str(additional_carrier_one.pk),
+                "employments-1-is_active": "on",
                 "employments-2-carrier": str(additional_carrier_two.pk),
+                "employments-2-is_active": "on",
                 "licenses-TOTAL_FORMS": "1",
                 "licenses-INITIAL_FORMS": "0",
                 "licenses-MIN_NUM_FORMS": "0",
@@ -2989,7 +2993,12 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["ok"])
+        self.assertEqual(response.json()["action"], "save")
         driver = Driver.objects.get(license_number="MODAL-DRIVER")
+        self.assertEqual(driver.full_name, "Сидоров Семён Сергеевич")
+        self.assertEqual(
+            response.json()["url"], reverse("driver-update", args=[driver.pk])
+        )
         self.assertEqual(driver.tax_id, "781234567890")
         self.assertTrue(
             driver.passports.filter(
