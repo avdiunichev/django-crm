@@ -57,3 +57,4 @@
   .partner-panels article{min-height:265px}
   .contact-list a,.contact-list div{gap:3px}
 }
+.company-landing a.solid-action,.company-landing a.solid-action span{color:#fff}.company-landing a.solid-action:hover,.company-landing a.solid-action:focus-visible{background:var(--red-dark);border-color:var(--red-dark);color:#fff}
