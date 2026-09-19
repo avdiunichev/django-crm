@@ -5989,6 +5989,12 @@ class TransportOrderEditMixin:
     model = TransportOrder
     form_class = TransportOrderForm
     template_name = "crm/order_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        if request.GET.get("modal") == "1":
+            response["X-Frame-Options"] = "SAMEORIGIN"
+        return response
     stop_prefix = "route_stops"
 
     def get_form_kwargs(self):

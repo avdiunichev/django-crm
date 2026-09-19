@@ -289,6 +289,7 @@ class CrmTestCase(TestCase):
 
         modal_page = self.client.get(f'{reverse("order-create")}?modal=1')
         self.assertEqual(modal_page.status_code, 200)
+        self.assertEqual(modal_page["X-Frame-Options"], "SAMEORIGIN")
         self.assertContains(modal_page, "order-modal-page")
         self.assertContains(modal_page, 'name="modal" value="1"')
         self.assertContains(modal_page, "data-order-modal-close")
