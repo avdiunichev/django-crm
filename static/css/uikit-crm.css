@@ -373,6 +373,142 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
     }
 }
 
+/* Рабочий стол бухгалтерии. */
+.accounting-workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.accounting-workflow-card {
+    display: flex;
+    min-height: 150px;
+    gap: 16px;
+    padding: 22px;
+    border: 1px solid #d9e1eb;
+    border-radius: 0;
+    background: #fff;
+    color: #303640;
+    text-decoration: none;
+    transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.accounting-workflow-card:hover {
+    border-color: #d10000;
+    color: #303640;
+    box-shadow: 0 12px 30px rgba(33, 42, 58, .08);
+    text-decoration: none;
+}
+
+.accounting-workflow-card h2 {
+    margin: 0 0 7px;
+    font-size: 19px;
+}
+
+.accounting-workflow-card p {
+    min-height: 40px;
+    margin: 0 0 14px;
+    color: #7d8796;
+}
+
+.accounting-workflow-card strong {
+    color: #d10000;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.accounting-step {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-left: 4px solid #d10000;
+    background: #f5f6f8;
+    color: #d10000;
+    font-weight: 700;
+}
+
+.accounting-bank-card {
+    grid-column: span 2;
+}
+
+.accounting-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #d9e1eb;
+    background: #fff;
+}
+
+.accounting-dashboard-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.accounting-feed {
+    display: grid;
+}
+
+.accounting-feed > a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e4e9f0;
+    color: #303640;
+    text-decoration: none;
+}
+
+.accounting-feed > a:last-child { border-bottom: 0; }
+.accounting-feed > a span { color: #d10000; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.accounting-feed > a strong { text-align: right; }
+.accounting-feed > a small { grid-column: 1 / -1; color: #7d8796; }
+.accounting-import-form { max-width: 1180px; margin: 0 auto; }
+.accounting-import-help ol { margin: 0; padding-left: 22px; }
+.accounting-import-help li + li { margin-top: 8px; }
+.accounting-import-warnings li + li { margin-top: 8px; }
+.transportation-accounting-actions { max-width: 760px; justify-content: flex-end; }
+
+html[data-theme="dark"] body.uikit-theme .accounting-workflow-card,
+html[data-theme="dark"] body.uikit-theme .accounting-actions-bar {
+    border-color: #344257;
+    background: #141e2f;
+    color: #eef3fa;
+}
+
+html[data-theme="dark"] body.uikit-theme .accounting-workflow-card h2,
+html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
+    color: #eef3fa;
+}
+
+html[data-theme="dark"] body.uikit-theme .accounting-step {
+    background: #202b3d;
+}
+
+html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
+    border-bottom-color: #344257;
+}
+
+@media (max-width: 1100px) {
+    .accounting-workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+    .accounting-workflow-grid,
+    .accounting-dashboard-columns { grid-template-columns: 1fr; }
+    .accounting-bank-card { grid-column: auto; }
+    .accounting-workflow-card { min-height: 0; padding: 16px; }
+    .accounting-actions-bar .uk-button { width: 100%; }
+    .transportation-accounting-actions { justify-content: stretch; }
+    .transportation-accounting-actions .uk-button { width: 100%; }
+}
+
 /* Выбор количества строк — такой же строгий элемент управления, как поля реестров. */
 .uikit-theme .page-size-selector .uk-select,
 .uikit-theme .page-size-selector .crm-smart-search,

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Загрузка банковской выписки — Моя CRM{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked accounting-import-form">
+    {% csrf_token %}
+    <section class="form-section uk-card uk-card-default order-command-header">
+        <div class="form-section-title order-command-title"><span class="order-command-icon" uk-icon="credit-card"></span><div><h2>Загрузка банковской выписки</h2><p>Импорт файла клиент-банка в формате для 1С</p></div></div>
+        <div class="order-command-actions"><button class="uk-button uk-button-primary" type="submit">Загрузить и распознать</button><a class="uk-button uk-button-default" href="{% url 'accounting-dashboard' %}">Закрыть</a></div>
+    </section>
+    {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>01</span><div><h2>Параметры импорта</h2><p>Выберите организацию, банковский счёт и файл выгрузки</p></div></div>
+        <div class="form-grid">
+            {% include "crm/includes/form_field.html" with field=form.owner_company %}
+            {% include "crm/includes/form_field.html" with field=form.bank_account %}
+            {% include "crm/includes/form_field.html" with field=form.statement_file wide=True %}
+        </div>
+    </section>
+    <section class="form-section uk-card uk-card-default accounting-import-help">
+        <div class="form-section-title"><span>02</span><div><h2>Как будет обработан файл</h2><p>Импорт не проводит операции автоматически</p></div></div>
+        <ol><li>Определяем приход или расход по расчётному счёту нашей компании.</li><li>Ищем рейс по его номеру в назначении платежа и ИНН контрагента.</li><li>Создаём отдельные черновики прихода и расхода.</li><li>Вы проверяете строки и только после этого проводите документы.</li></ol>
+    </section>
+</form>
+{% endblock %}

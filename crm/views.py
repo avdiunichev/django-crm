@@ -266,6 +266,7 @@ from .navbar_notifications import mark_all_navbar_notifications_read
 from .forms import (
     AccountingDocumentForm,
     BankStatementForm,
+    BankStatementImportForm,
     BankStatementLineForm,
     CarrierForm,
     ChatMessageForm,
@@ -307,6 +308,7 @@ from .forms import (
     VehicleCarrierInitialFormSet,
     VehicleCombinationForm,
 )
+from .bank_import import parse_client_bank_exchange
 from .models import (
     BankStatement,
     BankStatementLine,
@@ -2627,10 +2629,59 @@ class ShipmentDocumentCreateView(
         transportation_id = self.request.GET.get("transportation", "").strip()
         if transportation_id.isdigit():
             initial["transportation"] = transportation_id
-        initial["direction"] = self.request.GET.get(
-            "direction", ShipmentDocument.Direction.OUTGOING
-        )
-        initial["kind"] = self.request.GET.get("kind", ShipmentDocument.Kind.INVOICE)
+            transportation = (
+                Transportation.objects.select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
+                .prefetch_related("parties__organization", "execution_links__contractor_party__organization")
+                .filter(pk=transportation_id)
+                .first()
+            )
+        else:
+            transportation = None
+        direction = self.request.GET.get("direction", ShipmentDocument.Direction.OUTGOING)
+        kind = self.request.GET.get("kind", ShipmentDocument.Kind.INVOICE)
+        workflow = self.request.GET.get("workflow", "").strip()
+        workflow_defaults = {
+            "customer_invoice": (ShipmentDocument.Direction.OUTGOING, ShipmentDocument.Kind.INVOICE, ShipmentDocument.Party.CUSTOMER),
+            "customer_upd": (ShipmentDocument.Direction.OUTGOING, ShipmentDocument.Kind.UPD, ShipmentDocument.Party.CUSTOMER),
+            "executor_invoice": (ShipmentDocument.Direction.INCOMING, ShipmentDocument.Kind.INVOICE, ShipmentDocument.Party.CARRIER),
+            "executor_upd": (ShipmentDocument.Direction.INCOMING, ShipmentDocument.Kind.UPD, ShipmentDocument.Party.CARRIER),
+        }
+        party = self.request.GET.get("party", "")
+        if workflow in workflow_defaults:
+            direction, kind, party = workflow_defaults[workflow]
+        initial.update({"direction": direction, "kind": kind})
+        if party:
+            initial["party"] = party
+        if transportation:
+            initial["document_date"] = timezone.localdate()
+            initial["status"] = (
+                ShipmentDocument.Status.ISSUED
+                if direction == ShipmentDocument.Direction.OUTGOING
+                else ShipmentDocument.Status.RECEIVED
+            )
+            if direction == ShipmentDocument.Direction.OUTGOING:
+                client = next(
+                    (item.organization for item in transportation.parties.all() if item.role == TransportationParty.Role.CLIENT and item.is_active),
+                    None,
+                )
+                initial.update(
+                    {
+                        "counterparty": client,
+                        "amount": transportation.customer_amount,
+                        "vat_amount": transportation.customer_vat_amount,
+                        "currency": transportation.currency,
+                    }
+                )
+            else:
+                link = next((item for item in transportation.execution_links.all() if item.is_active), None)
+                initial.update(
+                    {
+                        "counterparty": link.contractor_party.organization if link else None,
+                        "amount": transportation.executor_amount,
+                        "vat_amount": transportation.executor_vat_amount,
+                        "currency": transportation.executor_currency,
+                    }
+                )
         return initial
 
     def form_valid(self, form):
@@ -6883,6 +6934,168 @@ class BankStatementEditorMixin:
             return redirect(self.object.get_absolute_url())
         return self.render_to_response(
             self.get_context_data(form=form)
+        )
+
+
+class AccountingDashboardView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
+    template_name = "crm/accounting_dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        documents = ShipmentDocument.objects.select_related(
+            "transportation", "counterparty"
+        ).filter(transportation__isnull=False)
+        statements = BankStatement.objects.all()
+        context.update(
+            {
+                "customer_invoice_count": documents.filter(
+                    direction=ShipmentDocument.Direction.OUTGOING,
+                    kind=ShipmentDocument.Kind.INVOICE,
+                ).count(),
+                "customer_upd_count": documents.filter(
+                    direction=ShipmentDocument.Direction.OUTGOING,
+                    kind=ShipmentDocument.Kind.UPD,
+                ).count(),
+                "executor_invoice_count": documents.filter(
+                    direction=ShipmentDocument.Direction.INCOMING,
+                    kind=ShipmentDocument.Kind.INVOICE,
+                ).count(),
+                "executor_upd_count": documents.filter(
+                    direction=ShipmentDocument.Direction.INCOMING,
+                    kind=ShipmentDocument.Kind.UPD,
+                ).count(),
+                "bank_draft_count": statements.filter(status=BankStatement.Status.DRAFT).count(),
+                "recent_documents": documents.order_by("-created_at")[:10],
+                "recent_statements": statements.select_related("owner_company").order_by("-created_at")[:8],
+            }
+        )
+        return context
+
+
+class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
+    form_class = BankStatementImportForm
+    template_name = "crm/bank_statement_import.html"
+
+    @staticmethod
+    def _payment_direction(payment, account_number):
+        if payment.recipient_account == account_number:
+            return BankStatement.Direction.INCOME
+        if payment.payer_account == account_number:
+            return BankStatement.Direction.EXPENSE
+        return None
+
+    @staticmethod
+    def _match_candidate(payment, candidates, direction):
+        purpose = payment.purpose.casefold()
+        tax_id = (
+            payment.payer_tax_id
+            if direction == BankStatement.Direction.INCOME
+            else payment.recipient_tax_id
+        )
+        by_number = [
+            item for item in candidates
+            if item["transportation"].number
+            and item["transportation"].number.casefold() in purpose
+        ]
+        if len(by_number) == 1:
+            return by_number[0]
+        by_tax_id = [
+            item for item in candidates
+            if tax_id and getattr(item.get("counterparty"), "tax_id", "") == tax_id
+        ]
+        return by_tax_id[0] if len(by_tax_id) == 1 else None
+
+    def form_valid(self, form):
+        uploaded = form.cleaned_data["statement_file"]
+        owner = form.cleaned_data["owner_company"]
+        account = form.cleaned_data["bank_account"]
+        try:
+            header, payments, parse_errors = parse_client_bank_exchange(uploaded)
+        except ValidationError as error:
+            form.add_error("statement_file", error)
+            return self.form_invalid(form)
+
+        account_number = "".join(character for character in account.account_number if character.isdigit())
+        candidates = {
+            direction: _bank_statement_candidates(
+                direction, owner_id=owner.pk, currency=account.currency
+            )
+            for direction in BankStatement.Direction.values
+        }
+        matched = {direction: {} for direction in BankStatement.Direction.values}
+        skipped = list(parse_errors)
+        for payment in payments:
+            direction = self._payment_direction(payment, account_number)
+            if not direction:
+                skipped.append(
+                    f"Платёж № {payment.number or 'без номера'}: расчётный счёт компании не найден в операции."
+                )
+                continue
+            candidate = self._match_candidate(payment, candidates[direction], direction)
+            if not candidate:
+                skipped.append(
+                    f"Платёж № {payment.number or 'без номера'} на {payment.amount}: рейс не определён автоматически."
+                )
+                continue
+            transportation = candidate["transportation"]
+            row = matched[direction].setdefault(
+                transportation.pk,
+                {"transportation": transportation, "amount": Decimal("0"), "references": []},
+            )
+            row["amount"] += payment.amount
+            if payment.number:
+                row["references"].append(payment.number)
+
+        created = []
+        with transaction.atomic():
+            for direction, rows in matched.items():
+                if not rows:
+                    continue
+                relevant_dates = [
+                    payment.payment_date
+                    for payment in payments
+                    if self._payment_direction(payment, account_number) == direction
+                ]
+                statement = BankStatement.objects.create(
+                    statement_date=max(relevant_dates) if relevant_dates else timezone.localdate(),
+                    direction=direction,
+                    owner_company=owner,
+                    bank_account=account,
+                    currency=account.currency,
+                    reference=Path(uploaded.name).name[:100],
+                    notes=(
+                        "Импортировано из 1CClientBankExchange. "
+                        f"Период: {header.get('ДатаНачала', '—')}–{header.get('ДатаКонца', '—')}."
+                    ),
+                    created_by=self.request.user,
+                )
+                BankStatementLine.objects.bulk_create(
+                    [
+                        BankStatementLine(
+                            statement=statement,
+                            transportation=row["transportation"],
+                            amount=row["amount"],
+                            payment_reference=", ".join(row["references"])[:100],
+                        )
+                        for row in rows.values()
+                    ]
+                )
+                created.append(statement)
+
+        if not created:
+            form.add_error(
+                "statement_file",
+                "Ни один платёж не удалось сопоставить с рейсом. Проверьте расчётный счёт, ИНН и назначение платежа.",
+            )
+            return self.form_invalid(form)
+        messages.success(
+            self.request,
+            f"Создано банковских документов: {len(created)}. Перед проведением проверьте строки.",
+        )
+        return render(
+            self.request,
+            "crm/bank_statement_import_result.html",
+            {"created_statements": created, "skipped_rows": skipped},
         )
 
 

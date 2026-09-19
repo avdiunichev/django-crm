@@ -9,6 +9,7 @@
         <p>Массово регистрируйте оплаты из банковской выписки и проводите их по рейсам.</p>
     </div>
     <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a>
         <a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense"><span uk-icon="arrow-down"></span> Создать расход</a>
         <a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income"><span uk-icon="arrow-up"></span> Создать приход</a>
     </div>

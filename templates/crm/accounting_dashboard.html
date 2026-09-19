@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Бухгалтерия — Моя CRM{% endblock %}
+{% block content %}
+<div class="page-heading accounting-heading">
+    <div><span class="eyebrow">Учёт по принципу 1С</span><h1>Бухгалтерия</h1><p>Первичные документы по рейсам, взаиморасчёты и банковские выписки.</p></div>
+</div>
+
+<section class="accounting-workflow-grid">
+    <a class="accounting-workflow-card" href="{% url 'shipment-document-list' %}?direction=outgoing&amp;kind=invoice">
+        <span class="accounting-step">01</span><div><h2>Счета клиентам</h2><p>Выставление счёта на основании рейса</p><strong>{{ customer_invoice_count }} документов</strong></div>
+    </a>
+    <a class="accounting-workflow-card" href="{% url 'shipment-document-list' %}?direction=outgoing&amp;kind=upd">
+        <span class="accounting-step">02</span><div><h2>Реализация (УПД)</h2><p>Закрывающие документы клиенту</p><strong>{{ customer_upd_count }} документов</strong></div>
+    </a>
+    <a class="accounting-workflow-card" href="{% url 'shipment-document-list' %}?direction=incoming&amp;kind=invoice">
+        <span class="accounting-step">03</span><div><h2>Счета исполнителей</h2><p>Входящие счета перевозчиков и экспедиторов</p><strong>{{ executor_invoice_count }} документов</strong></div>
+    </a>
+    <a class="accounting-workflow-card" href="{% url 'shipment-document-list' %}?direction=incoming&amp;kind=upd">
+        <span class="accounting-step">04</span><div><h2>Поступление (УПД)</h2><p>Входящие закрывающие документы</p><strong>{{ executor_upd_count }} документов</strong></div>
+    </a>
+    <a class="accounting-workflow-card accounting-bank-card" href="{% url 'bank-statement-list' %}">
+        <span class="accounting-step">05</span><div><h2>Банковские выписки</h2><p>Загрузка из клиент-банка и проведение оплат</p><strong>{{ bank_draft_count }} черновиков</strong></div>
+    </a>
+</section>
+
+<section class="accounting-actions-bar">
+    <a class="uk-button uk-button-primary" href="{% url 'transportation-list' %}">Выбрать рейс для документа</a>
+    <a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить выписку из 1С</a>
+    <a class="uk-button uk-button-default" href="{% url 'primary-document-registry-list' %}">Реестр первичных документов</a>
+</section>
+
+<div class="accounting-dashboard-columns">
+    <section class="panel uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Первичка</span><h2>Последние документы</h2></div><a href="{% url 'shipment-document-list' %}">Все документы</a></div>
+        <div class="accounting-feed">{% for document in recent_documents %}<a href="{{ document.get_absolute_url }}"><span>{{ document.get_kind_display }} · {{ document.get_direction_display }}</span><strong>{{ document.number|default:"Без номера" }}</strong><small>{{ document.source_number }} · {{ document.counterparty_name }}</small></a>{% empty %}<p class="empty-state">Документов пока нет.</p>{% endfor %}</div>
+    </section>
+    <section class="panel uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Банк</span><h2>Последние выписки</h2></div><a href="{% url 'bank-statement-list' %}">Все выписки</a></div>
+        <div class="accounting-feed">{% for statement in recent_statements %}<a href="{{ statement.get_absolute_url }}"><span>{{ statement.get_direction_display }}</span><strong>{{ statement.number }}</strong><small>{{ statement.statement_date|date:"d.m.Y" }} · {{ statement.owner_company }}</small></a>{% empty %}<p class="empty-state">Банковских документов пока нет.</p>{% endfor %}</div>
+    </section>
+</div>
+{% endblock %}

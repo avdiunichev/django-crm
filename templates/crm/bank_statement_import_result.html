@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Результат импорта — Моя CRM{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">Банковская выписка</span><h1>Импорт завершён</h1><p>Документы созданы как черновики и ещё не влияют на взаиморасчёты.</p></div></div>
+<section class="panel uk-card uk-card-default"><div class="section-title"><div><h2>Созданные документы</h2><p>Откройте и проверьте суммы перед проведением</p></div></div><div class="accounting-feed">{% for statement in created_statements %}<a href="{{ statement.get_absolute_url }}"><span>{{ statement.get_direction_display }}</span><strong>{{ statement.number }}</strong><small>{{ statement.line_count }} строк · {{ statement.total_amount }} {{ statement.currency }}</small></a>{% endfor %}</div></section>
+{% if skipped_rows %}<section class="panel uk-card uk-card-default accounting-import-warnings"><div class="section-title"><div><h2>Не сопоставлено автоматически</h2><p>Эти операции не были добавлены в документы</p></div></div><ul>{% for row in skipped_rows %}<li>{{ row }}</li>{% endfor %}</ul></section>{% endif %}
+<div class="form-actions"><a class="uk-button uk-button-primary" href="{% url 'bank-statement-list' %}">Перейти к выпискам</a><a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить ещё файл</a></div>
+{% endblock %}

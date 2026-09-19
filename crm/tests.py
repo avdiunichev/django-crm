@@ -26,6 +26,7 @@ from .forms import (
     VehicleForm,
 )
 from .accounting import post_transportation
+from .bank_import import parse_client_bank_exchange
 from .epd import epd_validation_errors, prepare_documents
 from .orders import assign_order_to_transportation, sync_order_from_transportation
 from .models import (
@@ -2411,6 +2412,50 @@ class CrmTestCase(TestCase):
         statement.refresh_from_db()
         self.assertEqual(statement.status, BankStatement.Status.DRAFT)
         self.assertFalse(Payment.objects.filter(reference="ПП-АС-001").exists())
+
+    def test_accounting_workspace_and_client_bank_parser(self):
+        self.client.force_login(self.user)
+        dashboard = self.client.get(reverse("accounting-dashboard"))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, "Бухгалтерия")
+        self.assertContains(dashboard, "Счета клиентам")
+        self.assertContains(dashboard, "Поступление (УПД)")
+
+        import_page = self.client.get(reverse("bank-statement-import"))
+        self.assertEqual(import_page.status_code, 200)
+        self.assertContains(import_page, "1CClientBankExchange")
+
+        content = "\n".join(
+            [
+                "1CClientBankExchange",
+                "ВерсияФормата=1.03",
+                "Кодировка=Windows",
+                "ДатаНачала=19.09.2026",
+                "ДатаКонца=19.09.2026",
+                "СекцияДокумент=Платежное поручение",
+                "Номер=125",
+                "Дата=19.09.2026",
+                "Сумма=150000,00",
+                "Плательщик=ООО Клиент",
+                "ПлательщикИНН=7711000000",
+                "ПлательщикСчет=40702810000000000002",
+                "Получатель=ООО Новый проект",
+                "ПолучательИНН=7701000000",
+                "ПолучательСчет=40702810000000000001",
+                "НазначениеПлатежа=Оплата транспортных услуг",
+                "КонецДокумента",
+                "КонецФайла",
+            ]
+        )
+        uploaded = SimpleUploadedFile(
+            "statement.txt", content.encode("cp1251"), "text/plain"
+        )
+        header, payments, errors = parse_client_bank_exchange(uploaded)
+        self.assertEqual(header["ДатаНачала"], "19.09.2026")
+        self.assertEqual(len(payments), 1)
+        self.assertEqual(payments[0].amount, Decimal("150000.00"))
+        self.assertEqual(payments[0].recipient_account, "40702810000000000001")
+        self.assertEqual(errors, [])
 
     def test_pages_use_uikit_components(self):
         self.client.force_login(self.user)

@@ -4276,6 +4276,46 @@ class BankStatementForm(StyledModelForm):
         return cleaned
 
 
+class BankStatementImportForm(forms.Form):
+    owner_company = forms.ModelChoiceField(
+        label="Наша компания",
+        queryset=Organization.objects.filter(is_own_company=True, is_active=True),
+    )
+    bank_account = forms.ModelChoiceField(
+        label="Расчётный счёт",
+        queryset=OrganizationBankAccount.objects.filter(
+            is_active=True,
+            organization__is_own_company=True,
+            organization__is_active=True,
+        ).select_related("organization"),
+    )
+    statement_file = forms.FileField(
+        label="Файл выписки для 1С",
+        help_text="Поддерживается текстовый формат 1CClientBankExchange в UTF-8 или Windows-1251.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "form-control")
+        self.fields["owner_company"].widget.attrs["class"] += " uk-select"
+        self.fields["bank_account"].widget.attrs["class"] += " uk-select"
+        self.fields["statement_file"].widget.attrs.update(
+            {"class": "uk-input", "accept": ".txt,.1c,.kl_to_1c"}
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        owner = cleaned.get("owner_company")
+        account = cleaned.get("bank_account")
+        if owner and account and account.organization_id != owner.pk:
+            self.add_error("bank_account", "Расчётный счёт должен принадлежать выбранной компании.")
+        uploaded = cleaned.get("statement_file")
+        if uploaded and uploaded.size > 10 * 1024 * 1024:
+            self.add_error("statement_file", "Размер файла не должен превышать 10 МБ.")
+        return cleaned
+
+
 class BankStatementLineForm(StyledModelForm):
     class Meta:
         model = BankStatementLine

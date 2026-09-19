@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260917-order-create-modal">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260919-accounting-workspace">
     <link rel="stylesheet" href="{% static 'css/organization-detail.css' %}?v=20260914-view-card-tabs">
     <link rel="stylesheet" href="{% static 'css/driver-detail.css' %}?v=20260914-driver-view-card">
     <link rel="stylesheet" href="{% static 'css/vehicle-detail.css' %}?v=20260914-vehicle-view-card">
@@ -51,10 +51,12 @@
                     </div>
                 </li>
                 {% if crm_access.can_access_finance %}
-                <li class="{% if 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
-                    <a href="#"><span uk-icon="credit-card"></span> Финансы <span uk-navbar-parent-icon></span></a>
+                <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'shipment-document' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
+                    <a href="#"><span uk-icon="credit-card"></span> Бухгалтерия <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li><a href="{% url 'accounting-dashboard' %}"><span uk-icon="grid"></span> Рабочий стол</a></li>
+                            <li><a href="{% url 'shipment-document-list' %}"><span uk-icon="file-text"></span> Первичные документы</a></li>
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Приходы / расходы</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
                             <li><a href="{% url 'profitability-report' %}"><span uk-icon="triangle-up"></span> Прибыльность</a></li>
@@ -64,7 +66,7 @@
                     </div>
                 </li>
                 {% endif %}
-                <li class="{% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}">
+                <li class="{% if 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or request.resolver_match.url_name == 'company-profile' or request.resolver_match.url_name == 'accounting-document-create' %}uk-active{% endif %}">
                     <a href="#"><span uk-icon="file-text"></span> Документы <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
@@ -122,7 +124,9 @@
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' %}is-active{% endif %}" href="{% url 'transportation-list' %}">Рейсы</a>
                 <a class="mobile-nav-subitem {% if 'planner' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'planner' %}">Планировщик</a>
                 {% if crm_access.can_access_finance %}
-                <span class="mobile-nav-group"><span uk-icon="credit-card"></span> Финансы</span>
+                <span class="mobile-nav-group"><span uk-icon="credit-card"></span> Бухгалтерия</span>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'accounting-dashboard' %}is-active{% endif %}" href="{% url 'accounting-dashboard' %}">Рабочий стол</a>
+                <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Первичные документы</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>

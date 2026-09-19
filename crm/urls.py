@@ -144,9 +144,19 @@ urlpatterns = [
         name="profitability-report-export",
     ),
     path(
+        "accounting/",
+        views.AccountingDashboardView.as_view(),
+        name="accounting-dashboard",
+    ),
+    path(
         "bank-statements/",
         views.BankStatementListView.as_view(),
         name="bank-statement-list",
+    ),
+    path(
+        "bank-statements/import/",
+        views.BankStatementImportView.as_view(),
+        name="bank-statement-import",
     ),
     path(
         "bank-statements/new/",
