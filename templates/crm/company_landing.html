@@ -1,77 +1,61 @@
 {% load static %}
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="НОВЫЙ ПРОЕКТ — экспедиторские услуги и организация грузовых перевозок для бизнеса.">
-    <title>НОВЫЙ ПРОЕКТ — экспедиторские услуги</title>
-    <link rel="icon" type="image/png" href="{% static 'img/newproject-logo.png' %}?v=20260915-company-logo">
-    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
-    <link rel="stylesheet" href="{% static 'css/company-landing.css' %}?v=20260915-company-home">
-</head>
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="НОВЫЙ ПРОЕКТ — организация автомобильных грузоперевозок и транспортно-экспедиционные услуги по России.">
+<title>НОВЫЙ ПРОЕКТ — транспортная логистика</title>
+<link rel="icon" type="image/png" href="{% static 'img/newproject-logo.png' %}?v=20260919"><link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'css/company-landing.css' %}?v=20260919-redesign"></head>
 <body class="company-landing">
-    <header class="company-header">
-        <a class="company-brand" href="{% url 'company-landing' %}" aria-label="Новый проект — главная">
-            <img class="company-wordmark" src="{% static 'img/newproject-wordmark.png' %}?v=20260915-wordmark" alt="Логотип НОВЫЙ ПРОЕКТ">
-        </a>
-    </header>
+<header class="site-header">
+  <a class="brand-mark" href="#top" aria-label="НОВЫЙ ПРОЕКТ — главная"><img src="{% static 'img/newproject-logo.png' %}" alt=""></a>
+  <button class="mobile-menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span><span></span></button>
+  <nav class="site-nav" aria-label="Основная навигация"><a href="#services">Услуги</a><a href="#geography">География</a><a href="#about">О компании</a><a href="#partners">Партнёрам</a><a href="#contacts">Контакты</a></nav>
+  <div class="header-contacts"><a href="tel:+79219262024">+7 921 926-20-24</a><span>Пн–Пт, 9:00–18:00</span></div>
+  <a class="outline-action header-action" href="#contacts">Оставить заявку <span>→</span></a>
+</header>
+<main id="top">
+<section class="hero"><div class="hero-content page-width">
+  <div class="hero-copy"><h1>Надёжная<br>логистика<br>для вашего бизнеса</h1><span class="red-rule"></span><p>Транспортно-экспедиционные услуги по России</p><div class="hero-actions"><a class="solid-action" href="#contacts">Рассчитать перевозку <span>→</span></a><a class="outline-action" href="#partners">Стать перевозчиком <span>→</span></a></div></div>
+  <div class="hero-slogan"><span></span>Движение<br>к результату</div><div class="hero-location">Санкт-Петербург<br>Вся Россия</div>
+</div></section>
+<section class="advantages page-width" aria-label="Наши преимущества"><div>Надёжность</div><div>Прозрачные условия</div><div>Персональный менеджер</div><div>Решения под ваши задачи</div></section>
 
-    <main>
-        <section class="company-hero">
-            <div class="company-hero-copy">
-                <p class="company-eyebrow">Экспедиторские услуги</p>
-                <h1>Берём перевозку груза под полный контроль.</h1>
-                <p class="company-lead">Организуем грузовые перевозки для бизнеса: находим надёжного исполнителя, согласовываем условия и сопровождаем груз до закрывающих документов.</p>
-                <div class="company-hero-actions">
-                    <a class="company-button company-button-primary" href="{% url 'login' %}?next={% url 'dashboard' %}">Войти в CRM</a>
-                    <a class="company-button company-button-secondary" href="#services">Наши возможности</a>
-                </div>
-            </div>
-            <div class="company-hero-card" aria-label="Этапы работы">
-                <span class="company-card-label">Экспедирование под ключ</span>
-                <ol>
-                    <li><span>01</span> Принимаем и рассчитываем вашу заявку</li>
-                    <li><span>02</span> Подбираем транспорт и проверенного перевозчика</li>
-                    <li><span>03</span> Контролируем рейс, документы и расчёты</li>
-                </ol>
-            </div>
-        </section>
+<section class="about section page-width" id="about">
+  <div class="section-heading"><p class="eyebrow">О компании</p><h2>Логистика,<br>на которую можно<br>положиться</h2></div>
+  <div class="about-copy"><p>«НОВЫЙ ПРОЕКТ» — транспортно-экспедиционная компания. Организуем автомобильные перевозки и комплексные логистические решения для бизнеса по всей России.</p><p>Берём на себя подбор транспорта, проверку исполнителей, контроль рейса и сопровождение закрывающих документов.</p></div>
+  <a class="text-link" href="#contacts">Связаться с нами <span>→</span></a>
+</section>
 
-        <section class="company-about" id="about">
-            <div class="company-about-heading">
-                <p class="company-eyebrow">О компании</p>
-                <h2>НОВЫЙ ПРОЕКТ — транспортно-экспедиторская компания.</h2>
-            </div>
-            <div class="company-about-copy">
-                <p>Мы помогаем клиентам организовывать грузовые перевозки без лишней операционной нагрузки. Берём на себя подбор исполнителя, согласование условий, контроль рейса и сопровождение документов.</p>
-                <p>Для нас важны понятные договорённости, своевременная информация о перевозке и ответственность за результат на каждом этапе.</p>
-            </div>
-        </section>
+<section class="services section page-width" id="services">
+  <div class="section-heading wide-heading"><p class="eyebrow">Услуги</p><h2>Комплексные решения<br>для перевозки грузов</h2><a class="text-link" href="#contacts">Обсудить задачу <span>→</span></a></div>
+  <div class="service-grid">
+    <article><svg viewBox="0 0 48 48"><path d="M3 12h27v23H3zM30 21h8l7 8v6H30zM11 40a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm26 0a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg><h3>Автомобильные перевозки</h3><p>Подбираем транспорт под груз, маршрут и сроки.</p></article>
+    <article><svg viewBox="0 0 48 48"><path d="M24 3v42M9 12l30 24M39 12 9 36M15 3l9 9 9-9M15 45l9-9 9 9"/></svg><h3>Температурные грузы</h3><p>Контролируем требуемый режим на всём пути.</p></article>
+    <article><svg viewBox="0 0 48 48"><path d="m24 3 11 6v12l-11 6-11-6V9zM13 21 3 27v12l11 6 10-6V27M35 21l10 6v12l-11 6-10-6"/></svg><h3>Экспедирование</h3><p>Организуем перевозку и остаёмся на связи.</p></article>
+    <article><svg viewBox="0 0 48 48"><path d="M4 17h40v27H4zM9 17V8h30v9M15 44V29h18v15M19 12h10"/></svg><h3>Погрузка и разгрузка</h3><p>Координируем работы на терминалах и складах.</p></article>
+    <article><svg viewBox="0 0 48 48"><path d="M10 3h20l8 8v34H10zM30 3v10h8M17 22h14M17 29h14M17 36h10"/></svg><h3>Документооборот</h3><p>Сопровождаем рейс до закрывающих документов.</p></article>
+    <article><svg viewBox="0 0 48 48"><path d="M24 3c5 5 11 6 17 7v13c0 11-7 18-17 22C14 41 7 34 7 23V10c6-1 12-2 17-7Zm-7 20 5 5 10-11"/></svg><h3>Дополнительные услуги</h3><p>Страхование и решения под специфику груза.</p></article>
+  </div>
+</section>
 
-        <section class="company-services" id="services">
-            <div>
-                <p class="company-eyebrow">Для клиентов</p>
-                <h2>Один экспедитор для всей перевозки</h2>
-            </div>
-            <div class="company-service-grid">
-                <article><span>01</span><h3>Организация перевозки</h3><p>Подбираем маршрут, транспорт и условия под конкретный груз и сроки.</p></article>
-                <article><span>02</span><h3>Ответственный исполнитель</h3><p>Выбираем перевозчика и контролируем водителя, транспорт и движение груза.</p></article>
-                <article><span>03</span><h3>Документы и расчёты</h3><p>Сопровождаем перевозку до получения закрывающих документов.</p></article>
-            </div>
-        </section>
+<section class="process section page-width"><div class="section-heading"><p class="eyebrow">Как мы работаем</p><h2>Простой процесс —<br>стабильный результат</h2></div><ol class="process-list">
+  <li><b>01</b><span>Заявка</span><small>Получаем задачу и уточняем детали</small></li><li><b>02</b><span>Подбор транспорта</span><small>Предлагаем оптимальное решение</small></li><li><b>03</b><span>Погрузка</span><small>Координируем подачу автомобиля</small></li><li><b>04</b><span>Контроль</span><small>Отслеживаем движение груза</small></li><li><b>05</b><span>Доставка</span><small>Контролируем прибытие в срок</small></li><li><b>06</b><span>Документы</span><small>Передаём закрывающие документы</small></li>
+</ol></section>
 
-        <section class="company-cta">
-            <div><p class="company-eyebrow">НОВЫЙ ПРОЕКТ</p><h2>Ваш груз — наша ответственность на каждом этапе перевозки.</h2></div>
-        </section>
-    </main>
+<section class="geography section page-width" id="geography">
+  <div class="section-heading"><p class="eyebrow">География</p><h2>Доставляем<br>по всей России</h2><p class="section-note">Выстраиваем маршрут под вашу задачу и сопровождаем перевозку на каждом этапе.</p><a class="text-link" href="#contacts">Узнать о направлении <span>→</span></a></div>
+  <div class="route-map"><svg viewBox="0 0 760 330" role="img" aria-label="Перевозки из Санкт-Петербурга по России"><path class="map-shape" d="M45 96 99 78l39 15 57-35 66 17 50-22 44 31 54-12 43 32 92-17 47 29 76-8 48 42-54 23-6 42-73 4-45 31-67-4-53 30-51-25-54 18-51-32-80 10-23-41-67-9-34-41 33-33z"/><g class="routes"><path d="M130 113Q230 91 331 110"/><path d="M130 113Q271 146 431 181"/><path d="M130 113Q350 69 596 129"/><path d="M130 113Q368 202 661 209"/><path d="M130 113Q273 244 468 256"/></g><g class="route-points"><circle cx="130" cy="113" r="9"/><circle cx="331" cy="110" r="4"/><circle cx="431" cy="181" r="4"/><circle cx="596" cy="129" r="4"/><circle cx="661" cy="209" r="4"/><circle cx="468" cy="256" r="4"/></g><text x="148" y="102">Санкт-Петербург</text></svg></div>
+  <div class="geo-facts"><div><strong>Россия</strong><span>широкая география перевозок</span></div><div><strong>Контроль</strong><span>связь на каждом этапе рейса</span></div><div><strong>Надёжность</strong><span>проверенные исполнители</span></div></div>
+</section>
 
-    <footer class="company-footer">
-        <span>© {% now "Y" %} НОВЫЙ ПРОЕКТ</span>
-        <address class="company-contacts">
-            <a href="tel:+79219262024">+7 921 926-20-24</a>
-            <a href="mailto:office@newproject-spb.ru">office@newproject-spb.ru</a>
-        </address>
-    </footer>
-</body>
-</html>
+<section class="partner-panels" id="partners"><article class="client-panel"><div><p>Для клиентов</p><h2>Рассчитаем перевозку<br>под ваши задачи</h2><span>Подберём маршрут, сроки и стоимость.</span><a href="#contacts">Рассчитать стоимость →</a></div></article><article class="carrier-panel"><div><p>Для перевозчиков</p><h2>Стабильные загрузки<br>и долгосрочное сотрудничество</h2><span>Приглашаем к сотрудничеству перевозчиков по всей России.</span><a href="#contacts">Предложить транспорт →</a></div></article></section>
+
+<section class="contacts section page-width" id="contacts">
+  <div class="section-heading"><p class="eyebrow">Контакты</p><h2>Остались вопросы?</h2><p class="section-note">Свяжитесь с нами — подберём решение для вашего бизнеса.</p></div>
+  <address class="contact-list"><a href="tel:+79219262024"><b>Телефон</b><span>+7 921 926-20-24</span><small>Пн–Пт, 9:00–18:00</small></a><a href="mailto:office@newproject-spb.ru"><b>Электронная почта</b><span>office@newproject-spb.ru</span></a><div><b>Город</b><span>Санкт-Петербург</span></div></address>
+  <div class="contact-action"><p>Расскажите о грузе и маршруте — мы свяжемся с вами и подготовим расчёт.</p><a class="solid-action" href="mailto:office@newproject-spb.ru?subject=Заявка%20на%20расчёт%20перевозки">Отправить заявку <span>→</span></a></div>
+  <div class="contact-brand"><img src="{% static 'img/newproject-logo.png' %}" alt=""><span>Больше,<br>чем логистика</span></div>
+</section></main>
+<footer class="site-footer page-width"><img src="{% static 'img/newproject-logo.png' %}" alt=""><span>© {% now "Y" %} ООО «НОВЫЙ ПРОЕКТ»<br>Все права защищены</span><a href="{% url 'login' %}?next={% url 'dashboard' %}">Войти в CRM</a><span class="footer-slogan">Создаём<br>новые маршруты</span></footer>
+<script>const b=document.querySelector('.mobile-menu-toggle'),n=document.querySelector('.site-nav');b?.addEventListener('click',()=>{const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!o));n.classList.toggle('is-open',!o)});n?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{n.classList.remove('is-open');b?.setAttribute('aria-expanded','false')}));</script>
+</body></html>
