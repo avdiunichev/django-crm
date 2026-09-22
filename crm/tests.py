@@ -619,6 +619,10 @@ class CrmTestCase(TestCase):
         self.assertContains(journal, invoice.number)
         self.assertContains(journal, upd.number)
         self.assertContains(journal, "Комплект выставлен")
+        invoice_page = self.client.get(invoice.get_absolute_url())
+        self.assertContains(invoice_page, "Услуги по рейсам")
+        self.assertContains(invoice_page, transportation.route)
+        self.assertContains(invoice_page, "document-trip-lines")
         transportation.refresh_from_db()
         self.assertEqual(
             transportation.status, Transportation.Status.CUSTOMER_INVOICED
@@ -5641,6 +5645,9 @@ class CrmTestCase(TestCase):
         self.assertEqual(document_record.direction, ShipmentDocument.Direction.INCOMING)
         self.assertEqual(document_record.kind, ShipmentDocument.Kind.INVOICE)
         self.assertEqual(document_record.number, "СЧ-ПОСТ-001")
+        document_page = self.client.get(document_record.get_absolute_url())
+        self.assertContains(document_page, "Услуги по рейсам")
+        self.assertContains(document_page, transportation.route)
 
     def test_transportation_executor_application_download_creates_docx(self):
         transportation = self.shipment.transportation

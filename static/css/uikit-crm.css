@@ -820,6 +820,30 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
 .document-entry-table input[name^="amount_"],
 .document-entry-table input[name^="vat_"] { min-width: 120px; }
 
+.document-trip-summary {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    padding: 14px 18px;
+    border: 1px solid #dbe2ea;
+    border-bottom: 0;
+    background: #f7f8fa;
+    color: #7f8996;
+}
+.document-trip-summary strong { margin-left: 6px; color: #333; }
+.document-trip-lines th:first-child,
+.document-trip-lines td:first-child { width: 42px; text-align: center; }
+.document-trip-lines td { cursor: default; }
+.document-trip-lines td:nth-last-child(-n+3) { white-space: nowrap; }
+
+html[data-theme="dark"] body.uikit-theme .document-trip-summary {
+    border-color: #344257;
+    background: #141e2f;
+    color: #9aa8ba;
+}
+html[data-theme="dark"] body.uikit-theme .document-trip-summary strong { color: #eef3fa; }
+
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar,
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-wrap {
     border-color: #344257;

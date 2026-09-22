@@ -16,9 +16,11 @@
         <section class="form-section uk-card uk-card-default">
             <div class="form-section-title"><span>01</span><div><h2>Реквизиты документа</h2><p>Тип, сторона, номер и текущее состояние</p></div></div>
             <div class="form-grid">
+                {% if object %}<div hidden>{{ form.shipment }}{{ form.transportation }}{{ form.transportations_selected }}</div>{% else %}
                 {% include "crm/includes/form_field.html" with field=form.shipment wide=True %}
                 {% include "crm/includes/form_field.html" with field=form.transportation wide=True %}
                 {% include "crm/includes/form_field.html" with field=form.transportations_selected wide=True %}
+                {% endif %}
                 {% include "crm/includes/form_field.html" with field=form.direction %}
                 {% include "crm/includes/form_field.html" with field=form.owner_company %}
                 {% include "crm/includes/form_field.html" with field=form.counterparty %}
@@ -38,13 +40,17 @@
                 {% include "crm/includes/form_field.html" with field=form.currency %}
             </div>
         </section>
-        {% if object.lines.exists %}
+        {% if object and object.lines.exists or object and object.transportation %}
         <section class="form-section uk-card uk-card-default">
-            <div class="form-section-title"><span>02</span><div><h2>Табличная часть</h2><p>Каждая строка связана с конкретным рейсом</p></div></div>
-            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-middle">
-                <thead><tr><th>Рейс</th><th>Наименование услуги</th><th>Кол-во</th><th class="uk-text-right">Без НДС</th><th class="uk-text-right">НДС</th><th class="uk-text-right">Всего</th></tr></thead>
-                <tbody>{% for line in object.lines.all %}<tr><td><a href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a></td><td>{{ line.service_name }}</td><td>{{ line.quantity|floatformat:0 }} {{ line.unit }}</td><td class="uk-text-right">{{ line.amount|floatformat:2 }}</td><td class="uk-text-right">{{ line.vat_amount|floatformat:2 }}</td><td class="uk-text-right"><strong>{{ line.total_amount|floatformat:2 }}</strong></td></tr>{% endfor %}</tbody>
-                <tfoot><tr><th colspan="4"></th><th class="uk-text-right">НДС {{ object.vat_amount|floatformat:2 }}</th><th class="uk-text-right">{{ object.amount|floatformat:2 }} {{ object.currency }}</th></tr></tfoot>
+            <div class="form-section-title"><span>02</span><div><h2>Услуги по рейсам</h2><p>{% if object.lines.count > 1 %}В счёт включено {{ object.lines.count }} рейсов{% else %}Основание и стоимость услуги по выбранному рейсу{% endif %}</p></div></div>
+            <div class="document-trip-summary"><span>Позиций: <strong>{% if object.lines.exists %}{{ object.lines.count }}{% else %}1{% endif %}</strong></span><span>Сумма документа: <strong>{{ object.amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</strong></span><span>В том числе НДС: <strong>{{ object.vat_amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</strong></span></div>
+            <div class="table-wrap customer-trip-table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-middle customer-trip-table document-trip-lines">
+                <thead><tr><th>№</th><th>Рейс / даты</th><th>Маршрут</th><th>Наименование услуги</th><th class="uk-text-right">Сумма</th><th class="uk-text-right">НДС</th><th class="uk-text-right">Всего</th></tr></thead>
+                <tbody>
+                {% for line in object.lines.all %}<tr><td>{{ forloop.counter }}</td><td><a class="primary-link" href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a><small>{{ line.transportation.planned_start_date|date:"d.m.Y"|default:"—" }} → {{ line.transportation.planned_end_date|date:"d.m.Y"|default:"—" }}</small></td><td><strong>{{ line.transportation.route|default:"Маршрут не указан" }}</strong></td><td>{{ line.service_name }}<small>{{ line.quantity|floatformat:0 }} {{ line.unit }}</small></td><td class="uk-text-right">{{ line.amount|floatformat:"2g" }} {{ object.currency }}</td><td class="uk-text-right">{{ line.vat_amount|floatformat:"2g" }} {{ object.currency }}</td><td class="uk-text-right"><strong>{{ line.total_amount|floatformat:"2g" }} {{ object.currency }}</strong></td></tr>
+                {% empty %}{% if object.transportation %}<tr><td>1</td><td><a class="primary-link" href="{{ object.transportation.get_absolute_url }}">{{ object.transportation.number|default:"Черновик" }}</a><small>{{ object.transportation.planned_start_date|date:"d.m.Y"|default:"—" }} → {{ object.transportation.planned_end_date|date:"d.m.Y"|default:"—" }}</small></td><td><strong>{{ object.transportation.route|default:"Маршрут не указан" }}</strong></td><td>Транспортно-экспедиционные услуги<small>{{ object.get_kind_display }}</small></td><td class="uk-text-right">{{ object.amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</td><td class="uk-text-right">{{ object.vat_amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</td><td class="uk-text-right"><strong>{{ object.amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</strong></td></tr>{% endif %}{% endfor %}
+                </tbody>
+                <tfoot><tr><th colspan="5"></th><th class="uk-text-right">НДС {{ object.vat_amount|default_if_none:0|floatformat:"2g" }}</th><th class="uk-text-right">{{ object.amount|default_if_none:0|floatformat:"2g" }} {{ object.currency }}</th></tr></tfoot>
             </table></div>
         </section>
         {% endif %}
