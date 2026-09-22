@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -618,6 +619,40 @@ class CrmTestCase(TestCase):
         self.assertEqual(
             transportation.status, Transportation.Status.CUSTOMER_INVOICED
         )
+
+    def test_customer_document_issue_keeps_trip_with_existing_upd(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        transportation.status = Transportation.Status.DELIVERED
+        transportation.save(update_fields=["status", "updated_at"])
+        ShipmentDocument.objects.create(
+            transportation=transportation,
+            owner_company=transportation.owner_company,
+            counterparty=self.customer.organization,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="УПД-СТАРЫЙ",
+            document_date=date.today(),
+        )
+
+        page = self.client.get(
+            reverse("customer-document-issue", args=["individual"])
+        )
+        self.assertContains(page, transportation.number)
+
+        response = self.client.post(
+            reverse("customer-document-issue", args=["individual"]),
+            {"transportations": [transportation.pk]},
+        )
+        self.assertRedirects(response, reverse("customer-document-list"))
+        documents = ShipmentDocument.objects.filter(
+            Q(transportation=transportation) | Q(lines__transportation=transportation),
+            direction=ShipmentDocument.Direction.OUTGOING,
+        ).distinct()
+        self.assertEqual(documents.filter(kind=ShipmentDocument.Kind.INVOICE).count(), 1)
+        self.assertEqual(documents.filter(kind=ShipmentDocument.Kind.UPD).count(), 1)
 
     def test_order_stop_derives_route_city_from_manual_address(self):
         form = TransportOrderStopForm(

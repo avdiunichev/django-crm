@@ -223,56 +223,82 @@ def _next_customer_document_number(owner_company, kind, document_date):
 @transaction.atomic
 def issue_customer_document_pair(transportations, *, invoice_date, user=None):
     transportations = list(transportations)
-    validate_document_transportations(
-        transportations=transportations,
-        direction=ShipmentDocument.Direction.OUTGOING,
-        kind=ShipmentDocument.Kind.INVOICE,
-        document_date=invoice_date,
-    )
-    upd_date = last_delivery_date(transportations) or invoice_date
-    validate_document_transportations(
-        transportations=transportations,
-        direction=ShipmentDocument.Direction.OUTGOING,
-        kind=ShipmentDocument.Kind.UPD,
-        document_date=upd_date,
-    )
-    first = transportations[0]
-    invoice = ShipmentDocument.objects.create(
-        direction=ShipmentDocument.Direction.OUTGOING,
-        kind=ShipmentDocument.Kind.INVOICE,
-        party=ShipmentDocument.Party.CUSTOMER,
-        status=ShipmentDocument.Status.ISSUED,
-        document_date=invoice_date,
-        currency=first.currency,
-        owner_company=first.owner_company,
-        counterparty=document_counterparty(first, ShipmentDocument.Direction.OUTGOING),
-        contract=document_contract(first, ShipmentDocument.Direction.OUTGOING),
-        created_by=user,
-    )
-    invoice.number = _next_customer_document_number(
-        first.owner_company, invoice.kind, invoice_date
-    )
-    invoice.crm_number = invoice.number
-    invoice.save(update_fields=["number", "crm_number", "updated_at"])
-    populate_document_lines(invoice, transportations, user=user)
+    if not transportations:
+        raise ValidationError("Выберите хотя бы один рейс.")
 
-    upd = ShipmentDocument.objects.create(
-        direction=ShipmentDocument.Direction.OUTGOING,
-        kind=ShipmentDocument.Kind.UPD,
-        party=ShipmentDocument.Party.CUSTOMER,
-        status=ShipmentDocument.Status.ISSUED,
-        document_date=upd_date,
-        currency=first.currency,
-        owner_company=first.owner_company,
-        counterparty=invoice.counterparty,
-        contract=invoice.contract,
-        based_on=invoice,
-        created_by=user,
-    )
-    upd.number = _next_customer_document_number(first.owner_company, upd.kind, upd_date)
-    upd.crm_number = upd.number
-    upd.save(update_fields=["number", "crm_number", "updated_at"])
-    populate_document_lines(upd, transportations, user=user)
+    def missing_for(kind):
+        covered_ids = set(
+            ShipmentDocument.objects.filter(
+                direction=ShipmentDocument.Direction.OUTGOING,
+                kind=kind,
+                transportation__in=transportations,
+            ).values_list("transportation_id", flat=True)
+        )
+        covered_ids.update(
+            ShipmentDocumentLine.objects.filter(
+                document__direction=ShipmentDocument.Direction.OUTGOING,
+                document__kind=kind,
+                transportation__in=transportations,
+            ).values_list("transportation_id", flat=True)
+        )
+        return [item for item in transportations if item.pk not in covered_ids]
+
+    invoice_transportations = missing_for(ShipmentDocument.Kind.INVOICE)
+    upd_transportations = missing_for(ShipmentDocument.Kind.UPD)
+    first = transportations[0]
+    invoice = None
+    if invoice_transportations:
+        validate_document_transportations(
+            transportations=invoice_transportations,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.INVOICE,
+            document_date=invoice_date,
+        )
+        invoice = ShipmentDocument.objects.create(
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.INVOICE,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            document_date=invoice_date,
+            currency=first.currency,
+            owner_company=first.owner_company,
+            counterparty=document_counterparty(first, ShipmentDocument.Direction.OUTGOING),
+            contract=document_contract(first, ShipmentDocument.Direction.OUTGOING),
+            created_by=user,
+        )
+        invoice.number = _next_customer_document_number(
+            first.owner_company, invoice.kind, invoice_date
+        )
+        invoice.crm_number = invoice.number
+        invoice.save(update_fields=["number", "crm_number", "updated_at"])
+        populate_document_lines(invoice, invoice_transportations, user=user)
+
+    upd = None
+    if upd_transportations:
+        upd_date = last_delivery_date(upd_transportations) or invoice_date
+        validate_document_transportations(
+            transportations=upd_transportations,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            document_date=upd_date,
+        )
+        upd = ShipmentDocument.objects.create(
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            document_date=upd_date,
+            currency=first.currency,
+            owner_company=first.owner_company,
+            counterparty=document_counterparty(first, ShipmentDocument.Direction.OUTGOING),
+            contract=document_contract(first, ShipmentDocument.Direction.OUTGOING),
+            based_on=invoice,
+            created_by=user,
+        )
+        upd.number = _next_customer_document_number(first.owner_company, upd.kind, upd_date)
+        upd.crm_number = upd.number
+        upd.save(update_fields=["number", "crm_number", "updated_at"])
+        populate_document_lines(upd, upd_transportations, user=user)
 
     Transportation.objects.filter(
         pk__in=[item.pk for item in transportations],

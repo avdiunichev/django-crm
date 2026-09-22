@@ -19,7 +19,7 @@ from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Case, Count, DecimalField, F, IntegerField, Prefetch, Q, Sum, Value, When
+from django.db.models import Case, Count, DecimalField, Exists, F, IntegerField, OuterRef, Prefetch, Q, Sum, Value, When
 from django.db.models.deletion import ProtectedError
 from django.db.models.functions import Coalesce
 from django.forms import HiddenInput
@@ -3031,16 +3031,20 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
             ).prefetch_related("stops", "parties__organization"),
             self.request.user,
         ).filter(status__in=delivered_statuses)
-        queryset = queryset.exclude(
-            accounting_document_lines__document__direction=ShipmentDocument.Direction.OUTGOING,
-            accounting_document_lines__document__kind__in=[
-                ShipmentDocument.Kind.INVOICE,
-                ShipmentDocument.Kind.UPD,
-            ],
-        ).exclude(
-            documents__direction=ShipmentDocument.Direction.OUTGOING,
-            documents__kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+        related_documents = ShipmentDocument.objects.filter(
+            direction=ShipmentDocument.Direction.OUTGOING,
+        ).filter(
+            Q(transportation_id=OuterRef("pk"))
+            | Q(lines__transportation_id=OuterRef("pk"))
         )
+        queryset = queryset.annotate(
+            has_customer_invoice=Exists(
+                related_documents.filter(kind=ShipmentDocument.Kind.INVOICE)
+            ),
+            has_customer_upd=Exists(
+                related_documents.filter(kind=ShipmentDocument.Kind.UPD)
+            ),
+        ).filter(Q(has_customer_invoice=False) | Q(has_customer_upd=False))
         customer_id = (
             self.request.POST.get("customer", "").strip()
             or self.request.GET.get("customer", "").strip()
@@ -3092,9 +3096,11 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
                             user=self.request.user,
                         )
                     )
+        invoice_count = sum(1 for invoice, _ in created_pairs if invoice is not None)
+        upd_count = sum(1 for _, upd in created_pairs if upd is not None)
         messages.success(
             self.request,
-            f"Выставлено счетов: {len(created_pairs)}. УПД создано: {len(created_pairs)}.",
+            f"Выставлено счетов: {invoice_count}. УПД создано: {upd_count}.",
         )
         return redirect("customer-document-list")
 
