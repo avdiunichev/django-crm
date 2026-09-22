@@ -3114,6 +3114,7 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
 
 class CustomerDocumentListView(ShipmentDocumentListView):
     template_name = "crm/customer_document_list.html"
+    paginate_by = None
 
     def get_queryset(self):
         return super().get_queryset().filter(
@@ -3121,6 +3122,45 @@ class CustomerDocumentListView(ShipmentDocumentListView):
             party=ShipmentDocument.Party.CUSTOMER,
             kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        grouped = {}
+        unassigned = []
+        for document in context["documents"]:
+            transportations = list(document.related_transportations)
+            if not transportations and document.shipment_id:
+                legacy_transportation = getattr(document.shipment, "transportation", None)
+                if legacy_transportation:
+                    transportations = [legacy_transportation]
+            if not transportations:
+                unassigned.append(document)
+                continue
+            for transportation in transportations:
+                row = grouped.setdefault(
+                    transportation.pk,
+                    {
+                        "transportation": transportation,
+                        "client": document.counterparty,
+                        "invoices": [],
+                        "upds": [],
+                    },
+                )
+                if document.kind == ShipmentDocument.Kind.INVOICE:
+                    row["invoices"].append(document)
+                else:
+                    row["upds"].append(document)
+        context["trip_document_rows"] = sorted(
+            grouped.values(),
+            key=lambda row: (
+                row["transportation"].planned_end_date or date.min,
+                row["transportation"].pk,
+            ),
+            reverse=True,
+        )
+        context["unassigned_customer_documents"] = unassigned
+        context["customer_document_count"] = len(context["documents"])
+        return context
 
 
 class ShipmentDocumentExportView(LoginRequiredMixin, FinanceAccessMixin, View):

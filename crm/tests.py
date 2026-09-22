@@ -608,6 +608,12 @@ class CrmTestCase(TestCase):
         upd = documents.get(kind=ShipmentDocument.Kind.UPD)
         self.assertEqual(invoice.document_date, date.today())
         self.assertEqual(upd.document_date, date.today() + timedelta(days=2))
+        journal = self.client.get(reverse("customer-document-list"))
+        self.assertEqual(journal.status_code, 200)
+        self.assertContains(journal, transportation.number)
+        self.assertContains(journal, invoice.number)
+        self.assertContains(journal, upd.number)
+        self.assertContains(journal, "Комплект выставлен")
         transportation.refresh_from_db()
         self.assertEqual(
             transportation.status, Transportation.Status.CUSTOMER_INVOICED
