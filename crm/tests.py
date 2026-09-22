@@ -474,7 +474,7 @@ class CrmTestCase(TestCase):
                 "client": self.customer.organization.pk,
                 "manager": self.user.pk,
                 "document_date": date.today().isoformat(),
-                "rate": "150000.00",
+                "rate": "0.00",
                 "currency": "RUB",
                 "payment_form": TransportOrder.PaymentForm.BANK_VAT_22,
                 "payment_term_days": "15",
@@ -519,6 +519,7 @@ class CrmTestCase(TestCase):
         self.assertRedirects(response, reverse("order-list"))
         order = TransportOrder.objects.get(cargo_name="Пластиковая тара")
         self.assertRegex(order.number, r"^ЗК-\d{4}-\d{5}$")
+        self.assertEqual(order.rate, Decimal("0.00"))
         self.assertEqual(order.cargo_value, Decimal("160000.50"))
         self.assertEqual(order.volume_m3, Decimal("0"))
         self.assertEqual(order.stops.count(), 3)
@@ -2293,15 +2294,17 @@ class CrmTestCase(TestCase):
         )
         self.assertContains(accounting_page, "Чистая прибыль")
 
-    def test_transportation_can_be_posted_with_zero_executor_amount(self):
+    def test_transportation_can_be_posted_with_zero_customer_and_executor_amounts(self):
         transportation = self.shipment.transportation
         transportation.customer_vat_rate = VATRate.objects.get(code="22")
         transportation.executor_vat_rate = VATRate.objects.get(code="without_vat")
+        transportation.customer_amount = Decimal("0.00")
         transportation.executor_amount = Decimal("0.00")
         transportation.save(
             update_fields=[
                 "customer_vat_rate",
                 "executor_vat_rate",
+                "customer_amount",
                 "executor_amount",
                 "updated_at",
             ]
@@ -2333,6 +2336,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(
             transportation.posting_status, Transportation.PostingStatus.POSTED
         )
+        self.assertEqual(transportation.receivable_balance, Decimal("0.00"))
         self.assertEqual(transportation.payable_balance, Decimal("0.00"))
 
     def test_erp_transportation_form_and_unposting(self):

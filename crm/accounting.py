@@ -48,8 +48,8 @@ def validate_transportation_for_posting(transportation):
         errors["manager"] = "Выберите ответственного менеджера."
     if not client_party:
         errors["client"] = "Выберите клиента."
-    if transportation.customer_amount <= 0:
-        errors["customer_amount"] = "Сумма клиенту должна быть больше нуля."
+    if transportation.customer_amount < 0:
+        errors["customer_amount"] = "Сумма клиенту не может быть отрицательной."
     if not transportation.customer_vat_rate_id:
         errors["customer_vat_rate"] = "Выберите ставку НДС клиента."
     if not transportation.cargo_name.strip():

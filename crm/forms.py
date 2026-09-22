@@ -1257,8 +1257,8 @@ class TransportOrderForm(StyledModelForm):
         client = cleaned.get("client")
         if owner and client and owner == client:
             self.add_error("client", "Наша компания не может быть клиентом заказа.")
-        if cleaned.get("rate") is not None and cleaned["rate"] <= 0:
-            self.add_error("rate", "Ставка клиента должна быть больше нуля.")
+        if cleaned.get("rate") is not None and cleaned["rate"] < 0:
+            self.add_error("rate", "Ставка клиента не может быть отрицательной.")
         if (
             cleaned.get("prepayment") is not None
             and cleaned.get("rate") is not None
