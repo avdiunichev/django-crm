@@ -572,7 +572,9 @@
     const bindFullOrganizationForm = (dialog, sourceUrl) => {
         const form = dialog.querySelector("form.organization-workspace");
         if (!form) return;
-        form.action = new URL(sourceUrl, document.baseURI).href;
+        // Named form controls (including the two action buttons) shadow form.action.
+        const submitUrl = new URL(sourceUrl, document.baseURI).href;
+        form.setAttribute("action", submitUrl);
         let saving = false;
         form.querySelectorAll('a[href$="/organizations/"]').forEach((link) => {
             link.addEventListener("click", (event) => { event.preventDefault(); modalInstance(quickModalElement)?.hide(); });
@@ -624,7 +626,7 @@
                 if (submit?.name && !formData.has(submit.name)) {
                     formData.append(submit.name, submit.value);
                 }
-                const response = await fetch(form.action, {
+                const response = await fetch(submitUrl, {
                     method: "POST",
                     body: formData,
                     credentials: "same-origin",
@@ -642,9 +644,13 @@
                     notify("Карточка контрагента сохранена и данные обновлены.", "success");
                     return;
                 }
+                if (!response.ok) {
+                    throw new Error(`Не удалось сохранить контрагента: ошибка сервера ${response.status}. Введённые данные сохранены в форме.`);
+                }
                 renderFullOrganizationForm(await response.text(), sourceUrl);
-            } catch (_error) {
-                notify("Не удалось сохранить контрагента. Проверьте данные и соединение.", "danger");
+                notify("Проверьте отмеченные поля карточки контрагента.", "danger");
+            } catch (error) {
+                notify(error.message || "Не удалось сохранить контрагента. Проверьте соединение.", "danger");
                 if (submit?.isConnected) submit.disabled = false;
             } finally {
                 saving = false;
