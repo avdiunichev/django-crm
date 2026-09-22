@@ -3866,11 +3866,19 @@ class DocumentBatchEditorMixin:
             candidate["entered_date"] = values["date"].get(raw_id, default_date_value)
             candidate["entered_amount"] = values["amount"].get(raw_id, candidate["amount"])
             candidate["entered_vat"] = values["vat"].get(raw_id, candidate["vat_amount"])
+        is_incoming = direction == DocumentBatch.Direction.INCOMING
+        kind_labels = dict(ShipmentDocument.Kind.choices)
         return {
             "document_batch_candidates": candidates,
             "document_kind_choices": ShipmentDocument.Kind.choices,
             "cancel_url": reverse_lazy("document-batch-list"),
             "is_primary_registry_mode": self.is_primary_registry_mode(),
+            "is_incoming_batch": is_incoming,
+            "document_batch_title": (
+                f"Внесение входящих документов · {kind_labels.get(default_kind, 'Документ')}"
+                if is_incoming
+                else "Создание реестра первички"
+            ),
         }
 
     def get_context_data(self, **kwargs):
@@ -3911,6 +3919,12 @@ class DocumentBatchEditorMixin:
             if kind not in ShipmentDocument.Kind.values:
                 errors.append(f"{candidate['transportation']}: выберите тип документа.")
                 continue
+            document_number = self.request.POST.get(f"number_{raw_id}", "").strip()[:100]
+            if direction == DocumentBatch.Direction.INCOMING and not document_number:
+                errors.append(
+                    f"{candidate['transportation']}: укажите номер документа поставщика."
+                )
+                continue
             try:
                 amount = Decimal(self.request.POST.get(f"amount_{raw_id}", "0").replace(" ", "").replace(",", "."))
                 vat_amount = Decimal(self.request.POST.get(f"vat_{raw_id}", "0").replace(" ", "").replace(",", "."))
@@ -3925,7 +3939,7 @@ class DocumentBatchEditorMixin:
                     "transportation": candidate["transportation"],
                     "counterparty": candidate["counterparty"],
                     "kind": kind,
-                    "document_number": self.request.POST.get(f"number_{raw_id}", "").strip()[:100],
+                    "document_number": document_number,
                     "document_date": parse_crm_date(self.request.POST.get(f"date_{raw_id}", "").strip()),
                     "amount": amount,
                     "vat_amount": vat_amount,

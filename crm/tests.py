@@ -5526,6 +5526,50 @@ class CrmTestCase(TestCase):
         }
         self.assertNotIn(transportation.pk, candidate_ids)
 
+    def test_incoming_document_batch_requires_supplier_number_and_posts_document(self):
+        transportation = self.shipment.transportation
+        self.client.force_login(self.user)
+        create_url = reverse("document-batch-create")
+        query = {
+            "direction": DocumentBatch.Direction.INCOMING,
+            "owner_company": transportation.owner_company_id,
+            "default_kind": ShipmentDocument.Kind.INVOICE,
+            "currency": transportation.currency,
+        }
+        page = self.client.get(create_url, query)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Внесение входящих документов")
+        self.assertContains(page, "Номер документа поставщика")
+        self.assertContains(page, transportation.number)
+
+        payload = {
+            **query,
+            "document_date": date.today().isoformat(),
+            "default_status": ShipmentDocument.Status.RECEIVED,
+            "reference": "ВХОДЯЩИЕ-001",
+            "notes": "",
+            "transportation_ids": [transportation.pk],
+            f"kind_{transportation.pk}": ShipmentDocument.Kind.INVOICE,
+            f"number_{transportation.pk}": "",
+            f"date_{transportation.pk}": date.today().isoformat(),
+            f"amount_{transportation.pk}": str(transportation.executor_amount),
+            f"vat_{transportation.pk}": str(transportation.executor_vat_amount),
+            "action": "post",
+        }
+        invalid = self.client.post(create_url, payload)
+        self.assertEqual(invalid.status_code, 200)
+        self.assertContains(invalid, "укажите номер документа поставщика")
+        self.assertFalse(DocumentBatch.objects.filter(reference="ВХОДЯЩИЕ-001").exists())
+
+        payload[f"number_{transportation.pk}"] = "СЧ-ПОСТ-001"
+        response = self.client.post(create_url, payload)
+        batch = DocumentBatch.objects.get(reference="ВХОДЯЩИЕ-001")
+        self.assertRedirects(response, batch.get_absolute_url())
+        document_record = batch.lines.get().shipment_document
+        self.assertEqual(document_record.direction, ShipmentDocument.Direction.INCOMING)
+        self.assertEqual(document_record.kind, ShipmentDocument.Kind.INVOICE)
+        self.assertEqual(document_record.number, "СЧ-ПОСТ-001")
+
     def test_transportation_executor_application_download_creates_docx(self):
         transportation = self.shipment.transportation
         self.client.force_login(self.user)

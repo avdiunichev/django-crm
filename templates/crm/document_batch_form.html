@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}{% if object %}Изменить реестр{% else %}Новый реестр первички{% endif %} — Моя CRM{% endblock %}
+{% block title %}{% if object %}Изменить реестр{% else %}{{ document_batch_title|default:"Новый реестр первички" }}{% endif %} — Моя CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><a class="back-link" href="{{ cancel_url }}">← К реестрам первички</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить реестр документов{% else %}Создать реестр первички{% endif %}</h1><p>Выберите рейсы галочками и заполните табличную часть. Для реализации показываются только рейсы, которые уже доставлены или находятся дальше по цепочке закрытия.</p></div>
+    <div><a class="back-link" href="{{ cancel_url }}">← К реестрам первички</a><span class="eyebrow">Бухгалтерия</span><h1>{% if object %}Изменить реестр документов{% else %}{{ document_batch_title|default:"Создать реестр первички" }}{% endif %}</h1><p>{% if is_incoming_batch %}Выберите рейсы и внесите номера документов, полученных от исполнителей. По каждой отмеченной строке будет создан отдельный входящий документ.{% else %}Выберите рейсы галочками и заполните табличную часть. Для реализации показываются только рейсы, которые уже доставлены или находятся дальше по цепочке закрытия.{% endif %}</p></div>
 </div>
 
 <form method="post" class="entity-form document-batch-form" data-document-batch-form>
@@ -24,21 +24,21 @@
     </section>
 
     <section class="form-section uk-card uk-card-default document-batch-picker">
-        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Табличная часть</h2><p>Показываются рейсы выбранной нашей компании и валюты, по которым ещё нет документа выбранного типа и направления.</p></div></div>
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>{% if is_incoming_batch %}Рейсы для внесения документов{% else %}Табличная часть{% endif %}</h2><p>Показываются рейсы выбранной нашей компании и валюты, по которым ещё нет документа выбранного типа и направления.</p></div></div>
         <div class="bank-picker-summary">
             <span>Отмечено рейсов: <strong data-document-selected-count>0</strong></span>
             <span>Сумма документов: <strong class="amount-income" data-document-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span>
         </div>
-        <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
-            <thead><tr><th><input class="uk-checkbox" type="checkbox" data-document-select-all aria-label="Выбрать все"></th><th>Рейс / маршрут</th><th>Контрагент</th><th>Тип</th><th>Номер</th><th>Дата</th><th class="uk-text-right">Сумма</th><th class="uk-text-right">НДС</th></tr></thead>
+        <div class="table-wrap customer-trip-table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle customer-trip-table document-entry-table">
+            <thead><tr><th><input class="uk-checkbox" type="checkbox" data-document-select-all aria-label="Выбрать все"></th><th>Рейс / маршрут</th><th>Исполнитель</th><th>Тип</th><th>{% if is_incoming_batch %}Номер документа поставщика{% else %}Номер{% endif %}</th><th>Дата документа</th><th class="uk-text-right">Сумма</th><th class="uk-text-right">НДС</th></tr></thead>
             <tbody>
             {% for item in document_batch_candidates %}
-                <tr>
+                <tr data-document-row>
                     <td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-document-select {% if item.selected %}checked{% endif %}></td>
                     <td><a class="primary-link" href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ item.transportation.route }}">{{ item.transportation.route }}</small></td>
                     <td>{% if item.counterparty %}{{ item.counterparty }}<small>ИНН {{ item.counterparty.tax_id|default:"—" }}</small>{% else %}<span class="uk-text-danger">Контрагент не определён</span>{% endif %}</td>
                     <td><select class="uk-select uk-form-small" name="kind_{{ item.transportation.pk }}">{% for value,label in document_kind_choices %}<option value="{{ value }}" {% if item.entered_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
-                    <td><input class="uk-input uk-form-small" type="text" maxlength="100" name="number_{{ item.transportation.pk }}" value="{{ item.entered_number }}" placeholder="№ документа"></td>
+                    <td><input class="uk-input uk-form-small" type="text" maxlength="100" name="number_{{ item.transportation.pk }}" value="{{ item.entered_number }}" placeholder="{% if is_incoming_batch %}№ поставщика{% else %}№ документа{% endif %}" data-supplier-document-number></td>
                     <td><input class="uk-input uk-form-small" type="text" name="date_{{ item.transportation.pk }}" value="{{ item.entered_date }}" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" maxlength="10" data-crm-date></td>
                     <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount|decimal_input }}" data-document-amount></td>
                     <td><input class="uk-input uk-form-small uk-text-right" type="number" min="0" step="0.01" name="vat_{{ item.transportation.pk }}" value="{{ item.entered_vat|decimal_input }}"></td>
@@ -82,6 +82,10 @@
         let selected = 0;
         let sum = 0;
         boxes.forEach((checkbox) => {
+            const row = checkbox.closest("tr");
+            row?.classList.toggle("is-selected", checkbox.checked);
+            const supplierNumber = row?.querySelector("[data-supplier-document-number]");
+            if (supplierNumber) supplierNumber.required = checkbox.checked && {{ is_incoming_batch|yesno:"true,false" }};
             if (!checkbox.checked) return;
             selected += 1;
             const input = form.querySelector(`[name="amount_${checkbox.value}"]`);
@@ -106,6 +110,12 @@
         }
         sync();
     });
+    form.querySelectorAll("[data-document-row]").forEach((row) => row.addEventListener("click", (event) => {
+        if (event.target.closest("a,input,select,button,label")) return;
+        const checkbox = row.querySelector("[data-document-select]");
+        checkbox.checked = !checkbox.checked;
+        sync();
+    }));
     sync();
 })();
 </script>

@@ -5,6 +5,7 @@
 <div class="page-heading with-action">
     <div><span class="eyebrow">Первичные документы</span><h1>Реестр документов</h1><p>Транспортные накладные, счета, УПД, акты и счета-фактуры по заявкам.</p></div>
     <div class="heading-actions">
+        {% if current_direction == 'incoming' %}<a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming&amp;default_kind=invoice">Внести счета исполнителей</a><a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=incoming&amp;default_kind=upd">Внести УПД исполнителей</a>{% endif %}
         <a class="uk-button uk-button-default" href="{% url 'shipment-document-import' %}">Загрузить номера из 1С</a>
         <a class="uk-button uk-button-default" href="{% url 'shipment-document-export' %}?{{ request.GET.urlencode }}">Экспорт в XLSX</a>
         <a class="uk-button uk-button-default" href="{% url 'expeditor-list' %}"><span uk-icon="settings"></span> Экспедиторы и реквизиты</a>

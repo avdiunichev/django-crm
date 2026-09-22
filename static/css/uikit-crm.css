@@ -815,6 +815,11 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
     white-space: nowrap;
 }
 
+.document-entry-table input[name^="number_"] { min-width: 190px; }
+.document-entry-table input[name^="date_"] { min-width: 132px; }
+.document-entry-table input[name^="amount_"],
+.document-entry-table input[name^="vat_"] { min-width: 120px; }
+
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar,
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-wrap {
     border-color: #344257;
