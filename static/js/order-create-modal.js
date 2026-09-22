@@ -120,12 +120,13 @@
             event.preventDefault();
             const submitter = event.submitter;
             const data = new FormData(form);
+            const actionUrl = new URL(form.getAttribute("action") || document.baseURI, document.baseURI).href;
             if (submitter?.name) data.set(submitter.name, submitter.value);
             const buttons = form.querySelectorAll('button[type="submit"]');
             buttons.forEach((button) => { button.disabled = true; });
             form.setAttribute("aria-busy", "true");
             try {
-                const response = await fetch(window.location.href, {
+                const response = await fetch(actionUrl, {
                     method: "POST",
                     body: data,
                     credentials: "same-origin",
@@ -150,7 +151,11 @@
                     }, window.location.origin);
                     return;
                 }
-                const html = await response.text();
+                let html = await response.text();
+                const base = `<base href="${actionUrl.replaceAll('"', '&quot;')}">`;
+                html = /<head(?:\s[^>]*)?>/i.test(html)
+                    ? html.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}${base}`)
+                    : `${base}${html}`;
                 document.open();
                 document.write(html);
                 document.close();
