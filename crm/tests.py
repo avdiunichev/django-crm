@@ -623,6 +623,18 @@ class CrmTestCase(TestCase):
         self.assertContains(invoice_page, "Услуги по рейсам")
         self.assertContains(invoice_page, transportation.route)
         self.assertContains(invoice_page, "document-trip-lines")
+        for printed_record in (invoice, upd):
+            download = self.client.get(reverse("shipment-document-print", args=[printed_record.pk]))
+            self.assertEqual(download.status_code, 200)
+            printed = Document(BytesIO(b"".join(download.streaming_content)))
+            printed_text = "\n".join(
+                [paragraph.text for paragraph in printed.paragraphs]
+                + [cell.text for table in printed.tables for row in table.rows for cell in row.cells]
+            )
+            self.assertIn(printed_record.number, printed_text)
+            self.assertIn(transportation.number, printed_text)
+            self.assertIn(self.customer.organization.tax_id, printed_text)
+            self.assertIn(self.company_profile.organization.tax_id, printed_text)
         transportation.refresh_from_db()
         self.assertEqual(
             transportation.status, Transportation.Status.CUSTOMER_INVOICED

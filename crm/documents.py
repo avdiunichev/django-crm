@@ -866,6 +866,57 @@ def _add_signatures(document, profile, *, include_buyer=True):
         )
 
 
+def build_saved_document_docx(record):
+    """Print recorded values without recalculating them from current trip prices."""
+    from .accounting_documents import document_counterparty
+    from .models import ShipmentDocument
+
+    lines = list(record.lines.select_related("transportation").all())
+    trip = record.transportation or (lines[0].transportation if lines else None)
+    owner = record.owner_company or (trip.owner_company if trip else None)
+    counterparty = record.counterparty or (document_counterparty(trip, record.direction) if trip else None)
+    if record.shipment_id:
+        owner = owner or record.shipment.expeditor.organization
+        counterparty = counterparty or (
+            record.shipment.customer.organization if record.direction == "outgoing"
+            else getattr(record.shipment.carrier, "organization", None)
+        )
+    seller, buyer = (owner, counterparty) if record.direction == "outgoing" else (counterparty, owner)
+    document = _accounting_document(str(record.display_number))
+    title = "СЧЁТ НА ОПЛАТУ" if record.kind == "invoice" else "УНИВЕРСАЛЬНЫЙ ПЕРЕДАТОЧНЫЙ ДОКУМЕНТ"
+    _add_title(document, title, record.display_number, record.document_date)
+    details = _details_table(document)
+    for label, party in (("Поставщик", seller), ("Покупатель", buyer)):
+        _field_row(details, label, _party_details(party.name, party.tax_id, party.kpp, party.legal_address) if party else "Не указан")
+    if seller and record.kind == "invoice":
+        for label, attr in (("Банк", "bank_name"), ("БИК", "bik"), ("Расчётный счёт", "settlement_account"), ("Корр. счёт", "correspondent_account")):
+            _field_row(details, label, getattr(seller, attr, ""))
+    if record.contract_id:
+        _field_row(details, "Договор", f"№ {record.contract.number} от {_date_text(record.contract.contract_date)}")
+    table = document.add_table(rows=1, cols=6)
+    table.style = "Table Grid"
+    for cell, label in zip(table.rows[0].cells, ("№", "Услуга / рейс", "Количество", "Без НДС", "НДС", "Всего")):
+        _set_table_cell(cell, label, bold=True, size=8)
+    entries = [(line.service_name + f"\nРейс № {line.transportation.number} · {line.transportation.route}", line.quantity, line.unit, line.amount, line.vat_amount, line.total_amount) for line in lines]
+    if not entries:
+        total, vat = record.amount or Decimal("0"), record.vat_amount or Decimal("0")
+        entries = [(f"Транспортно-экспедиционные услуги · {record.source_number}\n{record.source_route}", 1, "услуга", total - vat, vat, total)]
+    for index, (service, quantity, unit, net, vat, total) in enumerate(entries, 1):
+        for cell, value in zip(table.add_row().cells, (index, service, f"{quantity} {unit}", _money(net), _money(vat), _money(total))):
+            _set_table_cell(cell, str(value), size=8)
+    _paragraph(document, f"Всего: {_money(record.amount or Decimal('0'))} {record.currency}. В том числе НДС: {_money(record.vat_amount or Decimal('0'))}.")
+    if record.kind == ShipmentDocument.Kind.UPD:
+        _paragraph(document, f"Дата передачи услуг: {_date_text(record.document_date)}")
+    if seller:
+        _add_signatures(document, seller, include_buyer=record.kind == "upd")
+    if record.notes:
+        _paragraph(document, record.notes)
+    stream = BytesIO()
+    document.save(stream)
+    stream.seek(0)
+    return stream
+
+
 def build_accounting_document_docx(shipment, profile, data):
     kind = data["kind"]
     titles = {

@@ -571,6 +571,11 @@ urlpatterns = [
         name="shipment-document-delete",
     ),
     path(
+        "documents/<int:pk>/print/",
+        views.ShipmentDocumentPrintView.as_view(),
+        name="shipment-document-print",
+    ),
+    path(
         "documents/<int:pk>/download/",
         views.ShipmentDocumentDownloadView.as_view(),
         name="shipment-document-download",

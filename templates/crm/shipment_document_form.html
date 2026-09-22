@@ -63,6 +63,7 @@
             <p class="uk-text-meta uk-margin-small-bottom">Поддерживаются PDF, XML, DOC/DOCX, XLS/XLSX, JPG/PNG и ZIP до 20 МБ.</p>
         </section>
         <div class="form-actions">
+            {% if object.kind == 'invoice' or object.kind == 'upd' %}<a class="uk-button uk-button-default" href="{% url 'shipment-document-print' object.pk %}">Скачать {{ object.get_kind_display }} (Word)</a>{% endif %}
             <a class="uk-button uk-button-default" href="{% if source_object %}{{ source_object.get_absolute_url }}{% elif shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
             {% if object %}<a class="uk-button uk-button-danger" href="{% url 'shipment-document-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
             {% if object and object.direction == 'outgoing' and object.kind == 'invoice' %}<a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=act">Создать акт</a><a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=vat_invoice">Создать счёт-фактуру</a><a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=upd">Создать УПД</a>{% endif %}

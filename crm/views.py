@@ -3621,6 +3621,21 @@ class ShipmentDocumentDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
         return redirect(success_url)
 
 
+class ShipmentDocumentPrintView(LoginRequiredMixin, FinanceAccessMixin, View):
+    def get(self, request, pk):
+        record = get_object_or_404(
+            scope_shipment_documents_for_user(ShipmentDocument.objects.all(), request.user),
+            pk=pk, kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+        )
+        from .documents import build_saved_document_docx
+
+        return FileResponse(
+            build_saved_document_docx(record), as_attachment=True,
+            filename=f"{record.get_kind_display()} {record.display_number.replace('/', '-')}.docx",
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+
+
 class ShipmentDocumentDownloadView(LoginRequiredMixin, FinanceAccessMixin, View):
     def get(self, request, pk):
         document_record = get_object_or_404(
