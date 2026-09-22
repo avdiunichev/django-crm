@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Документы — Моя CRM{% endblock %}
+{% block title %}{% if current_direction == 'incoming' %}Входящие документы{% else %}Документы{% endif %} — Моя CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><span class="eyebrow">Первичные документы</span><h1>Реестр документов</h1><p>Транспортные накладные, счета, УПД, акты и счета-фактуры по заявкам.</p></div>
+    <div><span class="eyebrow">Первичные документы</span><h1>{% if current_direction == 'incoming' %}Входящие документы{% else %}Реестр документов{% endif %}</h1><p>{% if current_direction == 'incoming' %}Счета, УПД и другие документы, полученные от исполнителей по рейсам.{% else %}Транспортные накладные, счета, УПД, акты и счета-фактуры по заявкам.{% endif %}</p></div>
     <div class="heading-actions">
         {% if current_direction == 'incoming' %}<a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming&amp;default_kind=invoice">Внести счета исполнителей</a><a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=incoming&amp;default_kind=upd">Внести УПД исполнителей</a>{% endif %}
         <a class="uk-button uk-button-default" href="{% url 'shipment-document-import' %}">Загрузить номера из 1С</a>

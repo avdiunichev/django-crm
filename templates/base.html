@@ -57,6 +57,7 @@
                         <ul class="uk-nav uk-navbar-dropdown-nav">
                             <li><a href="{% url 'accounting-dashboard' %}"><span uk-icon="grid"></span> Рабочий стол</a></li>
                             <li><a href="{% url 'customer-document-list' %}"><span uk-icon="file-text"></span> Документы для клиентов</a></li>
+                            <li><a href="{% url 'shipment-document-list' %}?direction=incoming"><span uk-icon="download"></span> Входящие документы</a></li>
                             <li><a href="{% url 'shipment-document-list' %}"><span uk-icon="file-text"></span> Первичные документы</a></li>
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Приходы / расходы</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
@@ -128,6 +129,7 @@
                 <span class="mobile-nav-group"><span uk-icon="credit-card"></span> Бухгалтерия</span>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'accounting-dashboard' %}is-active{% endif %}" href="{% url 'accounting-dashboard' %}">Рабочий стол</a>
                 <a class="mobile-nav-subitem {% if 'customer-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'customer-document-list' %}">Документы для клиентов</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'shipment-document-list' and request.GET.direction == 'incoming' %}is-active{% endif %}" href="{% url 'shipment-document-list' %}?direction=incoming">Входящие документы</a>
                 <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Первичные документы</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
