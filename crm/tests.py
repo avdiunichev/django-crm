@@ -59,6 +59,7 @@ from .models import (
     Shipment,
     ShipmentDocument,
     TransportOrder,
+    TransportOrderNumberSequence,
     TransportOrderStop,
     Transportation,
     TransportationInstruction,
@@ -533,6 +534,36 @@ class CrmTestCase(TestCase):
         self.assertContains(edit_page, "По клиенту нет действующего договора")
         self.assertContains(edit_page, "Создать договор")
         self.assertContains(edit_page, f"customer={self.customer.pk}")
+
+    def test_order_number_recovers_from_stale_company_sequence(self):
+        first = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization,
+            manager=self.user,
+            document_date=date.today(),
+            rate=Decimal("1000"),
+            cargo_name="Первый груз",
+            weight_kg=Decimal("100"),
+        )
+        sequence = TransportOrderNumberSequence.objects.get(
+            owner_company=self.company_profile.organization,
+            year=date.today().year,
+        )
+        sequence.last_value = 0
+        sequence.save(update_fields=["last_value", "updated_at"])
+
+        second = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization,
+            manager=self.user,
+            document_date=date.today(),
+            rate=Decimal("2000"),
+            cargo_name="Второй груз",
+            weight_kg=Decimal("200"),
+        )
+
+        self.assertNotEqual(second.number, first.number)
+        self.assertEqual(second.number, f"ЗК-{date.today().year}-00002")
 
     def test_order_stop_derives_route_city_from_manual_address(self):
         form = TransportOrderStopForm(

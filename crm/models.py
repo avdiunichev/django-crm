@@ -11,7 +11,7 @@ from django.core.validators import (
     MinValueValidator,
     RegexValidator,
 )
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
@@ -2940,20 +2940,42 @@ class TransportOrder(TimestampedModel):
     def save(self, *args, **kwargs):
         if self.number:
             return super().save(*args, **kwargs)
-        with transaction.atomic():
-            year = self.document_date.year
-            sequence, _ = (
-                TransportOrderNumberSequence.objects.select_for_update().get_or_create(
-                    owner_company=self.owner_company,
-                    year=year,
-                    defaults={"last_value": 0},
-                )
-            )
-            sequence.last_value += 1
-            sequence.save(update_fields=["last_value", "updated_at"])
-            self.number_year = year
-            self.number = f"ЗК-{year}-{sequence.last_value:05d}"
-            return super().save(*args, **kwargs)
+        year = self.document_date.year
+        prefix = f"ЗК-{year}-"
+        # The visible order number is globally unique, while historical
+        # counters are stored per own company.  Keep the counter in sync with
+        # every already issued number for the year and retry if two requests
+        # race for the same suffix.
+        for _attempt in range(5):
+            try:
+                with transaction.atomic():
+                    sequence, _ = (
+                        TransportOrderNumberSequence.objects.select_for_update().get_or_create(
+                            owner_company=self.owner_company,
+                            year=year,
+                            defaults={"last_value": 0},
+                        )
+                    )
+                    issued_values = TransportOrder.objects.filter(
+                        number__startswith=prefix
+                    ).values_list("number", flat=True)
+                    issued_max = max(
+                        (
+                            int(number.removeprefix(prefix))
+                            for number in issued_values
+                            if number.removeprefix(prefix).isdigit()
+                        ),
+                        default=0,
+                    )
+                    sequence.last_value = max(sequence.last_value, issued_max) + 1
+                    sequence.save(update_fields=["last_value", "updated_at"])
+                    self.number_year = year
+                    self.number = f"{prefix}{sequence.last_value:05d}"
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                self.number = ""
+                self.number_year = None
+        raise IntegrityError("Не удалось сформировать уникальный номер заказа.")
 
     @property
     def route(self):
