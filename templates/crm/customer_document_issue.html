@@ -17,9 +17,29 @@
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>02</span><div><h2>Доставленные рейсы</h2><p>Показываются только рейсы, по которым ещё не выставлены счёт и УПД</p></div></div>
         {{ form.transportations.errors }}
-        <div class="accounting-trip-checklist">
-            {% for checkbox in form.transportations %}<label class="accounting-trip-check"><span>{{ checkbox.tag }}</span><strong>{{ checkbox.choice_label }}</strong></label>{% empty %}<div class="empty-state">Подходящих доставленных рейсов нет.</div>{% endfor %}
+        {% if candidate_rows %}
+        <div class="customer-trip-table-toolbar">
+            <label><input class="uk-checkbox" type="checkbox" data-customer-trip-toggle-all> <span>Выбрать все</span></label>
+            <span data-customer-trip-count>Выбрано: 0</span>
         </div>
+        <div class="table-wrap customer-trip-table-wrap">
+            <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle customer-trip-table">
+                <thead><tr><th class="customer-trip-select"></th><th>Рейс / дата</th><th>Клиент</th><th>Маршрут</th><th class="uk-text-right">Ставка клиенту</th><th>Будет создано</th></tr></thead>
+                <tbody>
+                    {% for row in candidate_rows %}
+                    <tr data-customer-trip-row>
+                        <td class="customer-trip-select"><input class="uk-checkbox" type="checkbox" name="transportations" value="{{ row.transportation.pk }}" aria-label="Выбрать рейс {{ row.transportation.number }}" data-customer-trip-select{% if row.selected %} checked{% endif %}></td>
+                        <td data-label="Рейс / дата"><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small>{{ row.transportation.document_date|date:"d.m.Y"|default:"Дата не указана" }}</small></td>
+                        <td data-label="Клиент">{% if row.client %}<strong>{{ row.client }}</strong>{% if row.client.tax_id %}<small>ИНН {{ row.client.tax_id }}</small>{% endif %}{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
+                        <td data-label="Маршрут"><strong>{{ row.transportation.route|default:"Маршрут не указан" }}</strong><small>{{ row.transportation.planned_start_date|date:"d.m.Y"|default:"—" }} → {{ row.transportation.planned_end_date|date:"d.m.Y"|default:"—" }}</small></td>
+                        <td data-label="Ставка клиенту" class="uk-text-right"><strong>{{ row.transportation.customer_amount|floatformat:"2g" }} {{ row.transportation.currency }}</strong></td>
+                        <td data-label="Будет создано"><span class="customer-trip-document-badge">{{ row.missing_documents }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}<div class="empty-state">Подходящих доставленных рейсов нет.</div>{% endif %}
     </section>
     <div class="form-actions">
         <a class="uk-button uk-button-default" href="{% url 'customer-document-list' %}">Закрыть</a>
@@ -27,4 +47,5 @@
     </div>
 </form>
 {% if is_registry %}<script>document.addEventListener("DOMContentLoaded",()=>{const field=document.getElementById("{{ form.customer.id_for_label }}");field?.addEventListener("change",()=>{const url=new URL(window.location.href);if(field.value)url.searchParams.set("customer",field.value);else url.searchParams.delete("customer");window.location.assign(url);});});</script>{% endif %}
+<script>document.addEventListener("DOMContentLoaded",()=>{const toggle=document.querySelector("[data-customer-trip-toggle-all]"),checks=Array.from(document.querySelectorAll("[data-customer-trip-select]")),counter=document.querySelector("[data-customer-trip-count]");if(!toggle)return;const sync=()=>{const selected=checks.filter(item=>item.checked).length;toggle.checked=checks.length>0&&selected===checks.length;toggle.indeterminate=selected>0&&selected<checks.length;if(counter)counter.textContent=`Выбрано: ${selected}`;checks.forEach(item=>item.closest("tr")?.classList.toggle("is-selected",item.checked));};toggle.addEventListener("change",()=>{checks.forEach(item=>item.checked=toggle.checked);sync();});checks.forEach(item=>item.addEventListener("change",sync));document.querySelectorAll("[data-customer-trip-row]").forEach(row=>row.addEventListener("click",event=>{if(event.target.closest("a,input,label,button"))return;const checkbox=row.querySelector("[data-customer-trip-select]");checkbox.checked=!checkbox.checked;sync();}));sync();});</script>
 {% endblock %}

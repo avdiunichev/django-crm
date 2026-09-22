@@ -3106,9 +3106,35 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        form = context["form"]
+        selected_ids = {str(value) for value in (form["transportations"].value() or [])}
+        candidate_rows = []
+        for transportation in form.fields["transportations"].queryset:
+            client_party = next(
+                (
+                    party
+                    for party in transportation.parties.all()
+                    if party.role == TransportationParty.Role.CLIENT and party.is_active
+                ),
+                None,
+            )
+            missing_documents = []
+            if not getattr(transportation, "has_customer_invoice", False):
+                missing_documents.append("счёт")
+            if not getattr(transportation, "has_customer_upd", False):
+                missing_documents.append("УПД")
+            candidate_rows.append(
+                {
+                    "transportation": transportation,
+                    "client": client_party.organization if client_party else None,
+                    "selected": str(transportation.pk) in selected_ids,
+                    "missing_documents": " + ".join(missing_documents),
+                }
+            )
         context.update(
             mode=self.mode,
             is_registry=self.mode == "registry",
+            candidate_rows=candidate_rows,
             page_title=(
                 "Создание реестрового счёта"
                 if self.mode == "registry"

@@ -588,6 +588,9 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, transportation.number)
+        self.assertContains(page, "customer-trip-table")
+        self.assertContains(page, "data-customer-trip-toggle-all")
+        self.assertContains(page, "Будет создано")
 
         response = self.client.post(
             reverse("customer-document-issue", args=["individual"]),

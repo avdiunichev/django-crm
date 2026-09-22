@@ -775,6 +775,67 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
     }
 }
 
+.customer-trip-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid #dbe2ea;
+    border-bottom: 0;
+    background: #f7f8fa;
+    color: #7f8996;
+}
+
+.customer-trip-table-toolbar label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.customer-trip-table-wrap { border: 1px solid #dbe2ea; }
+.customer-trip-table { margin: 0; min-width: 980px; }
+.customer-trip-table th { white-space: nowrap; }
+.customer-trip-table td { cursor: pointer; }
+.customer-trip-table td small { display: block; margin-top: 4px; color: #8a95a3; }
+.customer-trip-table tr.is-selected td { background: #fff7f7; }
+.customer-trip-select { width: 44px; text-align: center; }
+.customer-trip-document-badge {
+    display: inline-flex;
+    padding: 5px 9px;
+    border: 1px solid #efb7b7;
+    background: #fff7f7;
+    color: #d10000;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar,
+html[data-theme="dark"] body.uikit-theme .customer-trip-table-wrap {
+    border-color: #344257;
+}
+html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar {
+    background: #141e2f;
+    color: #9aa8ba;
+}
+html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar label { color: #eef3fa; }
+html[data-theme="dark"] body.uikit-theme .customer-trip-table tr.is-selected td { background: #321b22 !important; }
+html[data-theme="dark"] body.uikit-theme .customer-trip-document-badge {
+    border-color: #7d3338;
+    background: #321b22;
+    color: #ff8f94;
+}
+
+@media (max-width: 700px) {
+    .customer-trip-table-toolbar { padding: 12px; }
+    .customer-trip-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
 /* Карточка рейса повторяет рабочую композицию карточки заказа. */
 body.uikit-theme .transportation-card .transportation-command-header {
     padding: 24px;
