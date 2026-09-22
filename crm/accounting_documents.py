@@ -197,3 +197,90 @@ def populate_document_lines(document, transportations, *, user=None):
         changes={"transportation_ids": [item.pk for item in transportations]},
     )
     return document
+
+
+def _next_customer_document_number(owner_company, kind, document_date):
+    prefix_label = "СЧ" if kind == ShipmentDocument.Kind.INVOICE else "УПД"
+    prefix = f"{prefix_label}-{document_date.year}-"
+    # Lock the legal entity so two managers cannot issue the same next number
+    # for the same company at the same time.
+    owner_company.__class__.objects.select_for_update().get(pk=owner_company.pk)
+    issued = ShipmentDocument.objects.filter(
+        owner_company=owner_company,
+        number__startswith=prefix,
+    ).values_list("number", flat=True)
+    last_value = max(
+        (
+            int(number.removeprefix(prefix))
+            for number in issued
+            if number.removeprefix(prefix).isdigit()
+        ),
+        default=0,
+    )
+    return f"{prefix}{last_value + 1:05d}"
+
+
+@transaction.atomic
+def issue_customer_document_pair(transportations, *, invoice_date, user=None):
+    transportations = list(transportations)
+    validate_document_transportations(
+        transportations=transportations,
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.INVOICE,
+        document_date=invoice_date,
+    )
+    upd_date = last_delivery_date(transportations) or invoice_date
+    validate_document_transportations(
+        transportations=transportations,
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.UPD,
+        document_date=upd_date,
+    )
+    first = transportations[0]
+    invoice = ShipmentDocument.objects.create(
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.INVOICE,
+        party=ShipmentDocument.Party.CUSTOMER,
+        status=ShipmentDocument.Status.ISSUED,
+        document_date=invoice_date,
+        currency=first.currency,
+        owner_company=first.owner_company,
+        counterparty=document_counterparty(first, ShipmentDocument.Direction.OUTGOING),
+        contract=document_contract(first, ShipmentDocument.Direction.OUTGOING),
+        created_by=user,
+    )
+    invoice.number = _next_customer_document_number(
+        first.owner_company, invoice.kind, invoice_date
+    )
+    invoice.crm_number = invoice.number
+    invoice.save(update_fields=["number", "crm_number", "updated_at"])
+    populate_document_lines(invoice, transportations, user=user)
+
+    upd = ShipmentDocument.objects.create(
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.UPD,
+        party=ShipmentDocument.Party.CUSTOMER,
+        status=ShipmentDocument.Status.ISSUED,
+        document_date=upd_date,
+        currency=first.currency,
+        owner_company=first.owner_company,
+        counterparty=invoice.counterparty,
+        contract=invoice.contract,
+        based_on=invoice,
+        created_by=user,
+    )
+    upd.number = _next_customer_document_number(first.owner_company, upd.kind, upd_date)
+    upd.crm_number = upd.number
+    upd.save(update_fields=["number", "crm_number", "updated_at"])
+    populate_document_lines(upd, transportations, user=user)
+
+    Transportation.objects.filter(
+        pk__in=[item.pk for item in transportations],
+        status__in=[
+            Transportation.Status.DELIVERED,
+            Transportation.Status.DOCUMENTS_RECEIVED,
+            Transportation.Status.DOCUMENTS_SENT,
+            Transportation.Status.DOCUMENT_FLOW_COMPLETED,
+        ],
+    ).update(status=Transportation.Status.CUSTOMER_INVOICED, updated_at=timezone.now())
+    return invoice, upd

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — Моя CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><a class="back-link" href="{% url 'customer-document-list' %}">← Документы для клиентов</a><span class="eyebrow">Бухгалтерия</span><h1>{{ page_title }}</h1><p>{% if is_registry %}Выберите клиента и объедините несколько доставленных рейсов в один счёт и УПД.{% else %}По каждому выбранному рейсу будут созданы отдельный счёт и связанный УПД.{% endif %}</p></div>
+</div>
+
+<form method="post" class="entity-form uk-form-stacked customer-document-issue-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>01</span><div><h2>Параметры выставления</h2><p>Дата и состав формируемого комплекта документов</p></div></div>
+        <div class="form-grid">
+            {% if is_registry %}<div class="field"><label for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>{{ form.customer }}{{ form.customer.errors }}<small>После выбора клиента список рейсов обновится автоматически.</small></div>{% else %}{{ form.customer }}{% endif %}
+            <div class="field"><label for="{{ form.document_date.id_for_label }}">{{ form.document_date.label }}</label>{{ form.document_date }}{{ form.document_date.errors }}</div>
+        </div>
+    </section>
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>02</span><div><h2>Доставленные рейсы</h2><p>Показываются только рейсы, по которым ещё не выставлены счёт и УПД</p></div></div>
+        {{ form.transportations.errors }}
+        <div class="accounting-trip-checklist">
+            {% for checkbox in form.transportations %}<label class="accounting-trip-check"><span>{{ checkbox.tag }}</span><strong>{{ checkbox.choice_label }}</strong></label>{% empty %}<div class="empty-state">Подходящих доставленных рейсов нет.</div>{% endfor %}
+        </div>
+    </section>
+    <div class="form-actions">
+        <a class="uk-button uk-button-default" href="{% url 'customer-document-list' %}">Закрыть</a>
+        <button class="uk-button uk-button-primary" type="submit">Выставить</button>
+    </div>
+</form>
+{% if is_registry %}<script>document.addEventListener("DOMContentLoaded",()=>{const field=document.getElementById("{{ form.customer.id_for_label }}");field?.addEventListener("change",()=>{const url=new URL(window.location.href);if(field.value)url.searchParams.set("customer",field.value);else url.searchParams.delete("customer");window.location.assign(url);});});</script>{% endif %}
+{% endblock %}

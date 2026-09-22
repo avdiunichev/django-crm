@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Документы для клиентов — Моя CRM{% endblock %}
+{% block content %}
+<div class="page-heading with-action">
+    <div><span class="eyebrow">Бухгалтерия</span><h1>Документы для клиентов</h1><p>Выставленные счета и автоматически созданные к ним УПД.</p></div>
+    <div class="heading-actions"><a class="uk-button uk-button-default" href="{% url 'customer-document-issue' 'registry' %}">Создать реестровый счёт</a><a class="uk-button uk-button-primary" href="{% url 'customer-document-issue' 'individual' %}">Создать отдельные счета</a></div>
+</div>
+<section class="panel uk-card uk-card-default order-register-panel">
+    <div class="onec-register-header"><div><span class="eyebrow">Журнал</span><h2>Счета и УПД</h2><p>Документы связаны со строками рейсов и хранят историю выставления.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} документов</span></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table">
+        <thead><tr><th>Документ</th><th>Дата</th><th>Клиент</th><th>Рейсы</th><th class="uk-text-right">Сумма</th><th>Статус</th></tr></thead>
+        <tbody>{% for document in documents %}<tr><td><a class="primary-link" href="{{ document.get_absolute_url }}">{{ document.get_kind_display }} № {{ document.display_number }}</a>{% if document.based_on_id %}<small>К счёту № {{ document.based_on.display_number }}</small>{% endif %}</td><td>{{ document.document_date|date:"d.m.Y" }}</td><td>{{ document.counterparty_name }}</td><td>{{ document.source_number }}</td><td class="uk-text-right"><strong>{{ document.amount|default_if_none:0|floatformat:2|intcomma }} {{ document.currency }}</strong><small>НДС {{ document.vat_amount|default_if_none:0|floatformat:2|intcomma }}</small></td><td>{{ document.get_status_display }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Счета клиентам ещё не выставлялись.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</section>
+{% include "crm/includes/pagination.html" %}
+{% endblock %}

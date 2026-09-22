@@ -4664,6 +4664,81 @@ class ShipmentDocumentForm(StyledModelForm):
                 raise error
         return cleaned_data
 
+
+class CustomerDocumentIssueForm(forms.Form):
+    customer = forms.ModelChoiceField(
+        label="Клиент",
+        queryset=Organization.objects.none(),
+        required=False,
+        empty_label="Выберите клиента",
+    )
+    document_date = forms.DateField(
+        label="Дата счёта",
+        initial=timezone.localdate,
+        widget=CRMDateInput(),
+        input_formats=CRM_DATE_INPUT_FORMATS,
+    )
+    transportations = forms.ModelMultipleChoiceField(
+        label="Доставленные рейсы",
+        queryset=Transportation.objects.none(),
+        widget=forms.CheckboxSelectMultiple(),
+    )
+
+    def __init__(self, *args, mode="individual", candidates=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mode = mode
+        candidates = candidates if candidates is not None else Transportation.objects.none()
+        self.fields["transportations"].queryset = candidates
+        self.fields["transportations"].label_from_instance = lambda item: (
+            f"{item.number or 'Черновик'} · {item.route} · "
+            f"{item.customer_amount} {item.currency}"
+        )
+        customer_ids = candidates.values_list(
+            "parties__organization_id", flat=True
+        ).distinct()
+        self.fields["customer"].queryset = Organization.objects.filter(
+            pk__in=customer_ids
+        ).order_by("name")
+        if mode == "registry":
+            self.fields["customer"].required = True
+        else:
+            self.fields["customer"].widget = forms.HiddenInput()
+
+    def clean(self):
+        cleaned = super().clean()
+        trips = list(cleaned.get("transportations") or [])
+        customer = cleaned.get("customer")
+        if self.mode == "registry" and customer and trips:
+            invalid = [
+                trip for trip in trips
+                if not trip.parties.filter(
+                    role=TransportationParty.Role.CLIENT,
+                    organization=customer,
+                    is_active=True,
+                ).exists()
+            ]
+            if invalid:
+                raise forms.ValidationError(
+                    "Все выбранные рейсы должны относиться к выбранному клиенту."
+                )
+            if len({trip.owner_company_id for trip in trips}) != 1:
+                raise forms.ValidationError(
+                    "В реестровый счёт можно включить рейсы только одной нашей компании."
+                )
+            if len({trip.currency for trip in trips}) != 1:
+                raise forms.ValidationError(
+                    "В реестровый счёт можно включить рейсы только в одной валюте."
+                )
+            if len({trip.customer_vat_rate_id for trip in trips}) != 1:
+                raise forms.ValidationError(
+                    "В выбранных рейсах отличаются ставки НДС. Разделите их на разные счета."
+                )
+            if len({trip.customer_contract_id for trip in trips}) != 1:
+                raise forms.ValidationError(
+                    "В выбранных рейсах отличаются договоры с клиентом. Разделите их на разные счета."
+                )
+        return cleaned
+
     def clean_direction(self):
         return self.cleaned_data.get("direction") or ShipmentDocument.Direction.OUTGOING
 

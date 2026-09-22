@@ -442,6 +442,7 @@ from .forms import (
     CompanyProfileForm,
     ContractForm,
     CustomerForm,
+    CustomerDocumentIssueForm,
     DocumentBatchForm,
     DriverForm,
     DriverEmploymentFormSet,
@@ -3005,6 +3006,116 @@ class ShipmentDocumentListView(
             group["has_problem"] = group["has_problem"] or document.is_overdue
         context["document_groups"] = list(grouped_documents.values())
         return context
+
+
+class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView):
+    form_class = CustomerDocumentIssueForm
+    template_name = "crm/customer_document_issue.html"
+
+    @property
+    def mode(self):
+        return "registry" if self.kwargs.get("mode") == "registry" else "individual"
+
+    def candidate_queryset(self):
+        delivered_statuses = [
+            Transportation.Status.DELIVERED,
+            Transportation.Status.DOCUMENTS_RECEIVED,
+            Transportation.Status.DOCUMENTS_SENT,
+            Transportation.Status.DOCUMENT_FLOW_COMPLETED,
+            Transportation.Status.CUSTOMER_INVOICED,
+            Transportation.Status.CLOSED,
+        ]
+        queryset = scope_transportations_for_user(
+            Transportation.objects.select_related(
+                "owner_company", "customer_vat_rate"
+            ).prefetch_related("stops", "parties__organization"),
+            self.request.user,
+        ).filter(status__in=delivered_statuses)
+        queryset = queryset.exclude(
+            accounting_document_lines__document__direction=ShipmentDocument.Direction.OUTGOING,
+            accounting_document_lines__document__kind__in=[
+                ShipmentDocument.Kind.INVOICE,
+                ShipmentDocument.Kind.UPD,
+            ],
+        ).exclude(
+            documents__direction=ShipmentDocument.Direction.OUTGOING,
+            documents__kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+        )
+        customer_id = (
+            self.request.POST.get("customer", "").strip()
+            or self.request.GET.get("customer", "").strip()
+        )
+        if self.mode == "registry" and customer_id.isdigit():
+            queryset = queryset.filter(
+                parties__role=TransportationParty.Role.CLIENT,
+                parties__organization_id=customer_id,
+                parties__is_active=True,
+            )
+        return queryset.distinct().order_by("planned_end_date", "number")
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update(mode=self.mode, candidates=self.candidate_queryset())
+        return kwargs
+
+    def get_initial(self):
+        initial = super().get_initial()
+        customer_id = self.request.GET.get("customer", "").strip()
+        if self.mode == "registry" and customer_id.isdigit():
+            initial["customer"] = customer_id
+        return initial
+
+    def form_valid(self, form):
+        from .accounting_documents import issue_customer_document_pair
+
+        selected = list(form.cleaned_data["transportations"])
+        document_date = form.cleaned_data["document_date"]
+        created_pairs = []
+        with transaction.atomic():
+            if self.mode == "registry":
+                created_pairs.append(
+                    issue_customer_document_pair(
+                        selected, invoice_date=document_date, user=self.request.user
+                    )
+                )
+            else:
+                for transportation in selected:
+                    created_pairs.append(
+                        issue_customer_document_pair(
+                            [transportation],
+                            invoice_date=document_date,
+                            user=self.request.user,
+                        )
+                    )
+        messages.success(
+            self.request,
+            f"Выставлено счетов: {len(created_pairs)}. УПД создано: {len(created_pairs)}.",
+        )
+        return redirect("customer-document-list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            mode=self.mode,
+            is_registry=self.mode == "registry",
+            page_title=(
+                "Создание реестрового счёта"
+                if self.mode == "registry"
+                else "Создание отдельных счетов"
+            ),
+        )
+        return context
+
+
+class CustomerDocumentListView(ShipmentDocumentListView):
+    template_name = "crm/customer_document_list.html"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            direction=ShipmentDocument.Direction.OUTGOING,
+            party=ShipmentDocument.Party.CUSTOMER,
+            kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+        )
 
 
 class ShipmentDocumentExportView(LoginRequiredMixin, FinanceAccessMixin, View):

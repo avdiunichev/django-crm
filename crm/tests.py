@@ -565,6 +565,41 @@ class CrmTestCase(TestCase):
         self.assertNotEqual(second.number, first.number)
         self.assertEqual(second.number, f"ЗК-{date.today().year}-00002")
 
+    def test_individual_customer_documents_create_invoice_and_upd(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        transportation.status = Transportation.Status.DELIVERED
+        transportation.save(update_fields=["status", "updated_at"])
+
+        page = self.client.get(
+            reverse("customer-document-issue", args=["individual"])
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, transportation.number)
+
+        response = self.client.post(
+            reverse("customer-document-issue", args=["individual"]),
+            {
+                "document_date": date.today().strftime("%d.%m.%Y"),
+                "transportations": [transportation.pk],
+            },
+        )
+        self.assertRedirects(response, reverse("customer-document-list"))
+        documents = ShipmentDocument.objects.filter(
+            lines__transportation=transportation,
+            direction=ShipmentDocument.Direction.OUTGOING,
+        ).distinct()
+        self.assertEqual(documents.count(), 2)
+        self.assertCountEqual(
+            documents.values_list("kind", flat=True),
+            [ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+        )
+        self.assertEqual(documents.exclude(number="").count(), 2)
+        transportation.refresh_from_db()
+        self.assertEqual(
+            transportation.status, Transportation.Status.CUSTOMER_INVOICED
+        )
+
     def test_order_stop_derives_route_city_from_manual_address(self):
         form = TransportOrderStopForm(
             data={

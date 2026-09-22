@@ -422,6 +422,16 @@ urlpatterns = [
         name="shipment-document-list",
     ),
     path(
+        "documents/customers/",
+        views.CustomerDocumentListView.as_view(),
+        name="customer-document-list",
+    ),
+    path(
+        "documents/customers/issue/<str:mode>/",
+        views.CustomerDocumentIssueView.as_view(),
+        name="customer-document-issue",
+    ),
+    path(
         "documents/export/",
         views.ShipmentDocumentExportView.as_view(),
         name="shipment-document-export",
