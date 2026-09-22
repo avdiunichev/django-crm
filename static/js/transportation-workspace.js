@@ -211,7 +211,7 @@
             dropdown.innerHTML = '<div class="crm-smart-empty">Поиск…</div>';
             dropdown.hidden = false;
             try {
-                const url = new URL(select.dataset.searchUrl, window.location.origin);
+                const url = new URL(select.dataset.searchUrl, document.baseURI);
                 url.searchParams.set("resource", select.dataset.searchResource);
                 url.searchParams.set("q", query);
                 const role = currentRole();
@@ -369,7 +369,7 @@
     };
 
     const buildQuickUrl = (select) => {
-        const url = new URL(select.dataset.createUrl, window.location.origin);
+        const url = new URL(select.dataset.createUrl, document.baseURI);
         const roleSource = document.getElementById(select.dataset.roleSource || "");
         const role = select.dataset.requiredRole || roleSource?.value;
         if (role) url.searchParams.set("role", role);
@@ -385,7 +385,7 @@
         if (!select.value || !select.dataset.editUrlTemplate) return null;
         return new URL(
             select.dataset.editUrlTemplate.replace(/\/0\//, `/${select.value}/`),
-            window.location.origin
+            document.baseURI
         );
     };
 
@@ -572,7 +572,7 @@
     const bindFullOrganizationForm = (dialog, sourceUrl) => {
         const form = dialog.querySelector("form.organization-workspace");
         if (!form) return;
-        form.action = sourceUrl;
+        form.action = new URL(sourceUrl, document.baseURI).href;
         let saving = false;
         form.querySelectorAll('a[href$="/organizations/"]').forEach((link) => {
             link.addEventListener("click", (event) => { event.preventDefault(); modalInstance(quickModalElement)?.hide(); });
@@ -588,15 +588,6 @@
         ownCompany?.addEventListener("change", syncOwnCompanyTax);
         syncOwnCompanyTax();
         dialog.addEventListener("click", (event) => {
-            const save = event.target.closest('button[type="submit"]');
-            if (save && form.contains(save)) {
-                // The full card lives in a modal beside the trip form. Handle
-                // the button explicitly so nested modal focus/default actions
-                // cannot swallow the native form submit.
-                event.preventDefault();
-                submitOrganization(save);
-                return;
-            }
             const add = event.target.closest("[data-add-form]");
             if (add) {
                 const prefix = add.dataset.addForm;
@@ -636,6 +627,7 @@
                 const response = await fetch(form.action, {
                     method: "POST",
                     body: formData,
+                    credentials: "same-origin",
                     headers: {"X-Requested-With": "XMLHttpRequest", "Accept": "application/json, text/html"}
                 });
                 const contentType = response.headers.get("content-type") || "";
@@ -660,7 +652,15 @@
         };
         form.addEventListener("submit", (event) => {
             event.preventDefault();
+            event.stopImmediatePropagation();
             submitOrganization(event.submitter || form.querySelector('[type="submit"]'));
+        }, {capture: true});
+        form.querySelectorAll('button[type="submit"]').forEach((button) => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                submitOrganization(button);
+            });
         });
     };
 
