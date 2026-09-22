@@ -7,7 +7,7 @@
         <section class="panel uk-card uk-card-default">
             <div class="section-title"><h2>Водители</h2><a href="{% url 'driver-create' %}?carrier={{ carrier.pk }}" data-driver-modal><span uk-icon="plus"></span> Добавить</a></div>
             <ul class="uk-list uk-list-divider resource-list">
-                {% for driver in drivers %}<li><div><a class="primary-link" href="{{ driver.get_absolute_url }}">{{ driver.full_name }}</a><small>{{ driver.phone }} · категории {{ driver.license_categories }}</small></div>{% if driver.is_active %}<span class="uk-label uk-label-success">Работает</span>{% else %}<span class="uk-label">Неактивен</span>{% endif %}</li>{% empty %}<li class="empty-state">Водителей нет.</li>{% endfor %}
+                {% for driver in drivers %}<li><div>{% if crm_access.can_view_personal_data %}<a class="primary-link" href="{{ driver.get_absolute_url }}">{{ driver.full_name }}</a><small>{{ driver.phone }} · категории {{ driver.license_categories }}</small>{% else %}<span class="primary-link">{{ driver.full_name }}</span>{% endif %}</div>{% if driver.is_active %}<span class="uk-label uk-label-success">Работает</span>{% else %}<span class="uk-label">Неактивен</span>{% endif %}</li>{% empty %}<li class="empty-state">Водителей нет.</li>{% endfor %}
             </ul>
         </section>
         <section class="panel uk-card uk-card-default">

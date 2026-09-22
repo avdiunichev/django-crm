@@ -84,6 +84,24 @@ class UserProfile(TimestampedModel):
         default=Role.MANAGER,
     )
     can_see_all_records = models.BooleanField("Видит все записи", default=True)
+    personal_data_view_override = models.BooleanField(
+        "Просмотр персональных данных",
+        null=True,
+        blank=True,
+        help_text="Пусто — использовать право, заданное ролью.",
+    )
+    personal_data_manage_override = models.BooleanField(
+        "Изменение персональных данных",
+        null=True,
+        blank=True,
+        help_text="Пусто — использовать право, заданное ролью.",
+    )
+    personal_data_export_override = models.BooleanField(
+        "Экспорт персональных данных",
+        null=True,
+        blank=True,
+        help_text="Пусто — использовать право, заданное ролью.",
+    )
 
     class Meta:
         verbose_name = "профиль пользователя CRM"
@@ -110,6 +128,32 @@ class UserProfile(TimestampedModel):
 
     @property
     def can_delete_records(self):
+        return self.role in {self.Role.ADMIN, self.Role.DIRECTOR}
+
+    @property
+    def can_view_personal_data(self):
+        if self.personal_data_view_override is not None:
+            return self.personal_data_view_override
+        return self.role in {
+            self.Role.ADMIN,
+            self.Role.DIRECTOR,
+            self.Role.LOGISTICIAN,
+        }
+
+    @property
+    def can_manage_personal_data(self):
+        if self.personal_data_manage_override is not None:
+            return self.personal_data_manage_override
+        return self.role in {
+            self.Role.ADMIN,
+            self.Role.DIRECTOR,
+            self.Role.LOGISTICIAN,
+        }
+
+    @property
+    def can_export_personal_data(self):
+        if self.personal_data_export_override is not None:
+            return self.personal_data_export_override
         return self.role in {self.Role.ADMIN, self.Role.DIRECTOR}
 
 
@@ -186,7 +230,7 @@ class Organization(TimestampedModel):
     )
     tax_id = models.CharField("ИНН", max_length=20, blank=True, db_index=True)
     kpp = models.CharField("КПП", max_length=20, blank=True)
-    ogrn = models.CharField("ОГРН / ОГРНИП", max_length=30, blank=True)
+    ogrn = models.CharField("ОГРН / ОГРНИП", max_length=30, blank=True, db_index=True)
     registration_date = models.DateField("Дата регистрации", null=True, blank=True)
     okato = models.CharField("ОКАТО", max_length=20, blank=True)
     legal_address = models.CharField("Юридический адрес", max_length=255, blank=True)
@@ -205,8 +249,8 @@ class Organization(TimestampedModel):
     director_position = models.CharField("Должность руководителя", max_length=150, blank=True)
     director_name = models.CharField("Руководитель", max_length=150, blank=True)
     acting_basis = models.CharField("Действует на основании", max_length=255, blank=True)
-    phone = models.CharField("Телефон", max_length=30, blank=True)
-    email = models.EmailField("Email", blank=True)
+    phone = models.CharField("Телефон", max_length=30, blank=True, db_index=True)
+    email = models.EmailField("Email", blank=True, db_index=True)
     bank_name = models.CharField("Наименование банка", max_length=255, blank=True)
     bik = models.CharField("БИК", max_length=20, blank=True)
     settlement_account = models.CharField("Расчётный счёт", max_length=30, blank=True)
@@ -289,7 +333,12 @@ class Organization(TimestampedModel):
         verbose_name = "организация"
         verbose_name_plural = "организации"
         ordering = ("name",)
-        indexes = [models.Index(fields=("is_own_company", "is_active"))]
+        indexes = [
+            models.Index(fields=("is_own_company", "is_active")),
+            models.Index(fields=("short_name",)),
+            models.Index(fields=("phone",)),
+            models.Index(fields=("is_active", "updated_at")),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=("tax_id",),
@@ -714,12 +763,51 @@ class Contract(TimestampedModel):
         TERMINATED = "terminated", "Расторгнут"
         ARCHIVED = "archived", "Архив"
 
+    class LifecycleStatus(models.TextChoices):
+        FUTURE = "future", "Будущий"
+        ACTIVE = "active", "Действующий"
+        RENEWED = "renewed", "Действующий — пролонгирован"
+        EXPIRED = "expired", "Истёк"
+        TERMINATED = "terminated", "Расторгнут"
+
+    class PaymentDayType(models.TextChoices):
+        CALENDAR = "calendar", "Календарные дни"
+        WORKING = "working", "Рабочие дни"
+        BANKING = "banking", "Банковские дни"
+
+    class PaymentTrigger(models.TextChoices):
+        UNLOADING = "unloading", "Дата выгрузки"
+        DELIVERY = "delivery_date", "Дата доставки"
+        ORIGINALS = "originals_received", "Получение оригиналов документов"
+        SCANS = "scans_received", "Получение сканов документов"
+        INVOICE = "invoice_date", "Выставление счёта"
+        ACT = "act_signed", "Подписание акта"
+        OTHER = "other", "Другое событие"
+
+    class AuthorityType(models.TextChoices):
+        CHARTER = "charter", "Устав"
+        POWER_OF_ATTORNEY = "power_of_attorney", "Доверенность"
+        DECISION = "decision", "Решение"
+        ORDER = "order", "Приказ"
+        OTHER = "other", "Другой документ"
+
     kind = models.CharField("Тип договора", max_length=40, choices=Kind.choices)
     number = models.CharField("Номер", max_length=100, blank=True)
     contract_date = models.DateField("Дата договора", default=timezone.localdate)
+    effective_from = models.DateField("Дата начала действия", null=True, blank=True)
     city = models.CharField("Город подписания", max_length=120, default="Санкт-Петербург")
     valid_until = models.DateField("Действует до", null=True, blank=True)
+    is_indefinite = models.BooleanField("Бессрочный", default=False)
+    auto_renewal = models.BooleanField("Автоматическая пролонгация", default=False)
+    renewal_months = models.PositiveSmallIntegerField(
+        "Срок пролонгации, месяцев", default=12
+    )
+    termination_notice_days = models.PositiveSmallIntegerField(
+        "Срок уведомления о расторжении, дней", default=30
+    )
     terminated_on = models.DateField("Дата расторжения", null=True, blank=True)
+    termination_reason = models.CharField("Причина расторжения", max_length=255, blank=True)
+    is_primary = models.BooleanField("Основной договор", default=False)
     status = models.CharField(
         "Статус", max_length=20, choices=Status.choices, default=Status.DRAFT
     )
@@ -748,17 +836,62 @@ class Contract(TimestampedModel):
     expeditor_representative = models.CharField(
         "Представитель нашей компании", max_length=150, blank=True
     )
+    expeditor_representative_position = models.CharField(
+        "Должность представителя нашей компании", max_length=150, blank=True
+    )
+    expeditor_authority_type = models.CharField(
+        "Вид основания полномочий нашей компании",
+        max_length=30,
+        choices=AuthorityType.choices,
+        default=AuthorityType.CHARTER,
+    )
     expeditor_authority_basis = models.CharField(
         "Основание полномочий", max_length=150, default="Устава"
+    )
+    expeditor_authority_number = models.CharField(
+        "Номер доверенности нашей компании", max_length=100, blank=True
+    )
+    expeditor_authority_date = models.DateField(
+        "Дата доверенности нашей компании", null=True, blank=True
     )
     counterparty_representative = models.CharField(
         "Представитель контрагента", max_length=150, blank=True
     )
+    counterparty_representative_position = models.CharField(
+        "Должность представителя контрагента", max_length=150, blank=True
+    )
+    counterparty_authority_type = models.CharField(
+        "Вид основания полномочий контрагента",
+        max_length=30,
+        choices=AuthorityType.choices,
+        default=AuthorityType.CHARTER,
+    )
     counterparty_authority_basis = models.CharField(
         "Основание полномочий контрагента", max_length=150, default="Устава"
     )
+    counterparty_authority_number = models.CharField(
+        "Номер доверенности контрагента", max_length=100, blank=True
+    )
+    counterparty_authority_date = models.DateField(
+        "Дата доверенности контрагента", null=True, blank=True
+    )
     payment_term_days = models.PositiveSmallIntegerField(
         "Отсрочка оплаты, дней", default=0
+    )
+    payment_day_type = models.CharField(
+        "Вид отсрочки",
+        max_length=20,
+        choices=PaymentDayType.choices,
+        default=PaymentDayType.CALENDAR,
+    )
+    payment_trigger = models.CharField(
+        "Отсчёт срока оплаты от",
+        max_length=30,
+        choices=PaymentTrigger.choices,
+        default=PaymentTrigger.DELIVERY,
+    )
+    payment_trigger_other = models.CharField(
+        "Другое событие оплаты", max_length=255, blank=True
     )
     payment_terms = models.TextField("Условия оплаты", blank=True)
     debt_limit = models.DecimalField(
@@ -801,7 +934,17 @@ class Contract(TimestampedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=("expeditor", "number"), name="unique_contract_number_per_expeditor"
-            )
+            ),
+            models.UniqueConstraint(
+                fields=("expeditor", "customer", "kind"),
+                condition=models.Q(is_primary=True, customer__isnull=False),
+                name="unique_primary_customer_contract",
+            ),
+            models.UniqueConstraint(
+                fields=("expeditor", "carrier", "kind"),
+                condition=models.Q(is_primary=True, carrier__isnull=False),
+                name="unique_primary_carrier_contract",
+            ),
         ]
 
     def __str__(self):
@@ -814,6 +957,37 @@ class Contract(TimestampedModel):
     @property
     def counterparty_name(self):
         return self.counterparty.name if self.counterparty else "Контрагент не выбран"
+
+    @property
+    def start_date(self):
+        return self.effective_from or self.contract_date
+
+    def lifecycle_status_on(self, value=None):
+        value = value or timezone.localdate()
+        if self.terminated_on and self.terminated_on <= value:
+            return self.LifecycleStatus.TERMINATED
+        if self.start_date > value:
+            return self.LifecycleStatus.FUTURE
+        if self.is_indefinite or not self.valid_until or self.valid_until >= value:
+            return self.LifecycleStatus.ACTIVE
+        if self.auto_renewal:
+            return self.LifecycleStatus.RENEWED
+        return self.LifecycleStatus.EXPIRED
+
+    @property
+    def lifecycle_status(self):
+        return self.lifecycle_status_on()
+
+    @property
+    def lifecycle_status_label(self):
+        return self.LifecycleStatus(self.lifecycle_status).label
+
+    def is_effective_on(self, value=None):
+        return (
+            self.status in {self.Status.READY, self.Status.SIGNED}
+            and self.lifecycle_status_on(value)
+            in {self.LifecycleStatus.ACTIVE, self.LifecycleStatus.RENEWED}
+        )
 
     def clean(self):
         super().clean()
@@ -830,12 +1004,29 @@ class Contract(TimestampedModel):
                 errors["customer"] = "Для этого типа договора клиент не выбирается."
         if self.valid_until and self.valid_until < self.contract_date:
             errors["valid_until"] = "Срок действия не может закончиться раньше даты договора."
+        if self.effective_from and self.effective_from < self.contract_date:
+            errors["effective_from"] = "Дата начала действия не может быть раньше даты договора."
+        if self.is_indefinite and self.valid_until:
+            errors["valid_until"] = "Для бессрочного договора дата окончания не указывается."
+        if self.auto_renewal and not self.valid_until:
+            errors["auto_renewal"] = "Для пролонгации укажите первоначальную дату окончания."
         if self.terminated_on and self.terminated_on < self.contract_date:
             errors["terminated_on"] = "Дата расторжения не может быть раньше даты договора."
         if self.terminated_on and self.valid_until and self.terminated_on > self.valid_until:
             errors["terminated_on"] = "Дата расторжения не может быть позже срока действия договора."
         if self.status == self.Status.TERMINATED and not self.terminated_on:
             errors["terminated_on"] = "Для расторгнутого договора укажите дату расторжения."
+        if self.payment_trigger == self.PaymentTrigger.OTHER and not self.payment_trigger_other:
+            errors["payment_trigger_other"] = "Опишите событие, от которого считается срок оплаты."
+        for prefix in ("expeditor", "counterparty"):
+            if (
+                getattr(self, f"{prefix}_authority_type")
+                == self.AuthorityType.POWER_OF_ATTORNEY
+            ):
+                if not getattr(self, f"{prefix}_authority_number"):
+                    errors[f"{prefix}_authority_number"] = "Укажите номер доверенности."
+                if not getattr(self, f"{prefix}_authority_date"):
+                    errors[f"{prefix}_authority_date"] = "Укажите дату доверенности."
         if errors:
             raise ValidationError(errors)
 
@@ -913,6 +1104,11 @@ class Driver(TimestampedModel):
         verbose_name = "водитель"
         verbose_name_plural = "водители"
         ordering = ("last_name", "first_name", "middle_name")
+        indexes = [
+            models.Index(fields=("last_name", "first_name")),
+            models.Index(fields=("phone",)),
+            models.Index(fields=("is_active", "updated_at")),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=("tax_id",),
@@ -1135,6 +1331,7 @@ class DriverPassport(TimestampedModel):
         verbose_name = "паспорт водителя"
         verbose_name_plural = "паспорта водителей"
         ordering = ("-is_current", "-issue_date", "-created_at")
+        indexes = [models.Index(fields=("series", "number"))]
         constraints = [
             models.UniqueConstraint(
                 fields=("country", "series", "number"),
@@ -1313,6 +1510,46 @@ class DriverLicense(TimestampedModel):
         return self.number
 
 
+class PersonalDataAccessLog(models.Model):
+    """Append-only audit trail for access to driver personal data."""
+
+    class Action(models.TextChoices):
+        VIEW = "view", "Просмотр"
+        CREATE = "create", "Создание"
+        UPDATE = "update", "Изменение"
+        DELETE = "delete", "Удаление"
+        EXPORT = "export", "Экспорт"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Пользователь",
+        related_name="personal_data_access_logs",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    driver = models.ForeignKey(
+        Driver,
+        verbose_name="Водитель",
+        related_name="personal_data_access_logs",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    action = models.CharField("Действие", max_length=20, choices=Action.choices)
+    path = models.CharField("Адрес", max_length=500, blank=True)
+    ip_address = models.GenericIPAddressField("IP-адрес", null=True, blank=True)
+    created_at = models.DateTimeField("Дата и время", auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "событие доступа к персональным данным"
+        verbose_name_plural = "события доступа к персональным данным"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.get_action_display()} · {self.user or 'система'}"
+
+
 class Vehicle(TimestampedModel):
     class Kind(models.TextChoices):
         TRUCK = "truck", "Грузовой автомобиль"
@@ -1336,9 +1573,9 @@ class Vehicle(TimestampedModel):
     trailer_registration_number = models.CharField(
         "Номер прицепа / полуприцепа", max_length=20, blank=True
     )
-    vin = models.CharField("VIN", max_length=32, blank=True)
-    make = models.CharField("Марка", max_length=100)
-    model = models.CharField("Модель", max_length=100, blank=True)
+    vin = models.CharField("VIN", max_length=32, blank=True, db_index=True)
+    make = models.CharField("Марка", max_length=100, db_index=True)
+    model = models.CharField("Модель", max_length=100, blank=True, db_index=True)
     year = models.PositiveSmallIntegerField(
         "Год выпуска", null=True, blank=True, validators=[MinValueValidator(1950)]
     )
@@ -1379,6 +1616,7 @@ class Vehicle(TimestampedModel):
         verbose_name = "транспортное средство"
         verbose_name_plural = "подвижной состав"
         ordering = ("registration_number",)
+        indexes = [models.Index(fields=("is_active", "kind"))]
 
     def __str__(self):
         vehicle_name = " ".join(part for part in (self.make, self.model) if part)
@@ -1959,6 +2197,24 @@ class Transportation(TimestampedModel):
         null=True,
         blank=True,
     )
+    customer_contract_number_snapshot = models.CharField(
+        "Номер договора с клиентом на момент оформления", max_length=100, blank=True
+    )
+    customer_contract_date_snapshot = models.DateField(
+        "Дата договора с клиентом на момент оформления", null=True, blank=True
+    )
+    customer_payment_day_type_snapshot = models.CharField(
+        "Вид отсрочки клиента на момент оформления",
+        max_length=20,
+        choices=Contract.PaymentDayType.choices,
+        blank=True,
+    )
+    customer_payment_trigger_snapshot = models.CharField(
+        "Событие оплаты клиента на момент оформления",
+        max_length=30,
+        choices=Contract.PaymentTrigger.choices,
+        blank=True,
+    )
     customer_amount = models.DecimalField(
         "Клиент платит, всего",
         max_digits=14,
@@ -2047,6 +2303,24 @@ class Transportation(TimestampedModel):
         max_length=30,
         choices=PaymentDueBasis.choices,
         default=PaymentDueBasis.DELIVERY_DATE,
+    )
+    executor_contract_number_snapshot = models.CharField(
+        "Номер договора с исполнителем на момент оформления", max_length=100, blank=True
+    )
+    executor_contract_date_snapshot = models.DateField(
+        "Дата договора с исполнителем на момент оформления", null=True, blank=True
+    )
+    executor_payment_day_type_snapshot = models.CharField(
+        "Вид отсрочки исполнителя на момент оформления",
+        max_length=20,
+        choices=Contract.PaymentDayType.choices,
+        blank=True,
+    )
+    executor_payment_trigger_snapshot = models.CharField(
+        "Событие оплаты исполнителя на момент оформления",
+        max_length=30,
+        choices=Contract.PaymentTrigger.choices,
+        blank=True,
     )
     customer_payment_due_date = models.DateField(
         "Оплата от клиента до", null=True, blank=True, editable=False
@@ -2686,7 +2960,7 @@ class TransportOrder(TimestampedModel):
         stops = list(self.stops.all())
         if not stops:
             return "Маршрут не указан"
-        points = [route_location_label(stop) for stop in stops]
+        points = [" ".join((stop.address or "").split()) for stop in stops]
         return " → ".join(point for point in points if point) or "Маршрут не указан"
 
     def get_absolute_url(self):
@@ -2999,7 +3273,9 @@ class VehicleAssignment(TimestampedModel):
         if combination:
             if (
                 self.actual_carrier_id
-                and combination.tractor.carrier.organization_id != self.actual_carrier_id
+                and not combination.tractor.works_for_organization(
+                    self.actual_carrier_id
+                )
             ):
                 errors["combination"] = "Сцепка должна принадлежать фактическому перевозчику."
             if self.is_active and not combination.is_active:
@@ -4064,6 +4340,12 @@ class ShipmentDocument(TimestampedModel):
         ORIGINAL = "original", "Оригинал получен"
         CANCELLED = "cancelled", "Аннулирован"
 
+    class OneCStatus(models.TextChoices):
+        NOT_SENT = "not_sent", "Не передан"
+        EXPORTED = "exported", "Передан бухгалтеру"
+        POSTED = "posted", "Проведён в 1С"
+        ERROR = "error", "Ошибка синхронизации"
+
     shipment = models.ForeignKey(
         Shipment,
         verbose_name="Заявка",
@@ -4077,6 +4359,29 @@ class ShipmentDocument(TimestampedModel):
         verbose_name="Рейс",
         related_name="documents",
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    transportations = models.ManyToManyField(
+        Transportation,
+        verbose_name="Рейсы документа",
+        related_name="accounting_documents",
+        through="ShipmentDocumentLine",
+        blank=True,
+    )
+    owner_company = models.ForeignKey(
+        Organization,
+        verbose_name="Наша компания",
+        related_name="accounting_documents",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    contract = models.ForeignKey(
+        Contract,
+        verbose_name="Договор",
+        related_name="accounting_documents",
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
     )
@@ -4102,6 +4407,20 @@ class ShipmentDocument(TimestampedModel):
         "Статус", max_length=20, choices=Status.choices, default=Status.EXPECTED
     )
     number = models.CharField("Номер документа", max_length=100, blank=True)
+    crm_number = models.CharField(
+        "Внутренний номер CRM", max_length=100, blank=True, db_index=True
+    )
+    one_c_number = models.CharField(
+        "Номер документа в 1С", max_length=100, blank=True, db_index=True
+    )
+    one_c_date = models.DateField("Дата документа в 1С", null=True, blank=True)
+    one_c_status = models.CharField(
+        "Состояние в 1С",
+        max_length=20,
+        choices=OneCStatus.choices,
+        default=OneCStatus.NOT_SENT,
+    )
+    one_c_synced_at = models.DateTimeField("Синхронизировано с 1С", null=True, blank=True)
     document_date = models.DateField("Дата документа", null=True, blank=True)
     expected_date = models.DateField("Ожидаем до", null=True, blank=True)
     amount = models.DecimalField(
@@ -4137,6 +4456,26 @@ class ShipmentDocument(TimestampedModel):
         ],
     )
     notes = models.TextField("Комментарий", blank=True)
+    based_on = models.ForeignKey(
+        "self",
+        verbose_name="Создан на основании",
+        related_name="derived_documents",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    cancelled_at = models.DateTimeField("Аннулирован", null=True, blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Аннулировал",
+        related_name="cancelled_shipment_documents",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    cancellation_reason = models.CharField(
+        "Причина аннулирования", max_length=255, blank=True
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="Добавил",
@@ -4153,11 +4492,33 @@ class ShipmentDocument(TimestampedModel):
         indexes = [
             models.Index(fields=("direction", "kind", "status")),
             models.Index(fields=("document_date", "expected_date")),
+            models.Index(fields=("owner_company", "document_date")),
+            models.Index(fields=("one_c_status", "one_c_number")),
         ]
 
     def __str__(self):
-        details = self.number or self.get_status_display()
+        details = self.display_number or self.get_status_display()
         return f"{self.get_kind_display()} · {details} · {self.source_number}"
+
+    @property
+    def display_number(self):
+        return self.one_c_number or self.number or self.crm_number
+
+    @property
+    def related_transportations(self):
+        if self.pk and self.lines.exists():
+            return Transportation.objects.filter(accounting_document_lines__document=self).distinct()
+        if self.transportation_id:
+            return Transportation.objects.filter(pk=self.transportation_id)
+        return Transportation.objects.none()
+
+    def refresh_totals(self, *, save=True):
+        totals = self.lines.aggregate(amount=Sum("total_amount"), vat=Sum("vat_amount"))
+        self.amount = totals["amount"] or Decimal("0.00")
+        self.vat_amount = totals["vat"] or Decimal("0.00")
+        if save:
+            self.save(update_fields=["amount", "vat_amount", "updated_at"])
+        return self
 
     @property
     def file_name(self):
@@ -4192,6 +4553,15 @@ class ShipmentDocument(TimestampedModel):
     def source_number(self):
         if self.transportation_id:
             return self.transportation.number or "Черновик"
+        if self.pk and self.lines.exists():
+            numbers = list(
+                self.lines.select_related("transportation")
+                .order_by("position")
+                .values_list("transportation__number", flat=True)
+            )
+            return ", ".join(value or "Черновик" for value in numbers[:3]) + (
+                f" +{len(numbers) - 3}" if len(numbers) > 3 else ""
+            )
         if self.shipment_id:
             return self.shipment.number
         return "Без основания"
@@ -4200,12 +4570,17 @@ class ShipmentDocument(TimestampedModel):
     def source_route(self):
         if self.transportation_id:
             return self.transportation.route
+        if self.pk and self.lines.exists():
+            routes = [line.transportation.route for line in self.lines.select_related("transportation").all()[:3]]
+            return " · ".join(routes)
         if self.shipment_id:
             return self.shipment.route
         return "Маршрут не указан"
 
     @property
     def source_customer_name(self):
+        if self.counterparty_id:
+            return str(self.counterparty)
         if self.transportation_id:
             party = self.transportation.parties.filter(
                 role=TransportationParty.Role.CLIENT, is_active=True
@@ -4217,6 +4592,8 @@ class ShipmentDocument(TimestampedModel):
 
     @property
     def source_owner_company(self):
+        if self.owner_company_id:
+            return self.owner_company
         if self.transportation_id:
             return self.transportation.owner_company
         if self.shipment_id:
@@ -4227,6 +4604,8 @@ class ShipmentDocument(TimestampedModel):
     def source_absolute_url(self):
         if self.transportation_id:
             return self.transportation.get_absolute_url()
+        if self.pk and self.lines.exists():
+            return self.get_absolute_url()
         if self.shipment_id:
             return self.shipment.get_absolute_url()
         return reverse("shipment-document-list")
@@ -4241,6 +4620,119 @@ class ShipmentDocument(TimestampedModel):
 
     def get_absolute_url(self):
         return reverse("shipment-document-update", kwargs={"pk": self.pk})
+
+
+class AccountingSettings(TimestampedModel):
+    """Изменяемые правила формирования первичных документов."""
+
+    name = models.CharField("Название настройки", max_length=100, default="Основные")
+    service_name_template = models.TextField(
+        "Шаблон наименования услуги",
+        default=(
+            "Организация транспортных услуг по маршруту {route}, водитель {driver}, "
+            "ТС {vehicle}, полуприцеп {trailer}, загрузка {pickup_date} — "
+            "выгрузка {delivery_date}, заказ №{order_number}."
+        ),
+    )
+    upd_max_days_after_delivery = models.PositiveSmallIntegerField(
+        "Максимум дней после выгрузки для УПД", default=5
+    )
+    is_active = models.BooleanField("Используется", default=True)
+
+    class Meta:
+        verbose_name = "настройка бухгалтерского блока"
+        verbose_name_plural = "настройки бухгалтерского блока"
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def current(cls):
+        return cls.objects.filter(is_active=True).order_by("pk").first()
+
+
+class ShipmentDocumentLine(TimestampedModel):
+    """Строка бухгалтерского документа, связывающая его с конкретным рейсом."""
+
+    document = models.ForeignKey(
+        ShipmentDocument,
+        verbose_name="Документ",
+        related_name="lines",
+        on_delete=models.CASCADE,
+    )
+    transportation = models.ForeignKey(
+        Transportation,
+        verbose_name="Рейс",
+        related_name="accounting_document_lines",
+        on_delete=models.PROTECT,
+    )
+    service_name = models.TextField("Наименование услуги")
+    quantity = models.DecimalField(
+        "Количество", max_digits=12, decimal_places=3, default=Decimal("1.000")
+    )
+    unit = models.CharField("Единица измерения", max_length=30, default="услуга")
+    price = models.DecimalField(
+        "Цена", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    amount = models.DecimalField(
+        "Сумма без НДС", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    vat_rate = models.DecimalField(
+        "Ставка НДС, %", max_digits=5, decimal_places=2, default=Decimal("0.00")
+    )
+    vat_amount = models.DecimalField(
+        "Сумма НДС", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    total_amount = models.DecimalField(
+        "Сумма с НДС", max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    position = models.PositiveSmallIntegerField("Порядок", default=1)
+
+    class Meta:
+        verbose_name = "строка бухгалтерского документа"
+        verbose_name_plural = "строки бухгалтерского документа"
+        ordering = ("position", "pk")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("document", "transportation"),
+                name="unique_accounting_document_transportation",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.document} · {self.transportation}"
+
+
+class ShipmentDocumentAudit(TimestampedModel):
+    class Action(models.TextChoices):
+        CREATED = "created", "Создан"
+        UPDATED = "updated", "Изменён"
+        EXPORTED = "exported", "Передан бухгалтеру"
+        IMPORTED = "imported", "Получен номер из 1С"
+        CANCELLED = "cancelled", "Аннулирован"
+
+    document = models.ForeignKey(
+        ShipmentDocument,
+        verbose_name="Документ",
+        related_name="audit_entries",
+        on_delete=models.CASCADE,
+    )
+    action = models.CharField("Действие", max_length=20, choices=Action.choices)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Пользователь",
+        related_name="shipment_document_audit_entries",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    changes = models.JSONField("Изменения", default=dict, blank=True)
+    comment = models.CharField("Комментарий", max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = "изменение бухгалтерского документа"
+        verbose_name_plural = "история бухгалтерских документов"
+        ordering = ("-created_at",)
 
 
 class DocumentBatchNumberSequence(TimestampedModel):

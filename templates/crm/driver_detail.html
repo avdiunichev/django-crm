@@ -12,6 +12,7 @@
             <a class="onec-save-close uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal><span uk-icon="pencil"></span> Изменить</a>
             <button class="onec-command uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные</button>
             <a class="onec-command uk-button uk-button-default" href="{% url 'transportation-create' %}"><span uk-icon="plus"></span> Новый рейс</a>
+            {% if crm_access.can_delete_records %}<a class="onec-command uk-button uk-button-default driver-delete-button" href="{% url 'driver-delete' driver.pk %}">Удалить</a>{% endif %}
             <a class="onec-command uk-button uk-button-default" href="{% url 'driver-list' %}">Закрыть</a>
         </div>
     </section>
@@ -25,10 +26,8 @@
             <div class="driver-view-grid">
                 <div class="driver-view-field field-wide"><span>Ф. И. О.</span><strong>{{ driver.full_name }}</strong></div>
                 <div class="driver-view-field"><span>Телефон</span><strong>{{ driver.phone|default:"—" }}</strong></div>
-                <div class="driver-view-field"><span>Email</span><strong>{{ driver.email|default:"—" }}</strong></div>
                 <div class="driver-view-field"><span>Дата рождения</span><strong>{{ driver.birth_date|date:"d.m.Y"|default:"—" }}</strong></div>
                 <div class="driver-view-field"><span>ИНН физического лица</span><strong>{{ driver.tax_id|default:"—" }}</strong></div>
-                <div class="driver-view-field field-wide"><span>Адрес регистрации</span><strong>{{ driver.address|default:"—" }}</strong></div>
                 <div class="driver-view-field"><span>Основная компания</span><strong>{% if driver.carrier %}{% if driver.carrier.organization %}<a href="{{ driver.carrier.organization.get_absolute_url }}">{{ driver.carrier.name }}</a>{% else %}<a href="{{ driver.carrier.get_absolute_url }}">{{ driver.carrier.name }}</a>{% endif %}{% else %}—{% endif %}</strong></div>
                 <div class="driver-view-field"><span>Категории</span><strong>{{ driver.license_categories|default:"—" }}</strong></div>
                 <div class="driver-view-field field-wide"><span>Комментарий</span><strong>{{ driver.notes|default:"—"|linebreaksbr }}</strong></div>
@@ -58,6 +57,6 @@
             <div class="driver-view-record-list">{% for item in driver_history %}<article class="order-route-stop driver-view-record"><div class="driver-view-grid driver-view-record-grid"><div class="driver-view-field"><span>Дата и время</span><strong>{{ item.created_at|date:"d.m.Y H:i" }}</strong></div><div class="driver-view-field"><span>Событие</span><strong>{{ item.action }}</strong></div><div class="driver-view-field field-wide"><span>Описание</span><strong>{{ item.details }}</strong></div></div></article>{% endfor %}</div>
         </section></li>
     </ul>
-    <section class="form-section uk-card uk-card-default order-command-header order-command-footer driver-command-panel"><div class="form-section-title order-command-title"><span class="order-command-icon" uk-icon="cog"></span><div><h2>Панель управления</h2><p>Действия с карточкой водителя</p></div></div><div class="order-command-actions driver-command-actions"><a class="onec-save-close uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal><span uk-icon="pencil"></span> Изменить</a><button class="onec-command uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные</button><a class="onec-command uk-button uk-button-default" href="{% url 'transportation-create' %}"><span uk-icon="plus"></span> Новый рейс</a><a class="onec-command uk-button uk-button-default" href="{% url 'driver-list' %}">Закрыть</a></div></section>
+    <section class="form-section uk-card uk-card-default order-command-header order-command-footer driver-command-panel"><div class="form-section-title order-command-title"><span class="order-command-icon" uk-icon="cog"></span><div><h2>Панель управления</h2><p>Действия с карточкой водителя</p></div></div><div class="order-command-actions driver-command-actions"><a class="onec-save-close uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal><span uk-icon="pencil"></span> Изменить</a><button class="onec-command uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}"><span uk-icon="copy"></span> Скопировать данные</button><a class="onec-command uk-button uk-button-default" href="{% url 'transportation-create' %}"><span uk-icon="plus"></span> Новый рейс</a>{% if crm_access.can_delete_records %}<a class="onec-command uk-button uk-button-default driver-delete-button" href="{% url 'driver-delete' driver.pk %}">Удалить</a>{% endif %}<a class="onec-command uk-button uk-button-default" href="{% url 'driver-list' %}">Закрыть</a></div></section>
 </div>
 {% endblock %}

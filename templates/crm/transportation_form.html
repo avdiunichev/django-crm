@@ -361,23 +361,9 @@ document.addEventListener("DOMContentLoaded", () => {
         select.dispatchEvent(new Event("optionschange", {bubbles: true}));
     };
     const loadResources = async () => {
-        const selected = {
-            drivers: selects.drivers?.value,
-            combinations: selects.combinations?.value,
-            vehicles: selects.vehicles?.value,
-            trailers: selects.trailers?.value
-        };
-        if (!carrier.value) {
-            Object.values(selects).forEach(select => replaceOptions(select, [], ""));
-            return;
-        }
-        const response = await fetch(form.dataset.resourceUrl + "?organization=" + encodeURIComponent(carrier.value));
-        if (!response.ok) return;
-        const data = await response.json();
-        replaceOptions(selects.drivers, data.drivers, selected.drivers);
-        replaceOptions(selects.combinations, data.combinations || [], selected.combinations);
-        replaceOptions(selects.vehicles, data.vehicles, selected.vehicles);
-        replaceOptions(selects.trailers, data.trailers, selected.trailers);
+        // Водители и транспорт загружаются SmartSelect только по запросу;
+        // полный парк выбранного перевозчика в HTML больше не передаётся.
+        Object.values(selects).forEach(select => select?.dispatchEvent(new Event("optionschange", {bubbles: true})));
     };
     let previousExecutor = executor?.value || "";
     let previousRole = role?.value || "";

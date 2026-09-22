@@ -5,6 +5,8 @@
 <div class="page-heading with-action">
     <div><span class="eyebrow">Первичные документы</span><h1>Реестр документов</h1><p>Транспортные накладные, счета, УПД, акты и счета-фактуры по заявкам.</p></div>
     <div class="heading-actions">
+        <a class="uk-button uk-button-default" href="{% url 'shipment-document-import' %}">Загрузить номера из 1С</a>
+        <a class="uk-button uk-button-default" href="{% url 'shipment-document-export' %}?{{ request.GET.urlencode }}">Экспорт в XLSX</a>
         <a class="uk-button uk-button-default" href="{% url 'expeditor-list' %}"><span uk-icon="settings"></span> Экспедиторы и реквизиты</a>
         <a class="uk-button uk-button-default" href="{% url 'primary-document-registry-list' %}"><span uk-icon="folder"></span> Реестры первички</a>
         <a class="uk-button uk-button-primary" href="{% url 'primary-document-registry-create' %}?direction=outgoing"><span uk-icon="plus"></span> Реестр на реализацию</a>
@@ -27,8 +29,9 @@
     <select class="form-control uk-select" name="kind"><option value="">Все типы</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if value == current_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="party"><option value="">Все стороны</option>{% for value,label in party_choices %}<option value="{{ value }}" {% if value == current_party %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-control uk-select" name="one_c_status"><option value="">Все состояния 1С</option>{% for value,label in one_c_status_choices %}<option value="{{ value }}" {% if value == current_one_c_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_q or current_direction or current_kind or current_status or current_party or current_expeditor %}<a class="clear-link" href="{% url 'shipment-document-list' %}">Сбросить</a>{% endif %}
+    {% if current_q or current_direction or current_kind or current_status or current_party or current_one_c_status or current_expeditor %}<a class="clear-link" href="{% url 'shipment-document-list' %}">Сбросить</a>{% endif %}
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel document-register-panel">
@@ -49,7 +52,8 @@
                         {% for document in group.outgoing %}
                             <article class="document-chip">
                                 <div><strong>{{ document.get_kind_display }}</strong><span class="uk-label document-status-{{ document.status }}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span></div>
-                                <small>{{ document.number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                <small>{{ document.display_number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                {% if document.one_c_number and document.crm_number %}<small>CRM: {{ document.crm_number }}</small>{% endif %}
                                 <small>{{ document.counterparty_name }}</small>
                                 {% if document.amount is not None %}<small class="uk-text-right">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }} · НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% endif %}
                                 <div class="document-chip-actions">{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> файл</a>{% endif %}<a href="{{ document.get_absolute_url }}">изменить</a><a class="danger" href="{% url 'shipment-document-delete' document.pk %}">удалить</a></div>
@@ -64,7 +68,8 @@
                         {% for document in group.incoming %}
                             <article class="document-chip">
                                 <div><strong>{{ document.get_kind_display }}</strong><span class="uk-label document-status-{{ document.status }}">{% if document.is_overdue %}Просрочен{% else %}{{ document.get_status_display }}{% endif %}</span></div>
-                                <small>{{ document.number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                <small>{{ document.display_number|default:"Без номера" }}{% if document.document_date %} · {{ document.document_date|date:"d.m.Y" }}{% endif %}</small>
+                                {% if document.one_c_number and document.crm_number %}<small>CRM: {{ document.crm_number }}</small>{% endif %}
                                 <small>{{ document.counterparty_name }}</small>
                                 {% if document.amount is not None %}<small class="uk-text-right">{{ document.amount|floatformat:0|intcomma }} {{ document.currency|currency_symbol }} · НДС {{ document.vat_amount|default_if_none:0|floatformat:0|intcomma }}</small>{% endif %}
                                 <div class="document-chip-actions">{% if document.file %}<a href="{% url 'shipment-document-download' document.pk %}"><span uk-icon="download"></span> файл</a>{% endif %}<a href="{{ document.get_absolute_url }}">изменить</a><a class="danger" href="{% url 'shipment-document-delete' document.pk %}">удалить</a></div>

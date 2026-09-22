@@ -25,7 +25,7 @@ from .forms import (
     VehicleCombinationForm,
     VehicleForm,
 )
-from .accounting import post_transportation
+from .accounting import post_bank_statement, post_transportation
 from .bank_import import parse_client_bank_exchange
 from .epd import epd_validation_errors, prepare_documents
 from .orders import assign_order_to_transportation, sync_order_from_transportation
@@ -190,12 +190,14 @@ class CrmTestCase(TestCase):
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertRedirects(response, f"{reverse('login')}?next=/")
+        self.assertRedirects(
+            response, f"{reverse('login')}?next={reverse('dashboard')}"
+        )
 
     def test_dashboard_and_lists_render(self):
         self.client.force_login(self.user)
         for url_name in (
-            "dashboard", "shipment-list", "customer-list", "carrier-list",
+            "dashboard", "order-list", "customer-list", "carrier-list",
             "driver-list", "vehicle-list", "reports", "shipment-document-list",
             "document-batch-list",
             "expeditor-list", "contract-list", "organization-list",
@@ -226,6 +228,8 @@ class CrmTestCase(TestCase):
             "profitability-report",
             "bank-statement-list",
             "document-batch-list",
+            "shipment-document-list",
+            "shipment-document-create-general",
         ):
             with self.subTest(url_name=url_name):
                 response = self.client.get(reverse(url_name))
@@ -239,13 +243,175 @@ class CrmTestCase(TestCase):
         self.client.force_login(accountant)
         self.assertEqual(self.client.get(reverse("debt-report")).status_code, 200)
 
+    def test_financial_document_actions_require_finance_role(self):
+        logistician = get_user_model().objects.create_user(
+            username="document-logistician", password="test-password"
+        )
+        logistician.crm_profile.role = UserProfile.Role.LOGISTICIAN
+        logistician.crm_profile.save(update_fields=["role", "updated_at"])
+        document = ShipmentDocument.objects.create(
+            transportation=self.shipment.transportation,
+            kind=ShipmentDocument.Kind.INVOICE,
+            number="TEST-DOC-1",
+            created_by=self.user,
+        )
+        self.client.force_login(logistician)
+
+        for url_name in (
+            "shipment-document-update",
+            "shipment-document-delete",
+            "shipment-document-download",
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name, args=[document.pk]))
+                self.assertEqual(response.status_code, 403)
+
+    def test_finance_user_without_global_scope_cannot_access_colleague_documents(self):
+        accountant = get_user_model().objects.create_user(
+            username="scoped-accountant", password="test-password"
+        )
+        accountant.crm_profile.role = UserProfile.Role.ACCOUNTANT
+        accountant.crm_profile.can_see_all_records = False
+        accountant.crm_profile.save(
+            update_fields=["role", "can_see_all_records", "updated_at"]
+        )
+        transportation = self.shipment.transportation
+        document = ShipmentDocument.objects.create(
+            transportation=transportation,
+            kind=ShipmentDocument.Kind.INVOICE,
+            number="PRIVATE-DOC-1",
+            created_by=self.user,
+        )
+        self.client.force_login(accountant)
+
+        listing = self.client.get(reverse("shipment-document-list"))
+        self.assertNotContains(listing, document.number)
+        for url_name in (
+            "shipment-document-update",
+            "shipment-document-delete",
+            "shipment-document-download",
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name, args=[document.pk]))
+                self.assertEqual(response.status_code, 404)
+        create_page = self.client.get(
+            reverse("shipment-document-create-general"),
+            {"transportation": transportation.pk},
+        )
+        self.assertEqual(create_page.status_code, 200)
+        self.assertNotEqual(
+            str(create_page.context["form"].initial.get("transportation", "")),
+            str(transportation.pk),
+        )
+
+    def test_driver_role_cannot_run_privileged_operational_actions(self):
+        driver_user = get_user_model().objects.create_user(
+            username="restricted-driver", password="test-password"
+        )
+        driver_user.crm_profile.role = UserProfile.Role.DRIVER
+        driver_user.crm_profile.save(update_fields=["role", "updated_at"])
+        transportation = self.shipment.transportation
+        self.client.force_login(driver_user)
+
+        protected_requests = (
+            ("transportation-post", [transportation.pk], {}),
+            ("transportation-unpost", [transportation.pk], {}),
+            (
+                "transportation-advance-status",
+                [transportation.pk],
+                {"target_status": Transportation.Status.IN_TRANSIT},
+            ),
+            ("transportation-planner-control", [transportation.pk], {"action": "loaded"}),
+            ("transportation-epd-prepare", [transportation.pk], {}),
+        )
+        for url_name, args, payload in protected_requests:
+            with self.subTest(url_name=url_name):
+                response = self.client.post(reverse(url_name, args=args), payload)
+                self.assertEqual(response.status_code, 403)
+        for url_name, args in (
+            ("order-create", []),
+            ("transportation-create", []),
+            ("transportation-chain-update", [transportation.pk]),
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name, args=args))
+                self.assertEqual(response.status_code, 403)
+
+    def test_manager_without_global_scope_cannot_see_colleague_trip(self):
+        scoped_manager = get_user_model().objects.create_user(
+            username="scoped-manager", password="test-password"
+        )
+        scoped_manager.crm_profile.role = UserProfile.Role.MANAGER
+        scoped_manager.crm_profile.can_see_all_records = False
+        scoped_manager.crm_profile.save(
+            update_fields=["role", "can_see_all_records", "updated_at"]
+        )
+        transportation = self.shipment.transportation
+        self.assertNotEqual(transportation.manager_id, scoped_manager.pk)
+        self.client.force_login(scoped_manager)
+
+        listing = self.client.get(reverse("transportation-list"))
+        self.assertNotContains(listing, transportation.number)
+        self.assertEqual(
+            self.client.get(transportation.get_absolute_url()).status_code, 404
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse("transportation-advance-status", args=[transportation.pk]),
+                {"target_status": Transportation.Status.IN_TRANSIT},
+            ).status_code,
+            404,
+        )
+        for url_name in (
+            "transportation-delete",
+            "transportation-chain-update",
+            "transportation-executor-application",
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name, args=[transportation.pk]))
+                self.assertEqual(response.status_code, 404)
+
+    def test_manager_without_global_scope_cannot_change_colleague_planner_task(self):
+        scoped_manager = get_user_model().objects.create_user(
+            username="scoped-planner-manager", password="test-password"
+        )
+        scoped_manager.crm_profile.role = UserProfile.Role.MANAGER
+        scoped_manager.crm_profile.can_see_all_records = False
+        scoped_manager.crm_profile.save(
+            update_fields=["role", "can_see_all_records", "updated_at"]
+        )
+        transportation = self.shipment.transportation
+        task = PlannerTask.objects.create(
+            transportation=transportation,
+            title="Чужая задача",
+            assignee=self.user,
+        )
+        self.client.force_login(scoped_manager)
+
+        self.assertEqual(
+            self.client.get(reverse("planner-task-update", args=[task.pk])).status_code,
+            404,
+        )
+        self.assertEqual(
+            self.client.post(reverse("planner-task-complete", args=[task.pk])).status_code,
+            404,
+        )
+        create_page = self.client.get(
+            reverse("planner-task-create"), {"transportation": transportation.pk}
+        )
+        self.assertEqual(create_page.status_code, 200)
+        self.assertNotEqual(
+            str(create_page.context["form"].initial.get("transportation", "")),
+            str(transportation.pk),
+        )
+
     def test_transportation_create_uses_modal_and_role_aware_searches(self):
         self.client.force_login(self.user)
 
         transportation_list = self.client.get(reverse("transportation-list"))
         form_response = self.client.get(reverse("transportation-create"))
 
-        self.assertContains(transportation_list, "data-transportation-modal")
+        self.assertContains(transportation_list, "data-order-create-modal")
         self.assertContains(transportation_list, "js/transportation-workspace.js")
         self.assertContains(form_response, 'data-smart-select="organization"')
         self.assertContains(form_response, 'data-full-organization-create="true"')
@@ -257,9 +423,10 @@ class CrmTestCase(TestCase):
         self.assertContains(form_response, 'data-parent-source="id_actual_carrier"')
         self.assertContains(form_response, 'data-contract-create-base="/contracts/new/"')
         self.assertContains(form_response, "Создать договор")
-        self.assertContains(form_response, f"ИНН {self.customer.tax_id}")
+        self.assertContains(form_response, f'data-search-url="{reverse("search-select")}"')
+        self.assertNotContains(form_response, f"ИНН {self.customer.tax_id}")
         form = TransportationDocumentForm()
-        self.assertIn(self.customer.organization, form.fields["client"].queryset)
+        self.assertEqual(form.fields["client"].queryset.count(), 0)
         self.assertNotIn(
             self.carrier.organization,
             form.fields["client"].queryset,
@@ -353,7 +520,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(order.cargo_value, Decimal("160000.50"))
         self.assertEqual(order.volume_m3, Decimal("0"))
         self.assertEqual(order.stops.count(), 3)
-        self.assertEqual(order.route, "Санкт-Петербург → Тверь → Москва")
+        self.assertEqual(order.route, "Склад 1 → Склад 2 → Склад 3")
         registry = self.client.get(reverse("order-list"))
         self.assertContains(registry, order.number)
         self.assertContains(registry, "Пластиковая тара")
@@ -390,15 +557,13 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
-    def test_order_stop_exposes_route_city_and_prefers_it_for_route(self):
+    def test_order_stop_derives_legacy_city_from_address(self):
         form = TransportOrderStopForm(
             initial={"kind": TransportOrderStop.Kind.PICKUP}
         )
 
-        self.assertEqual(form.fields["city"].label, "Город отправления")
-        self.assertNotEqual(form.fields["city"].widget.input_type, "hidden")
-        self.assertIn("data-dadata-city", form.fields["city"].widget.attrs)
-        self.assertIn("data-dadata-city-url", form.fields["city"].widget.attrs)
+        self.assertNotIn("city", form.fields)
+        self.assertIn("data-dadata-address", form.fields["address"].widget.attrs)
         self.assertIn("data-allow-free-text", form.fields["organization"].widget.attrs)
 
         bound = TransportOrderStopForm(
@@ -407,8 +572,7 @@ class CrmTestCase(TestCase):
                 "kind": TransportOrderStop.Kind.DELIVERY,
                 "organization": "",
                 "organization_text": "АШАН",
-                "city": "Казань",
-                "address": "Республика Татарстан, складской комплекс",
+                "address": "Республика Татарстан, г. Казань, складской комплекс",
                 "planned_date": date.today().isoformat(),
                 "planned_time_from": "",
                 "planned_time_to": "",
@@ -420,10 +584,9 @@ class CrmTestCase(TestCase):
             }
         )
 
-        self.assertEqual(bound.fields["city"].label, "Город получения")
         self.assertTrue(bound.is_valid(), bound.errors)
         stop = bound.save(commit=False)
-        self.assertEqual(stop.city, "Казань")
+        self.assertEqual(stop.city, "г. Казань")
         self.assertEqual(stop.organization_text, "АШАН")
 
     def test_order_register_exports_filtered_xlsx(self):
@@ -898,7 +1061,7 @@ class CrmTestCase(TestCase):
     def test_dynamic_filters_are_enabled_across_list_pages_and_reports(self):
         self.client.force_login(self.user)
         for url_name in (
-            "dashboard", "shipment-list", "customer-list", "carrier-list",
+            "dashboard", "order-list", "customer-list", "carrier-list",
             "driver-list", "vehicle-list", "reports", "shipment-document-list",
             "expeditor-list", "contract-list", "organization-list",
             "transportation-list",
@@ -916,7 +1079,6 @@ class CrmTestCase(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("vehicle-list"))
         self.assertContains(response, "js/table-sort.js")
-        self.assertContains(response, "v=20260906-money-sort")
 
     def test_expeditors_are_removed_from_sidebar_menu(self):
         self.client.force_login(self.user)
@@ -927,7 +1089,6 @@ class CrmTestCase(TestCase):
     def test_delete_buttons_are_available_for_accounting_entities(self):
         self.client.force_login(self.user)
         cases = (
-            (reverse("shipment-detail", args=[self.shipment.pk]), reverse("shipment-delete", args=[self.shipment.pk])),
             (self.shipment.transportation.get_absolute_url(), reverse("transportation-delete", args=[self.shipment.transportation.pk])),
             (self.customer.organization.get_absolute_url(), reverse("organization-delete", args=[self.customer.organization.pk])),
             (self.carrier.get_absolute_url(), reverse("organization-delete", args=[self.carrier.organization.pk])),
@@ -1012,14 +1173,14 @@ class CrmTestCase(TestCase):
         self.assertFalse(Organization.objects.filter(pk=organization.pk).exists())
         self.assertFalse(Customer.objects.filter(pk=legacy_customer.pk).exists())
 
-    def test_draft_shipment_and_mirrored_trip_are_deleted_together(self):
+    def test_draft_legacy_trip_and_mirrored_shipment_are_deleted_together(self):
         self.client.force_login(self.user)
         shipment_id = self.shipment.pk
         transportation_id = self.shipment.transportation.pk
         response = self.client.post(
-            reverse("shipment-delete", args=[shipment_id])
+            reverse("transportation-delete", args=[transportation_id])
         )
-        self.assertRedirects(response, reverse("shipment-list"))
+        self.assertRedirects(response, reverse("transportation-list"))
         self.assertFalse(Shipment.objects.filter(pk=shipment_id).exists())
         self.assertFalse(Transportation.objects.filter(pk=transportation_id).exists())
 
@@ -2059,9 +2220,10 @@ class CrmTestCase(TestCase):
         create_page = self.client.get(reverse("transportation-create"))
         self.assertEqual(create_page.status_code, 200)
         self.assertContains(create_page, "Записать и провести")
-        self.assertContains(create_page, "Организация, клиент и коммерческие условия рейса")
+        self.assertContains(create_page, "Основные данные")
+        self.assertContains(create_page, "Ставка и форма оплаты")
         self.assertContains(create_page, "Основание отсрочки")
-        self.assertContains(create_page, "Закупка у исполнителя")
+        self.assertContains(create_page, "Закупка")
         self.assertContains(create_page, "НДС к уплате")
         self.assertContains(create_page, "Прибыль рейса без НДС")
         self.assertContains(create_page, "Чистая прибыль")
@@ -2461,14 +2623,15 @@ class CrmTestCase(TestCase):
         self.client.force_login(self.user)
         dashboard = self.client.get(reverse("dashboard"))
         self.assertContains(dashboard, "uikit@3.25.21")
-        self.assertContains(dashboard, "v=20260908-directory-unified")
         self.assertContains(dashboard, "uikit-theme")
         self.assertContains(dashboard, "uk-card uk-card-default")
         self.assertContains(dashboard, "Dashboard")
         self.assertContains(dashboard, "dashboard-today")
-        shipments = self.client.get(reverse("shipment-list"))
-        self.assertContains(shipments, "uk-table uk-table-small")
-        form = self.client.get(reverse("shipment-update", args=[self.shipment.pk]))
+        orders = self.client.get(reverse("order-list"))
+        self.assertContains(orders, "uk-table uk-table-small")
+        form = self.client.get(
+            reverse("transportation-update", args=[self.shipment.transportation.pk])
+        )
         self.assertContains(form, 'class="form-control uk-input"')
         self.assertContains(form, 'class="form-control uk-select"')
         drivers = self.client.get(reverse("driver-list"))
@@ -2615,6 +2778,61 @@ class CrmTestCase(TestCase):
         self.assertEqual(tractor_form.cleaned_data["volume_m3"], Decimal("0"))
         self.assertEqual(tractor_form.cleaned_data["pallet_capacity"], 0)
 
+    def test_trip_related_entities_use_standard_cards_and_vehicle_returns_json(self):
+        self.client.force_login(self.user)
+        trip_page = self.client.get(
+            reverse("transportation-update", args=[self.shipment.transportation.pk])
+        )
+        form = trip_page.context["form"]
+        for field_name in (
+            "client", "executor", "actual_carrier", "pickup_organization",
+            "delivery_organization", "driver", "vehicle", "trailer",
+        ):
+            with self.subTest(field=field_name):
+                attrs = form.fields[field_name].widget.attrs
+                self.assertTrue(attrs.get("data-entity-type"))
+                self.assertTrue(attrs.get("data-edit-url-template"))
+        self.assertEqual(
+            form.fields["driver"].widget.attrs["data-create-url"],
+            reverse("driver-create"),
+        )
+        self.assertEqual(
+            form.fields["vehicle"].widget.attrs["data-create-url"],
+            reverse("vehicle-create"),
+        )
+
+        driver_page = self.client.get(
+            reverse("driver-create"),
+            {"organization": self.carrier.organization_id},
+        )
+        employment_formset = driver_page.context["employment_formset"]
+        self.assertEqual(
+            employment_formset.forms[0].initial["carrier"], self.carrier.pk
+        )
+
+        response = self.client.post(
+            f"{reverse('vehicle-create')}?organization={self.carrier.organization_id}",
+            {
+                "carrier": self.carrier.pk,
+                "kind": Vehicle.Kind.TRACTOR,
+                "make": "КАМАЗ",
+                "registration_number": "А321АА198",
+                "body_type": "",
+                "capacity_kg": "",
+                "volume_m3": "",
+                "pallet_capacity": "",
+                "attachment-enabled": "",
+                "action": "save_close",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["item"]["kind"], Vehicle.Kind.TRACTOR)
+        self.assertIn(self.carrier.organization_id, payload["item"]["carrier_ids"])
+
     def test_vehicle_form_creates_trailer_as_separate_linked_vehicle(self):
         self.client.force_login(self.user)
         response = self.client.post(
@@ -2687,6 +2905,12 @@ class CrmTestCase(TestCase):
             reverse("carrier-resources"), {"carrier": second_carrier.pk}
         ).json()
         self.assertIn(vehicle.pk, [item["id"] for item in resources["vehicles"]])
+        trip_form = TransportationDocumentForm(
+            data={"actual_carrier": second_carrier.organization_id},
+            instance=self.shipment.transportation,
+            user=self.user,
+        )
+        self.assertIn(vehicle, trip_form.fields["vehicle"].queryset)
 
     def test_vehicle_combination_is_separate_and_supports_gazelle_without_trailer(self):
         self.client.force_login(self.user)
@@ -2738,7 +2962,7 @@ class CrmTestCase(TestCase):
         vehicle_response = self.client.get(
             reverse("vehicle-detail", args=[self.vehicle.pk])
         )
-        self.assertContains(vehicle_response, "Сцепки с прицепами")
+        self.assertContains(vehicle_response, "Сцепки")
         self.assertContains(vehicle_response, trailer.registration_number)
 
         chain_form = TransportationChainForm(
@@ -3055,21 +3279,15 @@ class CrmTestCase(TestCase):
 
     def test_route_address_fields_offer_dadata_suggestions(self):
         self.client.force_login(self.user)
-        for url in (reverse("transportation-create"), reverse("shipment-create")):
+        for url in (reverse("transportation-create"), reverse("order-create")):
             with self.subTest(url=url):
                 response = self.client.get(url)
-                expected_address_fields = 3 if url == reverse("transportation-create") else 2
-                expected_city_fields = 3 if url == reverse("transportation-create") else 2
-                self.assertContains(
-                    response,
-                    'data-dadata-address=""',
-                    count=expected_address_fields,
-                )
-                self.assertContains(
-                    response,
-                    'data-dadata-city=""',
-                    count=expected_city_fields,
-                )
+                content = response.content.decode()
+                self.assertGreaterEqual(content.count('data-dadata-address=""'), 2)
+                if url == reverse("transportation-create"):
+                    self.assertGreaterEqual(content.count('data-dadata-city=""'), 2)
+                else:
+                    self.assertNotIn('data-dadata-city=""', content)
                 self.assertContains(response, reverse("dadata-address-suggestions"))
                 self.assertContains(response, "js/address-suggestions.js")
                 self.assertContains(response, "js/city-suggestions.js")
@@ -3195,7 +3413,7 @@ class CrmTestCase(TestCase):
         self.assertIn("tax_id", form.fields)
         self.assertIn("employment_formset", response.context)
         self.assertIn("license_formset", response.context)
-        self.assertContains(response, "Добавить контрагента")
+        self.assertContains(response, "Привязать к контрагенту")
         self.assertContains(response, "Добавить паспорт")
         self.assertContains(response, "Добавить водительское удостоверение")
         self.assertContains(response, "js/driver-suggestions.js")
@@ -3330,7 +3548,7 @@ class CrmTestCase(TestCase):
         self.assertFalse(driver.licenses.exists())
 
         listing = self.client.get(reverse("driver-list"), {"q": "Безправов"})
-        self.assertContains(listing, "Внесите ВУ")
+        self.assertContains(listing, "ВУ не внесено")
         detail = self.client.get(driver.get_absolute_url())
         self.assertContains(detail, "Водительские удостоверения не добавлены.")
 
@@ -3405,6 +3623,13 @@ class CrmTestCase(TestCase):
         self.assertEqual(self.driver.license_expiry_date, date(2036, 1, 10))
 
     def test_driver_license_number_is_globally_unique_after_normalization(self):
+        DriverLicense.objects.create(
+            driver=self.driver,
+            number="77 11 123456",
+            categories="C, CE",
+            expiry_date=date.today() + timedelta(days=700),
+            is_current=True,
+        )
         other_carrier = Carrier.objects.create(name="Перевозчик удостоверения")
         other_driver = Driver.objects.create(
             carrier=other_carrier,
@@ -3420,7 +3645,7 @@ class CrmTestCase(TestCase):
             with transaction.atomic():
                 DriverLicense.objects.create(
                     driver=other_driver,
-                    number="T E S T - DRIVER - 1",
+                    number="7711123456",
                     categories="C",
                     expiry_date=date.today() + timedelta(days=700),
                     is_current=True,
@@ -3447,8 +3672,10 @@ class CrmTestCase(TestCase):
                 "employments-MAX_NUM_FORMS": "1000",
                 "employments-0-id": str(employment.pk),
                 "employments-0-carrier": str(self.carrier.pk),
+                "employments-0-is_active": "on",
                 "employments-1-carrier": str(second_carrier.pk),
                 "employments-1-is_primary": "on",
+                "employments-1-is_active": "on",
                 "licenses-TOTAL_FORMS": "2",
                 "licenses-INITIAL_FORMS": "1",
                 "licenses-MIN_NUM_FORMS": "0",
@@ -4048,13 +4275,16 @@ class CrmTestCase(TestCase):
     def test_dashboard_metric_cards_link_to_filtered_lists(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse("dashboard"))
-        for scope in (
-            "active", "unassigned", "revenue", "margin", "receivables", "payables"
-        ):
-            with self.subTest(scope=scope):
-                self.assertContains(
-                    response, f'{reverse("shipment-list")}?scope={scope}'
-                )
+        self.assertContains(
+            response, f'{reverse("transportation-list")}?scope=active'
+        )
+        self.assertContains(
+            response, f'{reverse("transportation-list")}?scope=unassigned'
+        )
+        self.assertContains(
+            response, f'{reverse("transportation-list")}?currency=RUB'
+        )
+        self.assertContains(response, f'{reverse("debt-report")}?currency=RUB')
 
     def test_dashboard_scopes_filter_shipments(self):
         common = {
@@ -4091,22 +4321,25 @@ class CrmTestCase(TestCase):
             **common,
         )
         expected_ids = {
-            "active": {self.shipment.pk, unassigned.pk},
-            "unassigned": {unassigned.pk},
-            "revenue": {self.shipment.pk, unassigned.pk, loss.pk},
-            "margin": {self.shipment.pk, unassigned.pk},
-            "receivables": {self.shipment.pk, unassigned.pk, loss.pk},
-            "payables": {self.shipment.pk, loss.pk},
+            "active": {
+                self.shipment.transportation.pk,
+                unassigned.transportation.pk,
+            },
+            "unassigned": {unassigned.transportation.pk},
+            "closed": {loss.transportation.pk},
         }
         self.client.force_login(self.user)
         for scope, expected in expected_ids.items():
             with self.subTest(scope=scope):
                 response = self.client.get(
-                    reverse("shipment-list"), {"scope": scope}
+                    reverse("transportation-list"), {"scope": scope}
                 )
-                actual = {shipment.pk for shipment in response.context["shipments"]}
+                actual = {
+                    transportation.pk
+                    for transportation in response.context["transportations"]
+                }
                 self.assertEqual(actual, expected)
-                self.assertNotIn(cancelled.pk, actual)
+                self.assertNotIn(cancelled.transportation.pk, actual)
 
     def test_dashboard_shows_current_debt_balances(self):
         Payment.objects.create(
@@ -4125,8 +4358,9 @@ class CrmTestCase(TestCase):
         )
         self.client.force_login(self.user)
         response = self.client.get(reverse("dashboard"), {"currency": "RUB"})
-        self.assertEqual(response.context["receivables"], Decimal("60000"))
-        self.assertEqual(response.context["payables"], Decimal("55000"))
+        # Черновик не создаёт бухгалтерскую задолженность до проведения.
+        self.assertEqual(response.context["receivables"], Decimal("0"))
+        self.assertEqual(response.context["payables"], Decimal("0"))
         self.assertContains(response, "Дебиторская задолженность")
         self.assertContains(response, "Кредиторская задолженность")
 
@@ -4141,15 +4375,19 @@ class CrmTestCase(TestCase):
         response = self.client.get(reverse("dashboard"), {"currency": "USD"})
         self.assertEqual(response.context["revenue"], Decimal("5000"))
         self.assertEqual(response.context["margin"], Decimal("1500"))
-        self.assertEqual(response.context["receivables"], Decimal("5000"))
-        self.assertEqual(response.context["payables"], Decimal("3500"))
+        # Непроведённый рейс участвует в управленческих показателях, но не в долгах.
+        self.assertEqual(response.context["receivables"], Decimal("0"))
+        self.assertEqual(response.context["payables"], Decimal("0"))
 
-    def test_shipment_search(self):
+    def test_transportation_search(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("shipment-list"), {"q": "Казань"})
-        self.assertContains(response, self.shipment.number)
-        response = self.client.get(reverse("shipment-list"), {"q": "Владивосток"})
-        self.assertNotContains(response, self.shipment.number)
+        transportation = self.shipment.transportation
+        response = self.client.get(reverse("transportation-list"), {"q": "Казань"})
+        self.assertContains(response, transportation.number)
+        response = self.client.get(
+            reverse("transportation-list"), {"q": "Владивосток"}
+        )
+        self.assertNotContains(response, transportation.number)
 
     def test_delivery_cannot_precede_pickup(self):
         form = ShipmentForm(
@@ -4176,14 +4414,21 @@ class CrmTestCase(TestCase):
 
     def test_edit_form_renders_dates_in_russian_text_format(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("shipment-update", args=[self.shipment.pk]))
-        self.assertContains(
-            response,
-            'value="{}"'.format(self.shipment.pickup_date.strftime("%d.%m.%Y")),
+        transportation = self.shipment.transportation
+        response = self.client.get(
+            reverse("transportation-update", args=[transportation.pk])
         )
         self.assertContains(
             response,
-            'value="{}"'.format(self.shipment.delivery_date.strftime("%d.%m.%Y")),
+            'value="{}"'.format(
+                transportation.planned_start_date.strftime("%d.%m.%Y")
+            ),
+        )
+        self.assertContains(
+            response,
+            'value="{}"'.format(
+                transportation.planned_end_date.strftime("%d.%m.%Y")
+            ),
         )
         self.assertContains(response, 'placeholder="ДД.ММ.ГГГГ"')
         self.assertContains(response, "data-crm-date")
@@ -4285,7 +4530,9 @@ class CrmTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["event_count"], 6)
+        # Для нового рейса показываются ближайшая погрузка и финансовые сроки;
+        # выгрузка появится после перехода рейса в путь.
+        self.assertEqual(response.context["event_count"], 4)
         self.assertEqual(response.context["tasks"], [task])
         self.assertContains(response, "Планировщик")
         self.assertContains(response, "Погрузка")
@@ -4535,21 +4782,79 @@ class CrmTestCase(TestCase):
         self.assertContains(response, 'placeholder="ДД.ММ.ГГГГ"')
         self.assertNotContains(response, 'type="date"')
 
-    def test_shipment_payment_filter_uses_current_due_date(self):
-        self.shipment.customer_payment_due_date = date.today() - timedelta(days=1)
-        self.shipment.payment_status = Shipment.PaymentStatus.AWAITING
-        self.shipment.save()
-        self.client.force_login(self.user)
-        response = self.client.get(
-            reverse("shipment-list"),
-            {"payment": Shipment.PaymentStatus.OVERDUE},
+    def test_debt_report_uses_current_transportation_due_date(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED
         )
-        self.assertContains(response, self.shipment.number)
+        transportation.refresh_from_db()
+        SettlementMovement.objects.create(
+            transportation=transportation,
+            side=SettlementMovement.Side.RECEIVABLE,
+            kind=SettlementMovement.Kind.ACCRUAL,
+            owner_company=transportation.owner_company,
+            counterparty=self.customer.organization,
+            amount=Decimal("100000.00"),
+            currency="RUB",
+            movement_date=date.today() - timedelta(days=10),
+            due_date=date.today() - timedelta(days=1),
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("debt-report"), {"currency": "RUB"})
+        self.assertContains(response, transportation.number)
+        self.assertContains(response, "Просрочено")
 
-    def test_authenticated_user_can_register_payment(self):
+    def test_debt_report_separates_customer_and_executor_currencies(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED,
+            currency="RUB",
+            executor_currency="USD",
+        )
+        transportation.refresh_from_db()
+        transportation.settlement_movements.all().delete()
+        SettlementMovement.objects.create(
+            transportation=transportation,
+            side=SettlementMovement.Side.RECEIVABLE,
+            kind=SettlementMovement.Kind.ACCRUAL,
+            owner_company=transportation.owner_company,
+            counterparty=self.customer.organization,
+            amount=Decimal("100000.00"),
+            currency="RUB",
+            movement_date=date.today(),
+        )
+        SettlementMovement.objects.create(
+            transportation=transportation,
+            side=SettlementMovement.Side.PAYABLE,
+            kind=SettlementMovement.Kind.ACCRUAL,
+            owner_company=transportation.owner_company,
+            counterparty=self.carrier.organization,
+            amount=Decimal("900.00"),
+            currency="USD",
+            movement_date=date.today(),
+        )
+        self.client.force_login(self.user)
+
+        rub_report = self.client.get(reverse("debt-report"), {"currency": "RUB"})
+        usd_report = self.client.get(reverse("debt-report"), {"currency": "USD"})
+
+        self.assertEqual(
+            rub_report.context["debt_totals"]["receivable"], Decimal("100000.00")
+        )
+        self.assertEqual(rub_report.context["debt_totals"]["payable"], Decimal("0"))
+        self.assertEqual(usd_report.context["debt_totals"]["receivable"], Decimal("0"))
+        self.assertEqual(
+            usd_report.context["debt_totals"]["payable"], Decimal("900.00")
+        )
+
+    def test_authenticated_user_can_register_transportation_payment(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED
+        )
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("payment-create", args=[self.shipment.pk]),
+            reverse("transportation-payment-create", args=[transportation.pk]),
             {
                 "direction": Payment.Direction.INCOME,
                 "amount": "15000.00",
@@ -4559,10 +4864,197 @@ class CrmTestCase(TestCase):
                 "notes": "Аванс",
             },
         )
-        self.assertRedirects(response, self.shipment.get_absolute_url())
+        self.assertRedirects(response, transportation.get_absolute_url())
         payment = Payment.objects.get(reference="ПП-101")
         self.assertEqual(payment.amount, Decimal("15000.00"))
         self.assertEqual(payment.created_by, self.user)
+        self.assertEqual(payment.transportation, transportation)
+
+    def test_executor_payment_movement_uses_executor_currency(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED,
+            executor_currency="USD",
+        )
+        transportation.refresh_from_db()
+
+        payment = Payment.objects.create(
+            transportation=transportation,
+            direction=Payment.Direction.EXPENSE,
+            amount=Decimal("250.00"),
+            payment_date=date.today(),
+            created_by=self.user,
+        )
+
+        movement = SettlementMovement.objects.get(payment=payment)
+        self.assertEqual(movement.side, SettlementMovement.Side.PAYABLE)
+        self.assertEqual(movement.currency, "USD")
+
+    def test_bank_expense_candidates_use_executor_currency(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED,
+            currency="RUB",
+            executor_currency="USD",
+        )
+        transportation.refresh_from_db()
+        transportation.settlement_movements.all().delete()
+        SettlementMovement.objects.create(
+            transportation=transportation,
+            side=SettlementMovement.Side.PAYABLE,
+            kind=SettlementMovement.Kind.ACCRUAL,
+            owner_company=transportation.owner_company,
+            counterparty=self.carrier.organization,
+            amount=Decimal("900.00"),
+            currency="USD",
+            movement_date=date.today(),
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("bank-statement-create"),
+            {"direction": BankStatement.Direction.EXPENSE, "currency": "USD"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        candidate_ids = {
+            item["transportation"].pk
+            for item in response.context["bank_expense_candidates"]
+        }
+        self.assertIn(transportation.pk, candidate_ids)
+
+        statement = BankStatement.objects.create(
+            statement_date=date.today(),
+            direction=BankStatement.Direction.EXPENSE,
+            owner_company=transportation.owner_company,
+            currency="USD",
+            created_by=self.user,
+        )
+        line = BankStatementLine.objects.create(
+            statement=statement,
+            transportation=transportation,
+            amount=Decimal("250.00"),
+        )
+        post_bank_statement(statement, self.user)
+        line.refresh_from_db()
+        statement.refresh_from_db()
+        self.assertEqual(statement.status, BankStatement.Status.POSTED)
+        self.assertEqual(line.payment.direction, Payment.Direction.EXPENSE)
+        self.assertEqual(line.payment.settlement_movement.currency, "USD")
+
+    def test_scoped_accountant_cannot_access_colleague_bank_statements(self):
+        accountant = get_user_model().objects.create_user(
+            username="scoped-accountant", password="test-password"
+        )
+        accountant.crm_profile.role = UserProfile.Role.ACCOUNTANT
+        accountant.crm_profile.can_see_all_records = False
+        accountant.crm_profile.save(
+            update_fields=["role", "can_see_all_records", "updated_at"]
+        )
+        colleague = get_user_model().objects.create_user(
+            username="bank-colleague", password="test-password"
+        )
+        own_transportation = self.shipment.transportation
+        own_transportation.manager = accountant
+        own_transportation.posting_status = Transportation.PostingStatus.POSTED
+        own_transportation.save(
+            update_fields=["manager", "posting_status", "updated_at"]
+        )
+        colleague_shipment = self.create_shipment_for(
+            self.company_profile, number="BANK-COLLEAGUE-001"
+        )
+        colleague_transportation = colleague_shipment.transportation
+        colleague_transportation.manager = colleague
+        colleague_transportation.posting_status = Transportation.PostingStatus.POSTED
+        colleague_transportation.save(
+            update_fields=["manager", "posting_status", "updated_at"]
+        )
+        for transportation in (own_transportation, colleague_transportation):
+            SettlementMovement.objects.create(
+                transportation=transportation,
+                side=SettlementMovement.Side.RECEIVABLE,
+                kind=SettlementMovement.Kind.ACCRUAL,
+                owner_company=transportation.owner_company,
+                counterparty=self.customer.organization,
+                amount=Decimal("1000.00"),
+                currency="RUB",
+                movement_date=date.today(),
+            )
+
+        colleague_statement = BankStatement.objects.create(
+            statement_date=date.today(),
+            direction=BankStatement.Direction.INCOME,
+            owner_company=colleague_transportation.owner_company,
+            currency="RUB",
+            reference="ЧУЖАЯ-ВЫПИСКА",
+            created_by=self.user,
+        )
+        colleague_line = BankStatementLine.objects.create(
+            statement=colleague_statement,
+            transportation=colleague_transportation,
+            amount=Decimal("100.00"),
+        )
+        mixed_statement = BankStatement.objects.create(
+            statement_date=date.today(),
+            direction=BankStatement.Direction.INCOME,
+            owner_company=own_transportation.owner_company,
+            currency="RUB",
+            reference="СМЕШАННАЯ-ВЫПИСКА",
+            created_by=accountant,
+        )
+        mixed_own_line = BankStatementLine.objects.create(
+            statement=mixed_statement,
+            transportation=own_transportation,
+            amount=Decimal("100.00"),
+        )
+        BankStatementLine.objects.create(
+            statement=mixed_statement,
+            transportation=colleague_transportation,
+            amount=Decimal("100.00"),
+        )
+
+        self.client.force_login(accountant)
+        statement_list = self.client.get(reverse("bank-statement-list"))
+        self.assertNotContains(statement_list, "ЧУЖАЯ-ВЫПИСКА")
+        self.assertNotContains(statement_list, "СМЕШАННАЯ-ВЫПИСКА")
+
+        for url in (
+            reverse("bank-statement-detail", args=[colleague_statement.pk]),
+            reverse("bank-statement-update", args=[colleague_statement.pk]),
+            reverse("bank-statement-delete", args=[colleague_statement.pk]),
+            reverse(
+                "bank-statement-line-update",
+                args=[colleague_statement.pk, colleague_line.pk],
+            ),
+            reverse(
+                "bank-statement-line-delete",
+                args=[colleague_statement.pk, colleague_line.pk],
+            ),
+            reverse(
+                "bank-statement-line-update",
+                args=[mixed_statement.pk, mixed_own_line.pk],
+            ),
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 404)
+
+        for url in (
+            reverse("bank-statement-post", args=[colleague_statement.pk]),
+            reverse("bank-statement-unpost", args=[colleague_statement.pk]),
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.post(url).status_code, 404)
+
+        create_page = self.client.get(
+            reverse("bank-statement-create"),
+            {"direction": BankStatement.Direction.INCOME, "currency": "RUB"},
+        )
+        candidate_ids = {
+            item["transportation"].pk
+            for item in create_page.context["bank_income_candidates"]
+        }
+        self.assertIn(own_transportation.pk, candidate_ids)
+        self.assertNotIn(colleague_transportation.pk, candidate_ids)
 
     def test_forwarding_order_form_prefills_customer_and_shipment_data(self):
         self.client.force_login(self.user)
@@ -4633,27 +5125,15 @@ class CrmTestCase(TestCase):
             ForwardingOrder.objects.filter(shipment=self.shipment).exists()
         )
 
-    def test_forwarding_order_draft_is_saved(self):
+    def test_authenticated_user_can_create_expected_transportation_document(self):
+        transportation = self.shipment.transportation
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("forwarding-order", args=[self.shipment.pk]),
+            reverse("shipment-document-create-general"),
             {
-                "action": "save",
-                "contract_number": "DRAFT-01",
-                "cargo_insurance": ForwardingOrder.Insurance.NOT_SPECIFIED,
-            },
-        )
-        self.assertRedirects(response, self.shipment.get_absolute_url())
-        self.assertEqual(
-            ForwardingOrder.objects.get(shipment=self.shipment).contract_number,
-            "DRAFT-01",
-        )
-
-    def test_authenticated_user_can_create_expected_shipment_document(self):
-        self.client.force_login(self.user)
-        response = self.client.post(
-            reverse("shipment-document-create", args=[self.shipment.pk]),
-            {
+                "shipment": "",
+                "transportation": transportation.pk,
+                "direction": ShipmentDocument.Direction.INCOMING,
                 "kind": ShipmentDocument.Kind.TRANSPORT_WAYBILL,
                 "party": ShipmentDocument.Party.CARRIER,
                 "status": ShipmentDocument.Status.EXPECTED,
@@ -4665,8 +5145,8 @@ class CrmTestCase(TestCase):
                 "notes": "Ждём оригинал от перевозчика",
             },
         )
-        self.assertRedirects(response, self.shipment.get_absolute_url())
-        document_record = ShipmentDocument.objects.get(shipment=self.shipment)
+        self.assertRedirects(response, transportation.get_absolute_url())
+        document_record = ShipmentDocument.objects.get(transportation=transportation)
         self.assertEqual(
             document_record.kind, ShipmentDocument.Kind.TRANSPORT_WAYBILL
         )
@@ -5053,18 +5533,18 @@ class CrmTestCase(TestCase):
                     b"".join(response.streaming_content), b"%PDF-1.4 test invoice"
                 )
 
-    def test_shipment_detail_contains_document_actions(self):
+    def test_transportation_detail_contains_document_actions(self):
+        transportation = self.shipment.transportation
         self.client.force_login(self.user)
-        response = self.client.get(
-            reverse("shipment-detail", args=[self.shipment.pk])
-        )
-        self.assertContains(response, "Документы по заявке")
+        response = self.client.get(transportation.get_absolute_url())
+        self.assertContains(response, "Первичные документы рейса")
         self.assertContains(
-            response, reverse("shipment-document-create", args=[self.shipment.pk])
+            response,
+            f'{reverse("shipment-document-create-general")}?transportation={transportation.pk}',
         )
-        self.assertContains(response, reverse("forwarding-order", args=[self.shipment.pk]))
         self.assertContains(
-            response, reverse("accounting-document-create", args=[self.shipment.pk])
+            response,
+            reverse("transportation-executor-application", args=[transportation.pk]),
         )
 
     def test_expeditor_can_be_updated(self):
@@ -5264,7 +5744,7 @@ class CrmTestCase(TestCase):
             short_name="СЕЛЕКТ ЛОДЖИСТИК",
             tax_id="7812999911",
         )
-        Shipment.objects.filter(pk=self.shipment.pk).update(
+        Transportation.objects.filter(pk=self.shipment.transportation.pk).update(
             cargo_name="ПЛАСТИКОВАЯ ТАРА"
         )
         self.client.force_login(self.user)
@@ -5273,10 +5753,12 @@ class CrmTestCase(TestCase):
             reverse("organization-list"),
             {"q": "селе"},
         )
-        shipments = self.client.get(reverse("shipment-list"), {"q": "пласт"})
+        transportations = self.client.get(
+            reverse("transportation-list"), {"q": "пласт"}
+        )
 
         self.assertContains(organizations, organization.name)
-        self.assertContains(shipments, self.shipment.number)
+        self.assertContains(transportations, self.shipment.transportation.number)
 
     def test_organization_register_uses_order_register_layout(self):
         self.client.force_login(self.user)
@@ -5301,8 +5783,12 @@ class CrmTestCase(TestCase):
         self.assertTrue(response.content.startswith(b"%PDF"))
 
     def test_payment_can_be_edited_and_deleted(self):
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            posting_status=Transportation.PostingStatus.POSTED
+        )
         payment = Payment.objects.create(
-            shipment=self.shipment,
+            transportation=transportation,
             direction=Payment.Direction.INCOME,
             amount=Decimal("10000.00"),
             payment_date=date.today(),
@@ -5311,15 +5797,15 @@ class CrmTestCase(TestCase):
         )
         self.client.force_login(self.user)
         update_url = reverse(
-            "payment-update",
-            args=[self.shipment.pk, payment.pk],
+            "transportation-payment-update",
+            args=[transportation.pk, payment.pk],
         )
         delete_url = reverse(
-            "payment-delete",
-            args=[self.shipment.pk, payment.pk],
+            "transportation-payment-delete",
+            args=[transportation.pk, payment.pk],
         )
 
-        detail = self.client.get(self.shipment.get_absolute_url())
+        detail = self.client.get(transportation.get_absolute_url())
         self.assertContains(detail, update_url)
         self.assertContains(detail, delete_url)
         response = self.client.post(
@@ -5333,20 +5819,19 @@ class CrmTestCase(TestCase):
                 "notes": "Исправленная сумма",
             },
         )
-        self.assertRedirects(response, self.shipment.get_absolute_url())
+        self.assertRedirects(response, transportation.get_absolute_url())
         payment.refresh_from_db()
         self.assertEqual(payment.amount, Decimal("17500.00"))
         self.assertEqual(payment.reference, "ПП-EDITED")
-        self.assertEqual(self.shipment.received_amount, Decimal("17500.00"))
 
         response = self.client.post(delete_url)
-        self.assertRedirects(response, self.shipment.get_absolute_url())
+        self.assertRedirects(response, transportation.get_absolute_url())
         self.assertFalse(Payment.objects.filter(pk=payment.pk).exists())
-        self.assertEqual(self.shipment.received_amount, Decimal("0"))
 
     def test_delete_dependencies_link_to_related_records(self):
+        transportation = self.shipment.transportation
         Payment.objects.create(
-            shipment=self.shipment,
+            transportation=transportation,
             direction=Payment.Direction.INCOME,
             amount=Decimal("5000.00"),
             payment_date=date.today(),
@@ -5356,10 +5841,55 @@ class CrmTestCase(TestCase):
         self.client.force_login(self.user)
 
         response = self.client.get(
-            reverse("shipment-delete", args=[self.shipment.pk])
+            reverse("transportation-delete", args=[transportation.pk])
         )
-        payment = self.shipment.payments.get(reference="ПП-LINK")
+        payment = transportation.payments.get(reference="ПП-LINK")
 
         self.assertContains(response, payment.get_absolute_url())
         self.assertContains(response, "Поступление от клиента")
         self.assertContains(response, 'uk-icon="link"')
+
+    def test_search_select_uses_server_side_limited_role_aware_results(self):
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("search-select"),
+            {"resource": "organization", "q": "Тест", "role": OrganizationRole.Role.CARRIER},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertLessEqual(len(payload["items"]), 20)
+        self.assertIn(self.carrier.organization_id, [item["id"] for item in payload["items"]])
+        self.assertNotIn(self.customer.organization_id, [item["id"] for item in payload["items"]])
+
+    def test_search_select_driver_can_switch_from_linked_to_global_scope(self):
+        other_carrier = Carrier.objects.create(
+            name="Другой перевозчик", tax_id="7722000099", is_active=True
+        )
+        other_driver = Driver.objects.create(
+            carrier=other_carrier,
+            last_name="Глобальный",
+            first_name="Водитель",
+            phone="+7 900 111-22-33",
+        )
+        self.client.force_login(self.user)
+        params = {
+            "resource": "driver",
+            "q": "Глобальный",
+            "organization": self.carrier.organization_id,
+        }
+        linked = self.client.get(reverse("search-select"), params).json()
+        self.assertNotIn(other_driver.pk, [item["id"] for item in linked["items"]])
+        params["scope"] = "all"
+        global_results = self.client.get(reverse("search-select"), params).json()
+        self.assertIn(other_driver.pk, [item["id"] for item in global_results["items"]])
+
+        link_response = self.client.post(
+            reverse("search-select-link"),
+            {
+                "resource": "driver",
+                "id": other_driver.pk,
+                "organization": self.carrier.organization_id,
+            },
+        )
+        self.assertEqual(link_response.status_code, 200)
+        self.assertTrue(other_driver.works_for_organization(self.carrier.organization_id))

@@ -2,6 +2,7 @@
     "use strict";
 
     let modalElement;
+    let activeOptions = null;
     const stateKey = "crm-driver-modal-draft";
 
     const modal = () => window.UIkit?.modal(modalElement, {
@@ -86,6 +87,12 @@
         });
     };
 
+    const emitSaved = (item, action) => {
+        document.dispatchEvent(new CustomEvent("crm:entity-saved", {
+            detail: {type: "driver", id: item?.id, action, item}
+        }));
+    };
+
     const render = (html, sourceUrl, draft = null, showErrors = false) => {
         const page = new DOMParser().parseFromString(html, "text/html");
         const form = page.querySelector("[data-driver-form]");
@@ -149,8 +156,12 @@
                     const result = await response.json();
                     clearDraft();
                     notify(result.message || "Карточка водителя сохранена.", "success");
+                    emitSaved(result.item, activeOptions?.action || "updated");
+                    activeOptions?.onSaved?.(result.item, result);
                     if (result.action === "save") {
-                        await open(result.url);
+                        await open(result.url, null, activeOptions);
+                    } else if (activeOptions) {
+                        modal()?.hide();
                     } else {
                         modal()?.hide();
                         window.location.assign(result.url);
@@ -165,7 +176,8 @@
         });
     };
 
-    const open = async (url, draft = null) => {
+    const open = async (url, draft = null, options = null) => {
+        activeOptions = options;
         ensureModal();
         showLoading();
         modal()?.show();
@@ -185,13 +197,20 @@
         if (!trigger) return;
         event.preventDefault();
         clearDraft();
-        open(trigger.href);
+        open(trigger.href, null, null);
     });
 
     window.addEventListener("DOMContentLoaded", () => {
         const pageErrors = validationMessages(document);
         if (pageErrors.length) notify(pageErrors.join(" "), "danger");
         const draft = loadDraft();
-        if (draft?.sourceUrl) open(draft.sourceUrl, draft);
+        if (draft?.sourceUrl) open(draft.sourceUrl, draft, null);
     });
+
+    window.CRMDriverModal = {
+        open(url, options = {}) {
+            clearDraft();
+            return open(url, null, options);
+        }
+    };
 })();

@@ -527,12 +527,14 @@ def sync_payment_movement(payment):
         side = SettlementMovement.Side.RECEIVABLE
         counterparty = client_party.organization if client_party else None
         contract = transportation.customer_contract
+        currency = transportation.currency
     else:
         side = SettlementMovement.Side.PAYABLE
         counterparty = (
             executor_link.contractor_party.organization if executor_link else None
         )
         contract = executor_link.contract if executor_link else None
+        currency = transportation.executor_currency
     if not counterparty:
         return None
     return SettlementMovement.objects.create(
@@ -544,7 +546,7 @@ def sync_payment_movement(payment):
         counterparty=counterparty,
         contract=contract,
         amount=-payment.amount,
-        currency=transportation.currency,
+        currency=currency,
         movement_date=payment.payment_date,
     )
 
@@ -683,9 +685,15 @@ def post_bank_statement(statement, user=None):
         if transportation.owner_company_id != statement.owner_company_id:
             errors.append(f"{transportation}: другая наша компания.")
             continue
-        if transportation.currency != statement.currency:
+        transportation_currency = (
+            transportation.currency
+            if statement.direction == BankStatement.Direction.INCOME
+            else transportation.executor_currency
+        )
+        if transportation_currency != statement.currency:
             errors.append(
-                f"{transportation}: валюта рейса {transportation.currency}, а в выписке {statement.currency}."
+                f"{transportation}: валюта расчётов {transportation_currency}, "
+                f"а в выписке {statement.currency}."
             )
             continue
         balance = (

@@ -11,6 +11,9 @@ def crm_access(request):
         "can_access_finance": False,
         "can_close_documents": False,
         "can_delete_records": False,
+        "can_view_personal_data": False,
+        "can_manage_personal_data": False,
+        "can_export_personal_data": False,
     }
     if not request.user.is_authenticated:
         return {"crm_access": access}
@@ -22,6 +25,9 @@ def crm_access(request):
                 "can_access_finance": True,
                 "can_close_documents": True,
                 "can_delete_records": True,
+                "can_view_personal_data": True,
+                "can_manage_personal_data": True,
+                "can_export_personal_data": True,
             }
         )
         return {"crm_access": access}
@@ -33,6 +39,9 @@ def crm_access(request):
             "can_access_finance": profile.can_access_finance,
             "can_close_documents": profile.can_close_documents,
             "can_delete_records": profile.can_delete_records,
+            "can_view_personal_data": profile.can_view_personal_data,
+            "can_manage_personal_data": profile.can_manage_personal_data,
+            "can_export_personal_data": profile.can_export_personal_data,
         }
     )
     return {"crm_access": access}

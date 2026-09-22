@@ -38,6 +38,7 @@
                 {% include "crm/includes/dadata_autofill.html" with dadata_mode="organization" dadata_compact=True dadata_button_label="Заполнить по ИНН" %}
                 <button class="onec-save-close uk-button uk-button-primary" type="submit" name="action" value="save_close"><span uk-icon="check"></span> Записать и закрыть</button>
                 {% if object and object.pk %}<a class="onec-command uk-button uk-button-default" href="{% url 'organization-pdf' object.pk %}" target="_blank" rel="noopener"><span uk-icon="download"></span> Скачать PDF</a>{% else %}<button class="onec-command uk-button uk-button-default" type="button" disabled title="Сначала сохраните карточку"><span uk-icon="download"></span> Скачать PDF</button>{% endif %}
+                {% if object and object.pk and crm_access.can_delete_records %}<a class="onec-command uk-button uk-button-default driver-delete-button" href="{% url 'organization-delete' object.pk %}">Удалить</a>{% endif %}
                 <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
             </div>
         </div>

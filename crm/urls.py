@@ -3,6 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("api/search-select/", views.search_select, name="search-select"),
+    path("api/search-select/link/", views.search_select_link, name="search-select-link"),
     path("service-worker.js", views.pwa_service_worker, name="pwa-service-worker"),
     path("notifications/mark-read/", views.NavbarNotificationsMarkReadView.as_view(), name="navbar-notifications-mark-read"),
     path("api/carrier-resources/", views.carrier_resources, name="carrier-resources"),
@@ -418,6 +420,16 @@ urlpatterns = [
         "documents/",
         views.ShipmentDocumentListView.as_view(),
         name="shipment-document-list",
+    ),
+    path(
+        "documents/export/",
+        views.ShipmentDocumentExportView.as_view(),
+        name="shipment-document-export",
+    ),
+    path(
+        "documents/import/",
+        views.ShipmentDocumentImportView.as_view(),
+        name="shipment-document-import",
     ),
     path(
         "documents/batches/",

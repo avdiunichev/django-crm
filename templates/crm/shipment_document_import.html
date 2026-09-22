@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Импорт номеров 1С — Бухгалтерия{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div><a class="back-link" href="{% url 'shipment-document-list' %}">← К реестру документов</a><span class="eyebrow">Бухгалтерия</span><h1>Импорт номеров из 1С</h1><p>CRM сопоставляет документы только по неизменяемому полю ID CRM.</p></div>
+</div>
+<form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    <section class="form-section uk-card uk-card-default">
+        <div class="form-section-title"><span>01</span><div><h2>Файл реестра</h2><p>Не удаляйте и не изменяйте значения в колонке ID CRM</p></div></div>
+        <div class="form-grid">{% include "crm/includes/form_field.html" with field=form.file wide=True %}</div>
+    </section>
+    <div class="form-actions"><a class="uk-button uk-button-default" href="{% url 'shipment-document-list' %}">Закрыть</a><button class="uk-button uk-button-primary" type="submit">Загрузить и обновить</button></div>
+</form>
+{% endblock %}

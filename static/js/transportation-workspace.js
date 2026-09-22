@@ -3,6 +3,7 @@
     const normalize = (value) => String(value || "").toLocaleLowerCase("ru-RU").trim();
     let transportationModalElement;
     let quickModalElement;
+    let vehicleModalElement;
     let activeQuickSelect;
     let activeQuickQuery = "";
 
@@ -55,7 +56,21 @@
         const dropdown = document.createElement("div");
         dropdown.className = "crm-smart-dropdown";
         dropdown.hidden = true;
-        wrapper.append(search, dropdown);
+        const actions = document.createElement("div");
+        actions.className = "crm-smart-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "uk-button uk-button-default crm-smart-edit";
+        edit.textContent = "Открыть";
+        edit.title = "Открыть или отредактировать выбранную карточку";
+        edit.disabled = !select.value;
+        const create = document.createElement("button");
+        create.type = "button";
+        create.className = "uk-button uk-button-default crm-smart-add";
+        create.textContent = "Создать";
+        create.title = select.dataset.createLabel || "Создать новую карточку";
+        actions.append(edit, create);
+        wrapper.append(search, actions, dropdown);
         select.insertAdjacentElement("afterend", wrapper);
 
         const currentRole = () => {
@@ -76,6 +91,8 @@
         };
         const syncDisabled = () => {
             search.disabled = select.disabled;
+            edit.disabled = select.disabled || !select.value;
+            create.disabled = select.disabled || !select.dataset.createUrl || !hasParent();
             wrapper.classList.toggle("is-disabled", select.disabled);
             if (select.disabled) close();
         };
@@ -85,6 +102,137 @@
             search.dataset.selectedLabel = search.value;
             close();
             select.dispatchEvent(new Event("change", {bubbles: true}));
+        };
+        let searchTimer = null;
+        let searchController = null;
+        let searchSequence = 0;
+        let globalScope = false;
+        const renderServerItems = (items, hasMore, query) => {
+            dropdown.innerHTML = "";
+            items.forEach((item) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "crm-smart-option";
+                const title = document.createElement("strong");
+                title.textContent = item.label;
+                button.append(title);
+                if (item.meta) {
+                    const meta = document.createElement("small");
+                    meta.textContent = item.meta;
+                    button.append(meta);
+                }
+                button.addEventListener("mousedown", (event) => event.preventDefault());
+                button.addEventListener("click", async () => {
+                    if (item.linked === false && select.dataset.linkUrl) {
+                        const parent = document.getElementById(select.dataset.parentSource || "")?.value;
+                        const csrf = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
+                        button.disabled = true;
+                        title.textContent = "Связываем с перевозчиком…";
+                        try {
+                            const response = await fetch(select.dataset.linkUrl, {
+                                method: "POST",
+                                headers: {
+                                    "Accept": "application/json",
+                                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                                    "X-CSRFToken": csrf,
+                                },
+                                body: new URLSearchParams({
+                                    resource: select.dataset.searchResource,
+                                    id: item.id,
+                                    organization: parent || "",
+                                }),
+                            });
+                            const result = await response.json();
+                            if (!response.ok) throw new Error(result.error || "Не удалось создать связь.");
+                            item = result.item;
+                            notify("Запись связана с перевозчиком и выбрана.", "success");
+                        } catch (error) {
+                            notify(error.message || "Не удалось создать связь.", "danger");
+                            button.disabled = false;
+                            title.textContent = item.label;
+                            return;
+                        }
+                    }
+                    let option = Array.from(select.options).find((candidate) => String(candidate.value) === String(item.id));
+                    if (!option) { option = new Option(item.label, item.id); select.add(option); }
+                    if (Array.isArray(item.roles)) option.dataset.roles = item.roles.join(" ");
+                    if (item.tractor_id) option.dataset.tractorId = item.tractor_id;
+                    if (item.trailer_id) option.dataset.trailerId = item.trailer_id;
+                    choose(option);
+                });
+                if (item.linked === false) {
+                    const attach = document.createElement("small");
+                    attach.className = "uk-text-danger";
+                    attach.textContent = "Связать с перевозчиком и выбрать";
+                    button.append(attach);
+                }
+                dropdown.appendChild(button);
+            });
+            if (!items.length) {
+                const empty = document.createElement("div");
+                empty.className = "crm-smart-empty";
+                empty.textContent = query.length < 2 && query.length > 0 ? "Введите минимум 2 символа" : "Ничего не найдено";
+                dropdown.appendChild(empty);
+            }
+            if (hasMore) {
+                const more = document.createElement("div");
+                more.className = "crm-smart-empty";
+                more.textContent = "Найдено больше 20 записей. Уточните запрос.";
+                dropdown.appendChild(more);
+            }
+            if (select.dataset.searchResource !== "organization" && select.dataset.parentSource) {
+                const scopeButton = document.createElement("button");
+                scopeButton.type = "button";
+                scopeButton.className = "crm-smart-create uk-button uk-button-default uk-button-small";
+                scopeButton.textContent = globalScope ? "Искать у выбранного перевозчика" : "Искать среди всех";
+                scopeButton.addEventListener("mousedown", (event) => event.preventDefault());
+                scopeButton.addEventListener("click", () => { globalScope = !globalScope; runServerSearch(); });
+                dropdown.appendChild(scopeButton);
+            }
+            if (query.length >= 2 && !items.length && select.dataset.createUrl) {
+                const createButton = document.createElement("button");
+                createButton.type = "button";
+                createButton.className = "crm-smart-create uk-button uk-button-primary uk-button-small";
+                createButton.textContent = select.dataset.createLabel || "Создать карточку";
+                createButton.addEventListener("mousedown", (event) => event.preventDefault());
+                createButton.addEventListener("click", () => openQuickCreate(select, search.value));
+                dropdown.appendChild(createButton);
+            }
+            dropdown.hidden = false;
+            search.setAttribute("aria-expanded", "true");
+        };
+        const runServerSearch = async () => {
+            if (!select.dataset.searchUrl) return render();
+            const query = search.value.trim();
+            if (query.length === 1) return renderServerItems([], false, query);
+            searchController?.abort();
+            searchController = new AbortController();
+            const sequence = ++searchSequence;
+            dropdown.innerHTML = '<div class="crm-smart-empty">Поиск…</div>';
+            dropdown.hidden = false;
+            try {
+                const url = new URL(select.dataset.searchUrl, window.location.origin);
+                url.searchParams.set("resource", select.dataset.searchResource);
+                url.searchParams.set("q", query);
+                const role = currentRole();
+                if (role) url.searchParams.set("role", role);
+                const parent = document.getElementById(select.dataset.parentSource || "")?.value;
+                if (parent) url.searchParams.set("organization", parent);
+                if (select.dataset.resourceKind) url.searchParams.set("kind", select.dataset.resourceKind);
+                if (globalScope) url.searchParams.set("scope", "all");
+                const response = await fetch(url, {signal: searchController.signal, headers: {"Accept": "application/json"}});
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                if (sequence !== searchSequence) return;
+                renderServerItems(data.items || [], Boolean(data.has_more), query);
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                dropdown.innerHTML = '<div class="crm-smart-empty uk-text-danger">Ошибка поиска. Повторите запрос.</div>';
+            }
+        };
+        const scheduleServerSearch = (immediate = false) => {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(runServerSearch, immediate ? 0 : 320);
         };
         const render = () => {
             const query = normalize(search.value);
@@ -135,7 +283,7 @@
             else search.setCustomValidity("");
         };
 
-        search.addEventListener("focus", render);
+        search.addEventListener("focus", () => select.dataset.searchUrl ? scheduleServerSearch(true) : render());
         search.addEventListener("input", () => {
             if (search.value !== search.dataset.selectedLabel) {
                 select.value = "";
@@ -144,17 +292,19 @@
                 select.dispatchEvent(new Event("change", {bubbles: true}));
                 delete select.dataset.smartTyping;
             }
-            render();
+            if (select.dataset.searchUrl) scheduleServerSearch();
+            else render();
         });
         search.addEventListener("keydown", (event) => {
             if (event.key === "Escape") close();
         });
         select.addEventListener("optionschange", () => {
             syncFromSelect();
-            if (!dropdown.hidden) render();
+            if (!dropdown.hidden) select.dataset.searchUrl ? scheduleServerSearch(true) : render();
         });
         select.addEventListener("change", () => {
             if (select.dataset.smartTyping !== "true") syncFromSelect();
+            syncDisabled();
         });
         select.addEventListener("disabledchange", syncDisabled);
         const roleSource = document.getElementById(select.dataset.roleSource || "");
@@ -169,6 +319,8 @@
         document.addEventListener("click", (event) => {
             if (!wrapper.contains(event.target)) close();
         });
+        create.addEventListener("click", () => openQuickCreate(select, search.value));
+        edit.addEventListener("click", () => openSelectedEntity(select));
         syncFromSelect();
         syncDisabled();
     };
@@ -177,12 +329,43 @@
         let option = Array.from(select.options).find((candidate) => String(candidate.value) === String(item.id));
         if (!option) {
             option = new Option(item.label, item.id);
-            if (Array.isArray(item.roles)) option.dataset.roles = item.roles.join(" ");
             select.add(option);
         }
+        option.textContent = item.label;
+        if (Array.isArray(item.roles)) option.dataset.roles = item.roles.join(" ");
         select.value = String(item.id);
         select.dispatchEvent(new Event("optionschange", {bubbles: true}));
         select.dispatchEvent(new Event("change", {bubbles: true}));
+    };
+
+    const emitEntitySaved = (type, item, action) => {
+        document.dispatchEvent(new CustomEvent("crm:entity-saved", {
+            detail: {type, id: item?.id, action, item}
+        }));
+    };
+
+    const syncEntityOptions = (type, item, sourceSelect) => {
+        document.querySelectorAll(`${SMART_SELECTOR}[data-entity-type="${type}"]`).forEach((select) => {
+            let option = Array.from(select.options).find((candidate) => String(candidate.value) === String(item.id));
+            const carrier = document.getElementById(select.dataset.parentSource || "")?.value;
+            const carrierAllowed = !carrier || !Array.isArray(item.carrier_ids)
+                || item.carrier_ids.map(String).includes(String(carrier));
+            const kindAllowed = !select.dataset.resourceKind || (
+                select.dataset.resourceKind === "trailer"
+                    ? ["trailer", "semitrailer"].includes(item.kind)
+                    : !["trailer", "semitrailer"].includes(item.kind)
+            );
+            if (!option && carrierAllowed && kindAllowed) {
+                option = new Option(item.label, item.id);
+                select.add(option);
+            }
+            if (option) {
+                option.textContent = item.label;
+                if (Array.isArray(item.roles)) option.dataset.roles = item.roles.join(" ");
+                select.dispatchEvent(new Event("optionschange", {bubbles: true}));
+            }
+        });
+        if (sourceSelect) addCreatedOption(sourceSelect, item);
     };
 
     const buildQuickUrl = (select) => {
@@ -196,6 +379,14 @@
         }
         if (select.dataset.resourceKind) url.searchParams.set("resource_kind", select.dataset.resourceKind);
         return url;
+    };
+
+    const buildEditUrl = (select) => {
+        if (!select.value || !select.dataset.editUrlTemplate) return null;
+        return new URL(
+            select.dataset.editUrlTemplate.replace(/\/0\//, `/${select.value}/`),
+            window.location.origin
+        );
     };
 
     const bindQuickDadata = (dialog) => {
@@ -274,7 +465,10 @@
                 const contentType = response.headers.get("content-type") || "";
                 if (response.ok && contentType.includes("application/json")) {
                     const result = await response.json();
-                    if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
+                    if (activeQuickSelect && result.item) {
+                        syncEntityOptions(activeQuickSelect.dataset.entityType, result.item, activeQuickSelect);
+                        emitEntitySaved(activeQuickSelect.dataset.entityType, result.item, "created");
+                    }
                     modalInstance(quickModalElement)?.hide();
                     notify("Контрагент создан и выбран в документе.", "success");
                     return;
@@ -447,9 +641,13 @@
                 const contentType = response.headers.get("content-type") || "";
                 if (response.ok && contentType.includes("application/json")) {
                     const result = await response.json();
-                    if (activeQuickSelect && result.item) addCreatedOption(activeQuickSelect, result.item);
+                    if (activeQuickSelect && result.item) {
+                        const action = sourceUrl.includes("/edit/") ? "updated" : "created";
+                        syncEntityOptions("organization", result.item, activeQuickSelect);
+                        emitEntitySaved("organization", result.item, action);
+                    }
                     modalInstance(quickModalElement)?.hide();
-                    notify("Контрагент создан и выбран в документе.", "success");
+                    notify("Карточка контрагента сохранена и данные обновлены.", "success");
                     return;
                 }
                 renderFullOrganizationForm(await response.text(), sourceUrl);
@@ -481,7 +679,7 @@
         window.UIkit?.update?.(quickModalElement);
     };
 
-    async function openFullOrganizationCreate(select, query) {
+    async function openFullOrganization(select, query, requestedUrl = null) {
         const modal = ensureModal("quick");
         activeQuickSelect = select;
         activeQuickQuery = query || "";
@@ -489,11 +687,11 @@
         modal.classList.add("crm-full-organization-modal");
         modalInstance(modal)?.show();
         try {
-            const response = await fetch(buildQuickUrl(select), {headers: {"X-Requested-With": "XMLHttpRequest"}});
+            const response = await fetch(requestedUrl || buildQuickUrl(select), {headers: {"X-Requested-With": "XMLHttpRequest"}});
             if (!response.ok) throw new Error();
             renderFullOrganizationForm(await response.text(), response.url || select.dataset.createUrl);
             const form = modal.querySelector("form.organization-workspace");
-            const inn = activeQuickQuery.replace(/\D/g, "");
+            const inn = requestedUrl ? "" : activeQuickQuery.replace(/\D/g, "");
             const field = form?.querySelector("#id_tax_id");
             if (field && /^[0-9]{10}$|^[0-9]{12}$/.test(inn)) {
                 field.value = inn;
@@ -506,7 +704,17 @@
     }
 
     async function openQuickCreate(select, query) {
-        if (select.dataset.fullOrganizationCreate === "true") return openFullOrganizationCreate(select, query);
+        if (select.dataset.fullOrganizationCreate === "true") return openFullOrganization(select, query);
+        const sourceUrl = buildQuickUrl(select).toString();
+        if (select.dataset.entityType === "driver" && window.CRMDriverModal?.open) {
+            return window.CRMDriverModal.open(sourceUrl, {
+                action: "created",
+                onSaved: (item) => syncEntityOptions("driver", item, select)
+            });
+        }
+        if (select.dataset.entityType === "vehicle") {
+            return openVehicleCard(select, sourceUrl, "created");
+        }
         const modal = ensureModal("quick");
         activeQuickSelect = select;
         activeQuickQuery = query || "";
@@ -534,6 +742,97 @@
         }
     }
 
+    const openSelectedEntity = (select) => {
+        const url = buildEditUrl(select);
+        if (!url) return;
+        if (select.dataset.entityType === "organization") {
+            openFullOrganization(select, "", url.toString());
+        } else if (select.dataset.entityType === "driver" && window.CRMDriverModal?.open) {
+            window.CRMDriverModal.open(url.toString(), {
+                action: "updated",
+                onSaved: (item) => syncEntityOptions("driver", item, select)
+            });
+        } else if (select.dataset.entityType === "vehicle") {
+            openVehicleCard(select, url.toString(), "updated");
+        }
+    };
+
+    const ensureVehicleModal = () => {
+        if (vehicleModalElement) return vehicleModalElement;
+        vehicleModalElement = document.createElement("div");
+        vehicleModalElement.className = "crm-vehicle-modal";
+        vehicleModalElement.setAttribute("uk-modal", "stack: true; bg-close: false; esc-close: false");
+        document.body.appendChild(vehicleModalElement);
+        return vehicleModalElement;
+    };
+
+    const renderVehicleCard = (select, html, sourceUrl, entityAction) => {
+        const page = new DOMParser().parseFromString(html, "text/html");
+        const form = page.querySelector("[data-vehicle-form]");
+        if (!form) throw new Error("Форма транспорта не найдена");
+        const dialog = document.createElement("div");
+        dialog.className = "uk-modal-dialog uk-modal-body crm-driver-dialog vehicle-form-page";
+        dialog.append(form);
+        form.action = sourceUrl;
+        form.querySelectorAll(".back-link, .form-actions a[href], .vehicle-command-panel a[href]").forEach((link) => {
+            if (link.matches(".driver-delete-button, a[href*='/delete/']")) return;
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                modalInstance(vehicleModalElement)?.hide();
+            });
+        });
+        vehicleModalElement.replaceChildren(dialog);
+        window.CRMVehicleForm?.enhanceWithin?.(dialog);
+        window.CRMVehicleCarriers?.enhanceWithin?.(dialog);
+        window.CRMUniversalSelects?.enhanceWithin?.(dialog);
+        window.UIkit?.update?.(vehicleModalElement);
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submit = event.submitter || form.querySelector('[type="submit"]');
+            const data = new FormData(form);
+            if (submit?.name) data.set(submit.name, submit.value);
+            form.querySelectorAll('button[type="submit"]').forEach((button) => { button.disabled = true; });
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: data,
+                    headers: {"Accept": "application/json, text/html", "X-Requested-With": "XMLHttpRequest"}
+                });
+                const contentType = response.headers.get("content-type") || "";
+                if (response.ok && contentType.includes("application/json")) {
+                    const result = await response.json();
+                    syncEntityOptions("vehicle", result.item, select);
+                    emitEntitySaved("vehicle", result.item, entityAction);
+                    notify(result.message || "Карточка транспорта сохранена.", "success");
+                    if (result.action === "save") {
+                        await openVehicleCard(select, result.url, "updated");
+                    } else {
+                        modalInstance(vehicleModalElement)?.hide();
+                    }
+                    return;
+                }
+                renderVehicleCard(select, await response.text(), sourceUrl, entityAction);
+                notify("Проверьте заполнение карточки транспорта.", "danger");
+            } catch (_error) {
+                notify("Не удалось сохранить транспорт. Проверьте соединение.", "danger");
+                form.querySelectorAll('button[type="submit"]').forEach((button) => { button.disabled = false; });
+            }
+        });
+    };
+
+    async function openVehicleCard(select, sourceUrl, entityAction) {
+        const modal = ensureVehicleModal();
+        showLoading(modal, "Открываем карточку транспорта…");
+        modalInstance(modal)?.show();
+        try {
+            const response = await fetch(sourceUrl, {headers: {"X-Requested-With": "XMLHttpRequest"}});
+            if (!response.ok) throw new Error();
+            renderVehicleCard(select, await response.text(), response.url || sourceUrl, entityAction);
+        } catch (_error) {
+            modal.innerHTML = '<div class="uk-modal-dialog uk-modal-body"><div class="uk-alert-danger" uk-alert>Не удалось открыть карточку транспорта.</div></div>';
+        }
+    }
+
     const replaceOptions = (select, items, selected) => {
         if (!select) return;
         select.innerHTML = '<option value="">---------</option>';
@@ -554,23 +853,9 @@
             trailers: form.querySelector("#id_trailer")
         };
         const loadResources = async () => {
-            const selected = Object.fromEntries(Object.entries(resources).map(([key, select]) => [key, select?.value]));
-            if (!carrier?.value) {
-                Object.values(resources).forEach((select) => replaceOptions(select, [], ""));
-                return;
-            }
-            try {
-                const url = new URL(form.dataset.resourceUrl, window.location.origin);
-                url.searchParams.set("organization", carrier.value);
-                const response = await fetch(url);
-                if (!response.ok) return;
-                const data = await response.json();
-                replaceOptions(resources.drivers, data.drivers, selected.drivers);
-                replaceOptions(resources.vehicles, data.vehicles, selected.vehicles);
-                replaceOptions(resources.trailers, data.trailers, selected.trailers);
-            } catch (_error) {
-                notify("Не удалось обновить водителей и транспорт.", "danger");
-            }
+            // SmartSelect includes the carrier in each server search.  Do not
+            // preload the carrier's entire fleet into the page.
+            Object.values(resources).forEach((select) => select?.dispatchEvent(new Event("optionschange", {bubbles: true})));
         };
         const syncDirectCarrier = () => {
             if (role?.value === "carrier" && executor?.value) {

@@ -6969,6 +6969,52 @@ html[data-theme="dark"] body.uikit-theme .transportation-finance-card .trip-fina
     border-top-color: #3a475d !important;
 }
 
+/* Финальный слой новой карточки рейса. */
+body.uikit-theme .transportation-card .transportation-command-header,
+body.uikit-theme .transportation-card .transportation-titlebar,
+body.uikit-theme .transportation-card .transportation-commandbar {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+body.uikit-theme .transportation-card .transportation-status-progress,
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel,
+body.uikit-theme .transportation-card .panel,
+body.uikit-theme .transportation-card .transportation-finance-card {
+    border: 1px solid #e0e5eb !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+    border: 0 !important;
+    border-right: 1px solid #e6e9ed !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+body.uikit-theme .transportation-card .transportation-overview-grid {
+    grid-template-columns: minmax(0, 1.8fr) minmax(300px, .9fr) !important;
+    gap: 14px !important;
+}
+body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-finance-card {
+    grid-column: 2 !important;
+    grid-row: 1 / span 3 !important;
+}
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-status-progress,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-panel,
+html[data-theme="dark"] body.uikit-theme .transportation-card .panel,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-finance-card {
+    border-color: #304054 !important;
+    background: #151f2e !important;
+}
+@media (max-width: 1050px) {
+    body.uikit-theme .transportation-card .transportation-overview-grid { grid-template-columns: 1fr !important; }
+    body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-finance-card { grid-column: 1 !important; grid-row: auto !important; }
+}
+
 /* Строгая модальная карточка добавления заказа. */
 .crm-order-create-modal {
     padding: 18px;
@@ -8160,6 +8206,184 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-ta
 }
 
 /* Подсказки груза используют тот же универсальный селект, что и справочники. */
+
+/* Единая карточка просмотра рейса: спокойная двухколоночная композиция. */
+body.uikit-theme .transportation-card {
+    display: grid;
+    gap: 14px;
+    color: #202632;
+}
+
+body.uikit-theme .transportation-card .trip-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 24px;
+    padding: 0 2px;
+    color: #8a94a3;
+    font-size: 13px;
+}
+
+body.uikit-theme .transportation-card .trip-breadcrumbs a { color: #7d8795; }
+body.uikit-theme .transportation-card .trip-breadcrumbs strong { color: #202632; font-weight: 500; }
+body.uikit-theme .transportation-card .trip-breadcrumbs .uk-icon { width: 14px; }
+
+body.uikit-theme .transportation-card .transportation-command-header,
+body.uikit-theme .transportation-card .transportation-titlebar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 0;
+    padding: 8px 2px 14px;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.uikit-theme .transportation-card .transportation-titlebar .form-section-title {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body.uikit-theme .transportation-card .transportation-titlebar h2 {
+    margin: 0 0 6px;
+    color: #171c25;
+    font-size: clamp(25px, 2vw, 32px);
+    font-weight: 650;
+    letter-spacing: -.025em;
+}
+
+body.uikit-theme .transportation-card .transportation-titlebar p {
+    margin: 0;
+    color: #7e8897;
+    font-size: 13px;
+}
+
+body.uikit-theme .transportation-card .trip-heading-separator { margin: 0 12px; }
+
+body.uikit-theme .transportation-card .transportation-commandbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.uikit-theme .transportation-card .transportation-commandbar .uk-button {
+    min-height: 40px;
+    padding: 0 17px;
+    border-radius: 5px !important;
+    font-size: 12px;
+}
+
+body.uikit-theme .transportation-card .transportation-commandbar .trip-edit-command {
+    order: -1;
+    border-color: #171e2a;
+    background: #171e2a;
+    color: #fff;
+}
+
+body.uikit-theme .transportation-card .transportation-tabs {
+    order: 0;
+    margin: 0;
+    padding: 0 2px;
+    border-bottom: 1px solid #e3e7ec;
+}
+
+body.uikit-theme .transportation-card .transportation-tabs::before { display: none; }
+body.uikit-theme .transportation-card .transportation-tabs > li { padding-left: 0; margin-right: 34px; }
+body.uikit-theme .transportation-card .transportation-tabs > li > a {
+    min-height: 44px;
+    padding: 0 10px;
+    border-bottom: 2px solid transparent;
+    color: #5d6674;
+    font-size: 13px;
+    text-transform: none;
+}
+body.uikit-theme .transportation-card .transportation-tabs > .uk-active > a {
+    border-color: #d10000;
+    color: #171c25;
+}
+
+body.uikit-theme .transportation-card .transportation-status-progress,
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel,
+body.uikit-theme .transportation-card .panel,
+body.uikit-theme .transportation-card .transportation-finance-card {
+    border: 1px solid #e0e5eb !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+body.uikit-theme .transportation-card .transportation-status-progress { padding: 17px 20px; border-left: 3px solid #d10000 !important; }
+body.uikit-theme .transportation-card .transportation-summary,
+body.uikit-theme .transportation-card .transport-chain-panel { padding: 20px; }
+body.uikit-theme .transportation-card .transportation-summary .form-section-title,
+body.uikit-theme .transportation-card .transport-chain-panel > .form-section-title { margin-bottom: 16px; }
+
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div {
+    padding: 5px 18px;
+    border: 0;
+    border-right: 1px solid #e6e9ed;
+    border-radius: 0;
+    background: transparent;
+}
+body.uikit-theme .transportation-card .transportation-summary .uk-grid > div:last-child { border-right: 0; }
+
+body.uikit-theme .transportation-card .transportation-overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(300px, .9fr);
+    gap: 14px;
+    align-items: start;
+}
+
+body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-role-card { padding: 20px; }
+body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-finance-card { grid-column: 2; grid-row: 1 / span 3; }
+body.uikit-theme .transportation-card .transport-chain-node,
+body.uikit-theme .transportation-card .transport-route-chain .transport-chain-node,
+body.uikit-theme .transportation-card .driver-copy-card,
+body.uikit-theme .transportation-card .route-stop-list article,
+body.uikit-theme .transportation-card .onec-details-grid > div,
+body.uikit-theme .transportation-card .trip-finance-card,
+body.uikit-theme .transportation-card .trip-finance-flow,
+body.uikit-theme .transportation-card .trip-finance-settlements article {
+    border: 1px solid #e2e6eb !important;
+    border-radius: 5px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-breadcrumbs strong,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-titlebar h2 { color: #edf2f8; }
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-status-progress,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-summary,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transport-chain-panel,
+html[data-theme="dark"] body.uikit-theme .transportation-card .panel,
+html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-finance-card { border-color: #304054 !important; background: #151f2e !important; }
+
+@media (max-width: 1050px) {
+    body.uikit-theme .transportation-card .transportation-overview-grid { grid-template-columns: 1fr; }
+    body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-finance-card { grid-column: 1; grid-row: auto; }
+    body.uikit-theme .transportation-card .transportation-tabs { overflow-x: auto; flex-wrap: nowrap; }
+    body.uikit-theme .transportation-card .transportation-tabs > li { flex: 0 0 auto; margin-right: 16px; }
+}
+
+@media (max-width: 700px) {
+    body.uikit-theme .transportation-card .transportation-command-header,
+    body.uikit-theme .transportation-card .transportation-titlebar { display: grid; gap: 14px; padding: 4px 0 12px; }
+    body.uikit-theme .transportation-card .transportation-commandbar { justify-content: flex-start; }
+    body.uikit-theme .transportation-card .transportation-commandbar .uk-button,
+    body.uikit-theme .transportation-card .transportation-commandbar .inline-form { width: 100%; }
+    body.uikit-theme .transportation-card .transportation-summary .uk-grid > div { padding: 11px 0; border-right: 0; border-bottom: 1px solid #e6e9ed; }
+    body.uikit-theme .transportation-card .trip-heading-separator { display: block; height: 4px; font-size: 0; }
+}
 
 /* Карточка рейса: все разделы используют один визуальный язык с финансами. */
 body.uikit-theme .transportation-card {
@@ -9565,6 +9789,43 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
 .crm-smart-select {
     position: relative;
     min-width: 0;
+}
+
+.crm-smart-select:has(.crm-smart-actions) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.crm-smart-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.uikit-theme .crm-smart-actions .uk-button {
+    min-width: 88px;
+    height: 40px;
+    padding: 0 14px;
+    border-color: #d10000;
+    color: #d10000;
+    background: transparent;
+}
+
+.uikit-theme .crm-smart-actions .uk-button:disabled {
+    border-color: #cbd5e1;
+    color: #94a3b8;
+    background: transparent;
+}
+
+@media (max-width: 720px) {
+    .crm-smart-select:has(.crm-smart-actions) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .crm-smart-actions .uk-button {
+        flex: 1 1 0;
+    }
 }
 
 .crm-smart-search {

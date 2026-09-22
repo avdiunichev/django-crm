@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape
+from xml.etree import ElementTree
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.conf import settings
@@ -15,10 +16,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Count, DecimalField, F, Prefetch, Q, Sum, Value
+from django.db.models import Case, Count, DecimalField, F, IntegerField, Prefetch, Q, Sum, Value, When
 from django.db.models.deletion import ProtectedError
 from django.db.models.functions import Coalesce
 from django.forms import HiddenInput
@@ -81,6 +82,139 @@ def user_can_delete_records(user):
     return bool(profile and profile.can_delete_records)
 
 
+def user_can_view_personal_data(user):
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = _crm_profile(user)
+    return bool(profile and profile.can_view_personal_data)
+
+
+def user_can_manage_personal_data(user):
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = _crm_profile(user)
+    return bool(profile and profile.can_manage_personal_data)
+
+
+def user_can_export_personal_data(user):
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = _crm_profile(user)
+    return bool(profile and profile.can_export_personal_data)
+
+
+def driver_label_for_user(driver, user):
+    return driver.selection_label if user_can_view_personal_data(user) else driver.full_name
+
+
+def user_can_manage_operations(user):
+    """Return whether a user may change orders, trips and operational tasks."""
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = _crm_profile(user)
+    return bool(
+        profile
+        and profile.role
+        in {
+            UserProfile.Role.ADMIN,
+            UserProfile.Role.DIRECTOR,
+            UserProfile.Role.LOGISTICIAN,
+            UserProfile.Role.MANAGER,
+        }
+    )
+
+
+def user_can_see_all_records(user):
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = _crm_profile(user)
+    return bool(profile and profile.can_see_all_records)
+
+
+def scope_orders_for_user(queryset, user):
+    """Limit orders to the responsible manager unless broad access was granted."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.filter(manager=user)
+
+
+def scope_shipments_for_user(queryset, user):
+    """Limit legacy shipment records while compatibility routes still exist."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.filter(manager=user)
+
+
+def scope_transportations_for_user(queryset, user):
+    """Limit trips to the responsible manager unless broad access was granted."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.filter(manager=user)
+
+
+def scope_planner_tasks_for_user(queryset, user):
+    """Limit manual planner tasks to records visible to the current user."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.filter(
+        Q(assignee=user) | Q(transportation__manager=user)
+    ).distinct()
+
+
+def scope_shipment_documents_for_user(queryset, user):
+    """Apply the source document's visibility rules to primary documents."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.annotate(
+        access_total_trips=Count("lines__transportation", distinct=True),
+        access_visible_trips=Count(
+            "lines__transportation",
+            filter=Q(lines__transportation__manager=user),
+            distinct=True,
+        ),
+    ).filter(
+        Q(access_total_trips=0, transportation__manager=user)
+        | Q(access_total_trips=0, shipment__manager=user)
+        | Q(access_total_trips__gt=0, access_total_trips=F("access_visible_trips"))
+    ).distinct()
+
+
+def scope_bank_statements_for_user(queryset, user):
+    """Expose a bank document only when every line is visible to the user."""
+    if user_can_see_all_records(user):
+        return queryset
+    return queryset.annotate(
+        access_total_lines=Count("lines", distinct=True),
+        access_visible_lines=Count(
+            "lines",
+            filter=Q(lines__transportation__manager=user),
+            distinct=True,
+        ),
+    ).filter(
+        Q(access_total_lines=0, created_by=user)
+        | Q(access_total_lines=F("access_visible_lines"))
+    )
+
+
+def scope_bank_statement_lines_for_user(queryset, user):
+    if user_can_see_all_records(user):
+        return queryset
+    visible_statement_ids = scope_bank_statements_for_user(
+        BankStatement.objects.all(), user
+    ).values("pk")
+    return queryset.filter(
+        statement_id__in=visible_statement_ids,
+        transportation__manager=user,
+    )
+
+
+def get_user_transportation_or_404(user, **lookups):
+    return get_object_or_404(
+        scope_transportations_for_user(Transportation.objects.all(), user),
+        **lookups,
+    )
+
+
 class FinanceAccessMixin(AccessMixin):
     permission_denied_message = "У вас нет доступа к финансовым разделам."
 
@@ -88,6 +222,39 @@ class FinanceAccessMixin(AccessMixin):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         if not user_can_access_finance(request.user):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class OperationsAccessMixin(AccessMixin):
+    permission_denied_message = "У вас нет прав на изменение заказов и рейсов."
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not user_can_manage_operations(request.user):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class PersonalDataViewMixin(AccessMixin):
+    permission_denied_message = "У вас нет права на просмотр персональных данных."
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not user_can_view_personal_data(request.user):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class PersonalDataManageMixin(AccessMixin):
+    permission_denied_message = "У вас нет права на изменение персональных данных."
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not user_can_manage_personal_data(request.user):
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
 
@@ -268,6 +435,7 @@ from .forms import (
     BankStatementForm,
     BankStatementImportForm,
     BankStatementLineForm,
+    AccountingRegistryImportForm,
     CarrierForm,
     ChatMessageForm,
     ChatMessageEditForm,
@@ -320,6 +488,7 @@ from .models import (
     DocumentBatch,
     DocumentBatchLine,
     Driver,
+    DriverEmployment,
     DriverLicense,
     DriverPassport,
     DirectConversation,
@@ -332,11 +501,13 @@ from .models import (
     OrganizationGroup,
     OrganizationRole,
     Payment,
+    PersonalDataAccessLog,
     PlannerTask,
     ReconciliationAct,
     ReconciliationActLine,
     Shipment,
     ShipmentDocument,
+    ShipmentDocumentAudit,
     SettlementMovement,
     TransportOrder,
     TransportOrderStop,
@@ -349,10 +520,12 @@ from .models import (
     TransportationParty,
     TransportationStop,
     TripCharge,
+    UserProfile,
     VATRate,
     VehicleAssignment,
     VehicleCombination,
     Vehicle,
+    VehicleCarrier,
 )
 from .accounting import (
     advance_transportation_status,
@@ -815,9 +988,11 @@ def organization_defaults(request, pk):
         "contacts": [
             {"id": contact.pk, "label": str(contact)}
             for contact in organization.contact_people.filter(is_active=True)
+            .order_by("-is_primary", "full_name")[:20]
         ],
     }
     owner_id = request.GET.get("owner")
+    today = timezone.localdate()
     if is_executor:
         contracts = Contract.objects.filter(
             carrier__organization=organization,
@@ -835,6 +1010,16 @@ def organization_defaults(request, pk):
         ).order_by("-status", "-contract_date")
     if owner_id and owner_id.isdigit():
         contracts = contracts.filter(expeditor__organization_id=owner_id)
+    contracts = contracts.filter(
+        Q(effective_from__isnull=True, contract_date__lte=today)
+        | Q(effective_from__lte=today),
+        Q(terminated_on__isnull=True) | Q(terminated_on__gt=today),
+    ).filter(
+        Q(is_indefinite=True)
+        | Q(valid_until__isnull=True)
+        | Q(valid_until__gte=today)
+        | Q(auto_renewal=True)
+    ).order_by("-is_primary", "-status", "-contract_date")
     contract = contracts.first()
     if contract:
         payload["contract_id"] = contract.pk
@@ -847,11 +1032,219 @@ def organization_defaults(request, pk):
             )
         if contract.payment_term_days and not payload["payment_term_days"]:
             payload["payment_term_days"] = contract.payment_term_days
+        payload["payment_day_type"] = contract.payment_day_type
+        payload["payment_trigger"] = contract.payment_trigger
+        payload["contract_status"] = contract.lifecycle_status
+        payload["contract_status_label"] = contract.lifecycle_status_label
     payload["contracts"] = [
-        {"id": item.pk, "label": str(item)}
-        for item in contracts
+        {
+            "id": item.pk,
+            "label": str(item),
+            "is_primary": item.is_primary,
+            "lifecycle_status": item.lifecycle_status,
+            "lifecycle_status_label": item.lifecycle_status_label,
+        }
+        for item in contracts[:20]
     ]
     return JsonResponse(payload)
+
+
+@login_required
+@require_GET
+def search_select(request):
+    """Small, role-aware result pages for growing CRM directories."""
+    resource = request.GET.get("resource", "").strip()
+    query = " ".join(request.GET.get("q", "").split())[:120]
+    role = request.GET.get("role", "").strip()
+    organization_id = request.GET.get("organization", "").strip()
+    scope = request.GET.get("scope", "linked").strip()
+    kind = request.GET.get("kind", "").strip()
+    try:
+        page = max(1, min(int(request.GET.get("page", 1)), 1000))
+    except (TypeError, ValueError):
+        page = 1
+    limit = 20
+    offset = (page - 1) * limit
+    if query and len(query) < 2:
+        return JsonResponse({"items": [], "has_more": False, "minimum": 2})
+
+    items = []
+    if resource == "organization":
+        queryset = Organization.objects.filter(is_active=True)
+        if role in OrganizationRole.Role.values:
+            queryset = queryset.filter(roles__role=role, roles__is_active=True)
+        if query:
+            digits = re.sub(r"\D", "", query)
+            condition = (
+                Q(name__icontains=query) | Q(short_name__icontains=query)
+                | Q(ogrn__icontains=query) | Q(email__icontains=query)
+                | Q(phone__icontains=query)
+            )
+            if digits:
+                condition |= Q(tax_id__icontains=digits) | Q(phone__icontains=digits)
+            queryset = queryset.filter(condition).annotate(
+                search_rank=Case(
+                    When(short_name__iexact=query, then=Value(0)),
+                    When(name__iexact=query, then=Value(0)),
+                    When(short_name__istartswith=query, then=Value(1)),
+                    When(name__istartswith=query, then=Value(1)),
+                    default=Value(2), output_field=IntegerField(),
+                )
+            ).order_by("search_rank", "short_name", "name")
+        else:
+            queryset = queryset.order_by("-updated_at")
+        rows = list(queryset.distinct()[offset:offset + limit + 1])
+        items = [{
+            "id": row.pk,
+            "label": str(row),
+            "meta": f"ИНН {row.tax_id}" if row.tax_id else "ИНН не указан",
+            "roles": row.role_values,
+        } for row in rows[:limit]]
+    elif resource == "driver":
+        queryset = Driver.objects.filter(is_active=True).prefetch_related("passports", "licenses")
+        if organization_id.isdigit() and scope != "all":
+            queryset = queryset.filter(
+                Q(carrier__organization_id=organization_id)
+                | Q(employments__carrier__organization_id=organization_id, employments__is_active=True)
+            )
+        if query:
+            digits = re.sub(r"\D", "", query)
+            condition = (
+                Q(last_name__icontains=query) | Q(first_name__icontains=query)
+                | Q(middle_name__icontains=query)
+            )
+            if user_can_view_personal_data(request.user):
+                condition |= (
+                    Q(phone__icontains=query)
+                    | Q(passports__series__icontains=query)
+                    | Q(passports__number__icontains=query)
+                    | Q(licenses__number__icontains=query)
+                )
+            if digits and user_can_view_personal_data(request.user):
+                condition |= Q(tax_id__icontains=digits) | Q(phone__icontains=digits)
+            queryset = queryset.filter(condition).annotate(
+                search_rank=Case(
+                    When(last_name__iexact=query, then=Value(0)),
+                    When(last_name__istartswith=query, then=Value(1)),
+                    default=Value(2), output_field=IntegerField(),
+                )
+            ).order_by("search_rank", "last_name", "first_name")
+        else:
+            queryset = queryset.order_by("-updated_at", "last_name")
+        rows = list(queryset.distinct()[offset:offset + limit + 1])
+        items = [{
+            "id": row.pk,
+            "label": row.full_name,
+            "meta": driver_label_for_user(row, request.user),
+            "linked": (not organization_id.isdigit()) or row.works_for_organization(int(organization_id)),
+        } for row in rows[:limit]]
+    elif resource == "vehicle":
+        queryset = Vehicle.objects.filter(is_active=True)
+        if kind == "trailer":
+            queryset = queryset.filter(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+        elif kind == "vehicle":
+            queryset = queryset.exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+        if organization_id.isdigit() and scope != "all":
+            queryset = queryset.filter(
+                Q(carrier__organization_id=organization_id)
+                | Q(carrier_links__carrier__organization_id=organization_id, carrier_links__is_active=True)
+            )
+        if query:
+            normalized = re.sub(r"[^0-9A-Za-zА-Яа-я]", "", query)
+            condition = Q(registration_number__icontains=query) | Q(vin__icontains=query) | Q(make__icontains=query) | Q(model__icontains=query)
+            if normalized and normalized != query:
+                condition |= Q(registration_number__icontains=normalized) | Q(vin__icontains=normalized)
+            queryset = queryset.filter(condition).annotate(
+                search_rank=Case(
+                    When(registration_number__iexact=query, then=Value(0)),
+                    When(registration_number__istartswith=query, then=Value(1)),
+                    default=Value(2), output_field=IntegerField(),
+                )
+            ).order_by("search_rank", "registration_number")
+        else:
+            queryset = queryset.order_by("-updated_at", "registration_number")
+        rows = list(queryset.distinct()[offset:offset + limit + 1])
+        items = [{
+            "id": row.pk,
+            "label": f"{row.registration_number} · {' '.join(filter(None, (row.make, row.model)))}",
+            "meta": f"{row.get_kind_display()}{' · VIN ' + row.vin if row.vin else ''}",
+            "kind": row.kind,
+            "linked": (not organization_id.isdigit()) or row.works_for_organization(int(organization_id)),
+        } for row in rows[:limit]]
+    elif resource == "combination":
+        queryset = VehicleCombination.objects.filter(is_active=True).select_related("tractor", "trailer")
+        if organization_id.isdigit() and scope != "all":
+            queryset = queryset.filter(
+                Q(tractor__carrier__organization_id=organization_id)
+                | Q(tractor__carrier_links__carrier__organization_id=organization_id, tractor__carrier_links__is_active=True)
+            )
+        if query:
+            queryset = queryset.filter(
+                Q(tractor__registration_number__icontains=query)
+                | Q(trailer__registration_number__icontains=query)
+                | Q(tractor__make__icontains=query) | Q(tractor__model__icontains=query)
+            )
+        queryset = queryset.order_by("-updated_at")
+        rows = list(queryset.distinct()[offset:offset + limit + 1])
+        items = [{
+            "id": row.pk, "label": str(row),
+            "meta": f"Тягач {row.tractor.registration_number} · прицеп {row.trailer.registration_number}",
+            "tractor_id": row.tractor_id, "trailer_id": row.trailer_id, "linked": True,
+        } for row in rows[:limit]]
+    else:
+        return JsonResponse({"error": "Неизвестный справочник."}, status=400)
+    return JsonResponse({"items": items, "has_more": len(rows) > limit, "page": page})
+
+
+@login_required
+@require_POST
+def search_select_link(request):
+    """Attach an existing driver/vehicle to a carrier without leaving the trip."""
+    if not user_can_manage_operations(request.user):
+        return JsonResponse({"error": "Недостаточно прав."}, status=403)
+    resource = request.POST.get("resource", "")
+    object_id = request.POST.get("id", "")
+    organization_id = request.POST.get("organization", "")
+    if not object_id.isdigit() or not organization_id.isdigit():
+        return JsonResponse({"error": "Не выбраны объект или перевозчик."}, status=400)
+    organization = get_object_or_404(Organization, pk=organization_id, is_active=True)
+    carrier = organization.legacy_carriers.filter(is_active=True).first()
+    if not carrier:
+        return JsonResponse({"error": "У контрагента нет активной роли перевозчика."}, status=400)
+    if resource == "driver":
+        if not user_can_manage_personal_data(request.user):
+            return JsonResponse({"error": "Недостаточно прав для изменения привязки водителя."}, status=403)
+        driver = get_object_or_404(Driver, pk=object_id, is_active=True)
+        relation, _ = DriverEmployment.objects.get_or_create(
+            driver=driver, carrier=carrier,
+            defaults={"is_active": True, "is_primary": False},
+        )
+        if not relation.is_active:
+            relation.is_active = True
+            relation.save(update_fields=["is_active", "updated_at"])
+        item = {
+            "id": driver.pk,
+            "label": driver.full_name,
+            "meta": driver_label_for_user(driver, request.user),
+            "linked": True,
+        }
+    elif resource == "vehicle":
+        vehicle = get_object_or_404(Vehicle, pk=object_id, is_active=True)
+        relation, _ = VehicleCarrier.objects.get_or_create(
+            vehicle=vehicle, carrier=carrier,
+            defaults={"is_active": True, "is_primary": False},
+        )
+        if not relation.is_active:
+            relation.is_active = True
+            relation.save(update_fields=["is_active", "updated_at"])
+        item = {
+            "id": vehicle.pk,
+            "label": f"{vehicle.registration_number} · {' '.join(filter(None, (vehicle.make, vehicle.model)))}",
+            "meta": vehicle.get_kind_display(), "kind": vehicle.kind, "linked": True,
+        }
+    else:
+        return JsonResponse({"error": "Этот справочник нельзя связать."}, status=400)
+    return JsonResponse({"ok": True, "item": item})
 
 
 @login_required
@@ -1011,7 +1404,8 @@ def carrier_resources(request):
     return JsonResponse(
         {
             "drivers": [
-                {"id": driver.pk, "label": driver.selection_label} for driver in drivers
+                {"id": driver.pk, "label": driver_label_for_user(driver, request.user)}
+                for driver in drivers
             ],
             "vehicles": [
                 {
@@ -1058,7 +1452,8 @@ def organization_resources(request):
     return JsonResponse(
         {
             "drivers": [
-                {"id": driver.pk, "label": driver.selection_label} for driver in drivers
+                {"id": driver.pk, "label": driver_label_for_user(driver, request.user)}
+                for driver in drivers
             ],
             "vehicles": [
                 {
@@ -1234,7 +1629,7 @@ class QuickCarrierResourceCreateView(LoginRequiredMixin, View):
         )
 
 
-class QuickDriverCreateView(QuickCarrierResourceCreateView):
+class QuickDriverCreateView(PersonalDataManageMixin, QuickCarrierResourceCreateView):
     form_class = DriverForm
     quick_kind = "driver"
     form_title = "Новый водитель"
@@ -1245,14 +1640,9 @@ class QuickDriverCreateView(QuickCarrierResourceCreateView):
         return form
 
     def item_payload(self, driver):
-        license_label = (
-            f"В/У {driver.license_number}"
-            if driver.license_number
-            else "ВУ не внесено"
-        )
         return {
             "id": driver.pk,
-            "label": f"{driver.full_name} · {license_label}",
+            "label": driver_label_for_user(driver, self.request.user),
         }
 
 
@@ -1605,6 +1995,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ),
             )
         )
+        transportations = scope_transportations_for_user(
+            transportations, self.request.user
+        )
         if current_expeditor:
             owner_id = CompanyProfile.objects.filter(pk=current_expeditor).values_list(
                 "organization_id", flat=True
@@ -1617,6 +2010,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         orders = TransportOrder.objects.select_related(
             "owner_company", "client", "manager", "transportation"
         ).filter(currency=current_currency)
+        orders = scope_orders_for_user(orders, self.request.user)
         if current_expeditor:
             orders = orders.filter(owner_company_id=owner_id) if owner_id else orders.none()
         financial_transportations = list(
@@ -1686,6 +2080,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 Prefetch("settlement_movements", to_attr="planner_settlement_movements"),
                 "stops",
             )
+        )
+        planner_transportations = scope_transportations_for_user(
+            planner_transportations, self.request.user
         )
         if current_expeditor:
             planner_owner_id = CompanyProfile.objects.filter(
@@ -2061,8 +2458,11 @@ class TransportationPaymentMixin:
     def transportation(self):
         if not hasattr(self, "_transportation"):
             self._transportation = get_object_or_404(
-                Transportation.objects.select_related(
-                    "owner_company", "customer_vat_rate", "executor_vat_rate"
+                scope_transportations_for_user(
+                    Transportation.objects.select_related(
+                        "owner_company", "customer_vat_rate", "executor_vat_rate"
+                    ),
+                    self.request.user,
                 ),
                 pk=self.kwargs["transportation_pk"],
             )
@@ -2155,7 +2555,12 @@ class TransportationPaymentUpdateView(
     def get_queryset(self):
         return Payment.objects.select_related(
             "transportation", "transportation__owner_company"
-        ).filter(transportation_id=self.kwargs["transportation_pk"])
+        ).filter(
+            transportation__in=scope_transportations_for_user(
+                Transportation.objects.all(), self.request.user
+            ),
+            transportation_id=self.kwargs["transportation_pk"],
+        )
 
     def dispatch(self, request, *args, **kwargs):
         if request.method == "POST":
@@ -2197,6 +2602,10 @@ class TransportationPaymentDeleteView(LoginRequiredMixin, FinanceAccessMixin, Vi
         return get_object_or_404(
             Payment.objects.select_related(
                 "transportation", "transportation__owner_company"
+            ).filter(
+                transportation__in=scope_transportations_for_user(
+                    Transportation.objects.all(), self.request.user
+                )
             ),
             pk=self.kwargs["pk"],
             transportation_id=self.kwargs["transportation_pk"],
@@ -2440,31 +2849,38 @@ class AccountingDocumentCreateView(LoginRequiredMixin, FormView):
         return context
 
 
-class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
+class ShipmentDocumentListView(
+    LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView
+):
     model = ShipmentDocument
     template_name = "crm/shipment_document_list.html"
     context_object_name = "documents"
     paginate_by = 30
 
     def get_queryset(self):
-        queryset = ShipmentDocument.objects.select_related(
+        queryset = scope_shipment_documents_for_user(
+            ShipmentDocument.objects.select_related(
             "shipment", "shipment__expeditor", "shipment__customer",
             "shipment__carrier", "transportation", "transportation__owner_company",
-            "counterparty", "created_by"
-        ).prefetch_related(
+            "counterparty", "owner_company", "contract", "created_by"
+            ).prefetch_related(
             Prefetch(
                 "transportation__parties",
                 queryset=TransportationParty.objects.filter(
                     role=TransportationParty.Role.CLIENT, is_active=True
                 ).select_related("organization"),
                 to_attr="document_client_parties",
-            )
+            ),
+            "lines__transportation__stops",
+            ),
+            self.request.user,
         )
         query = self.request.GET.get("q", "").strip()
         direction = self.request.GET.get("direction", "").strip()
         kind = self.request.GET.get("kind", "").strip()
         status = self.request.GET.get("status", "").strip()
         party = self.request.GET.get("party", "").strip()
+        one_c_status = self.request.GET.get("one_c_status", "").strip()
         expeditor = get_expeditor_filter(self.request)
         if expeditor:
             queryset = queryset.filter(
@@ -2474,13 +2890,16 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
         if query:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
+                | Q(crm_number__iunicodecontains=query)
+                | Q(one_c_number__iunicodecontains=query)
                 | Q(shipment__number__iunicodecontains=query)
                 | Q(shipment__customer__name__iunicodecontains=query)
                 | Q(shipment__carrier__name__iunicodecontains=query)
                 | Q(transportation__number__iunicodecontains=query)
+                | Q(lines__transportation__number__iunicodecontains=query)
                 | Q(counterparty__name__iunicodecontains=query)
                 | Q(counterparty__tax_id__iunicodecontains=query)
-            )
+            ).distinct()
         if direction in ShipmentDocument.Direction.values:
             queryset = queryset.filter(direction=direction)
         if kind in ShipmentDocument.Kind.values:
@@ -2489,6 +2908,8 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
             queryset = queryset.filter(status=status)
         if party in ShipmentDocument.Party.values:
             queryset = queryset.filter(party=party)
+        if one_c_status in ShipmentDocument.OneCStatus.values:
+            queryset = queryset.filter(one_c_status=one_c_status)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -2502,11 +2923,13 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
                 "direction_choices": ShipmentDocument.Direction.choices,
                 "status_choices": ShipmentDocument.Status.choices,
                 "party_choices": ShipmentDocument.Party.choices,
+                "one_c_status_choices": ShipmentDocument.OneCStatus.choices,
                 "current_q": self.request.GET.get("q", ""),
                 "current_direction": self.request.GET.get("direction", ""),
                 "current_kind": self.request.GET.get("kind", ""),
                 "current_status": self.request.GET.get("status", ""),
                 "current_party": self.request.GET.get("party", ""),
+                "current_one_c_status": self.request.GET.get("one_c_status", ""),
                 "expeditors": CompanyProfile.objects.all(),
                 "current_expeditor": current_expeditor,
                 "document_count": all_documents.count(),
@@ -2584,12 +3007,152 @@ class ShipmentDocumentListView(LoginRequiredMixin, PersistentPageSizeMixin, List
         return context
 
 
+class ShipmentDocumentExportView(LoginRequiredMixin, FinanceAccessMixin, View):
+    def get(self, request):
+        documents = scope_shipment_documents_for_user(
+            ShipmentDocument.objects.select_related("counterparty", "contract").prefetch_related(
+                "lines__transportation"
+            ),
+            request.user,
+        ).order_by("document_date", "pk")
+        ids = [value for value in request.GET.getlist("id") if value.isdigit()]
+        if ids:
+            documents = documents.filter(pk__in=ids)
+        direction = request.GET.get("direction", "")
+        kind = request.GET.get("kind", "")
+        status = request.GET.get("status", "")
+        if direction in ShipmentDocument.Direction.values:
+            documents = documents.filter(direction=direction)
+        if kind in ShipmentDocument.Kind.values:
+            documents = documents.filter(kind=kind)
+        if status in ShipmentDocument.Status.values:
+            documents = documents.filter(status=status)
+        rows = [[
+            "ID CRM", "Направление", "Тип документа", "Номер CRM", "Дата",
+            "Контрагент", "ИНН", "Договор", "Рейсы", "Сумма", "НДС",
+            "Номер документа в 1С", "Дата документа в 1С", "Комментарий бухгалтера",
+        ]]
+        exported = []
+        for document in documents:
+            trip_numbers = [
+                line.transportation.number or str(line.transportation_id)
+                for line in document.lines.all()
+            ]
+            if not trip_numbers and document.transportation_id:
+                trip_numbers = [document.transportation.number or str(document.transportation_id)]
+            rows.append([
+                document.pk,
+                document.get_direction_display(),
+                document.get_kind_display(),
+                document.crm_number or document.number,
+                document.document_date,
+                document.counterparty_name,
+                document.counterparty.tax_id if document.counterparty_id else "",
+                str(document.contract) if document.contract_id else "",
+                ", ".join(trip_numbers),
+                document.amount or Decimal("0"),
+                document.vat_amount or Decimal("0"),
+                document.one_c_number,
+                document.one_c_date,
+                "",
+            ])
+            exported.append(document.pk)
+        now = timezone.now()
+        ShipmentDocument.objects.filter(pk__in=exported).update(
+            one_c_status=ShipmentDocument.OneCStatus.EXPORTED,
+            one_c_synced_at=now,
+        )
+        ShipmentDocumentAudit.objects.bulk_create([
+            ShipmentDocumentAudit(
+                document_id=document_id,
+                action=ShipmentDocumentAudit.Action.EXPORTED,
+                user=request.user,
+            )
+            for document_id in exported
+        ])
+        return _xlsx_response(
+            f"accounting-documents-{timezone.localdate():%Y%m%d}.xlsx",
+            [("Документы", rows)],
+        )
+
+
+def _read_accounting_registry_xlsx(uploaded):
+    namespace = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    with ZipFile(uploaded) as archive:
+        root = ElementTree.fromstring(archive.read("xl/worksheets/sheet1.xml"))
+    rows = []
+    for row in root.findall(".//x:row", namespace):
+        values = []
+        for cell in row.findall("x:c", namespace):
+            inline = cell.find("x:is/x:t", namespace)
+            value = cell.find("x:v", namespace)
+            values.append(inline.text if inline is not None else (value.text if value is not None else ""))
+        rows.append(values)
+    return rows
+
+
+class ShipmentDocumentImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
+    form_class = AccountingRegistryImportForm
+    template_name = "crm/shipment_document_import.html"
+
+    def form_valid(self, form):
+        try:
+            rows = _read_accounting_registry_xlsx(form.cleaned_data["file"])
+        except (KeyError, ElementTree.ParseError, OSError):
+            form.add_error("file", "Не удалось прочитать структуру XLSX.")
+            return self.form_invalid(form)
+        if not rows:
+            form.add_error("file", "В файле нет строк.")
+            return self.form_invalid(form)
+        headers = {str(value).strip(): index for index, value in enumerate(rows[0])}
+        required = {"ID CRM", "Номер документа в 1С"}
+        if not required.issubset(headers):
+            form.add_error("file", "В файле отсутствуют колонки ID CRM или Номер документа в 1С.")
+            return self.form_invalid(form)
+        accessible = scope_shipment_documents_for_user(ShipmentDocument.objects.all(), self.request.user)
+        updated = 0
+        skipped = 0
+        for row in rows[1:]:
+            get_value = lambda name: str(row[headers[name]]).strip() if headers[name] < len(row) else ""
+            raw_id = get_value("ID CRM")
+            one_c_number = get_value("Номер документа в 1С")
+            if not raw_id.isdigit() or not one_c_number:
+                skipped += 1
+                continue
+            document = accessible.filter(pk=int(raw_id)).first()
+            if not document:
+                skipped += 1
+                continue
+            old_number = document.one_c_number
+            document.one_c_number = one_c_number[:100]
+            raw_date = get_value("Дата документа в 1С") if "Дата документа в 1С" in headers else ""
+            parsed_date = parse_crm_date(raw_date) if raw_date else None
+            if parsed_date:
+                document.one_c_date = parsed_date
+            document.one_c_status = ShipmentDocument.OneCStatus.POSTED
+            document.one_c_synced_at = timezone.now()
+            document.save(update_fields=["one_c_number", "one_c_date", "one_c_status", "one_c_synced_at", "updated_at"])
+            ShipmentDocumentAudit.objects.create(
+                document=document,
+                action=ShipmentDocumentAudit.Action.IMPORTED,
+                user=self.request.user,
+                changes={"one_c_number": {"old": old_number, "new": document.one_c_number}},
+                comment=get_value("Комментарий бухгалтера") if "Комментарий бухгалтера" in headers else "",
+            )
+            updated += 1
+        messages.success(self.request, f"Обновлено документов: {updated}. Пропущено строк: {skipped}.")
+        return redirect("shipment-document-list")
+
+
 class ShipmentDocumentShipmentMixin:
     @property
     def shipment(self):
         if not hasattr(self, "_shipment"):
             self._shipment = get_object_or_404(
-                Shipment.objects.select_related("customer", "carrier"),
+                scope_shipments_for_user(
+                    Shipment.objects.select_related("customer", "carrier"),
+                    self.request.user,
+                ),
                 pk=self.kwargs["shipment_pk"],
             )
         return self._shipment
@@ -2604,7 +3167,7 @@ class ShipmentDocumentShipmentMixin:
 
 
 class ShipmentDocumentCreateView(
-    LoginRequiredMixin, ShipmentDocumentShipmentMixin, CreateView
+    LoginRequiredMixin, FinanceAccessMixin, ShipmentDocumentShipmentMixin, CreateView
 ):
     model = ShipmentDocument
     form_class = ShipmentDocumentForm
@@ -2618,26 +3181,93 @@ class ShipmentDocumentCreateView(
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
         if self.shipment:
             kwargs["shipment"] = self.shipment
         return kwargs
 
+    @property
+    def based_on_document(self):
+        if not hasattr(self, "_based_on_document"):
+            raw_id = self.request.GET.get("based_on", "").strip()
+            self._based_on_document = (
+                scope_shipment_documents_for_user(
+                    ShipmentDocument.objects.prefetch_related("lines__transportation"),
+                    self.request.user,
+                ).filter(pk=raw_id).first()
+                if raw_id.isdigit()
+                else None
+            )
+        return self._based_on_document
+
     def get_initial(self):
         initial = super().get_initial()
+        source_document = self.based_on_document
+        if source_document:
+            source_trip_ids = list(
+                source_document.lines.values_list("transportation_id", flat=True)
+            )
+            if not source_trip_ids and source_document.transportation_id:
+                source_trip_ids = [source_document.transportation_id]
+            initial.update(
+                {
+                    "transportations_selected": source_trip_ids,
+                    "direction": source_document.direction,
+                    "party": source_document.party,
+                    "owner_company": source_document.owner_company_id,
+                    "counterparty": source_document.counterparty_id,
+                    "contract": source_document.contract_id,
+                    "currency": source_document.currency,
+                    "document_date": timezone.localdate(),
+                }
+            )
         if self.shipment:
             initial["currency"] = self.shipment.currency
+        transportation_ids = [
+            value for value in self.request.GET.getlist("transportation_ids") if value.isdigit()
+        ]
         transportation_id = self.request.GET.get("transportation", "").strip()
+        if transportation_ids:
+            visible_ids = list(
+                scope_transportations_for_user(
+                    Transportation.objects.all(), self.request.user
+                ).filter(pk__in=transportation_ids).values_list("pk", flat=True)
+            )
+            initial["transportations_selected"] = visible_ids
+            transportation_id = str(visible_ids[0]) if len(visible_ids) == 1 else ""
         if transportation_id.isdigit():
-            initial["transportation"] = transportation_id
             transportation = (
-                Transportation.objects.select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
-                .prefetch_related("parties__organization", "execution_links__contractor_party__organization")
+                scope_transportations_for_user(
+                    Transportation.objects.select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
+                    .prefetch_related("parties__organization", "execution_links__contractor_party__organization"),
+                    self.request.user,
+                )
                 .filter(pk=transportation_id)
                 .first()
             )
+            if transportation:
+                initial["transportation"] = transportation_id
+                initial["transportations_selected"] = [transportation_id]
         else:
             transportation = None
-        direction = self.request.GET.get("direction", ShipmentDocument.Direction.OUTGOING)
+            if transportation_ids:
+                transportation = (
+                    scope_transportations_for_user(
+                        Transportation.objects.select_related(
+                            "owner_company", "customer_vat_rate", "executor_vat_rate"
+                        ).prefetch_related(
+                            "parties__organization",
+                            "execution_links__contractor_party__organization",
+                        ),
+                        self.request.user,
+                    )
+                    .filter(pk=transportation_ids[0])
+                    .first()
+                )
+        direction = self.request.GET.get(
+            "direction",
+            source_document.direction if source_document else ShipmentDocument.Direction.OUTGOING,
+        )
         kind = self.request.GET.get("kind", ShipmentDocument.Kind.INVOICE)
         workflow = self.request.GET.get("workflow", "").strip()
         workflow_defaults = {
@@ -2688,6 +3318,20 @@ class ShipmentDocumentCreateView(
         if self.shipment:
             form.instance.shipment = self.shipment
         form.instance.created_by = self.request.user
+        if self.based_on_document:
+            form.instance.based_on = self.based_on_document
+        selected = list(form.cleaned_data.get("transportations_selected") or [])
+        if selected:
+            from .accounting_documents import populate_document_lines
+
+            with transaction.atomic():
+                self.object = form.save()
+                populate_document_lines(self.object, selected, user=self.request.user)
+            messages.success(
+                self.request,
+                f"Документ создан и связан с {len(selected)} рейсами.",
+            )
+            return redirect(self.get_success_url())
         messages.success(self.request, "Документ добавлен в реестр.")
         return super().form_valid(form)
 
@@ -2698,14 +3342,38 @@ class ShipmentDocumentCreateView(
             return self.object.transportation.get_absolute_url()
         return reverse("shipment-document-list")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["based_on_document"] = self.based_on_document
+        return context
 
-class ShipmentDocumentUpdateView(LoginRequiredMixin, UpdateView):
+
+class ShipmentDocumentUpdateView(LoginRequiredMixin, FinanceAccessMixin, UpdateView):
     model = ShipmentDocument
     form_class = ShipmentDocumentForm
     template_name = "crm/shipment_document_form.html"
     context_object_name = "document_record"
 
+    def get_queryset(self):
+        return scope_shipment_documents_for_user(
+            super().get_queryset(), self.request.user
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
+        selected = list(form.cleaned_data.get("transportations_selected") or [])
+        if selected:
+            from .accounting_documents import populate_document_lines
+
+            with transaction.atomic():
+                self.object = form.save()
+                populate_document_lines(self.object, selected, user=self.request.user)
+            messages.success(self.request, "Данные и табличная часть документа обновлены.")
+            return redirect(self.get_success_url())
         messages.success(self.request, "Данные документа обновлены.")
         return super().form_valid(form)
 
@@ -2720,13 +3388,16 @@ class ShipmentDocumentUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
-class ShipmentDocumentDeleteView(LoginRequiredMixin, View):
+class ShipmentDocumentDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
     template_name = "crm/shipment_document_confirm_delete.html"
 
     def get_object(self):
         return get_object_or_404(
-            ShipmentDocument.objects.select_related(
-                "shipment", "transportation", "counterparty"
+            scope_shipment_documents_for_user(
+                ShipmentDocument.objects.select_related(
+                    "shipment", "transportation", "counterparty"
+                ),
+                self.request.user,
             ),
             pk=self.kwargs["pk"],
         )
@@ -2752,9 +3423,14 @@ class ShipmentDocumentDeleteView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-class ShipmentDocumentDownloadView(LoginRequiredMixin, View):
+class ShipmentDocumentDownloadView(LoginRequiredMixin, FinanceAccessMixin, View):
     def get(self, request, pk):
-        document_record = get_object_or_404(ShipmentDocument, pk=pk)
+        document_record = get_object_or_404(
+            scope_shipment_documents_for_user(
+                ShipmentDocument.objects.all(), request.user
+            ),
+            pk=pk,
+        )
         if not document_record.file:
             raise Http404("Файл к документу не прикреплён.")
         try:
@@ -3329,6 +4005,7 @@ class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, Persiste
         ).annotate(line_total=Count("lines"))
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
+        currency = self.request.GET.get("currency", "").strip().upper()
         query = self.request.GET.get("q", "").strip()
         if status in ReconciliationAct.Status.values:
             queryset = queryset.filter(status=status)
@@ -4188,7 +4865,9 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
         )
         currency = get_currency_filter(self.request, default="RUB")
         if currency:
-            queryset = queryset.filter(currency=currency)
+            queryset = queryset.filter(
+                settlement_movements__currency=currency
+            ).distinct()
         owner = self.request.GET.get("owner", "").strip()
         side = self.request.GET.get("side", "").strip()
         state = self.request.GET.get("state", "").strip()
@@ -4212,12 +4891,13 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
         return queryset, currency, owner, side, state, q
 
     @staticmethod
-    def _balances(transportation):
+    def _balances(transportation, currency):
         receivable = sum(
             (
                 movement.amount
                 for movement in getattr(transportation, "debt_movements", ())
                 if movement.side == SettlementMovement.Side.RECEIVABLE
+                and movement.currency == currency
             ),
             Decimal("0.00"),
         )
@@ -4226,13 +4906,14 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                 movement.amount
                 for movement in getattr(transportation, "debt_movements", ())
                 if movement.side == SettlementMovement.Side.PAYABLE
+                and movement.currency == currency
             ),
             Decimal("0.00"),
         )
         return max(receivable, Decimal("0.00")), max(payable, Decimal("0.00"))
 
     @staticmethod
-    def _due_dates(transportation):
+    def _due_dates(transportation, currency):
         return {
             SettlementMovement.Side.RECEIVABLE: next(
                 (
@@ -4240,6 +4921,7 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                     for movement in getattr(transportation, "debt_movements", ())
                     if movement.side == SettlementMovement.Side.RECEIVABLE
                     and movement.kind == SettlementMovement.Kind.ACCRUAL
+                    and movement.currency == currency
                 ),
                 transportation.customer_payment_due_date,
             ),
@@ -4249,6 +4931,7 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                     for movement in getattr(transportation, "debt_movements", ())
                     if movement.side == SettlementMovement.Side.PAYABLE
                     and movement.kind == SettlementMovement.Kind.ACCRUAL
+                    and movement.currency == currency
                 ),
                 transportation.executor_payment_due_date,
             ),
@@ -4269,8 +4952,8 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
         by_counterparty = {}
 
         for transportation in queryset:
-            receivable, payable = self._balances(transportation)
-            due_dates = self._due_dates(transportation)
+            receivable, payable = self._balances(transportation, currency)
+            due_dates = self._due_dates(transportation, currency)
             client_party = getattr(transportation, "debt_client_parties", ())
             client = client_party[0].organization if client_party else None
             links = getattr(transportation, "debt_execution_links", ())
@@ -4750,8 +5433,12 @@ class PlannerView(LoginRequiredMixin, TemplateView):
         ).exists():
             assignee = ""
 
+        transportation_queryset = scope_transportations_for_user(
+            Transportation.objects.exclude(status=Transportation.Status.CANCELLED),
+            self.request.user,
+        )
         transportations = list(
-            Transportation.objects.exclude(status=Transportation.Status.CANCELLED)
+            transportation_queryset
             .select_related("manager")
             .prefetch_related(
                 "stops",
@@ -4894,6 +5581,11 @@ class PlannerView(LoginRequiredMixin, TemplateView):
         tasks = PlannerTask.objects.select_related(
             "transportation", "assignee"
         ).order_by("due_date", "-priority", "-created_at")
+        if not user_can_see_all_records(self.request.user):
+            tasks = tasks.filter(
+                Q(assignee=self.request.user)
+                | Q(transportation__manager=self.request.user)
+            ).distinct()
         if task_status:
             tasks = tasks.filter(status=task_status)
         if assignee:
@@ -4934,7 +5626,7 @@ class PlannerView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class PlannerTaskCreateView(LoginRequiredMixin, CreateView):
+class PlannerTaskCreateView(LoginRequiredMixin, OperationsAccessMixin, CreateView):
     model = PlannerTask
     form_class = PlannerTaskForm
     template_name = "crm/planner_task_form.html"
@@ -4948,7 +5640,12 @@ class PlannerTaskCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         transportation_id = self.request.GET.get("transportation", "").strip()
-        if transportation_id.isdigit():
+        if (
+            transportation_id.isdigit()
+            and scope_transportations_for_user(
+                Transportation.objects.all(), self.request.user
+            ).filter(pk=transportation_id).exists()
+        ):
             initial["transportation"] = transportation_id
         return initial
 
@@ -4971,11 +5668,14 @@ class PlannerTaskCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class PlannerTaskUpdateView(LoginRequiredMixin, UpdateView):
+class PlannerTaskUpdateView(LoginRequiredMixin, OperationsAccessMixin, UpdateView):
     model = PlannerTask
     form_class = PlannerTaskForm
     template_name = "crm/planner_task_form.html"
     success_url = reverse_lazy("planner")
+
+    def get_queryset(self):
+        return scope_planner_tasks_for_user(super().get_queryset(), self.request.user)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -5005,9 +5705,12 @@ class PlannerTaskUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class PlannerTaskCompleteView(LoginRequiredMixin, View):
+class PlannerTaskCompleteView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, pk):
-        task = get_object_or_404(PlannerTask, pk=pk)
+        task = get_object_or_404(
+            scope_planner_tasks_for_user(PlannerTask.objects.all(), request.user),
+            pk=pk,
+        )
         task.status = PlannerTask.Status.DONE
         task.completed_at = timezone.now()
         task.completed_by = request.user
@@ -5016,9 +5719,9 @@ class PlannerTaskCompleteView(LoginRequiredMixin, View):
         return redirect(request.POST.get("next") or reverse("planner"))
 
 
-class PlannerTransportationControlView(LoginRequiredMixin, View):
+class PlannerTransportationControlView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, pk):
-        transportation = get_object_or_404(Transportation, pk=pk)
+        transportation = get_user_transportation_or_404(request.user, pk=pk)
         action = request.POST.get("action", "").strip()
         if action == "loaded":
             target_status = Transportation.Status.IN_TRANSIT
@@ -5195,12 +5898,26 @@ class TransportationDeleteView(SafeDeleteView):
     delete_label = "заявки / рейса"
     list_url_name = "transportation-list"
 
+    def get_object(self):
+        return get_object_or_404(
+            scope_transportations_for_user(
+                Transportation.objects.all(), self.request.user
+            ),
+            pk=self.kwargs["pk"],
+        )
+
 
 class TransportOrderDeleteView(SafeDeleteView):
     model = TransportOrder
     entity_label = "заказ"
     delete_label = "заказа"
     list_url_name = "order-list"
+
+    def get_object(self):
+        return get_object_or_404(
+            scope_orders_for_user(TransportOrder.objects.all(), self.request.user),
+            pk=self.kwargs["pk"],
+        )
 
 
 class OrganizationDeleteView(SafeDeleteView):
@@ -5210,11 +5927,24 @@ class OrganizationDeleteView(SafeDeleteView):
     list_url_name = "organization-list"
 
 
-class DriverDeleteView(SafeDeleteView):
+class DriverDeleteView(PersonalDataManageMixin, SafeDeleteView):
     model = Driver
     entity_label = "водителя"
     delete_label = "водителя"
     list_url_name = "driver-list"
+
+    def post(self, request, *args, **kwargs):
+        driver = self.get_object()
+        response = super().post(request, *args, **kwargs)
+        if not Driver.objects.filter(pk=driver.pk).exists():
+            PersonalDataAccessLog.objects.create(
+                user=request.user,
+                driver=None,
+                action=PersonalDataAccessLog.Action.DELETE,
+                path=request.path[:500],
+                ip_address=request.META.get("REMOTE_ADDR") or None,
+            )
+        return response
 
 
 class VehicleDeleteView(SafeDeleteView):
@@ -5912,9 +6642,11 @@ class TransportOrderQueryMixin:
         queryset = TransportOrder.objects.select_related(
             "owner_company", "client", "manager", "transportation", "package_type"
         ).prefetch_related("stops")
+        queryset = scope_orders_for_user(queryset, self.request.user)
         query = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
+        currency = self.request.GET.get("currency", "").strip().upper()
         if query:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
@@ -6048,6 +6780,9 @@ class TransportOrderEditMixin:
         return response
     stop_prefix = "route_stops"
 
+    def get_queryset(self):
+        return scope_orders_for_user(super().get_queryset(), self.request.user)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
@@ -6142,34 +6877,58 @@ class TransportOrderEditMixin:
                     request,
                     f"Заказ {self.object.number} сохранён и передан в назначение.",
                 )
+                if request.POST.get("modal") == "1":
+                    return JsonResponse(
+                        {
+                            "ok": True,
+                            "action": "assign",
+                            "url": reverse(
+                                "transportation-update", kwargs={"pk": transportation.pk}
+                            ),
+                        }
+                    )
                 return redirect("transportation-update", pk=transportation.pk)
             messages.success(request, f"Заказ {self.object.number} сохранён.")
             if action == "save_stay":
                 update_url = reverse("order-update", kwargs={"pk": self.object.pk})
                 if request.POST.get("modal") == "1":
                     update_url = f"{update_url}?modal=1"
+                    return JsonResponse(
+                        {"ok": True, "action": "save_stay", "url": update_url}
+                    )
                 return redirect(update_url)
+            if request.POST.get("modal") == "1":
+                return JsonResponse(
+                    {
+                        "ok": True,
+                        "action": "save_close",
+                        "url": reverse("order-list"),
+                    }
+                )
             return redirect("order-list")
         return self.render_to_response(
-            self.get_context_data(form=form, stop_formset=stop_formset)
+            self.get_context_data(form=form, stop_formset=stop_formset),
+            status=422 if request.POST.get("modal") == "1" else 200,
         )
 
 
 class TransportOrderCreateView(
-    LoginRequiredMixin, TransportOrderEditMixin, CreateView
+    LoginRequiredMixin, OperationsAccessMixin, TransportOrderEditMixin, CreateView
 ):
     pass
 
 
 class TransportOrderUpdateView(
-    LoginRequiredMixin, TransportOrderEditMixin, UpdateView
+    LoginRequiredMixin, OperationsAccessMixin, TransportOrderEditMixin, UpdateView
 ):
     pass
 
 
-class TransportOrderAssignView(LoginRequiredMixin, View):
+class TransportOrderAssignView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, pk):
-        order = get_object_or_404(TransportOrder, pk=pk)
+        order = get_object_or_404(
+            scope_orders_for_user(TransportOrder.objects.all(), request.user), pk=pk
+        )
         transportation = assign_order_to_transportation(order, request.user)
         messages.success(
             request,
@@ -6192,9 +6951,12 @@ class TransportOrderPDFView(LoginRequiredMixin, View):
         from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
         order = get_object_or_404(
-            TransportOrder.objects.select_related(
-                "owner_company", "client", "manager", "package_type"
-            ).prefetch_related("stops"),
+            scope_orders_for_user(
+                TransportOrder.objects.select_related(
+                    "owner_company", "client", "manager", "package_type"
+                ).prefetch_related("stops"),
+                request.user,
+            ),
             pk=pk,
         )
 
@@ -6430,9 +7192,11 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
                 ),
             ),
         )
+        queryset = scope_transportations_for_user(queryset, self.request.user)
         query = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
+        currency = self.request.GET.get("currency", "").strip().upper()
         if query:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
@@ -6447,6 +7211,8 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
             queryset = queryset.exclude(status=Transportation.Status.CANCELLED)
         if owner.isdigit():
             queryset = queryset.filter(owner_company_id=owner)
+        if currency:
+            queryset = queryset.filter(currency=currency)
         scope = self.request.GET.get("scope", "").strip()
         if scope == "active":
             queryset = queryset.exclude(
@@ -6454,6 +7220,8 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
             )
         elif scope == "in_transit":
             queryset = queryset.filter(status=Transportation.Status.IN_TRANSIT)
+        elif scope == "unassigned":
+            queryset = queryset.exclude(execution_links__is_active=True).distinct()
         elif scope == "draft":
             queryset = queryset.filter(posting_status=Transportation.PostingStatus.DRAFT)
         elif scope == "closed":
@@ -6678,14 +7446,19 @@ class TransportationAccountingView(TransportationListView):
         return context
 
 
-def _bank_statement_candidates(direction, owner_id=None, currency="RUB"):
+def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=None):
     """Подбор проведённых рейсов с непогашенным остатком."""
 
+    currency_filter = (
+        Q(currency=currency)
+        if direction == BankStatement.Direction.INCOME
+        else Q(executor_currency=currency)
+    )
     queryset = (
         Transportation.objects.filter(
             posting_status=Transportation.PostingStatus.POSTED,
-            currency=currency,
         )
+        .filter(currency_filter)
         .exclude(status=Transportation.Status.CANCELLED)
         .select_related("owner_company")
         .prefetch_related(
@@ -6710,6 +7483,8 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB"):
     )
     if str(owner_id or "").isdigit():
         queryset = queryset.filter(owner_company_id=owner_id)
+    if user is not None:
+        queryset = scope_transportations_for_user(queryset, user)
 
     candidates = []
     for transportation in queryset:
@@ -6720,7 +7495,11 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB"):
             else SettlementMovement.Side.PAYABLE
         )
         balance = sum(
-            (movement.amount for movement in movements if movement.side == side),
+            (
+                movement.amount
+                for movement in movements
+                if movement.side == side and movement.currency == currency
+            ),
             Decimal("0.00"),
         )
         if balance <= 0:
@@ -6825,7 +7604,10 @@ class BankStatementEditorMixin:
             ("bank_expense_candidates", BankStatement.Direction.EXPENSE),
         ):
             candidates = _bank_statement_candidates(
-                candidate_direction, owner_id=owner_id, currency=currency
+                candidate_direction,
+                owner_id=owner_id,
+                currency=currency,
+                user=self.request.user,
             )
             for candidate in candidates:
                 transportation_id = str(candidate["transportation"].pk)
@@ -6849,7 +7631,9 @@ class BankStatementEditorMixin:
         direction = form.cleaned_data["direction"]
         owner_id = form.cleaned_data["owner_company"].pk
         currency = form.cleaned_data["currency"]
-        candidates = _bank_statement_candidates(direction, owner_id, currency)
+        candidates = _bank_statement_candidates(
+            direction, owner_id, currency, user=self.request.user
+        )
         candidate_map = {str(item["transportation"].pk): item for item in candidates}
         selected_ids = self.request.POST.getlist("transportation_ids")
         if not selected_ids:
@@ -6942,10 +7726,15 @@ class AccountingDashboardView(LoginRequiredMixin, FinanceAccessMixin, TemplateVi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        documents = ShipmentDocument.objects.select_related(
-            "transportation", "counterparty"
-        ).filter(transportation__isnull=False)
-        statements = BankStatement.objects.all()
+        documents = scope_shipment_documents_for_user(
+            ShipmentDocument.objects.select_related(
+                "transportation", "counterparty"
+            ).filter(transportation__isnull=False),
+            self.request.user,
+        )
+        statements = scope_bank_statements_for_user(
+            BankStatement.objects.all(), self.request.user
+        )
         context.update(
             {
                 "customer_invoice_count": documents.filter(
@@ -7018,7 +7807,10 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
         account_number = "".join(character for character in account.account_number if character.isdigit())
         candidates = {
             direction: _bank_statement_candidates(
-                direction, owner_id=owner.pk, currency=account.currency
+                direction,
+                owner_id=owner.pk,
+                currency=account.currency,
+                user=self.request.user,
             )
             for direction in BankStatement.Direction.values
         }
@@ -7107,7 +7899,10 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
 
     def get_queryset(self):
         queryset = (
-            BankStatement.objects.select_related("owner_company", "bank_account")
+            scope_bank_statements_for_user(
+                BankStatement.objects.select_related("owner_company", "bank_account"),
+                self.request.user,
+            )
             .annotate(total_sum=Sum("lines__amount"), line_total=Count("lines"))
             .order_by("-statement_date", "-created_at")
         )
@@ -7124,6 +7919,9 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        scoped_statements = scope_bank_statements_for_user(
+            BankStatement.objects.all(), self.request.user
+        )
         context.update(
             {
                 "owners": Organization.objects.filter(is_own_company=True, is_active=True),
@@ -7132,10 +7930,10 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 "current_status": self.request.GET.get("status", ""),
                 "current_direction": self.request.GET.get("direction", ""),
                 "current_owner": self.request.GET.get("owner", ""),
-                "draft_count": BankStatement.objects.filter(
+                "draft_count": scoped_statements.filter(
                     status=BankStatement.Status.DRAFT
                 ).count(),
-                "posted_count": BankStatement.objects.filter(
+                "posted_count": scoped_statements.filter(
                     status=BankStatement.Status.POSTED
                 ).count(),
             }
@@ -7149,7 +7947,10 @@ class BankStatementCreateView(LoginRequiredMixin, FinanceAccessMixin, BankStatem
 
 class BankStatementUpdateView(LoginRequiredMixin, FinanceAccessMixin, BankStatementEditorMixin, UpdateView):
     def get_queryset(self):
-        return BankStatement.objects.filter(status=BankStatement.Status.DRAFT)
+        return scope_bank_statements_for_user(
+            BankStatement.objects.filter(status=BankStatement.Status.DRAFT),
+            self.request.user,
+        )
 
 
 class BankStatementDetailView(LoginRequiredMixin, FinanceAccessMixin, DetailView):
@@ -7158,10 +7959,11 @@ class BankStatementDetailView(LoginRequiredMixin, FinanceAccessMixin, DetailView
     context_object_name = "bank_statement"
 
     def get_queryset(self):
-        return BankStatement.objects.select_related(
-            "owner_company", "bank_account", "created_by", "posted_by"
-        ).prefetch_related(
-            "lines__transportation", "lines__payment"
+        return scope_bank_statements_for_user(
+            BankStatement.objects.select_related(
+                "owner_company", "bank_account", "created_by", "posted_by"
+            ).prefetch_related("lines__transportation", "lines__payment"),
+            self.request.user,
         )
 
     def get_context_data(self, **kwargs):
@@ -7208,8 +8010,11 @@ class BankStatementLineUpdateView(LoginRequiredMixin, FinanceAccessMixin, Update
     context_object_name = "bank_statement_line"
 
     def get_queryset(self):
-        return BankStatementLine.objects.select_related(
-            "statement", "statement__owner_company", "transportation", "payment"
+        return scope_bank_statement_lines_for_user(
+            BankStatementLine.objects.select_related(
+                "statement", "statement__owner_company", "transportation", "payment"
+            ),
+            self.request.user,
         )
 
     def get_form_kwargs(self):
@@ -7294,8 +8099,11 @@ class BankStatementLineDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
 
     def get_object(self):
         return get_object_or_404(
-            BankStatementLine.objects.select_related(
-                "statement", "transportation", "payment"
+            scope_bank_statement_lines_for_user(
+                BankStatementLine.objects.select_related(
+                    "statement", "transportation", "payment"
+                ),
+                self.request.user,
             ),
             pk=self.kwargs["pk"],
             statement_id=self.kwargs["statement_pk"],
@@ -7311,8 +8119,11 @@ class BankStatementLineDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, statement_pk, pk):
         with transaction.atomic():
             line = get_object_or_404(
-                BankStatementLine.objects.select_for_update().select_related(
-                    "statement", "transportation"
+                scope_bank_statement_lines_for_user(
+                    BankStatementLine.objects.select_for_update().select_related(
+                        "statement", "transportation"
+                    ),
+                    request.user,
                 ),
                 pk=pk,
                 statement_id=statement_pk,
@@ -7354,7 +8165,10 @@ class BankStatementLineDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
 
 class BankStatementUnpostView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, pk):
-        statement = get_object_or_404(BankStatement, pk=pk)
+        statement = get_object_or_404(
+            scope_bank_statements_for_user(BankStatement.objects.all(), request.user),
+            pk=pk,
+        )
         try:
             statement = unpost_bank_statement(statement, request.user)
         except ValidationError as error:
@@ -7369,7 +8183,12 @@ class BankStatementDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
     template_name = "crm/bank_statement_confirm_delete.html"
 
     def get_object(self):
-        return get_object_or_404(BankStatement, pk=self.kwargs["pk"])
+        return get_object_or_404(
+            scope_bank_statements_for_user(
+                BankStatement.objects.all(), self.request.user
+            ),
+            pk=self.kwargs["pk"],
+        )
 
     def get(self, request, pk):
         return render(request, self.template_name, {"bank_statement": self.get_object()})
@@ -7384,7 +8203,10 @@ class BankStatementDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
 
 class BankStatementPostView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, pk):
-        statement = get_object_or_404(BankStatement, pk=pk)
+        statement = get_object_or_404(
+            scope_bank_statements_for_user(BankStatement.objects.all(), request.user),
+            pk=pk,
+        )
         try:
             post_bank_statement(statement, request.user)
         except ValidationError as error:
@@ -7400,6 +8222,9 @@ class TransportationDocumentEditMixin:
     form_class = TransportationDocumentForm
     template_name = "crm/transportation_form.html"
     stop_prefix = "route_stops"
+
+    def get_queryset(self):
+        return scope_transportations_for_user(super().get_queryset(), self.request.user)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -7467,6 +8292,49 @@ class TransportationDocumentEditMixin:
     def form_valid(self, form):
         action = self.request.POST.get("action", "save")
         is_create = not bool(getattr(getattr(self, "object", None), "pk", None))
+        old_customer_contract_id = None
+        old_executor_contract_id = None
+        if not is_create:
+            persisted = Transportation.objects.get(pk=self.object.pk)
+            old_customer_contract_id = persisted.customer_contract_id
+            old_link = persisted.active_execution_link()
+            old_executor_contract_id = old_link.contract_id if old_link else None
+        customer_contract = form.cleaned_data.get("customer_contract")
+        executor_contract = form.cleaned_data.get("executor_contract")
+        if customer_contract and (
+            is_create
+            or old_customer_contract_id != customer_contract.pk
+            or not form.instance.customer_contract_number_snapshot
+        ):
+            form.instance.customer_contract_number_snapshot = customer_contract.number
+            form.instance.customer_contract_date_snapshot = customer_contract.contract_date
+            if form.cleaned_data.get("customer_payment_term_days") in (None, ""):
+                form.instance.customer_payment_term_days = customer_contract.payment_term_days
+            form.instance.customer_payment_day_type_snapshot = customer_contract.payment_day_type
+            form.instance.customer_payment_trigger_snapshot = customer_contract.payment_trigger
+            if not form.cleaned_data.get("payment_due_basis"):
+                form.instance.payment_due_basis = {
+                    Contract.PaymentTrigger.ORIGINALS: Transportation.PaymentDueBasis.ORIGINALS_RECEIVED,
+                    Contract.PaymentTrigger.DELIVERY: Transportation.PaymentDueBasis.DELIVERY_DATE,
+                    Contract.PaymentTrigger.UNLOADING: Transportation.PaymentDueBasis.DELIVERY_DATE,
+                }.get(customer_contract.payment_trigger, Transportation.PaymentDueBasis.DOCUMENT_DATE)
+        if executor_contract and (
+            is_create
+            or old_executor_contract_id != executor_contract.pk
+            or not form.instance.executor_contract_number_snapshot
+        ):
+            form.instance.executor_contract_number_snapshot = executor_contract.number
+            form.instance.executor_contract_date_snapshot = executor_contract.contract_date
+            if form.cleaned_data.get("executor_payment_term_days") in (None, ""):
+                form.instance.executor_payment_term_days = executor_contract.payment_term_days
+            form.instance.executor_payment_day_type_snapshot = executor_contract.payment_day_type
+            form.instance.executor_payment_trigger_snapshot = executor_contract.payment_trigger
+            if not form.cleaned_data.get("executor_payment_due_basis"):
+                form.instance.executor_payment_due_basis = {
+                    Contract.PaymentTrigger.ORIGINALS: Transportation.PaymentDueBasis.ORIGINALS_RECEIVED,
+                    Contract.PaymentTrigger.DELIVERY: Transportation.PaymentDueBasis.DELIVERY_DATE,
+                    Contract.PaymentTrigger.UNLOADING: Transportation.PaymentDueBasis.DELIVERY_DATE,
+                }.get(executor_contract.payment_trigger, Transportation.PaymentDueBasis.DOCUMENT_DATE)
         previous_status = (
             getattr(self, "_audit_previous_status", None)
             if getattr(self, "_audit_previous_status", None) is not None
@@ -7534,13 +8402,13 @@ class TransportationDocumentEditMixin:
 
 
 class TransportationCreateView(
-    LoginRequiredMixin, TransportationDocumentEditMixin, CreateView
+    LoginRequiredMixin, OperationsAccessMixin, TransportationDocumentEditMixin, CreateView
 ):
     pass
 
 
 class TransportationUpdateView(
-    LoginRequiredMixin, TransportationDocumentEditMixin, UpdateView
+    LoginRequiredMixin, OperationsAccessMixin, TransportationDocumentEditMixin, UpdateView
 ):
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -7557,9 +8425,9 @@ class TransportationUpdateView(
         return super().dispatch(request, *args, **kwargs)
 
 
-class TransportationPostView(LoginRequiredMixin, View):
+class TransportationPostView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, pk):
-        transportation = get_object_or_404(Transportation, pk=pk)
+        transportation = get_user_transportation_or_404(request.user, pk=pk)
         try:
             transportation = post_transportation(transportation, request.user)
         except ValidationError as error:
@@ -7575,9 +8443,9 @@ class TransportationPostView(LoginRequiredMixin, View):
         return redirect(transportation.get_absolute_url())
 
 
-class TransportationUnpostView(LoginRequiredMixin, View):
+class TransportationUnpostView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, pk):
-        transportation = get_object_or_404(Transportation, pk=pk)
+        transportation = get_user_transportation_or_404(request.user, pk=pk)
         try:
             transportation = unpost_transportation(transportation, request.user)
         except ValidationError as error:
@@ -7587,9 +8455,9 @@ class TransportationUnpostView(LoginRequiredMixin, View):
         return redirect("transportation-update", pk=transportation.pk)
 
 
-class TransportationStatusAdvanceView(LoginRequiredMixin, View):
+class TransportationStatusAdvanceView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, pk):
-        transportation = get_object_or_404(Transportation, pk=pk)
+        transportation = get_user_transportation_or_404(request.user, pk=pk)
         target_status = request.POST.get("target_status", "").strip()
         if not target_status:
             target_status = transportation.next_workflow_status
@@ -7616,10 +8484,13 @@ class TransportationStatusAdvanceView(LoginRequiredMixin, View):
         return redirect(transportation.get_absolute_url())
 
 
-class TransportationCancelExecutorView(LoginRequiredMixin, View):
+class TransportationCancelExecutorView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, pk):
         transportation = get_object_or_404(
-            Transportation.objects.select_related("source_order"), pk=pk
+            scope_transportations_for_user(
+                Transportation.objects.select_related("source_order"), request.user
+            ),
+            pk=pk,
         )
         order = getattr(transportation, "source_order", None)
         if not order:
@@ -7673,7 +8544,7 @@ class TransportationCancelExecutorView(LoginRequiredMixin, View):
 
 class TransportationCloseView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        transportation = get_object_or_404(Transportation, pk=pk)
+        transportation = get_user_transportation_or_404(request.user, pk=pk)
         if not user_can_close_documents(request.user):
             messages.error(request, "У вас нет прав на закрытие рейса.")
             return redirect(transportation.get_absolute_url())
@@ -7692,12 +8563,15 @@ class TransportationCloseView(LoginRequiredMixin, View):
         return redirect(transportation.get_absolute_url())
 
 
-class TransportationEpdPrepareView(LoginRequiredMixin, View):
+class TransportationEpdPrepareView(LoginRequiredMixin, OperationsAccessMixin, View):
     """Generate canonical drafts for the EPD documents of a transportation."""
 
     def post(self, request, pk):
         transportation = get_object_or_404(
-            Transportation.objects.select_related("owner_company"), pk=pk
+            scope_transportations_for_user(
+                Transportation.objects.select_related("owner_company"), request.user
+            ),
+            pk=pk,
         )
         try:
             documents = prepare_documents(transportation, request.user)
@@ -7747,7 +8621,11 @@ class TransportationEpdDownloadView(LoginRequiredMixin, View):
 
     def get(self, request, transportation_pk, pk):
         document = get_object_or_404(
-            TransportationElectronicDocument.objects.select_related("transportation"),
+            TransportationElectronicDocument.objects.select_related("transportation").filter(
+                transportation__in=scope_transportations_for_user(
+                    Transportation.objects.all(), request.user
+                )
+            ),
             pk=pk,
             transportation_id=transportation_pk,
         )
@@ -7857,12 +8735,16 @@ class TransportationEpdDownloadView(LoginRequiredMixin, View):
         )
 
 
-class TransportationEpdSendView(LoginRequiredMixin, View):
+class TransportationEpdSendView(LoginRequiredMixin, OperationsAccessMixin, View):
     """Generate a final EZZ title; signing and sending remain an EDO step."""
 
     def post(self, request, transportation_pk, pk):
         document = get_object_or_404(
-            TransportationElectronicDocument,
+            TransportationElectronicDocument.objects.filter(
+                transportation__in=scope_transportations_for_user(
+                    Transportation.objects.all(), request.user
+                )
+            ),
             pk=pk,
             transportation_id=transportation_pk,
         )
@@ -7941,14 +8823,15 @@ class TransportationEpdSendView(LoginRequiredMixin, View):
         return redirect(document.transportation.get_absolute_url())
 
 
-class TransportationIncidentCreateView(LoginRequiredMixin, CreateView):
+class TransportationIncidentCreateView(LoginRequiredMixin, OperationsAccessMixin, CreateView):
     model = TransportationIncident
     form_class = TransportationIncidentForm
     template_name = "crm/transportation_incident_form.html"
 
     def dispatch(self, request, *args, **kwargs):
         self.transportation = get_object_or_404(
-            Transportation, pk=kwargs["transportation_pk"]
+            scope_transportations_for_user(Transportation.objects.all(), request.user),
+            pk=kwargs["transportation_pk"],
         )
         return super().dispatch(request, *args, **kwargs)
 
@@ -7996,7 +8879,7 @@ class TransportationIncidentCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy("transportation-detail", kwargs={"pk": self.transportation.pk})
 
 
-class TransportationIncidentUpdateView(LoginRequiredMixin, UpdateView):
+class TransportationIncidentUpdateView(LoginRequiredMixin, OperationsAccessMixin, UpdateView):
     model = TransportationIncident
     form_class = TransportationIncidentForm
     template_name = "crm/transportation_incident_form.html"
@@ -8004,7 +8887,10 @@ class TransportationIncidentUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return TransportationIncident.objects.filter(
-            transportation_id=self.kwargs["transportation_pk"]
+            transportation__in=scope_transportations_for_user(
+                Transportation.objects.all(), self.request.user
+            ),
+            transportation_id=self.kwargs["transportation_pk"],
         ).select_related("transportation", "counterparty")
 
     def dispatch(self, request, *args, **kwargs):
@@ -8057,10 +8943,16 @@ class TransportationIncidentUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy("transportation-detail", kwargs={"pk": self.object.transportation_id})
 
 
-class TransportationIncidentDeleteView(LoginRequiredMixin, View):
+class TransportationIncidentDeleteView(LoginRequiredMixin, OperationsAccessMixin, View):
     def post(self, request, transportation_pk, pk):
         incident = get_object_or_404(
-            TransportationIncident, pk=pk, transportation_id=transportation_pk
+            TransportationIncident.objects.filter(
+                transportation__in=scope_transportations_for_user(
+                    Transportation.objects.all(), request.user
+                )
+            ),
+            pk=pk,
+            transportation_id=transportation_pk,
         )
         old_snapshot = _incident_snapshot(incident)
         transportation = incident.transportation
@@ -8169,6 +9061,9 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
         ),
     )
 
+    def get_queryset(self):
+        return scope_transportations_for_user(super().get_queryset(), self.request.user)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         transportation = self.object
@@ -8248,7 +9143,11 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 }
             )
         driver_details = None
-        if assignment and assignment.driver_id:
+        if (
+            assignment
+            and assignment.driver_id
+            and user_can_view_personal_data(self.request.user)
+        ):
             driver = assignment.driver
             passport = driver.current_passport
             license_doc = driver.current_license
@@ -8326,7 +9225,16 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             else:
                 posting_issues = list(error.messages)
         closing_issues = validate_transportation_for_closing(transportation)
-        transportation_documents = list(transportation.documents.all())
+        transportation_documents = list(
+            ShipmentDocument.objects.filter(
+                Q(transportation=transportation)
+                | Q(lines__transportation=transportation)
+            )
+            .select_related("counterparty", "contract")
+            .prefetch_related("lines__transportation")
+            .distinct()
+            .order_by("-document_date", "-created_at")
+        )
         payments = list(transportation.payments.all())
         customer_payments = [
             payment
@@ -8411,22 +9319,29 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
 class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
     def get(self, request, pk):
         transportation = get_object_or_404(
-            Transportation.objects.select_related(
-                "owner_company",
-                "executor_vat_rate",
-                "package_type",
-                "loading_method",
-                "unloading_method",
-            ).prefetch_related(
-                "stops__organization",
-                "execution_links__contract",
-                "execution_links__contractor_party__organization",
-                "vehicle_assignments__driver__passports",
-                "vehicle_assignments__vehicle",
-                "vehicle_assignments__trailer",
+            scope_transportations_for_user(
+                Transportation.objects.select_related(
+                    "owner_company",
+                    "executor_vat_rate",
+                    "package_type",
+                    "loading_method",
+                    "unloading_method",
+                ).prefetch_related(
+                    "stops__organization",
+                    "execution_links__contract",
+                    "execution_links__contractor_party__organization",
+                    "vehicle_assignments__driver__passports",
+                    "vehicle_assignments__vehicle",
+                    "vehicle_assignments__trailer",
+                ),
+                request.user,
             ),
             pk=pk,
         )
+        if not user_can_view_personal_data(request.user):
+            raise PermissionDenied(
+                "У вас нет права на выгрузку документов с персональными данными."
+            )
         from .documents import build_executor_transportation_application_docx
 
         stream = build_executor_transportation_application_docx(transportation)
@@ -8446,7 +9361,7 @@ class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
         )
 
 
-class TransportationChainUpdateView(LoginRequiredMixin, FormView):
+class TransportationChainUpdateView(LoginRequiredMixin, OperationsAccessMixin, FormView):
     form_class = TransportationChainForm
     template_name = "crm/transportation_chain_form.html"
 
@@ -8454,8 +9369,11 @@ class TransportationChainUpdateView(LoginRequiredMixin, FormView):
     def transportation(self):
         if not hasattr(self, "_transportation"):
             self._transportation = get_object_or_404(
-                Transportation.objects.select_related(
-                    "owner_company", "legacy_shipment"
+                scope_transportations_for_user(
+                    Transportation.objects.select_related(
+                        "owner_company", "legacy_shipment"
+                    ),
+                    self.request.user,
                 ),
                 pk=self.kwargs["pk"],
             )
@@ -8633,6 +9551,7 @@ class ContractCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         initial["contract_date"] = timezone.localdate()
+        initial["effective_from"] = timezone.localdate()
         kind = self.request.GET.get("kind")
         if kind in Contract.Kind.values:
             initial["kind"] = kind
@@ -8709,7 +9628,34 @@ class ContractCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
-        return super().form_valid(form)
+        self.object = form.save()
+        messages.success(self.request, self.success_message)
+        if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse(self.contract_json_payload("created"))
+        return redirect(self.get_success_url())
+
+    def contract_json_payload(self, action):
+        return {
+            "ok": True,
+            "action": action,
+            "message": self.success_message,
+            "item": {
+                "id": self.object.pk,
+                "label": str(self.object),
+                "kind": self.object.kind,
+                "counterparty_organization_id": getattr(
+                    self.object.counterparty, "organization_id", None
+                ),
+                "is_primary": self.object.is_primary,
+                "lifecycle_status": self.object.lifecycle_status,
+                "lifecycle_status_label": self.object.lifecycle_status_label,
+                "payment_term_days": self.object.payment_term_days,
+                "payment_day_type": self.object.payment_day_type,
+                "payment_trigger": self.object.payment_trigger,
+                "contract_date": self.object.contract_date.isoformat(),
+            },
+            "url": reverse("contract-update", args=[self.object.pk]),
+        }
 
     def get_success_url(self):
         transportation_id = self.request.GET.get("return_transportation", "").strip()
@@ -8731,6 +9677,13 @@ class ContractUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     form_class = ContractForm
     template_name = "crm/contract_form.html"
     success_message = "Договор обновлён. При скачивании будет сформирована новая версия."
+
+    def form_valid(self, form):
+        self.object = form.save()
+        messages.success(self.request, self.success_message)
+        if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse(ContractCreateView.contract_json_payload(self, "updated"))
+        return redirect(self.object.get_absolute_url())
 
 
 class ContractDownloadView(LoginRequiredMixin, View):
@@ -8760,6 +9713,16 @@ class CarrierInitialMixin:
         carrier_id = self.request.GET.get("carrier")
         if carrier_id and Carrier.objects.filter(pk=carrier_id).exists():
             initial["carrier"] = carrier_id
+        organization_id = self.request.GET.get("organization", "")
+        if organization_id.isdigit():
+            carrier = Carrier.objects.filter(
+                organization_id=organization_id
+            ).first()
+            if carrier:
+                initial["carrier"] = carrier.pk
+        resource_kind = self.request.GET.get("resource_kind", "")
+        if resource_kind == "trailer":
+            initial["kind"] = Vehicle.Kind.SEMITRAILER
         return initial
 
 
@@ -8889,7 +9852,7 @@ class CarrierUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     }
 
 
-class DriverListView(SearchableDirectoryListView):
+class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
     model = Driver
     template_name = "crm/driver_list.html"
     context_object_name = "drivers"
@@ -8994,10 +9957,21 @@ def driver_vehicle_copy_text(driver):
     return f"{vehicle_name} - {trailer_number}".rstrip()
 
 
-class DriverDetailView(LoginRequiredMixin, DetailView):
+class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
     model = Driver
     template_name = "crm/driver_detail.html"
     context_object_name = "driver"
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        PersonalDataAccessLog.objects.create(
+            user=request.user,
+            driver=self.object,
+            action=PersonalDataAccessLog.Action.VIEW,
+            path=request.path[:500],
+            ip_address=request.META.get("REMOTE_ADDR") or None,
+        )
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -9254,6 +10228,17 @@ class DriverRegistersFormSetMixin:
                 passport_formset.instance = self.object
                 passport_formset.save()
                 license_formset.save_register(self.object)
+                PersonalDataAccessLog.objects.create(
+                    user=request.user,
+                    driver=self.object,
+                    action=(
+                        PersonalDataAccessLog.Action.UPDATE
+                        if self.kwargs.get("pk")
+                        else PersonalDataAccessLog.Action.CREATE
+                    ),
+                    path=request.path[:500],
+                    ip_address=request.META.get("REMOTE_ADDR") or None,
+                )
             messages.success(request, self.success_message)
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 action = request.POST.get("action") or "save"
@@ -9264,7 +10249,11 @@ class DriverRegistersFormSetMixin:
                         "message": self.success_message,
                         "item": {
                             "id": self.object.pk,
-                            "label": self.object.full_name,
+                            "label": self.object.selection_label,
+                            "carrier_ids": list(
+                                self.object.employments.filter(is_active=True)
+                                .values_list("carrier__organization_id", flat=True)
+                            ),
                         },
                         "url": self.get_success_url(),
                     }
@@ -9292,6 +10281,7 @@ class DriverRegistersFormSetMixin:
 
 
 class DriverCreateView(
+    PersonalDataManageMixin,
     LoginRequiredMixin,
     CarrierInitialMixin,
     DriverRegistersFormSetMixin,
@@ -9311,6 +10301,7 @@ class DriverCreateView(
 
 
 class DriverUpdateView(
+    PersonalDataManageMixin,
     LoginRequiredMixin,
     DriverRegistersFormSetMixin,
     SuccessMessageMixin,
@@ -9585,6 +10576,25 @@ class VehicleAttachmentFormMixin:
                     current_combination.is_active = False
                     current_combination.save(update_fields=["is_active", "updated_at"])
             messages.success(request, self.success_message)
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                action = request.POST.get("action") or "save"
+                return JsonResponse(
+                    {
+                        "ok": True,
+                        "action": action,
+                        "message": self.success_message,
+                        "item": {
+                            "id": self.object.pk,
+                            "label": str(self.object),
+                            "kind": self.object.kind,
+                            "carrier_ids": list(
+                                self.object.carrier_links.filter(is_active=True)
+                                .values_list("carrier__organization_id", flat=True)
+                            ),
+                        },
+                        "url": self.get_success_url(),
+                    }
+                )
             return redirect(self.get_success_url())
         return self.render_to_response(
             self.get_context_data(

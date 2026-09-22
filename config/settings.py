@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -48,6 +50,11 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
+if not DEBUG and SECRET_KEY == "django-insecure-local-development-key-change-me":
+    raise ImproperlyConfigured(
+        "Для production необходимо задать уникальный DJANGO_SECRET_KEY."
+    )
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
@@ -56,6 +63,10 @@ ALLOWED_HOSTS = [
 
 if DEBUG and "*" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("*")
+
+# CRM opens its own forms in same-origin modal frames. External origins remain
+# blocked, while pages from this exact host may be embedded by the CRM itself.
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 
 # Application definition
@@ -78,6 +89,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'crm.middleware.PrivateCRMResponseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -188,12 +200,30 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+# Авторизованная сессия имеет ограниченный срок и продлевается только при
+# активности пользователя. Значение можно уменьшить политикой организации.
+SESSION_COOKIE_AGE = int(os.environ.get("DJANGO_SESSION_COOKIE_AGE", "28800"))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = (
+    os.environ.get("DJANGO_SESSION_EXPIRE_AT_BROWSER_CLOSE", "1") == "1"
+)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "1") == "1"
     COOKIE_SECURE = os.environ.get("DJANGO_COOKIE_SECURE", "1") == "1"
     SESSION_COOKIE_SECURE = COOKIE_SECURE
     CSRF_COOKIE_SECURE = COOKIE_SECURE
+    # Production is HTTPS-only. Keep the duration configurable so a new host can
+    # deliberately stage HSTS with a shorter value before increasing it.
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+        os.environ.get("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", "0") == "1"
+    )
+    SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_SECURE_HSTS_PRELOAD", "0") == "1"
 
 # DaData «Организация по ИНН». Ключ хранится только на сервере и никогда не
 # передаётся в браузер.

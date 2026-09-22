@@ -1,19 +1,15 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize static %}
 {% block title %}{{ transportation.number|default:"Черновик заявки" }} — Моя CRM{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/transportation-detail.css' %}?v=20260921-card-redesign-2">{% endblock %}
 {% block content %}
 <div class="onec-workspace transportation-card">
+<nav class="trip-breadcrumbs" aria-label="Навигация"><a href="{% url 'transportation-list' %}">Рейсы</a><span uk-icon="chevron-right"></span><strong>Рейс №{{ transportation.number|default:"Черновик" }}</strong></nav>
 <section class="form-section uk-card uk-card-default order-command-header transportation-command-header onec-titlebar transportation-titlebar">
     <div class="form-section-title order-command-title">
-        <a class="onec-back" href="{% url 'transportation-list' %}" aria-label="Назад"><span uk-icon="arrow-left"></span></a>
-        <span class="order-command-icon" uk-icon="location"></span>
         <div>
             <h2>Рейс № {{ transportation.number|default:"Черновик" }}</h2>
-            <p>{{ transportation.route }} · {{ transportation.planned_start_date|date:"d.m.Y"|default:"Дата не указана" }} → {{ transportation.planned_end_date|date:"d.m.Y"|default:"Дата не указана" }}{% if transportation.source_order %} · Основание: <a href="{{ transportation.source_order.get_absolute_url }}">заказ {{ transportation.source_order.number }}</a>{% endif %}</p>
-            <div class="transportation-header-state">
-                <span>{{ transportation.get_status_display }}</span>
-                <small>{{ transportation.get_posting_status_display }} · {% if transportation.chain_is_confirmed %}цепочка подтверждена{% else %}цепочка требует внимания{% endif %}</small>
-            </div>
+            <p>Создан {{ transportation.created_at|date:"d.m.Y, H:i" }}{% if transportation.manager %}<span class="trip-heading-separator">•</span> Менеджер: {{ transportation.manager.get_full_name|default:transportation.manager.username }}{% endif %}{% if transportation.source_order %}<span class="trip-heading-separator">•</span> Основание: <a href="{{ transportation.source_order.get_absolute_url }}">заказ {{ transportation.source_order.number }}</a>{% endif %}</p>
         </div>
     </div>
     <div class="order-command-actions onec-commandbar transportation-commandbar">
@@ -25,7 +21,7 @@
         {% if next_workflow_status %}<form method="post" action="{% url 'transportation-advance-status' transportation.pk %}" class="inline-form">{% csrf_token %}<input type="hidden" name="target_status" value="{{ next_workflow_status }}"><button class="uk-button uk-button-primary" type="submit"><span uk-icon="arrow-right"></span> Перевести: {{ next_workflow_status_label }}</button></form>{% endif %}
         {% if transportation.status != 'closed' %}<form method="post" action="{% url 'transportation-close' transportation.pk %}" class="inline-form">{% csrf_token %}<button class="uk-button {% if can_close_transportation %}uk-button-secondary{% else %}uk-button-default{% endif %}" type="submit"><span uk-icon="lock"></span> Закрыть рейс</button></form>{% endif %}
     {% else %}
-        <a class="uk-button uk-button-default" href="{% url 'transportation-update' transportation.pk %}"><span uk-icon="pencil"></span> Изменить</a>
+        <a class="uk-button uk-button-primary trip-edit-command" href="{% url 'transportation-update' transportation.pk %}"><span uk-icon="pencil"></span> Редактировать</a>
         {% if can_post_transportation %}<form method="post" action="{% url 'transportation-post' transportation.pk %}" class="inline-form">{% csrf_token %}<button class="onec-primary-command uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Провести</button></form>{% else %}<a class="onec-primary-command uk-button uk-button-primary" href="{% url 'transportation-update' transportation.pk %}"><span uk-icon="warning"></span> Заполнить для проведения</a>{% endif %}
     {% endif %}
     <a class="uk-button uk-button-danger" href="{% url 'transportation-delete' transportation.pk %}"><span uk-icon="trash"></span> Удалить</a>
@@ -94,7 +90,7 @@
     {% if chain_issues %}<div class="chain-issues"><strong>Чтобы подтвердить машину, исправьте:</strong><ul>{% for issue in chain_issues %}<li>{{ issue }}</li>{% endfor %}</ul></div>{% endif %}
 </section>
 
-<ul class="onec-tabs uk-tab transportation-tabs" uk-tab="connect: #transportation-detail-tabs; animation: uk-animation-fade"><li><a href="#">Основные</a></li><li><a href="#">Маршрут и груз</a></li><li><a href="#">Документы</a></li><li><a href="#">Претензии <span class="uk-badge">{{ incidents|length }}</span></a></li><li><a href="#">Финансы</a></li><li><a href="#">Движения документа</a></li><li><a href="#">История <span class="uk-badge">{{ status_events|length }}</span></a></li></ul>
+<ul class="onec-tabs uk-tab transportation-tabs" uk-tab="connect: #transportation-detail-tabs; animation: uk-animation-fade"><li><a href="#">Основное</a></li><li><a href="#">Маршрут и груз</a></li><li><a href="#">Документы</a></li><li><a href="#">Претензии <span class="uk-badge">{{ incidents|length }}</span></a></li><li><a href="#">Финансы</a></li><li><a href="#">События</a></li><li><a href="#">История <span class="uk-badge">{{ status_events|length }}</span></a></li></ul>
 <ul id="transportation-detail-tabs" class="onec-switcher uk-switcher uk-margin">
     <li>
         <div class="transportation-overview-grid">

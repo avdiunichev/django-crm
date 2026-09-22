@@ -51,15 +51,41 @@
         return modalElement;
     };
 
-    const open = (url) => {
+    const open = async (url) => {
         ensureModal();
         const target = new URL(url, window.location.href);
         target.searchParams.set("modal", "1");
         const loading = modalElement.querySelector(".crm-order-modal-loading");
         loading.hidden = false;
         frame.hidden = true;
-        frame.src = target.href;
+        frame.removeAttribute("src");
+        frame.srcdoc = "";
         modal()?.show();
+        try {
+            const response = await fetch(target.href, {
+                credentials: "same-origin",
+                headers: {"X-Requested-With": "XMLHttpRequest"},
+            });
+            if (response.redirected && new URL(response.url).pathname.startsWith("/login/")) {
+                window.location.assign(response.url);
+                return;
+            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            let html = await response.text();
+            const base = `<base href="${target.href.replaceAll('"', '&quot;')}">`;
+            html = /<head(?:\s[^>]*)?>/i.test(html)
+                ? html.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}${base}`)
+                : `${base}${html}`;
+            frame.srcdoc = html;
+        } catch (_error) {
+            loading.hidden = true;
+            frame.hidden = true;
+            window.CRMToasts?.show(
+                "Не удалось открыть форму заказа. Обновите страницу и повторите попытку.",
+                "error",
+                5000,
+            );
+        }
     };
 
     document.addEventListener("click", (event) => {
@@ -72,6 +98,11 @@
     window.addEventListener("message", (event) => {
         if (event.origin !== window.location.origin || event.data?.type !== messageType) return;
         if (event.data.action === "close") modal()?.hide();
+        if (event.data.action === "saved") {
+            modal()?.hide();
+            if (event.data.url && event.data.openUrl) window.location.assign(event.data.url);
+            else window.location.reload();
+        }
     });
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -81,6 +112,53 @@
                 event.preventDefault();
                 window.parent.postMessage({type: messageType, action: "close"}, window.location.origin);
             });
+        });
+        const form = document.querySelector("[data-order-form]");
+        if (!form || form.dataset.modalSubmitReady === "true") return;
+        form.dataset.modalSubmitReady = "true";
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submitter = event.submitter;
+            const data = new FormData(form);
+            if (submitter?.name) data.set(submitter.name, submitter.value);
+            const buttons = form.querySelectorAll('button[type="submit"]');
+            buttons.forEach((button) => { button.disabled = true; });
+            form.setAttribute("aria-busy", "true");
+            try {
+                const response = await fetch(window.location.href, {
+                    method: "POST",
+                    body: data,
+                    credentials: "same-origin",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json, text/html",
+                    },
+                });
+                const contentType = response.headers.get("content-type") || "";
+                if (contentType.includes("application/json")) {
+                    const payload = await response.json();
+                    if (!response.ok || !payload.ok) throw new Error(payload.message || "Заказ не сохранён.");
+                    if (payload.action === "save_stay") {
+                        window.location.assign(payload.url);
+                        return;
+                    }
+                    window.parent.postMessage({
+                        type: messageType,
+                        action: "saved",
+                        url: payload.url,
+                        openUrl: payload.action === "assign",
+                    }, window.location.origin);
+                    return;
+                }
+                const html = await response.text();
+                document.open();
+                document.write(html);
+                document.close();
+            } catch (error) {
+                window.CRMToasts?.show(error.message || "Не удалось сохранить заказ.", "error", 5000);
+                buttons.forEach((button) => { button.disabled = false; });
+                form.removeAttribute("aria-busy");
+            }
         });
     });
 })();

@@ -8,6 +8,7 @@
         <p>{% if source_object %}{{ source_object.route }}{% elif shipment %}{{ shipment.customer.name }} · {{ shipment.route }}{% else %}Присвойте входящий или исходящий документ конкретной заявке или рейсу{% endif %}</p>
     </div>
 </div>
+{% if based_on_document %}<div class="uk-alert-primary" uk-alert>Документ создаётся на основании: <a href="{{ based_on_document.get_absolute_url }}">{{ based_on_document.get_kind_display }} №{{ based_on_document.display_number }}</a>. Рейсы и реквизиты перенесены автоматически.</div>{% endif %}
 <div class="detail-grid">
     <form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked">
         {% csrf_token %}
@@ -17,12 +18,19 @@
             <div class="form-grid">
                 {% include "crm/includes/form_field.html" with field=form.shipment wide=True %}
                 {% include "crm/includes/form_field.html" with field=form.transportation wide=True %}
+                {% include "crm/includes/form_field.html" with field=form.transportations_selected wide=True %}
                 {% include "crm/includes/form_field.html" with field=form.direction %}
+                {% include "crm/includes/form_field.html" with field=form.owner_company %}
                 {% include "crm/includes/form_field.html" with field=form.counterparty %}
+                {% include "crm/includes/form_field.html" with field=form.contract %}
                 {% include "crm/includes/form_field.html" with field=form.kind %}
                 {% include "crm/includes/form_field.html" with field=form.party %}
                 {% include "crm/includes/form_field.html" with field=form.status %}
                 {% include "crm/includes/form_field.html" with field=form.number %}
+                {% include "crm/includes/form_field.html" with field=form.crm_number %}
+                {% include "crm/includes/form_field.html" with field=form.one_c_number %}
+                {% include "crm/includes/form_field.html" with field=form.one_c_date %}
+                {% include "crm/includes/form_field.html" with field=form.one_c_status %}
                 {% include "crm/includes/form_field.html" with field=form.document_date %}
                 {% include "crm/includes/form_field.html" with field=form.expected_date %}
                 {% include "crm/includes/form_field.html" with field=form.amount %}
@@ -30,8 +38,18 @@
                 {% include "crm/includes/form_field.html" with field=form.currency %}
             </div>
         </section>
+        {% if object.lines.exists %}
         <section class="form-section uk-card uk-card-default">
-            <div class="form-section-title"><span>02</span><div><h2>Файл и комментарий</h2><p>Можно сначала создать ожидаемый документ без файла</p></div></div>
+            <div class="form-section-title"><span>02</span><div><h2>Табличная часть</h2><p>Каждая строка связана с конкретным рейсом</p></div></div>
+            <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-middle">
+                <thead><tr><th>Рейс</th><th>Наименование услуги</th><th>Кол-во</th><th class="uk-text-right">Без НДС</th><th class="uk-text-right">НДС</th><th class="uk-text-right">Всего</th></tr></thead>
+                <tbody>{% for line in object.lines.all %}<tr><td><a href="{{ line.transportation.get_absolute_url }}">{{ line.transportation.number|default:"Черновик" }}</a></td><td>{{ line.service_name }}</td><td>{{ line.quantity|floatformat:0 }} {{ line.unit }}</td><td class="uk-text-right">{{ line.amount|floatformat:2 }}</td><td class="uk-text-right">{{ line.vat_amount|floatformat:2 }}</td><td class="uk-text-right"><strong>{{ line.total_amount|floatformat:2 }}</strong></td></tr>{% endfor %}</tbody>
+                <tfoot><tr><th colspan="4"></th><th class="uk-text-right">НДС {{ object.vat_amount|floatformat:2 }}</th><th class="uk-text-right">{{ object.amount|floatformat:2 }} {{ object.currency }}</th></tr></tfoot>
+            </table></div>
+        </section>
+        {% endif %}
+        <section class="form-section uk-card uk-card-default">
+            <div class="form-section-title"><span>03</span><div><h2>Файл и комментарий</h2><p>Можно сначала создать ожидаемый документ без файла</p></div></div>
             <div class="form-grid">
                 {% include "crm/includes/form_field.html" with field=form.file wide=True %}
                 {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
@@ -41,6 +59,7 @@
         <div class="form-actions">
             <a class="uk-button uk-button-default" href="{% if source_object %}{{ source_object.get_absolute_url }}{% elif shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
             {% if object %}<a class="uk-button uk-button-danger" href="{% url 'shipment-document-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
+            {% if object and object.direction == 'outgoing' and object.kind == 'invoice' %}<a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=act">Создать акт</a><a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=vat_invoice">Создать счёт-фактуру</a><a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=upd">Создать УПД</a>{% endif %}
             <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить документ</button>
         </div>
     </form>

@@ -56,9 +56,9 @@
         const kinds = new Set();
         form.querySelectorAll("[data-order-route-stop]").forEach((row) => {
             if (row.querySelector("input[name$='-DELETE']")?.checked) return;
-            const city = row.querySelector("input[name$='-city']")?.value.trim();
+            const address = row.querySelector("input[name$='-address'], textarea[name$='-address']")?.value.trim();
             const kind = row.querySelector("input[name$='-kind']")?.value;
-            if (city && (kind === "pickup" || kind === "delivery")) kinds.add(kind);
+            if (address && (kind === "pickup" || kind === "delivery")) kinds.add(kind);
         });
         return kinds.has("pickup") && kinds.has("delivery");
     };

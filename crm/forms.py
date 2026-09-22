@@ -344,7 +344,8 @@ class UserDisplayChoiceField(forms.ModelChoiceField):
 
 class DriverChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, driver):
-        return driver.selection_label
+        # Operational selectors must not expose phone and document details.
+        return driver.full_name
 
 
 class CarrierChoiceField(forms.ModelChoiceField):
@@ -923,18 +924,25 @@ class TransportationChainForm(forms.Form):
                 self.fields["driver"].queryset = Driver.objects.filter(
                     Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
                 ).distinct()
-            carrier_filter = {"carrier__organization_id": actual_id}
+            carrier_filter = Q(carrier__organization_id=actual_id) | Q(
+                carrier_links__carrier__organization_id=actual_id,
+                carrier_links__is_active=True,
+            )
             self.fields["vehicle"].queryset = Vehicle.objects.filter(
-                is_active=True, **carrier_filter
-            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+                carrier_filter, is_active=True
+            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER]).distinct()
             self.fields["trailer"].queryset = Vehicle.objects.filter(
+                carrier_filter,
                 is_active=True,
                 kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER],
-                **carrier_filter,
-            )
+            ).distinct()
             combination_filter = Q(
                 is_active=True,
                 tractor__carrier__organization_id=actual_id,
+            ) | Q(
+                is_active=True,
+                tractor__carrier_links__carrier__organization_id=actual_id,
+                tractor__carrier_links__is_active=True,
             )
             if assignment and assignment.combination_id:
                 combination_filter |= Q(pk=assignment.combination_id)
@@ -1140,7 +1148,9 @@ class TransportOrderForm(StyledModelForm):
         self.fields["client"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": reverse("organization-create"),
+                "data-edit-url-template": reverse("organization-update", args=[0]),
                 "data-required-role": OrganizationRole.Role.CLIENT,
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН клиента",
@@ -1292,7 +1302,7 @@ class TransportOrderStopForm(StyledModelForm):
     class Meta:
         model = TransportOrderStop
         fields = [
-            "sequence", "kind", "organization", "organization_text", "city", "address", "planned_date",
+            "sequence", "kind", "organization", "organization_text", "address", "planned_date",
             "planned_time_from", "planned_time_to", "contact_name",
             "contact_phone", "handling_method", "instructions",
         ]
@@ -1336,7 +1346,10 @@ class TransportOrderStopForm(StyledModelForm):
         self.fields["organization"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
-                "data-create-url": reverse("quick-organization-create"),
+                "data-entity-type": "organization",
+                "data-create-url": reverse("organization-create"),
+                "data-edit-url-template": reverse("organization-update", args=[0]),
+                "data-full-organization-create": "true",
                 "data-required-role": required_role,
                 "data-search-placeholder": f"Название или ИНН: {party_label.lower()}",
                 "data-create-label": f"Создать: {party_label.lower()}",
@@ -1359,20 +1372,6 @@ class TransportOrderStopForm(StyledModelForm):
                 .values_list("pk", flat=True)
                 .first()
             )
-        self.fields["city"].required = False
-        self.fields["city"].label = (
-            "Город получения"
-            if kind == TransportOrderStop.Kind.DELIVERY
-            else "Город отправления"
-        )
-        self.fields["city"].widget.attrs.update(
-            {
-                "autocomplete": "off",
-                "data-dadata-city": "",
-                "data-dadata-city-url": reverse("dadata-address-suggestions"),
-                "placeholder": "Начните вводить город или населённый пункт",
-            }
-        )
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
         self.fields["address"].widget = forms.Textarea(
@@ -1383,9 +1382,8 @@ class TransportOrderStopForm(StyledModelForm):
                 "autocomplete": "off",
                 "data-dadata-address": "",
                 "data-dadata-address-url": reverse("dadata-address-suggestions"),
-                "data-dadata-city-source": f"id_{self.add_prefix('city')}",
                 "data-dadata-meta-target": f"id_{self.add_prefix('address_meta')}",
-                "placeholder": "Начните вводить улицу, дом или полный адрес",
+                "placeholder": "Начните вводить полный адрес",
             }
         )
         self.fields["contact_phone"].widget.attrs.update(
@@ -1427,8 +1425,7 @@ class TransportOrderStopForm(StyledModelForm):
         if not isinstance(address_data, dict):
             address_data = {}
         cleaned["city"] = (
-            cleaned.get("city")
-            or address_data.get("city")
+            address_data.get("city")
             or address_data.get("settlement")
             or self._city_from_address(cleaned.get("address"))
         )[:120]
@@ -1438,6 +1435,7 @@ class TransportOrderStopForm(StyledModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        instance.city = self.cleaned_data.get("city", "")
         raw = self.cleaned_data.get("address_meta") or ""
         try:
             parsed = json.loads(raw) if isinstance(raw, str) else raw
@@ -1484,7 +1482,7 @@ class BaseTransportOrderStopFormSet(BaseInlineFormSet):
             for form in self.forms
             if hasattr(form, "cleaned_data")
             and not form.cleaned_data.get("DELETE")
-            and form.cleaned_data.get("city")
+            and form.cleaned_data.get("address")
         ]
 
     def clean(self):
@@ -1602,7 +1600,10 @@ class TransportationStopForm(StyledModelForm):
         self.fields["organization"].widget.attrs.update(
             {
                 "data-smart-select": "organization",
-                "data-create-url": reverse("quick-organization-create"),
+                "data-entity-type": "organization",
+                "data-create-url": reverse("organization-create"),
+                "data-edit-url-template": reverse("organization-update", args=[0]),
+                "data-full-organization-create": "true",
                 "data-required-role": required_role,
                 "data-search-placeholder": f"Название или ИНН: {self.fields['organization'].label.lower()}",
                 "data-create-label": f"Создать: {self.fields['organization'].label.lower()}",
@@ -1624,9 +1625,22 @@ class TransportationStopForm(StyledModelForm):
                 CargoHandlingMethod.objects.filter(name="Задняя", is_active=True)
                 .values_list("pk", flat=True)
                 .first()
-            )
+        )
         self.fields["city"].required = False
-        self.fields["city"].widget = forms.HiddenInput()
+        self.fields["city"].label = (
+            "Город получения"
+            if required_role == OrganizationRole.Role.CONSIGNEE
+            else "Город отправления"
+        )
+        self.fields["city"].widget = forms.TextInput(
+            attrs={
+                "class": "form-control uk-input",
+                "autocomplete": "off",
+                "data-dadata-city": "",
+                "data-dadata-city-url": reverse("dadata-address-suggestions"),
+                "placeholder": "Начните вводить город",
+            }
+        )
         # StyledModelForm уже задаёт общий CRM-вид даты. Повторно создаём
         # виджет только с тем же классом, чтобы поле рейса не отличалось
         # визуально от даты в маршруте заказа.
@@ -2230,18 +2244,25 @@ class TransportationDocumentForm(StyledModelForm):
                 self.fields["driver"].queryset = Driver.objects.filter(
                     Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
                 ).distinct()
-            carrier_filter = {"carrier__organization_id": actual_id}
+            carrier_filter = Q(carrier__organization_id=actual_id) | Q(
+                carrier_links__carrier__organization_id=actual_id,
+                carrier_links__is_active=True,
+            )
             self.fields["vehicle"].queryset = Vehicle.objects.filter(
-                is_active=True, **carrier_filter
-            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+                carrier_filter, is_active=True
+            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER]).distinct()
             self.fields["trailer"].queryset = Vehicle.objects.filter(
+                carrier_filter,
                 is_active=True,
                 kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER],
-                **carrier_filter,
-            )
+            ).distinct()
             combination_filter = Q(
                 is_active=True,
                 tractor__carrier__organization_id=actual_id,
+            ) | Q(
+                is_active=True,
+                tractor__carrier_links__carrier__organization_id=actual_id,
+                tractor__carrier_links__is_active=True,
             )
             if assignment and assignment.combination_id:
                 combination_filter |= Q(pk=assignment.combination_id)
@@ -2336,76 +2357,117 @@ class TransportationDocumentForm(StyledModelForm):
             )
 
         organization_create_url = reverse("organization-create")
-        driver_create_url = reverse("quick-driver-create")
-        vehicle_create_url = reverse("quick-vehicle-create")
+        directory_search_url = reverse("search-select")
+        organization_edit_url = reverse("organization-update", args=[0])
+        driver_create_url = reverse("driver-create")
+        driver_edit_url = reverse("driver-update", args=[0])
+        vehicle_create_url = reverse("vehicle-create")
+        vehicle_edit_url = reverse("vehicle-update", args=[0])
         smart_selects = {
             "client": {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
+                "data-edit-url-template": organization_edit_url,
                 "data-required-role": OrganizationRole.Role.CLIENT,
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН клиента",
                 "data-create-label": "Создать клиента",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "organization",
             },
             "executor": {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
+                "data-edit-url-template": organization_edit_url,
                 "data-role-source": "id_executor_role",
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН исполнителя",
                 "data-create-label": "Создать исполнителя",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "organization",
             },
             "actual_carrier": {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
+                "data-edit-url-template": organization_edit_url,
                 "data-required-role": OrganizationRole.Role.CARRIER,
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН перевозчика",
                 "data-create-label": "Создать перевозчика",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "organization",
             },
             "pickup_organization": {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
+                "data-edit-url-template": organization_edit_url,
                 "data-required-role": OrganizationRole.Role.SHIPPER,
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Название или ИНН грузоотправителя",
                 "data-create-label": "Создать грузоотправителя",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "organization",
             },
             "delivery_organization": {
                 "data-smart-select": "organization",
+                "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
+                "data-edit-url-template": organization_edit_url,
                 "data-required-role": OrganizationRole.Role.CONSIGNEE,
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Название или ИНН грузополучателя",
                 "data-create-label": "Создать грузополучателя",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "organization",
             },
             "driver": {
                 "data-smart-select": "driver",
+                "data-entity-type": "driver",
                 "data-create-url": driver_create_url,
+                "data-edit-url-template": driver_edit_url,
                 "data-parent-source": "id_actual_carrier",
                 "data-search-placeholder": "ФИО или номер удостоверения",
                 "data-create-label": "Создать водителя",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "driver",
+                "data-link-url": reverse("search-select-link"),
             },
             "vehicle": {
                 "data-smart-select": "vehicle",
+                "data-entity-type": "vehicle",
                 "data-create-url": vehicle_create_url,
+                "data-edit-url-template": vehicle_edit_url,
                 "data-parent-source": "id_actual_carrier",
                 "data-resource-kind": "vehicle",
                 "data-search-placeholder": "Госномер, марка или модель",
                 "data-create-label": "Создать транспорт",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "vehicle",
+                "data-link-url": reverse("search-select-link"),
             },
             "combination": {
                 "data-smart-select": "vehicle-combination",
                 "data-parent-source": "id_actual_carrier",
                 "data-search-placeholder": "Госномер тягача или прицепа",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "combination",
             },
             "trailer": {
                 "data-smart-select": "vehicle",
+                "data-entity-type": "vehicle",
                 "data-create-url": vehicle_create_url,
+                "data-edit-url-template": vehicle_edit_url,
                 "data-parent-source": "id_actual_carrier",
                 "data-resource-kind": "trailer",
                 "data-search-placeholder": "Госномер прицепа",
                 "data-create-label": "Создать прицеп",
+                "data-search-url": directory_search_url,
+                "data-search-resource": "vehicle",
+                "data-link-url": reverse("search-select-link"),
             },
         }
         for field_name, attrs in smart_selects.items():
@@ -2479,6 +2541,28 @@ class TransportationDocumentForm(StyledModelForm):
                 ),
             }
         )
+
+        # Large directories are loaded by SmartSelect on demand.  On GET the
+        # HTML contains only already selected records, never the full table.
+        # Bound forms keep their filtered querysets so ModelChoice validation
+        # remains authoritative on the server.
+        if not self.is_bound:
+            directory_models = {
+                "client": Organization,
+                "executor": Organization,
+                "actual_carrier": Organization,
+                "pickup_organization": Organization,
+                "delivery_organization": Organization,
+                "driver": Driver,
+                "vehicle": Vehicle,
+                "trailer": Vehicle,
+                "combination": VehicleCombination,
+            }
+            for field_name, model in directory_models.items():
+                selected = self.initial.get(field_name)
+                self.fields[field_name].queryset = (
+                    model.objects.filter(pk=selected) if selected else model.objects.none()
+                )
 
     @staticmethod
     def _stop_address_meta(stop):
@@ -2949,20 +3033,37 @@ class ContractForm(StyledModelForm):
         model = Contract
         fields = [
             "kind", "expeditor", "customer", "carrier", "number",
-            "contract_date", "city", "valid_until", "terminated_on", "status",
-            "expeditor_representative", "expeditor_authority_basis",
-            "counterparty_representative", "counterparty_authority_basis",
-            "payment_term_days", "payment_terms", "debt_limit", "vat_rate",
+            "contract_date", "effective_from", "city", "valid_until",
+            "is_indefinite", "auto_renewal", "renewal_months",
+            "termination_notice_days", "terminated_on", "termination_reason",
+            "is_primary", "status",
+            "expeditor_representative", "expeditor_representative_position",
+            "expeditor_authority_type", "expeditor_authority_basis",
+            "expeditor_authority_number", "expeditor_authority_date",
+            "counterparty_representative", "counterparty_representative_position",
+            "counterparty_authority_type", "counterparty_authority_basis",
+            "counterparty_authority_number", "counterparty_authority_date",
+            "payment_term_days", "payment_day_type", "payment_trigger",
+            "payment_trigger_other", "payment_terms", "debt_limit", "vat_rate",
             "document_file", "notes",
         ]
         widgets = {
             "contract_date": forms.DateInput(
                 format="%Y-%m-%d", attrs={"type": "date"}
             ),
+            "effective_from": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"}
+            ),
             "valid_until": forms.DateInput(
                 format="%Y-%m-%d", attrs={"type": "date"}
             ),
             "terminated_on": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"}
+            ),
+            "expeditor_authority_date": forms.DateInput(
+                format="%Y-%m-%d", attrs={"type": "date"}
+            ),
+            "counterparty_authority_date": forms.DateInput(
                 format="%Y-%m-%d", attrs={"type": "date"}
             ),
             "payment_terms": forms.Textarea(attrs={"rows": 3}),
@@ -2989,6 +3090,14 @@ class ContractForm(StyledModelForm):
         self.fields["vat_rate"].queryset = VATRate.objects.filter(is_active=True)
         self.fields["vat_rate"].required = False
         self.fields["payment_term_days"].required = False
+        self.fields["effective_from"].required = False
+        self.fields["renewal_months"].required = False
+        self.fields["termination_notice_days"].required = False
+        self.fields["payment_day_type"].required = False
+        self.fields["payment_trigger"].required = False
+        self.fields["expeditor_authority_type"].required = False
+        self.fields["counterparty_authority_type"].required = False
+        self.fields["payment_trigger_other"].required = False
         self.fields["payment_terms"].required = False
         self.fields["debt_limit"].required = False
         if self.instance.expeditor_id:
@@ -3007,9 +3116,23 @@ class ContractForm(StyledModelForm):
             self.fields["carrier"].queryset |= Carrier.objects.filter(
                 pk=self.instance.carrier_id
             )
+        if not self.is_bound and not self.instance.pk:
+            self.initial.setdefault("effective_from", self.initial.get("contract_date"))
 
     def clean(self):
         cleaned = super().clean()
+        cleaned["payment_day_type"] = (
+            cleaned.get("payment_day_type") or Contract.PaymentDayType.CALENDAR
+        )
+        cleaned["payment_trigger"] = (
+            cleaned.get("payment_trigger") or Contract.PaymentTrigger.DELIVERY
+        )
+        cleaned["expeditor_authority_type"] = (
+            cleaned.get("expeditor_authority_type") or Contract.AuthorityType.CHARTER
+        )
+        cleaned["counterparty_authority_type"] = (
+            cleaned.get("counterparty_authority_type") or Contract.AuthorityType.CHARTER
+        )
         expeditor = cleaned.get("expeditor")
         counterparty = (
             cleaned.get("customer")
@@ -3025,6 +3148,9 @@ class ContractForm(StyledModelForm):
         if cleaned.get("debt_limit") is None:
             cleaned["debt_limit"] = Decimal("0.00")
             self.instance.debt_limit = Decimal("0.00")
+        if cleaned.get("is_indefinite"):
+            cleaned["valid_until"] = None
+            self.instance.valid_until = None
         return cleaned
 
 
@@ -3088,6 +3214,16 @@ class PlannerTaskForm(StyledModelForm):
             .select_related("owner_company")
             .prefetch_related("stops")
         )
+        profile = getattr(user, "crm_profile", None) if user else None
+        can_see_all = bool(
+            user
+            and user.is_authenticated
+            and (user.is_staff or user.is_superuser or (profile and profile.can_see_all_records))
+        )
+        if user and user.is_authenticated and not can_see_all:
+            self.fields["transportation"].queryset = self.fields[
+                "transportation"
+            ].queryset.filter(manager=user)
         self.fields["assignee"].queryset = get_user_model().objects.filter(
             is_active=True
         ).order_by("last_name", "first_name", "username")
@@ -4316,6 +4452,22 @@ class BankStatementImportForm(forms.Form):
         return cleaned
 
 
+class AccountingRegistryImportForm(forms.Form):
+    file = forms.FileField(
+        label="Реестр с номерами 1С",
+        help_text="Загрузите XLSX, ранее выгруженный из реестра документов.",
+        widget=forms.ClearableFileInput(attrs={"class": "uk-input", "accept": ".xlsx"}),
+    )
+
+    def clean_file(self):
+        uploaded = self.cleaned_data["file"]
+        if not uploaded.name.lower().endswith(".xlsx"):
+            raise forms.ValidationError("Загрузите файл XLSX.")
+        if uploaded.size > 10 * 1024 * 1024:
+            raise forms.ValidationError("Размер файла не должен превышать 10 МБ.")
+        return uploaded
+
+
 class BankStatementLineForm(StyledModelForm):
     class Meta:
         model = BankStatementLine
@@ -4371,17 +4523,30 @@ class ForwardingOrderForm(StyledModelForm):
 
 
 class ShipmentDocumentForm(StyledModelForm):
+    transportations_selected = forms.ModelMultipleChoiceField(
+        label="Рейсы документа",
+        queryset=Transportation.objects.none(),
+        required=False,
+        help_text="Можно выбрать несколько рейсов одного клиента или исполнителя.",
+    )
+
     class Meta:
         model = ShipmentDocument
         fields = [
             "shipment",
             "transportation",
             "direction",
+            "owner_company",
             "counterparty",
+            "contract",
             "kind",
             "party",
             "status",
             "number",
+            "crm_number",
+            "one_c_number",
+            "one_c_date",
+            "one_c_status",
             "document_date",
             "expected_date",
             "amount",
@@ -4391,12 +4556,14 @@ class ShipmentDocumentForm(StyledModelForm):
             "notes",
         ]
         widgets = {
+            "transportation": forms.HiddenInput(),
             "document_date": CRMDateInput(),
             "expected_date": CRMDateInput(),
+            "one_c_date": CRMDateInput(),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
-    def __init__(self, *args, shipment=None, **kwargs):
+    def __init__(self, *args, shipment=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.shipment = shipment
         self.fields["shipment"].queryset = Shipment.objects.select_related(
@@ -4408,9 +4575,38 @@ class ShipmentDocumentForm(StyledModelForm):
         self.fields["transportation"].queryset = Transportation.objects.select_related(
             "owner_company"
         ).prefetch_related("stops").order_by("-planned_start_date", "-created_at")
+        profile = getattr(user, "crm_profile", None) if user else None
+        can_see_all = bool(
+            user
+            and user.is_authenticated
+            and (user.is_staff or user.is_superuser or (profile and profile.can_see_all_records))
+        )
+        if user and user.is_authenticated and not can_see_all:
+            self.fields["shipment"].queryset = self.fields["shipment"].queryset.filter(
+                manager=user
+            )
+            self.fields["transportation"].queryset = self.fields[
+                "transportation"
+            ].queryset.filter(manager=user)
         self.fields["transportation"].label_from_instance = (
             lambda obj: f"{obj.number or 'Черновик'} · {obj.route}"
         )
+        self.fields["transportations_selected"].queryset = self.fields[
+            "transportation"
+        ].queryset
+        self.fields["transportations_selected"].label_from_instance = self.fields[
+            "transportation"
+        ].label_from_instance
+        self.fields["transportations_selected"].widget.attrs.update(
+            {"size": "8", "data-accounting-trip-select": "true"}
+        )
+        if self.instance.pk:
+            selected_ids = list(
+                self.instance.lines.values_list("transportation_id", flat=True)
+            )
+            if not selected_ids and self.instance.transportation_id:
+                selected_ids = [self.instance.transportation_id]
+            self.fields["transportations_selected"].initial = selected_ids
         self.fields["transportation"].required = False
         self.fields["counterparty"].queryset = Organization.objects.filter(
             is_active=True
@@ -4421,6 +4617,16 @@ class ShipmentDocumentForm(StyledModelForm):
             ).order_by("name")
         self.fields["direction"].required = False
         self.fields["counterparty"].required = False
+        self.fields["owner_company"].required = False
+        self.fields["contract"].required = False
+        self.fields["crm_number"].required = False
+        self.fields["one_c_status"].required = False
+        self.fields["owner_company"].queryset = Organization.objects.filter(
+            is_own_company=True, is_active=True
+        ).order_by("name")
+        self.fields["contract"].queryset = Contract.objects.select_related(
+            "expeditor", "customer", "carrier"
+        ).order_by("-contract_date")
         if shipment is not None:
             self.fields["shipment"].initial = shipment
             self.fields["shipment"].required = False
@@ -4433,14 +4639,40 @@ class ShipmentDocumentForm(StyledModelForm):
         cleaned_data = super().clean()
         shipment = cleaned_data.get("shipment")
         transportation = cleaned_data.get("transportation")
-        if bool(shipment) == bool(transportation):
+        selected = list(cleaned_data.get("transportations_selected") or [])
+        if not selected and transportation:
+            selected = [transportation]
+            cleaned_data["transportations_selected"] = selected
+        if not shipment and not selected:
             raise forms.ValidationError(
-                "Документ должен быть привязан либо к заявке, либо к рейсу."
+                "Документ должен быть привязан к заявке или хотя бы одному рейсу."
             )
+        if shipment and selected:
+            raise forms.ValidationError("Выберите либо старую заявку, либо рейсы документа.")
+        if selected:
+            from .accounting_documents import validate_document_transportations
+
+            try:
+                validate_document_transportations(
+                    transportations=selected,
+                    direction=cleaned_data.get("direction") or ShipmentDocument.Direction.OUTGOING,
+                    kind=cleaned_data.get("kind"),
+                    document_date=cleaned_data.get("document_date"),
+                    exclude_document=self.instance if self.instance.pk else None,
+                )
+            except forms.ValidationError as error:
+                raise error
         return cleaned_data
 
     def clean_direction(self):
         return self.cleaned_data.get("direction") or ShipmentDocument.Direction.OUTGOING
+
+    def clean_one_c_status(self):
+        return (
+            self.cleaned_data.get("one_c_status")
+            or self.instance.one_c_status
+            or ShipmentDocument.OneCStatus.NOT_SENT
+        )
 
     def clean_file(self):
         uploaded_file = self.cleaned_data.get("file")

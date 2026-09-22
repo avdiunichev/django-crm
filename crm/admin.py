@@ -26,11 +26,15 @@ from .models import (
     OrganizationGroup,
     OrganizationRole,
     Payment,
+    PersonalDataAccessLog,
     PlannerTask,
     PackageType,
     SettlementMovement,
     Shipment,
     ShipmentDocument,
+    ShipmentDocumentAudit,
+    ShipmentDocumentLine,
+    AccountingSettings,
     TransportOrder,
     TransportOrderNumberSequence,
     TransportOrderStop,
@@ -55,8 +59,15 @@ from .models import (
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "role", "can_see_all_records", "updated_at")
-    list_filter = ("role", "can_see_all_records")
+    list_display = (
+        "user", "role", "can_see_all_records",
+        "personal_data_view_override", "personal_data_manage_override",
+        "personal_data_export_override", "updated_at",
+    )
+    list_filter = (
+        "role", "can_see_all_records", "personal_data_view_override",
+        "personal_data_manage_override", "personal_data_export_override",
+    )
     search_fields = ("user__username", "user__first_name", "user__last_name", "user__email")
     autocomplete_fields = ("user",)
 
@@ -354,10 +365,16 @@ class ForwardingOrderAdmin(admin.ModelAdmin):
     autocomplete_fields = ("shipment",)
 
 
+class ShipmentDocumentLineInline(admin.TabularInline):
+    model = ShipmentDocumentLine
+    extra = 0
+    autocomplete_fields = ("transportation",)
+
+
 @admin.register(ShipmentDocument)
 class ShipmentDocumentAdmin(admin.ModelAdmin):
     list_display = (
-        "kind", "shipment", "number", "document_date", "direction",
+        "kind", "shipment", "number", "one_c_number", "document_date", "direction",
         "counterparty", "party", "status", "amount", "vat_amount", "currency",
         "created_by",
     )
@@ -365,10 +382,27 @@ class ShipmentDocumentAdmin(admin.ModelAdmin):
         "direction", "kind", "party", "status", "currency", "document_date",
     )
     search_fields = (
-        "number", "shipment__number", "shipment__customer__name",
+        "number", "crm_number", "one_c_number", "shipment__number", "shipment__customer__name",
         "shipment__carrier__name", "counterparty__name", "counterparty__tax_id",
     )
-    autocomplete_fields = ("shipment", "counterparty", "created_by")
+    autocomplete_fields = (
+        "shipment", "transportation", "owner_company", "counterparty", "contract",
+        "based_on", "created_by", "cancelled_by",
+    )
+    inlines = (ShipmentDocumentLineInline,)
+
+
+@admin.register(AccountingSettings)
+class AccountingSettingsAdmin(admin.ModelAdmin):
+    list_display = ("name", "upd_max_days_after_delivery", "is_active", "updated_at")
+    list_filter = ("is_active",)
+
+
+@admin.register(ShipmentDocumentAudit)
+class ShipmentDocumentAuditAdmin(admin.ModelAdmin):
+    list_display = ("document", "action", "user", "created_at")
+    list_filter = ("action", "created_at")
+    readonly_fields = ("document", "action", "user", "changes", "comment", "created_at", "updated_at")
 
 
 class DocumentBatchLineInline(admin.TabularInline):
@@ -422,6 +456,25 @@ class DriverAdmin(admin.ModelAdmin):
     )
     autocomplete_fields = ("carrier",)
     inlines = (DriverEmploymentInline, DriverPassportInline, DriverLicenseInline)
+
+
+@admin.register(PersonalDataAccessLog)
+class PersonalDataAccessLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "user", "driver", "action", "ip_address")
+    list_filter = ("action", "created_at")
+    search_fields = (
+        "user__username", "driver__last_name", "driver__first_name", "path",
+    )
+    readonly_fields = ("user", "driver", "action", "path", "ip_address", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Vehicle)

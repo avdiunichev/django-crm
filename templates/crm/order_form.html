@@ -105,7 +105,6 @@
                             {% include "crm/includes/form_field.html" with field=stop_form.handling_method %}
                         </div>
                         <div class="route-city-address-grid field-wide">
-                            {% include "crm/includes/form_field.html" with field=stop_form.city %}
                             {% include "crm/includes/form_field.html" with field=stop_form.address %}
                         </div>
                         {{ stop_form.address_meta }}
@@ -136,7 +135,6 @@
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.handling_method %}
                     </div>
                     <div class="route-city-address-grid field-wide">
-                        {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.city %}
                         {% include "crm/includes/form_field.html" with field=stop_formset.empty_form.address %}
                     </div>
                     {{ stop_formset.empty_form.address_meta }}

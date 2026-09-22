@@ -20,7 +20,7 @@
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.25.21/dist/css/uikit.min.css">
-    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260919-accounting-workspace">
+    <link rel="stylesheet" href="{% static 'css/uikit-crm.css' %}?v=20260921-entity-select-actions">
     <link rel="stylesheet" href="{% static 'css/organization-detail.css' %}?v=20260914-view-card-tabs">
     <link rel="stylesheet" href="{% static 'css/driver-detail.css' %}?v=20260914-driver-view-card">
     <link rel="stylesheet" href="{% static 'css/vehicle-detail.css' %}?v=20260914-vehicle-view-card">
@@ -81,7 +81,7 @@
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
                             <li><a href="{% url 'organization-list' %}"><span uk-icon="users"></span> Контрагенты</a></li>
-                            <li><a href="{% url 'driver-list' %}"><span uk-icon="user"></span> Водители</a></li>
+                            {% if crm_access.can_view_personal_data %}<li><a href="{% url 'driver-list' %}"><span uk-icon="user"></span> Водители</a></li>{% endif %}
                             <li><a href="{% url 'vehicle-list' %}"><span uk-icon="nut"></span> Автопарк</a></li>
                         </ul>
                     </div>
@@ -139,7 +139,7 @@
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
-                <a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>
+                {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
                 <a class="{% if 'chat' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a>
             </nav>
@@ -179,7 +179,8 @@
 <script src="{% static 'js/date-inputs.js' %}?v=20260917-date-picker-today-red"></script>
 <script src="{% static 'js/dynamic-filters.js' %}?v=20260914-order-search-delay"></script>
 <script src="{% static 'js/table-sort.js' %}?v=20260909-server-sort"></script>
-<script src="{% static 'js/transportation-workspace.js' %}?v=20260915-trip-driver-resources"></script>
+<script src="{% static 'js/transportation-workspace.js' %}?v=20260921-server-smart-select"></script>
+<script src="{% static 'js/contract-form.js' %}?v=20260921-contract-lifecycle"></script>
 <script src="{% static 'js/smart-selects.js' %}?v=20260917-order-stop-party-inputs"></script>
 <script src="{% static 'js/address-suggestions.js' %}?v=20260913-textarea-addresses"></script>
 <script src="{% static 'js/city-suggestions.js' %}?v=20260909-dadata-cities-region"></script>
@@ -193,8 +194,8 @@
 <script src="{% static 'js/driver-copy.js' %}?v=20260917-driver-copy-format"></script>
 <script src="{% static 'js/vehicle-form.js' %}?v=20260917-vehicle-attachment"></script>
 <script src="{% static 'js/vehicle-carriers.js' %}?v=20260917-vehicle-carriers"></script>
-    <script src="{% static 'js/driver-modal.js' %}?v=20260917-driver-actions-feedback"></script>
-<script src="{% static 'js/order-create-modal.js' %}?v=20260917-order-create-modal"></script>
+    <script src="{% static 'js/driver-modal.js' %}?v=20260921-driver-entity-saved"></script>
+<script src="{% static 'js/order-create-modal.js' %}?v=20260922-order-modal-srcdoc"></script>
 <script src="{% static 'js/order-route.js' %}?v=20260915-stop-handling-method"></script>
 <script src="{% static 'js/order-form-enhancements.js' %}?v=20260914-modal-money"></script>
 <script src="{% static 'js/toasts.js' %}?v=20260917-runtime-toast-5s"></script>
