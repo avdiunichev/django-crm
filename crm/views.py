@@ -3066,10 +3066,15 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
         return initial
 
     def form_valid(self, form):
-        from .accounting_documents import issue_customer_document_pair
+        from .accounting_documents import (
+            issue_customer_document_pair,
+            last_delivery_date,
+        )
 
         selected = list(form.cleaned_data["transportations"])
-        document_date = form.cleaned_data["document_date"]
+        delivery_date = last_delivery_date(selected)
+        today = timezone.localdate()
+        document_date = min(delivery_date, today) if delivery_date else today
         created_pairs = []
         with transaction.atomic():
             if self.mode == "registry":

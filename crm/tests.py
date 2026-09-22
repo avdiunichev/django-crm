@@ -570,6 +570,16 @@ class CrmTestCase(TestCase):
         transportation = self.shipment.transportation
         transportation.status = Transportation.Status.DELIVERED
         transportation.save(update_fields=["status", "updated_at"])
+        delivery = transportation.stops.filter(
+            kind=TransportationStop.Kind.DELIVERY
+        ).order_by("-sequence").first()
+        delivery.planned_from = timezone.make_aware(
+            datetime.combine(date.today() + timedelta(days=2), time(12, 0))
+        )
+        delivery.planned_to = timezone.make_aware(
+            datetime.combine(date.today() + timedelta(days=2), time(14, 0))
+        )
+        delivery.save(update_fields=["planned_from", "planned_to", "updated_at"])
 
         page = self.client.get(
             reverse("customer-document-issue", args=["individual"])
@@ -580,7 +590,6 @@ class CrmTestCase(TestCase):
         response = self.client.post(
             reverse("customer-document-issue", args=["individual"]),
             {
-                "document_date": date.today().strftime("%d.%m.%Y"),
                 "transportations": [transportation.pk],
             },
         )
@@ -595,6 +604,10 @@ class CrmTestCase(TestCase):
             [ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
         )
         self.assertEqual(documents.exclude(number="").count(), 2)
+        invoice = documents.get(kind=ShipmentDocument.Kind.INVOICE)
+        upd = documents.get(kind=ShipmentDocument.Kind.UPD)
+        self.assertEqual(invoice.document_date, date.today())
+        self.assertEqual(upd.document_date, date.today() + timedelta(days=2))
         transportation.refresh_from_db()
         self.assertEqual(
             transportation.status, Transportation.Status.CUSTOMER_INVOICED

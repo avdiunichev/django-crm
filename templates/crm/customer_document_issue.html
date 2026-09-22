@@ -11,7 +11,7 @@
         <div class="form-section-title"><span>01</span><div><h2>Параметры выставления</h2><p>Дата и состав формируемого комплекта документов</p></div></div>
         <div class="form-grid">
             {% if is_registry %}<div class="field"><label for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>{{ form.customer }}{{ form.customer.errors }}<small>После выбора клиента список рейсов обновится автоматически.</small></div>{% else %}{{ form.customer }}{% endif %}
-            <div class="field"><label for="{{ form.document_date.id_for_label }}">{{ form.document_date.label }}</label>{{ form.document_date }}{{ form.document_date.errors }}</div>
+            <div class="field field-wide"><div class="uk-alert-primary" uk-alert>Даты определяются автоматически: УПД — последней датой выгрузки; счёт — датой выгрузки, но не позднее текущей даты.</div></div>
         </div>
     </section>
     <section class="form-section uk-card uk-card-default">

@@ -4672,12 +4672,6 @@ class CustomerDocumentIssueForm(forms.Form):
         required=False,
         empty_label="Выберите клиента",
     )
-    document_date = forms.DateField(
-        label="Дата счёта",
-        initial=timezone.localdate,
-        widget=CRMDateInput(),
-        input_formats=CRM_DATE_INPUT_FORMATS,
-    )
     transportations = forms.ModelMultipleChoiceField(
         label="Доставленные рейсы",
         queryset=Transportation.objects.none(),
