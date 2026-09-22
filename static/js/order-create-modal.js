@@ -119,6 +119,11 @@
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const submitter = event.submitter;
+            // The modal handler runs before the generic form submit hooks.
+            // Normalize formatted Russian decimals before taking the FormData
+            // snapshot so values such as `70 000,50` reach Django as
+            // `70000.50`.
+            window.CRMMoneyInputs?.normalizeWithin(form);
             const data = new FormData(form);
             const actionUrl = new URL(form.getAttribute("action") || document.baseURI, document.baseURI).href;
             if (submitter?.name) data.set(submitter.name, submitter.value);

@@ -121,7 +121,10 @@
             controller?.abort();
             controller = new AbortController();
             const currentRequest = ++requestNumber;
-            const url = new URL(input.dataset.dadataAddressUrl, window.location.origin);
+            // In the order modal the page is rendered through iframe.srcdoc.
+            // document.baseURI points to the real CRM page while
+            // window.location is about:srcdoc.
+            const url = new URL(input.dataset.dadataAddressUrl, document.baseURI);
             url.searchParams.set("q", query);
             const city = document.getElementById(input.dataset.dadataCitySource || "")?.value.trim();
             if (city) url.searchParams.set("city", city);
