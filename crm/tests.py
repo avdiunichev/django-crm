@@ -5460,6 +5460,78 @@ class CrmTestCase(TestCase):
             ShipmentDocument.objects.filter(pk=document_record.pk).exists()
         )
 
+    def test_invoice_can_be_deleted_when_upd_is_based_on_it(self):
+        transportation = self.shipment.transportation
+        invoice = ShipmentDocument.objects.create(
+            transportation=transportation,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.INVOICE,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="СЧ-ДЛЯ-УДАЛЕНИЯ",
+            created_by=self.user,
+        )
+        upd = ShipmentDocument.objects.create(
+            transportation=transportation,
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.UPD,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="УПД-ОСТАЁТСЯ",
+            based_on=invoice,
+            created_by=self.user,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("shipment-document-delete", args=[invoice.pk])
+        )
+
+        self.assertRedirects(response, transportation.get_absolute_url())
+        self.assertFalse(ShipmentDocument.objects.filter(pk=invoice.pk).exists())
+        upd.refresh_from_db()
+        self.assertIsNone(upd.based_on_id)
+
+    def test_batch_document_deletion_removes_its_batch_line(self):
+        transportation = self.shipment.transportation
+        document_record = ShipmentDocument.objects.create(
+            transportation=transportation,
+            direction=ShipmentDocument.Direction.INCOMING,
+            kind=ShipmentDocument.Kind.INVOICE,
+            party=ShipmentDocument.Party.CARRIER,
+            status=ShipmentDocument.Status.RECEIVED,
+            number="СЧ-ПОСТ-УДАЛИТЬ",
+            created_by=self.user,
+        )
+        batch = DocumentBatch.objects.create(
+            direction=DocumentBatch.Direction.INCOMING,
+            document_date=date.today(),
+            owner_company=transportation.owner_company,
+            default_kind=ShipmentDocument.Kind.INVOICE,
+            default_status=ShipmentDocument.Status.RECEIVED,
+            currency=transportation.currency,
+            created_by=self.user,
+        )
+        line = DocumentBatchLine.objects.create(
+            batch=batch,
+            transportation=transportation,
+            kind=ShipmentDocument.Kind.INVOICE,
+            document_number=document_record.number,
+            document_date=date.today(),
+            amount=transportation.executor_amount,
+            vat_amount=transportation.executor_vat_amount,
+            shipment_document=document_record,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("shipment-document-delete", args=[document_record.pk])
+        )
+
+        self.assertRedirects(response, transportation.get_absolute_url())
+        self.assertFalse(ShipmentDocument.objects.filter(pk=document_record.pk).exists())
+        self.assertFalse(DocumentBatchLine.objects.filter(pk=line.pk).exists())
+
     def test_document_batch_posts_documents_for_selected_transportations(self):
         transportation = self.shipment.transportation
         self.client.force_login(self.user)

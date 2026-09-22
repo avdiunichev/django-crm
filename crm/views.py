@@ -3606,7 +3606,17 @@ class ShipmentDocumentDeleteView(LoginRequiredMixin, FinanceAccessMixin, View):
     def post(self, request, *args, **kwargs):
         document_record = self.get_object()
         success_url = document_record.source_absolute_url
-        document_record.delete()
+        with transaction.atomic():
+            # A generated UPD may refer to its invoice as the source document.
+            # Deleting only the invoice must not remove or block the UPD.
+            document_record.derived_documents.update(based_on=None)
+            try:
+                batch_line = document_record.document_batch_line
+            except DocumentBatchLine.DoesNotExist:
+                batch_line = None
+            if batch_line is not None:
+                batch_line.delete()
+            document_record.delete()
         messages.success(request, "Документ удалён из реестра.")
         return redirect(success_url)
 
