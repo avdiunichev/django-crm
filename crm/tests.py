@@ -439,7 +439,15 @@ class CrmTestCase(TestCase):
 
     def test_order_form_supports_multiple_route_operations_and_registry(self):
         self.client.force_login(self.user)
+        register = self.client.get(reverse("order-list"))
+        self.assertContains(register, 'orders-workspace-page')
+        self.assertContains(register, 'css/orders-workspace.css')
+        self.assertContains(register, 'id="orders-title"')
+        self.assertContains(register, 'data-order-export')
+        self.assertContains(register, 'data-order-create-modal')
+        self.assertContains(register, 'aria-label="Поиск заказов"')
         create_page = self.client.get(reverse("order-create"))
+        self.assertNotContains(create_page, 'css/orders-workspace.css')
         self.assertEqual(create_page.status_code, 200)
         self.assertContains(create_page, "Ставка и форма оплаты")
         self.assertContains(create_page, "Добавить погрузку")

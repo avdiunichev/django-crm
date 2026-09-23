@@ -1,25 +1,32 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize static %}
 {% block title %}Заказы — Моя CRM{% endblock %}
+{% block body_class %}orders-workspace-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1">{% endblock %}
 {% block content %}
+<section class="orders-workspace" aria-labelledby="orders-title">
+    <div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Операции <span aria-hidden="true">/</span> Заказы</div>
+    <header class="orders-page-header">
+        <div><div class="orders-title-line"><h1 id="orders-title">Заказы клиентов</h1><span class="orders-count">{{ order_count }}</span></div><p>Все заявки, маршруты и условия перевозки в одном месте.</p></div>
+        <div class="orders-page-actions">
+            <a class="uk-button uk-button-default" href="{{ order_export_url }}" data-order-export data-export-url="{{ order_export_url }}"><span uk-icon="icon: download; ratio: .85"></span> Экспорт XLSX</a>
+            <a class="uk-button uk-button-primary order-register-create" href="{% url 'order-create' %}" data-order-create-modal><span uk-icon="icon: plus; ratio: .85"></span> Создать заказ</a>
+        </div>
+    </header>
 <form class="filters order-register-filters" method="get" data-order-register-filters data-filter-delay="900">
-    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, клиент, ИНН, груз, город или адрес">
-    <select class="form-control uk-select" name="owner">
+    <label class="orders-search"><span uk-icon="icon: search; ratio: .9"></span><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" aria-label="Поиск заказов" placeholder="Поиск по номеру, клиенту или маршруту"></label>
+    <select class="form-control uk-select" name="owner" aria-label="Наша компания">
         <option value="">Все наши компании</option>
         {% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}
     </select>
-    <select class="form-control uk-select" name="status">
+    <select class="form-control uk-select" name="status" aria-label="Статус заказа">
         <option value="">Все статусы</option>
         {% for value, label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
     {% if current_q or current_owner or current_status %}<a class="clear-link" href="{% url 'order-list' %}">Сбросить</a>{% endif %}
-    <span class="order-register-filter-spacer"></span>
-    <a class="uk-button uk-button-default" href="{{ order_export_url }}" data-order-export data-export-url="{{ order_export_url }}">Экспорт заказов в XLSX</a>
-    <a class="uk-button uk-button-primary order-register-create" href="{% url 'order-create' %}" data-order-create-modal><span uk-icon="plus"></span> Создать заказ</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">
-    <div class="onec-register-header"><div class="order-register-heading"><span class="order-register-heading-icon" uk-icon="social"></span><div><span class="eyebrow">Реестр</span><h2>Заказы клиентов</h2><p>Входящие заявки до назначения исполнителя и формирования рейса.</p></div></div><span class="uk-text-meta">{{ order_count }} записей</span></div>
     <div class="table-wrap">
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table" data-server-sort="true">
             <thead>
@@ -52,60 +59,9 @@
     </div>
 </section>
 {% include "crm/includes/pagination.html" %}
+</section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const filterPanel = document.querySelector("[data-order-register-filters]");
-    const registerTable = document.querySelector(".order-register-table");
-    const updateHeaderOffset = () => {
-        if (!filterPanel) return;
-        document.documentElement.style.setProperty(
-            "--order-register-filter-height",
-            `${Math.ceil(filterPanel.getBoundingClientRect().height)}px`,
-        );
-    };
-
-    updateHeaderOffset();
-    if (filterPanel && "ResizeObserver" in window) {
-        new ResizeObserver(updateHeaderOffset).observe(filterPanel);
-    }
-    window.addEventListener("resize", updateHeaderOffset, { passive: true });
-
-    if (filterPanel && registerTable && registerTable.tHead) {
-        const stickyHead = document.createElement("div");
-        stickyHead.className = "order-register-sticky-head";
-        document.body.append(stickyHead);
-
-        const syncStickyHead = () => {
-            const isDesktop = window.matchMedia("(min-width: 1181px)").matches;
-            const header = registerTable.tHead;
-            const tableBox = registerTable.getBoundingClientRect();
-            const headerBox = header.getBoundingClientRect();
-            const filterBox = filterPanel.getBoundingClientRect();
-            const top = Math.max(72, Math.round(filterBox.bottom));
-            const show = isDesktop && headerBox.top < top && tableBox.bottom > top + headerBox.height;
-
-            if (!show) {
-                stickyHead.classList.remove("is-visible");
-                return;
-            }
-
-            const widths = Array.from(header.rows[0].cells, (cell) => `${cell.getBoundingClientRect().width}px`);
-            stickyHead.style.left = `${Math.round(tableBox.left)}px`;
-            stickyHead.style.top = `${top}px`;
-            stickyHead.style.width = `${Math.round(tableBox.width)}px`;
-            stickyHead.innerHTML = `<table class="${registerTable.className} order-register-sticky-table"><colgroup>${widths.map((width) => `<col style="width:${width}">`).join("")}</colgroup>${header.outerHTML}</table>`;
-            stickyHead.classList.add("is-visible");
-        };
-
-        let stickyFrame;
-        const requestStickySync = () => {
-            window.cancelAnimationFrame(stickyFrame);
-            stickyFrame = window.requestAnimationFrame(syncStickyHead);
-        };
-        window.addEventListener("scroll", requestStickySync, { passive: true });
-        window.addEventListener("resize", requestStickySync, { passive: true });
-        requestStickySync();
-    }
 
     const exportButton = document.querySelector("[data-order-export]");
     const selectAll = document.querySelector("[data-order-export-toggle-all]");
@@ -114,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const sync = () => {
         const selected = selectors.filter((checkbox) => checkbox.checked);
+        selectors.forEach((checkbox) => checkbox.closest('tr').classList.toggle('is-selected', checkbox.checked));
         selectAll.checked = selected.length === selectors.length;
         selectAll.indeterminate = selected.length > 0 && selected.length < selectors.length;
         const url = new URL(exportButton.dataset.exportUrl, window.location.origin);
