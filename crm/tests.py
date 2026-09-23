@@ -2013,6 +2013,21 @@ class CrmTestCase(TestCase):
         closed = self.client.get(reverse("transportation-list"), {"scope": "closed"})
         self.assertEqual(closed.context["page_obj"].paginator.count, 0)
 
+    def test_transportation_register_displays_owner_company_in_participants(self):
+        from django.utils.html import escape
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("transportation-list"))
+        self.assertEqual(response.status_code, 200)
+        participants = response.content.decode().split(
+            'class="transportation-register-parties">', 1
+        )[1].split('</td>', 1)[0]
+        company = self.shipment.transportation.owner_company
+        self.assertIn('<span>Наша компания</span>', participants)
+        self.assertIn(f'href="{company.get_absolute_url()}"', participants)
+        self.assertIn(str(escape(str(company))), participants)
+        self.assertLess(participants.index('Наша компания'), participants.index('<span>Клиент</span>'))
+
     def test_transportation_status_flow_rejects_skipping_stages(self):
         transportation = self.shipment.transportation
         self.assertEqual(transportation.status, Transportation.Status.NEW)
