@@ -197,7 +197,7 @@
         select.addEventListener("optionschange", syncFromSelect);
         select.addEventListener("disabledchange", syncDisabled);
         document.addEventListener("mousedown", (event) => {
-            if (!wrapper.contains(event.target)) close(true);
+            if (!wrapper.contains(event.target) && !dropdown.contains(event.target)) close(true);
         });
         syncFromSelect();
         syncDisabled();

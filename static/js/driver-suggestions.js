@@ -169,7 +169,7 @@
             }
         });
         document.addEventListener("mousedown", (event) => {
-            if (!wrapper.contains(event.target)) close();
+            if (!wrapper.contains(event.target) && !dropdown.contains(event.target)) close();
         });
     };
 

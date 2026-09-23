@@ -166,7 +166,7 @@
             viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
             if (!dropdown.hidden) render();
         }, 0));
-        wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement)) close(); }, 0));
+        wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement) && !dropdown.contains(document.activeElement)) close(); }, 0));
     };
 
     const enhanceWithin = (root = document) => {

@@ -281,7 +281,7 @@
             syncFromSelect();
         });
         document.addEventListener("click", (event) => {
-            if (!wrapper.contains(event.target)) close();
+            if (!wrapper.contains(event.target) && !dropdown.contains(event.target)) close();
         });
         create.addEventListener("click", () => openQuickCreate(select, search.value));
         edit.addEventListener("click", () => openSelectedEntity(select));

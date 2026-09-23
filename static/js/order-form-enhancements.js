@@ -94,7 +94,7 @@
             }
         });
         wrapper.addEventListener("focusout", () => setTimeout(() => {
-            if (!wrapper.contains(document.activeElement)) close();
+            if (!wrapper.contains(document.activeElement) && !menu.contains(document.activeElement)) close();
         }, 0));
     };
 
