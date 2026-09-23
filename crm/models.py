@@ -1,3 +1,5 @@
+from .addressing import AddressFormatter
+
 from decimal import Decimal
 from pathlib import Path
 import re
@@ -35,6 +37,8 @@ _FEDERAL_ROUTE_CITIES = {"москва", "санкт-петербург", "се�
 
 def route_location_label(stop):
     """Return a concise but unambiguous point for route displays."""
+    if getattr(stop, "address_raw", None):
+        return AddressFormatter.short(stop.address_raw, stop.address)
     city = " ".join((getattr(stop, "city", "") or "").split())
     region = " ".join((getattr(stop, "address_region", "") or "").split())
     if not city:
@@ -233,7 +237,8 @@ class Organization(TimestampedModel):
     ogrn = models.CharField("ОГРН / ОГРНИП", max_length=30, blank=True, db_index=True)
     registration_date = models.DateField("Дата регистрации", null=True, blank=True)
     okato = models.CharField("ОКАТО", max_length=20, blank=True)
-    legal_address = models.CharField("Юридический адрес", max_length=255, blank=True)
+    legal_address = models.TextField("Юридический адрес", blank=True)
+    legal_address_raw = models.JSONField("Исходный адрес DaData", default=dict, blank=True)
     legal_address_fias_id = models.CharField("ФИАС юридического адреса", max_length=36, blank=True)
     legal_address_postal_code = models.CharField("Индекс юридического адреса", max_length=12, blank=True)
     legal_address_region_code = models.CharField("Код региона юридического адреса", max_length=3, blank=True)
@@ -349,6 +354,10 @@ class Organization(TimestampedModel):
 
     def __str__(self):
         return self.short_name or self.name
+
+    @property
+    def formatted_legal_address(self):
+        return AddressFormatter.format(self.legal_address_raw, self.legal_address) if self.legal_address_raw else self.legal_address
 
     def save(self, *args, **kwargs):
         self.tax_id = re.sub(r"\D", "", self.tax_id or "")
@@ -618,7 +627,7 @@ class CompanyProfile(TimestampedModel):
     tax_id = models.CharField("ИНН", max_length=20)
     kpp = models.CharField("КПП", max_length=20, blank=True)
     ogrn = models.CharField("ОГРН / ОГРНИП", max_length=30, blank=True)
-    legal_address = models.CharField("Юридический адрес", max_length=255)
+    legal_address = models.TextField("Юридический адрес")
     phone = models.CharField("Телефон", max_length=30, blank=True)
     email = models.EmailField("Email", blank=True)
     bank_name = models.CharField("Наименование банка", max_length=255, blank=True)
@@ -667,7 +676,7 @@ class Customer(TimestampedModel):
     contact_name = models.CharField("Контактное лицо", max_length=150, blank=True)
     phone = models.CharField("Телефон", max_length=30, blank=True)
     email = models.EmailField("Email", blank=True)
-    address = models.CharField("Юридический адрес", max_length=255, blank=True)
+    address = models.TextField("Юридический адрес", blank=True)
     director_name = models.CharField("Руководитель", max_length=150, blank=True)
     bank_name = models.CharField("Наименование банка", max_length=255, blank=True)
     bik = models.CharField("БИК", max_length=20, blank=True)
@@ -703,7 +712,7 @@ class Carrier(TimestampedModel):
     tax_id = models.CharField("ИНН", max_length=20, blank=True)
     kpp = models.CharField("КПП", max_length=20, blank=True)
     ogrn = models.CharField("ОГРН / ОГРНИП", max_length=30, blank=True)
-    address = models.CharField("Юридический адрес", max_length=255, blank=True)
+    address = models.TextField("Юридический адрес", blank=True)
     contact_name = models.CharField("Контактное лицо", max_length=150, blank=True)
     phone = models.CharField("Телефон", max_length=30, blank=True)
     email = models.EmailField("Email", blank=True)
@@ -1893,10 +1902,10 @@ class Shipment(TimestampedModel):
     )
     vehicle_type = models.CharField("Тип транспорта", max_length=100, blank=True)
     pickup_city = models.CharField("Город погрузки", max_length=120)
-    pickup_address = models.CharField("Адрес погрузки", max_length=255, blank=True)
+    pickup_address = models.TextField("Адрес погрузки", blank=True)
     pickup_date = models.DateField("Дата погрузки")
     delivery_city = models.CharField("Город выгрузки", max_length=120)
-    delivery_address = models.CharField("Адрес выгрузки", max_length=255, blank=True)
+    delivery_address = models.TextField("Адрес выгрузки", blank=True)
     delivery_date = models.DateField("Плановая дата выгрузки")
     customer_price = models.DecimalField(
         "Ставка клиенту", max_digits=12, decimal_places=2, default=0,
@@ -2622,8 +2631,9 @@ class TransportationStop(TimestampedModel):
     organization_text = models.CharField(
         "Наименование организации вручную", max_length=255, blank=True
     )
-    city = models.CharField("Город", max_length=120)
-    address = models.CharField("Адрес", max_length=255, blank=True)
+    city = models.CharField("Город", max_length=120, blank=True)
+    address = models.TextField("Адрес", blank=True)
+    address_raw = models.JSONField("Исходный адрес DaData", default=dict, blank=True)
     # Structured address parts returned by DaData.  ``city``/``address`` are
     # intentionally kept as the human-readable fallback used by old records.
     address_fias_id = models.CharField("ФИАС", max_length=36, blank=True)
@@ -2663,6 +2673,14 @@ class TransportationStop(TimestampedModel):
                 name="unique_transportation_stop_sequence",
             )
         ]
+
+    @property
+    def full_address(self):
+        return AddressFormatter.format(self.address_raw, self.address) if self.address_raw else self.address
+
+    @property
+    def short_address(self):
+        return AddressFormatter.short(self.address_raw, self.city or self.address)
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"
@@ -3011,8 +3029,9 @@ class TransportOrderStop(TimestampedModel):
     organization_text = models.CharField(
         "Наименование организации вручную", max_length=255, blank=True
     )
-    city = models.CharField("Город", max_length=120)
-    address = models.CharField("Адрес", max_length=255, blank=True)
+    city = models.CharField("Город", max_length=120, blank=True)
+    address = models.TextField("Адрес", blank=True)
+    address_raw = models.JSONField("Исходный адрес DaData", default=dict, blank=True)
     address_fias_id = models.CharField("ФИАС", max_length=36, blank=True)
     address_postal_code = models.CharField("Индекс", max_length=12, blank=True)
     address_region_code = models.CharField("Код региона", max_length=3, blank=True)
@@ -3060,6 +3079,14 @@ class TransportOrderStop(TimestampedModel):
             raise ValidationError(
                 {"planned_time_to": "Окончание интервала не может быть раньше начала."}
             )
+
+    @property
+    def full_address(self):
+        return AddressFormatter.format(self.address_raw, self.address) if self.address_raw else self.address
+
+    @property
+    def short_address(self):
+        return AddressFormatter.short(self.address_raw, self.city or self.address)
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"

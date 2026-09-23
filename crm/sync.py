@@ -111,7 +111,7 @@ def sync_organization_to_legacy(organization):
     common = _legacy_defaults(organization)
     customer_defaults = {
         **common,
-        "address": organization.legal_address,
+        "address": organization.formatted_legal_address,
         "contact_name": organization.contact_name,
         "notes": organization.notes,
         "organization": organization,
@@ -126,7 +126,7 @@ def sync_organization_to_legacy(organization):
     profile_defaults = {
         **common,
         "short_name": organization.short_name,
-        "legal_address": organization.legal_address,
+        "legal_address": organization.formatted_legal_address,
         "organization": organization,
     }
 

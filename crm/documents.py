@@ -181,7 +181,8 @@ def _organization_requisites(organization):
     kpp = getattr(organization, "kpp", "")
     ogrn = getattr(organization, "ogrn", "")
     address = (
-        getattr(organization, "legal_address", "")
+        getattr(organization, "formatted_legal_address", "")
+        or getattr(organization, "legal_address", "")
         or getattr(organization, "address", "")
     )
     if tax_id:
@@ -250,6 +251,8 @@ def _stop_organization_text(stop):
 def _stop_address(stop):
     if not stop:
         return "не указан"
+    if getattr(stop, "address_raw", None):
+        return stop.full_address
     if stop.address:
         return _full_address(stop.city, stop.address)
     return stop.city or "не указан"
@@ -887,7 +890,7 @@ def build_saved_document_docx(record):
     _add_title(document, title, record.display_number, record.document_date)
     details = _details_table(document)
     for label, party in (("Поставщик", seller), ("Покупатель", buyer)):
-        _field_row(details, label, _party_details(party.name, party.tax_id, party.kpp, party.legal_address) if party else "Не указан")
+        _field_row(details, label, _party_details(party.name, party.tax_id, party.kpp, party.formatted_legal_address) if party else "Не указан")
     if seller and record.kind == "invoice":
         for label, attr in (("Банк", "bank_name"), ("БИК", "bik"), ("Расчётный счёт", "settlement_account"), ("Корр. счёт", "correspondent_account")):
             _field_row(details, label, getattr(seller, attr, ""))

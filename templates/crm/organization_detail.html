@@ -29,7 +29,7 @@
                 <div class="organization-view-field"><span>КПП</span><strong>{{ organization.kpp|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>ОГРН / ОГРНИП</span><strong>{{ organization.ogrn|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Дата регистрации</span><strong>{{ organization.registration_date|date:"d.m.Y"|default:"—" }}</strong></div>
-                <div class="organization-view-field field-wide"><span>Юридический адрес</span><strong>{{ organization.legal_address|default:"—" }}</strong></div>
+                <div class="organization-view-field field-wide"><span>Юридический адрес</span><strong>{{ organization.formatted_legal_address|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Должность руководителя</span><strong>{{ organization.director_position|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Ф. И. О. руководителя</span><strong>{{ organization.director_name|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Действует на основании</span><strong>{{ organization.acting_basis|default:"—" }}</strong></div>

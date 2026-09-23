@@ -131,6 +131,7 @@ def assign_order_to_transportation(order, user):
             organization_text=route_stop.organization_text,
             city=route_stop.city,
             address=route_stop.address,
+            address_raw=route_stop.address_raw,
             address_fias_id=route_stop.address_fias_id,
             address_postal_code=route_stop.address_postal_code,
             address_region_code=route_stop.address_region_code,
@@ -224,7 +225,7 @@ def sync_order_from_transportation(transportation):
 
     order.stops.all().delete()
     shared_stop_fields = (
-        "organization", "organization_text", "city", "address",
+        "organization", "organization_text", "city", "address", "address_raw",
         "address_fias_id", "address_postal_code", "address_region_code",
         "address_region", "address_area", "address_city", "address_settlement",
         "address_street", "address_house", "address_block", "address_flat",

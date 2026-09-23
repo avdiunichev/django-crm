@@ -1,3 +1,4 @@
+from .addressing import AddressFormatter
 import json
 import hashlib
 from datetime import datetime, timezone
@@ -40,6 +41,7 @@ def _normalize_party(suggestion):
     data = suggestion.get("data") or {}
     names = data.get("name") or {}
     address = data.get("address") or {}
+    address_parts = address.get("data") or address
     management = data.get("management") or {}
     state = data.get("state") or {}
     status = state.get("status") or ""
@@ -58,9 +60,7 @@ def _normalize_party(suggestion):
         "ogrn": data.get("ogrn") or "",
         "okato": data.get("okato") or "",
         "registration_date": registration_date,
-        "legal_address": (
-            address.get("unrestricted_value") or address.get("value") or ""
-        ),
+        "legal_address": AddressFormatter.format(address),
         "director_name": management.get("name") or "",
         "director_post": management.get("post") or "",
         "phone": _first_value(data.get("phones")),
@@ -70,21 +70,23 @@ def _normalize_party(suggestion):
         "is_invalid": bool(data.get("invalid")),
         "organization_type": data.get("type") or "",
         "address_data": {
-            "fias_id": address.get("fias_id") or "",
-            "postal_code": address.get("postal_code") or "",
-            "region_code": str(address.get("region_kladr_id") or "")[:2],
-            "region": address.get("region_with_type") or "",
-            "area": address.get("area_with_type") or "",
-            "city": address.get("city_with_type") or "",
-            "settlement": address.get("settlement_with_type") or "",
-            "street": address.get("street_with_type") or "",
-            "house": address.get("house") or "",
+            "raw_data": address,
+            "value": AddressFormatter.format(address),
+            "fias_id": address_parts.get("fias_id") or "",
+            "postal_code": address_parts.get("postal_code") or "",
+            "region_code": str(address_parts.get("region_kladr_id") or "")[:2],
+            "region": address_parts.get("region_with_type") or "",
+            "area": address_parts.get("area_with_type") or "",
+            "city": address_parts.get("city_with_type") or "",
+            "settlement": address_parts.get("settlement_with_type") or "",
+            "street": address_parts.get("street_with_type") or "",
+            "house": address_parts.get("house") or "",
             "block": " ".join(
                 part
-                for part in (address.get("block_type"), address.get("block"))
+                for part in (address_parts.get("block_type"), address_parts.get("block"))
                 if part
             ),
-            "flat": address.get("flat") or "",
+            "flat": address_parts.get("flat") or "",
         },
     }
 
@@ -125,7 +127,7 @@ def _request_suggestions(url, payload):
 
 
 def find_party_by_inn(inn):
-    cache_key = f"dadata-party:{inn}"
+    cache_key = f"dadata-party:v2:{inn}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -151,7 +153,7 @@ def suggest_addresses(query, city="", count=10):
         full_query = f"{city}, {query}"
 
     digest = hashlib.sha256(full_query.casefold().encode("utf-8")).hexdigest()
-    cache_key = f"dadata-address:{digest}:{count}"
+    cache_key = f"dadata-address:v2:{digest}:{count}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -168,7 +170,9 @@ def suggest_addresses(query, city="", count=10):
             continue
         suggestions.append(
             {
-                "value": value,
+                "value": AddressFormatter.format(suggestion, value),
+                "raw_data": suggestion,
+                "short_name": AddressFormatter.short(suggestion),
                 "unrestricted_value": suggestion.get("unrestricted_value") or value,
                 "postal_code": data.get("postal_code") or "",
                 "region": data.get("region_with_type") or "",

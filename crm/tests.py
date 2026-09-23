@@ -697,6 +697,42 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(form.cleaned_data["city"], "г. Воронеж")
 
+    def test_structured_address_survives_form_reload_and_trip_assignment(self):
+        raw = {"value": "Свердловская обл, Белоярский р-н, 28-й км, стр 5", "data": {
+            "region": "Свердловская", "region_type": "обл",
+            "area": "Белоярский", "area_type": "р-н", "kilometer": "28",
+            "house": "5", "house_type": "стр", "geo_lat": "56.7",
+            "geo_lon": "60.8", "fias_id": "test-address-id",
+        }}
+        order = TransportOrder.objects.create(
+            owner_company=self.company_profile.organization,
+            client=self.customer.organization, manager=self.user, rate=Decimal("90000"),
+        )
+        data = {"sequence": "1", "kind": TransportOrderStop.Kind.PICKUP,
+                "address": raw["value"], "address_meta": json.dumps({"raw_data": raw}),
+                "planned_date": date.today().isoformat(), "instructions": "КПП №2"}
+        form = TransportOrderStopForm(data=data)
+        self.assertTrue(form.is_valid(), form.errors)
+        stop = form.save(commit=False)
+        stop.order = order
+        stop.save()
+        stop.refresh_from_db()
+        self.assertEqual(stop.address_raw, raw)
+        self.assertEqual(stop.full_address, "Свердловская обл., Белоярский р-н, 28-й км, стр. 5")
+        self.assertEqual(stop.short_address, "Белоярский р-н, 28-й км")
+        reopened = TransportOrderStopForm(instance=stop)
+        data["address_meta"] = reopened.initial["address_meta"]
+        saved_again = TransportOrderStopForm(data=data, instance=stop)
+        self.assertTrue(saved_again.is_valid(), saved_again.errors)
+        saved_again.save()
+        trip = assign_order_to_transportation(order, self.user)
+        trip_stop = trip.stops.get(sequence=1)
+        self.assertEqual(trip_stop.address_raw, raw)
+        self.assertEqual(trip_stop.instructions, "КПП №2")
+        self.assertNotIn("КПП", trip_stop.full_address)
+        sync_order_from_transportation(trip)
+        self.assertEqual(order.stops.get(sequence=1).address_raw, raw)
+
     def test_order_stop_derives_legacy_city_from_address(self):
         form = TransportOrderStopForm(
             initial={"kind": TransportOrderStop.Kind.PICKUP}

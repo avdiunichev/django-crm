@@ -106,7 +106,7 @@ def _stop_payload(stop):
         "sequence": stop.sequence,
         "kind": stop.get_kind_display(),
         "city": stop.city,
-        "address": stop.address,
+        "address": stop.full_address,
         "address_data": {
             key.removeprefix("address_"): getattr(stop, key, "")
             for key in (
@@ -155,7 +155,7 @@ def build_epd_payload(transportation, kind, stop=None):
             "tax_id": organization.tax_id,
             "kpp": organization.kpp,
             "ogrn": organization.ogrn,
-            "legal_address": organization.legal_address,
+            "legal_address": organization.formatted_legal_address,
             "address_data": _organization_address_data(organization),
             "edo_operator": organization.edo_operator,
             "edo_id": getattr(organization, "edo_id", ""),
@@ -177,7 +177,7 @@ def build_epd_payload(transportation, kind, stop=None):
                 "tax_id": transportation.owner_company.tax_id,
                 "kpp": transportation.owner_company.kpp,
                 "ogrn": transportation.owner_company.ogrn,
-                "legal_address": transportation.owner_company.legal_address,
+                "legal_address": transportation.owner_company.formatted_legal_address,
                 "address_data": _organization_address_data(transportation.owner_company),
                 "edo_operator": transportation.owner_company.edo_operator,
                 "edo_id": getattr(transportation.owner_company, "edo_id", ""),
@@ -192,7 +192,7 @@ def build_epd_payload(transportation, kind, stop=None):
                     "tax_id": assignment.actual_carrier.tax_id,
                     "kpp": assignment.actual_carrier.kpp,
                     "ogrn": assignment.actual_carrier.ogrn,
-                    "legal_address": assignment.actual_carrier.legal_address,
+                    "legal_address": assignment.actual_carrier.formatted_legal_address,
                     "address_data": _organization_address_data(assignment.actual_carrier),
                     "edo_operator": assignment.actual_carrier.edo_operator,
                     "edo_id": getattr(assignment.actual_carrier, "edo_id", ""),

@@ -63,8 +63,8 @@
             const metaTargetId = input.dataset.dadataMetaTarget;
             const metaTarget = metaTargetId && document.getElementById(metaTargetId);
             if (metaTarget) {
-                // Keep the normalized DaData response in the form. The server
-                // copies only whitelisted address parts into the route stop.
+                // Keep both the display value and full source payload so the
+                // server can preserve IDs, coordinates and unfamiliar fields.
                 metaTarget.value = JSON.stringify(suggestion);
                 metaTarget.dispatchEvent(new Event("change", {bubbles: true}));
             }

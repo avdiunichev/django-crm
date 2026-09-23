@@ -1,3 +1,4 @@
+from .addressing import AddressFormatter
 from datetime import datetime, time
 from decimal import Decimal
 import json
@@ -488,6 +489,8 @@ class OrganizationForm(StyledModelForm):
                     "legal_address_house", "legal_address_block", "legal_address_flat",
                 )
             }
+            if self.instance.legal_address_raw:
+                address_values["raw_data"] = self.instance.legal_address_raw
             if any(address_values.values()):
                 self.initial["legal_address_meta"] = json.dumps(
                     address_values, ensure_ascii=False
@@ -570,6 +573,9 @@ class OrganizationForm(StyledModelForm):
                 address_meta = {}
             if not isinstance(address_meta, dict):
                 address_meta = {}
+            self.instance.legal_address_raw = AddressFormatter.snapshot(address_meta) if address_meta.get("raw_data") else {}
+            if self.instance.legal_address_raw:
+                self.instance.legal_address = AddressFormatter.format(self.instance.legal_address_raw)
             aliases = {
                 "legal_address_fias_id": ("legal_address_fias_id", "fias_id"),
                 "legal_address_postal_code": ("legal_address_postal_code", "postal_code"),
@@ -1351,6 +1357,8 @@ class TransportOrderStopForm(StyledModelForm):
                     "address_block", "address_flat",
                 )
             }
+            if self.instance.address_raw:
+                values["raw_data"] = self.instance.address_raw
             if any(values.values()):
                 self.initial["address_meta"] = json.dumps(values, ensure_ascii=False)
 
@@ -1381,8 +1389,11 @@ class TransportOrderStopForm(StyledModelForm):
             or address_data.get("settlement")
             or self._city_from_address(cleaned.get("address"))
         )[:120]
-        if not cleaned["city"]:
-            self.add_error("address", "Укажите адрес с населённым пунктом.")
+        if address_data.get("raw_data"):
+            cleaned["address"] = AddressFormatter.format(address_data)
+            cleaned["city"] = AddressFormatter.short(address_data)[:120]
+        if not cleaned.get("address"):
+            self.add_error("address", "Укажите адрес точки маршрута.")
         return cleaned
 
     def save(self, commit=True):
@@ -1395,6 +1406,9 @@ class TransportOrderStopForm(StyledModelForm):
             parsed = {}
         if not isinstance(parsed, dict):
             parsed = {}
+        instance.address_raw = AddressFormatter.snapshot(parsed) if parsed.get("raw_data") else {}
+        if instance.address_raw:
+            instance.address = AddressFormatter.format(instance.address_raw)
         mapping = {
             "fias_id": "address_fias_id",
             "postal_code": "address_postal_code",
@@ -1653,6 +1667,8 @@ class TransportationStopForm(StyledModelForm):
                     "address_block", "address_flat",
                 )
             }
+            if self.instance.address_raw:
+                values["raw_data"] = self.instance.address_raw
             if any(values.values()):
                 self.initial["address_meta"] = json.dumps(values, ensure_ascii=False)
 
@@ -1683,8 +1699,11 @@ class TransportationStopForm(StyledModelForm):
             or address_data.get("settlement")
             or self._city_from_address(cleaned.get("address"))
         )[:120]
-        if not cleaned["city"]:
-            self.add_error("address", "Укажите адрес с населённым пунктом.")
+        if address_data.get("raw_data"):
+            cleaned["address"] = AddressFormatter.format(address_data)
+            cleaned["city"] = AddressFormatter.short(address_data)[:120]
+        if not cleaned.get("address"):
+            self.add_error("address", "Укажите адрес точки маршрута.")
         return cleaned
 
     @staticmethod
@@ -1711,6 +1730,9 @@ class TransportationStopForm(StyledModelForm):
             parsed = {}
         if not isinstance(parsed, dict):
             parsed = {}
+        instance.address_raw = AddressFormatter.snapshot(parsed) if parsed.get("raw_data") else {}
+        if instance.address_raw:
+            instance.address = AddressFormatter.format(instance.address_raw)
         mapping = {
             "fias_id": "address_fias_id",
             "postal_code": "address_postal_code",
@@ -1891,7 +1913,7 @@ class TransportationDocumentForm(StyledModelForm):
     )
     pickup_city = forms.CharField(label="Город погрузки", max_length=120, required=False)
     pickup_address = forms.CharField(
-        label="Адрес погрузки", max_length=255, required=False
+        label="Адрес погрузки", required=False
     )
     pickup_date = forms.DateField(
         label="Дата погрузки", required=False, widget=forms.DateInput(attrs={"type": "date"})
@@ -1909,7 +1931,7 @@ class TransportationDocumentForm(StyledModelForm):
     )
     delivery_city = forms.CharField(label="Город выгрузки", max_length=120, required=False)
     delivery_address = forms.CharField(
-        label="Адрес выгрузки", max_length=255, required=False
+        label="Адрес выгрузки", required=False
     )
     delivery_date = forms.DateField(
         label="Дата выгрузки", required=False, widget=forms.DateInput(attrs={"type": "date"})
@@ -2499,6 +2521,8 @@ class TransportationDocumentForm(StyledModelForm):
                 "address_block", "address_flat",
             )
         }
+        if stop.address_raw:
+            values["raw_data"] = stop.address_raw
         return json.dumps(values, ensure_ascii=False) if any(values.values()) else ""
 
     def clean(self):
@@ -2776,13 +2800,19 @@ class TransportationDocumentForm(StyledModelForm):
                 "address_block": ("address_block", "block"),
                 "address_flat": ("address_flat", "flat"),
             }
-            return {
+            values = {
                 key: str(
                     next((parsed.get(alias) for alias in aliases[key] if parsed.get(alias)), "")
                     or ""
                 )[: max_lengths[key]]
                 for key in allowed
             }
+
+            values["address_raw"] = AddressFormatter.snapshot(parsed) if parsed.get("raw_data") else {}
+            if values["address_raw"]:
+                values["address"] = AddressFormatter.format(values["address_raw"])
+                values["city"] = AddressFormatter.short(values["address_raw"])[:120]
+            return values
 
         if not getattr(self, "use_route_formset", False):
             default_handling_method = (
