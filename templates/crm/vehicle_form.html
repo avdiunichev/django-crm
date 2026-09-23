@@ -37,35 +37,7 @@
         </div>
     </section>
 
-    <section class="form-section vehicle-carrier-section">
-        <div class="form-section-title"><div><h2>Контрагенты</h2><p>Добавьте контрагентов, в списках которых должно отображаться транспортное средство.</p></div></div>
-        {{ vehicle_carrier_formset.management_form }}
-        {% if vehicle_carrier_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ vehicle_carrier_formset.non_form_errors }}</div>{% endif %}
-        <div class="vehicle-carrier-list" data-vehicle-carrier-list>
-            {% for carrier_form in vehicle_carrier_formset %}
-                <article class="vehicle-carrier-card{% if carrier_form.instance.is_primary %} is-current{% endif %}" data-vehicle-carrier-form>
-                    {{ carrier_form.id }}{{ carrier_form.is_primary }}{{ carrier_form.DELETE }}
-                    {% if carrier_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ carrier_form.non_field_errors }}</div>{% endif %}
-                    <div class="vehicle-carrier-row">
-                        {{ carrier_form.is_active }}
-                        <div class="vehicle-carrier-field">{% include "crm/includes/form_field.html" with field=carrier_form.carrier %}</div>
-                        <a class="vehicle-carrier-remove" href="#" data-vehicle-carrier-remove>Удалить</a>
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-        <template data-vehicle-carrier-empty-form>
-            <article class="vehicle-carrier-card" data-vehicle-carrier-form>
-                {{ vehicle_carrier_formset.empty_form.id }}{{ vehicle_carrier_formset.empty_form.is_primary }}{{ vehicle_carrier_formset.empty_form.DELETE }}
-                <div class="vehicle-carrier-row">
-                    {{ vehicle_carrier_formset.empty_form.is_active }}
-                    <div class="vehicle-carrier-field">{% include "crm/includes/form_field.html" with field=vehicle_carrier_formset.empty_form.carrier %}</div>
-                    <a class="vehicle-carrier-remove" href="#" data-vehicle-carrier-remove>Удалить</a>
-                </div>
-            </article>
-        </template>
-        <button class="uk-button uk-button-default uk-button-small vehicle-carrier-add" type="button" data-vehicle-carrier-add>Добавить контрагента</button>
-    </section>
+
 
     <section class="form-section vehicle-attachment-section" data-vehicle-attachment-section>
         <div class="form-section-title"><div><h2 data-vehicle-attachment-title>Полуприцеп</h2><p>Прицепной состав сохранится отдельной карточкой и будет объединён с основным автомобилем в сцепку.</p></div></div>

@@ -1,0 +1,27 @@
+.crm-desktop-sidebar { display: none; }
+@media (min-width: 1200px) {
+    body.uikit-theme .crm-desktop-sidebar {
+        display: flex; flex-direction: column; position: fixed;
+        inset: 0 auto 0 0; width: 244px; box-sizing: border-box;
+        padding: 24px 16px; overflow-y: auto; z-index: 980;
+        background: #fff; border-right: 1px solid #e4e5e8;
+    }
+    .crm-desktop-sidebar .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; font-size: 15px; color: #30343a; }
+    .crm-desktop-sidebar .mobile-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .crm-desktop-sidebar .mobile-nav-group { margin-top: 18px; color: #727780; font-size: 12px; letter-spacing: .06em; }
+    .crm-desktop-sidebar .mobile-nav-list a { padding: 9px 12px; color: #30343a; text-decoration: none; border-radius: 0; font-size: 14px; }
+    .crm-desktop-sidebar .mobile-nav-list a:hover,
+    .crm-desktop-sidebar .mobile-nav-list a.is-active { background: #fff1f1; color: #D10000; }
+    body.uikit-theme .app-shell-topnav > .main { margin-left: 244px; min-width: 0; }
+    body.uikit-theme .app-shell-topnav > .crm-topnav { margin-left: 244px; width: calc(100% - 244px); box-sizing: border-box; }
+    body.uikit-theme .crm-topnav > .uk-navbar-left { display: none; }
+    body.uikit-theme .crm-topnav-tools { margin-left: auto; }
+    html[data-theme="dark"] .crm-desktop-sidebar { background: #1c222c; border-color: #38404c; }
+    html[data-theme="dark"] .crm-desktop-sidebar .brand,
+    html[data-theme="dark"] .crm-desktop-sidebar .mobile-nav-list a { color: #e4e7ed; }
+    html[data-theme="dark"] .crm-desktop-sidebar .mobile-nav-list a:hover,
+    html[data-theme="dark"] .crm-desktop-sidebar .mobile-nav-list a.is-active { background: #38252c; color: #ff7777; }
+    body.order-modal-page .crm-desktop-sidebar { display: none; }
+    body.order-modal-page .app-shell-topnav > .main { margin-left: 0; }
+}
+@media print { .crm-desktop-sidebar { display: none !important; } body.uikit-theme .app-shell-topnav > .main { margin-left: 0; } }

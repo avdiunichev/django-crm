@@ -1053,6 +1053,8 @@ class Driver(TimestampedModel):
         verbose_name="Перевозчик",
         related_name="drivers",
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
     )
     last_name = models.CharField("Фамилия", max_length=100)
     first_name = models.CharField("Имя", max_length=100)
@@ -1119,7 +1121,7 @@ class Driver(TimestampedModel):
         ]
 
     def __str__(self):
-        return f"{self.full_name} — {self.carrier.name}"
+        return self.full_name
 
     def save(self, *args, **kwargs):
         """Keep the legacy primary carrier and the employment register aligned."""
@@ -1127,6 +1129,8 @@ class Driver(TimestampedModel):
         with transaction.atomic():
             self.tax_id = re.sub(r"\D", "", self.tax_id or "")
             super().save(*args, **kwargs)
+            if not self.carrier_id:
+                return
             DriverEmployment.objects.filter(
                 driver=self, is_primary=True
             ).exclude(carrier_id=self.carrier_id).update(is_primary=False)
@@ -1214,7 +1218,7 @@ class Driver(TimestampedModel):
         organization_id = getattr(organization, "pk", organization)
         if not organization_id:
             return False
-        if self.carrier.organization_id == organization_id:
+        if self.carrier_id and self.carrier.organization_id == organization_id:
             return True
         return self.employments.filter(
             carrier__organization_id=organization_id, is_active=True
@@ -1565,6 +1569,8 @@ class Vehicle(TimestampedModel):
         verbose_name="Перевозчик",
         related_name="vehicles",
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
     )
     kind = models.CharField("Тип единицы", max_length=20, choices=Kind.choices)
     registration_number = models.CharField(
@@ -1620,13 +1626,15 @@ class Vehicle(TimestampedModel):
 
     def __str__(self):
         vehicle_name = " ".join(part for part in (self.make, self.model) if part)
-        return f"{self.registration_number} · {vehicle_name} — {self.carrier.name}"
+        return f"{self.registration_number} · {vehicle_name}"
 
     def save(self, *args, **kwargs):
         """Keep the legacy primary carrier aligned with the carrier register."""
 
         with transaction.atomic():
             super().save(*args, **kwargs)
+            if not self.carrier_id:
+                return
             VehicleCarrier.objects.filter(
                 vehicle=self, is_primary=True
             ).exclude(carrier_id=self.carrier_id).update(is_primary=False)
@@ -1657,7 +1665,7 @@ class Vehicle(TimestampedModel):
         organization_id = getattr(organization, "pk", organization)
         if not organization_id:
             return False
-        if self.carrier.organization_id == organization_id:
+        if self.carrier_id and self.carrier.organization_id == organization_id:
             return True
         return self.carrier_links.filter(
             carrier__organization_id=organization_id, is_active=True
@@ -1788,12 +1796,6 @@ class VehicleCombination(TimestampedModel):
             and self.tractor.kind != Vehicle.Kind.TRACTOR
         ):
             errors["tractor"] = "Полуприцеп можно соединить только с седельным тягачом."
-        if (
-            self.tractor_id
-            and self.trailer_id
-            and self.tractor.carrier_id != self.trailer.carrier_id
-        ):
-            errors["trailer"] = "Тягач и прицеп должны принадлежать одному перевозчику."
         if self.valid_from and self.valid_until and self.valid_until < self.valid_from:
             errors["valid_until"] = "Дата окончания не может быть раньше даты начала."
         if self.is_active:
@@ -1948,12 +1950,8 @@ class Shipment(TimestampedModel):
         errors = {}
         if self.driver_id and not self.carrier_id:
             errors["driver"] = "Сначала выберите перевозчика."
-        elif self.driver_id and not self.driver.works_for_carrier(self.carrier_id):
-            errors["driver"] = "Водитель должен принадлежать выбранному перевозчику."
         if self.vehicle_id and not self.carrier_id:
             errors["vehicle"] = "Сначала выберите перевозчика."
-        elif self.vehicle_id and not self.vehicle.works_for_carrier(self.carrier_id):
-            errors["vehicle"] = "Транспорт должен принадлежать выбранному перевозчику."
         if errors:
             raise ValidationError(errors)
 
@@ -3293,13 +3291,6 @@ class VehicleAssignment(TimestampedModel):
         errors = {}
         combination = self.combination
         if combination:
-            if (
-                self.actual_carrier_id
-                and not combination.tractor.works_for_organization(
-                    self.actual_carrier_id
-                )
-            ):
-                errors["combination"] = "Сцепка должна принадлежать фактическому перевозчику."
             if self.is_active and not combination.is_active:
                 errors["combination"] = "Выберите активную сцепку."
             if self.vehicle_id and self.vehicle_id != combination.tractor_id:
@@ -3310,14 +3301,6 @@ class VehicleAssignment(TimestampedModel):
                 errors["vehicle"] = "Укажите основной автомобиль из выбранной сцепки."
             if not self.trailer_id:
                 errors["trailer"] = "Укажите прицеп из выбранной сцепки."
-        if self.driver_id and not self.driver.works_for_organization(
-            self.actual_carrier_id
-        ):
-            errors["driver"] = "Водитель должен принадлежать фактическому перевозчику."
-        if self.vehicle_id and not self.vehicle.works_for_organization(self.actual_carrier_id):
-            errors["vehicle"] = "Транспорт должен принадлежать фактическому перевозчику."
-        if self.trailer_id and not self.trailer.works_for_organization(self.actual_carrier_id):
-            errors["trailer"] = "Прицеп должен принадлежать фактическому перевозчику."
         if self.vehicle_id and self.vehicle.is_trailer:
             errors["vehicle"] = "В качестве основного автомобиля нельзя выбрать прицеп."
         if self.trailer_id and not self.trailer.is_trailer:

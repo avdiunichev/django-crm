@@ -905,50 +905,20 @@ class TransportationChainForm(forms.Form):
             kind=Contract.Kind.CLIENT_FORWARDING
         ).exclude(status__in=[Contract.Status.TERMINATED, Contract.Status.ARCHIVED])
 
-        actual_id = self.data.get("actual_carrier") if self.is_bound else None
         assignment = transportation.active_vehicle_assignment()
         link = transportation.active_execution_link()
-        if not actual_id and assignment:
-            actual_id = assignment.actual_carrier_id
-        if actual_id and str(actual_id).isdigit():
-            self.fields["driver"].queryset = Driver.objects.filter(
-                Q(carrier__organization_id=actual_id)
-                | Q(
-                    employments__carrier__organization_id=actual_id,
-                    employments__is_active=True,
-                ),
-                is_active=True,
-            ).distinct()
-            if assignment and assignment.driver_id:
-                available_driver_ids = self.fields["driver"].queryset.values("pk")
-                self.fields["driver"].queryset = Driver.objects.filter(
-                    Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
-                ).distinct()
-            carrier_filter = Q(carrier__organization_id=actual_id) | Q(
-                carrier_links__carrier__organization_id=actual_id,
-                carrier_links__is_active=True,
-            )
-            self.fields["vehicle"].queryset = Vehicle.objects.filter(
-                carrier_filter, is_active=True
-            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER]).distinct()
-            self.fields["trailer"].queryset = Vehicle.objects.filter(
-                carrier_filter,
-                is_active=True,
-                kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER],
-            ).distinct()
-            combination_filter = Q(
-                is_active=True,
-                tractor__carrier__organization_id=actual_id,
-            ) | Q(
-                is_active=True,
-                tractor__carrier_links__carrier__organization_id=actual_id,
-                tractor__carrier_links__is_active=True,
-            )
-            if assignment and assignment.combination_id:
-                combination_filter |= Q(pk=assignment.combination_id)
-            self.fields["combination"].queryset = VehicleCombination.objects.filter(
-                combination_filter
-            ).select_related("tractor", "trailer")
+        # Carrier history affects suggestions, never the validity of a selection.
+        for name, model in (("driver", Driver), ("vehicle", Vehicle),
+                            ("trailer", Vehicle), ("combination", VehicleCombination)):
+            available = Q(is_active=True)
+            if assignment and getattr(assignment, name + "_id"):
+                available |= Q(pk=getattr(assignment, name + "_id"))
+            queryset = model.objects.filter(available)
+            if name == "vehicle":
+                queryset = queryset.exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+            elif name == "trailer":
+                queryset = queryset.filter(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+            self.fields[name].queryset = queryset
 
         # Keep the persisted values in ``initial`` even for a bound form.  A
         # bound field still renders the submitted value, while Django can now
@@ -1032,11 +1002,6 @@ class TransportationChainForm(forms.Form):
         driver = cleaned.get("driver")
         combination = cleaned.get("combination")
         if combination:
-            if actual_carrier and combination.tractor.carrier.organization_id != actual_carrier.pk:
-                self.add_error(
-                    "combination",
-                    "Сцепка должна принадлежать фактическому перевозчику.",
-                )
             if cleaned.get("vehicle") and cleaned["vehicle"] != combination.tractor:
                 self.add_error("vehicle", "Основной автомобиль не соответствует выбранной сцепке.")
             if cleaned.get("trailer") and cleaned["trailer"] != combination.trailer:
@@ -1045,19 +1010,6 @@ class TransportationChainForm(forms.Form):
             cleaned["vehicle"] = combination.tractor
             cleaned["trailer"] = combination.trailer
             cleaned["trailer_registration_number"] = combination.trailer.registration_number
-        if driver and actual_carrier and not driver.works_for_organization(
-            actual_carrier
-        ):
-            self.add_error(
-                "driver", "Водитель должен работать у фактического перевозчика."
-            )
-        for field_name in ("vehicle", "trailer"):
-            resource = cleaned.get(field_name)
-            if resource and actual_carrier and resource.carrier.organization_id != actual_carrier.pk:
-                self.add_error(
-                    field_name,
-                    "Ресурс должен принадлежать фактическому перевозчику.",
-                )
         return cleaned
 
     def save(self, user):
@@ -2227,48 +2179,18 @@ class TransportationDocumentForm(StyledModelForm):
                     Q(pk__in=active_ids) | Q(pk=organization_id)
                 ).distinct()
 
-        actual_id = self.data.get("actual_carrier") if self.is_bound else None
-        if not actual_id and assignment:
-            actual_id = assignment.actual_carrier_id
-        if actual_id and str(actual_id).isdigit():
-            self.fields["driver"].queryset = Driver.objects.filter(
-                Q(carrier__organization_id=actual_id)
-                | Q(
-                    employments__carrier__organization_id=actual_id,
-                    employments__is_active=True,
-                ),
-                is_active=True,
-            ).distinct()
-            if assignment and assignment.driver_id:
-                available_driver_ids = self.fields["driver"].queryset.values("pk")
-                self.fields["driver"].queryset = Driver.objects.filter(
-                    Q(pk__in=available_driver_ids) | Q(pk=assignment.driver_id)
-                ).distinct()
-            carrier_filter = Q(carrier__organization_id=actual_id) | Q(
-                carrier_links__carrier__organization_id=actual_id,
-                carrier_links__is_active=True,
-            )
-            self.fields["vehicle"].queryset = Vehicle.objects.filter(
-                carrier_filter, is_active=True
-            ).exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER]).distinct()
-            self.fields["trailer"].queryset = Vehicle.objects.filter(
-                carrier_filter,
-                is_active=True,
-                kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER],
-            ).distinct()
-            combination_filter = Q(
-                is_active=True,
-                tractor__carrier__organization_id=actual_id,
-            ) | Q(
-                is_active=True,
-                tractor__carrier_links__carrier__organization_id=actual_id,
-                tractor__carrier_links__is_active=True,
-            )
-            if assignment and assignment.combination_id:
-                combination_filter |= Q(pk=assignment.combination_id)
-            self.fields["combination"].queryset = VehicleCombination.objects.filter(
-                combination_filter
-            ).select_related("tractor", "trailer")
+        # Carrier history affects suggestions, never the validity of a selection.
+        for name, model in (("driver", Driver), ("vehicle", Vehicle),
+                            ("trailer", Vehicle), ("combination", VehicleCombination)):
+            available = Q(is_active=True)
+            if assignment and getattr(assignment, name + "_id"):
+                available |= Q(pk=getattr(assignment, name + "_id"))
+            queryset = model.objects.filter(available)
+            if name == "vehicle":
+                queryset = queryset.exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+            elif name == "trailer":
+                queryset = queryset.filter(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
+            self.fields[name].queryset = queryset
 
         organization_role_map = {}
         organization_ids = set()
@@ -2729,11 +2651,6 @@ class TransportationDocumentForm(StyledModelForm):
             )
         combination = cleaned.get("combination")
         if combination:
-            if actual_carrier and combination.tractor.carrier.organization_id != actual_carrier.pk:
-                self.add_error(
-                    "combination",
-                    "Сцепка должна принадлежать фактическому перевозчику.",
-                )
             if cleaned.get("vehicle") and cleaned["vehicle"] != combination.tractor:
                 self.add_error("vehicle", "Основной автомобиль не соответствует выбранной сцепке.")
             if cleaned.get("trailer") and cleaned["trailer"] != combination.trailer:
@@ -2742,19 +2659,6 @@ class TransportationDocumentForm(StyledModelForm):
             cleaned["trailer"] = combination.trailer
             cleaned["trailer_registration_number"] = combination.trailer.registration_number
         driver = cleaned.get("driver")
-        if driver and actual_carrier and not driver.works_for_organization(
-            actual_carrier
-        ):
-            self.add_error(
-                "driver", "Водитель должен работать у фактического перевозчика."
-            )
-        for field_name in ("vehicle", "trailer"):
-            resource = cleaned.get(field_name)
-            if resource and actual_carrier and resource.carrier.organization_id != actual_carrier.pk:
-                self.add_error(
-                    field_name,
-                    "Ресурс должен принадлежать фактическому перевозчику.",
-                )
         if customer_contract and client:
             if (
                 customer_contract.customer_id
@@ -3274,6 +3178,8 @@ class DriverForm(StyledModelForm):
     def __init__(self, *args, register_mode=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.register_mode = register_mode
+        if register_mode:
+            self.fields["carrier"].disabled = True
         self.fields["carrier"].label = "Основная компания"
         self.fields["carrier"].help_text = (
             "Компания, которая будет подставляться для водителя по умолчанию."
@@ -4040,6 +3946,7 @@ class VehicleForm(StyledModelForm):
         self.fields["pallet_capacity"].label = "Кол-во паллет"
         self.fields["carrier"].label = "Контрагент"
         if register_mode:
+            self.fields["carrier"].disabled = True
             self.fields["carrier"].required = False
             self.fields["carrier"].widget = forms.HiddenInput()
         self.fields["kind"].widget.attrs["data-vehicle-kind"] = ""
@@ -4296,19 +4203,8 @@ class ShipmentForm(StyledModelForm):
             self.fields["expeditor"].initial = self.fields[
                 "expeditor"
             ].queryset.first()
-        carrier_id = self.data.get("carrier") if self.is_bound else self.instance.carrier_id
-        if carrier_id and str(carrier_id).isdigit():
-            self.fields["driver"].queryset = Driver.objects.filter(
-                Q(carrier_id=carrier_id)
-                | Q(employments__carrier_id=carrier_id, employments__is_active=True),
-                is_active=True,
-            ).distinct()
-            self.fields["vehicle"].queryset = Vehicle.objects.filter(
-                carrier_id=carrier_id, is_active=True
-            )
-        else:
-            self.fields["driver"].queryset = Driver.objects.filter(is_active=True)
-            self.fields["vehicle"].queryset = Vehicle.objects.filter(is_active=True)
+        self.fields["driver"].queryset = Driver.objects.filter(is_active=True)
+        self.fields["vehicle"].queryset = Vehicle.objects.filter(is_active=True)
         if self.instance.driver_id:
             available_driver_ids = self.fields["driver"].queryset.values("pk")
             self.fields["driver"].queryset = Driver.objects.filter(

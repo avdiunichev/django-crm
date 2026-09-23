@@ -158,37 +158,8 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-license-add>Добавить водительское удостоверение</button>
     </section>
 
-    <section class="form-section driver-employment-section">
-        <div class="form-section-title"><div><h2>Контрагенты</h2><p>Добавьте контрагентов, с которыми работает водитель.</p></div></div>
-        {{ employment_formset.management_form }}
-        {% if employment_formset.non_form_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_formset.non_form_errors }}</div>{% endif %}
-        <div class="driver-register-list" data-employment-list>
-            {% for employment_form in employment_formset %}
-                <article class="driver-passport-card{% if employment_form.instance.is_primary %} is-current{% endif %}" data-employment-form>
-                    {{ employment_form.id }}{{ employment_form.is_primary }}{{ employment_form.DELETE }}
-                    {% if employment_form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ employment_form.non_field_errors }}</div>{% endif %}
-                    <div class="driver-employment-row">
-                        {{ employment_form.is_active }}
-                        <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_form.carrier %}</div>
-                        <a class="driver-employment-remove{% if employment_form.is_used_in_transportations %} is-linked{% endif %}" href="#" data-employment-remove{% if employment_form.is_used_in_transportations %} data-linked="true" title="Водитель уже назначался на рейсы этого контрагента"{% endif %}>Удалить</a>
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-        <template data-employment-empty-form>
-            <article class="driver-passport-card" data-employment-form>
-                {{ employment_formset.empty_form.id }}{{ employment_formset.empty_form.is_primary }}{{ employment_formset.empty_form.DELETE }}
-                <div class="driver-employment-row">
-                    {{ employment_formset.empty_form.is_active }}
-                    <div class="driver-employment-field">{% include "crm/includes/form_field.html" with field=employment_formset.empty_form.carrier %}</div>
-                    <a class="driver-employment-remove" href="#" data-employment-remove>Удалить</a>
-                </div>
-            </article>
-        </template>
-        <button class="uk-button uk-button-default uk-button-small" type="button" data-employment-add>Привязать к контрагенту</button>
-        <div class="form-grid driver-status-grid">
-            {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
-        </div>
+    <section class="form-section"><div class="form-section-title"><h2>Комментарий</h2></div>
+        {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
     </section>
 
 </form>

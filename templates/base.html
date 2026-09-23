@@ -32,6 +32,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Моя CRM">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=20260923">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
@@ -160,6 +161,36 @@
             </div>
         </div>
     </aside>
+    <aside class="crm-desktop-sidebar" aria-label="Основное меню">
+        <a class="brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" width="28" height="28" alt=""><strong>НОВЫЙ ПРОЕКТ</strong></a>
+            <nav class="mobile-nav-list" aria-label="Основная навигация">
+                <span class="mobile-nav-group"><span uk-icon="git-fork"></span> Операции</span>
+                <a class="mobile-nav-subitem {% if 'order' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'order-list' %}">Заказы</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' %}is-active{% endif %}" href="{% url 'transportation-list' %}">Рейсы</a>
+                <a class="mobile-nav-subitem {% if 'planner' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'planner' %}">Планировщик</a>
+                {% if crm_access.can_access_finance %}
+                <span class="mobile-nav-group"><span uk-icon="credit-card"></span> Бухгалтерия</span>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'accounting-dashboard' %}is-active{% endif %}" href="{% url 'accounting-dashboard' %}">Рабочий стол</a>
+                <a class="mobile-nav-subitem {% if 'customer-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'customer-document-list' %}">Документы для клиентов</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'shipment-document-list' and request.GET.direction == 'incoming' %}is-active{% endif %}" href="{% url 'shipment-document-list' %}?direction=incoming">Входящие документы</a>
+                <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Первичные документы</a>
+                <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
+                <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
+                {% endif %}
+                <span class="mobile-nav-group"><span uk-icon="file-text"></span> Документы</span>
+                <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Документы</a>
+                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if 'primary-document-registry' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-list' %}">Первичка</a>{% endif %}
+                <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
+                <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
+                <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
+                {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
+                <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
+                <a class="{% if 'chat' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a>
+            </nav>
+    </aside>
     <main class="main">
         <div class="content">
             {% if messages %}
@@ -183,7 +214,7 @@
 <script src="{% static 'js/date-inputs.js' %}?v=20260917-date-picker-today-red"></script>
 <script src="{% static 'js/dynamic-filters.js' %}?v=20260914-order-search-delay"></script>
 <script src="{% static 'js/table-sort.js' %}?v=20260909-server-sort"></script>
-<script src="{% static 'js/transportation-workspace.js' %}?v=20260923-organization-submit-url"></script>
+<script src="{% static 'js/transportation-workspace.js' %}?v=20260923-resource-history"></script>
 <script src="{% static 'js/contract-form.js' %}?v=20260921-contract-lifecycle"></script>
 <script src="{% static 'js/smart-selects.js' %}?v=20260917-order-stop-party-inputs"></script>
 <script src="{% static 'js/address-suggestions.js' %}?v=20260922-order-modal-base-url"></script>

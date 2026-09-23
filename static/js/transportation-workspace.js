@@ -123,36 +123,6 @@
                 }
                 button.addEventListener("mousedown", (event) => event.preventDefault());
                 button.addEventListener("click", async () => {
-                    if (item.linked === false && select.dataset.linkUrl) {
-                        const parent = document.getElementById(select.dataset.parentSource || "")?.value;
-                        const csrf = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
-                        button.disabled = true;
-                        title.textContent = "Связываем с перевозчиком…";
-                        try {
-                            const response = await fetch(select.dataset.linkUrl, {
-                                method: "POST",
-                                headers: {
-                                    "Accept": "application/json",
-                                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                                    "X-CSRFToken": csrf,
-                                },
-                                body: new URLSearchParams({
-                                    resource: select.dataset.searchResource,
-                                    id: item.id,
-                                    organization: parent || "",
-                                }),
-                            });
-                            const result = await response.json();
-                            if (!response.ok) throw new Error(result.error || "Не удалось создать связь.");
-                            item = result.item;
-                            notify("Запись связана с перевозчиком и выбрана.", "success");
-                        } catch (error) {
-                            notify(error.message || "Не удалось создать связь.", "danger");
-                            button.disabled = false;
-                            title.textContent = item.label;
-                            return;
-                        }
-                    }
                     let option = Array.from(select.options).find((candidate) => String(candidate.value) === String(item.id));
                     if (!option) { option = new Option(item.label, item.id); select.add(option); }
                     if (Array.isArray(item.roles)) option.dataset.roles = item.roles.join(" ");
@@ -160,12 +130,6 @@
                     if (item.trailer_id) option.dataset.trailerId = item.trailer_id;
                     choose(option);
                 });
-                if (item.linked === false) {
-                    const attach = document.createElement("small");
-                    attach.className = "uk-text-danger";
-                    attach.textContent = "Связать с перевозчиком и выбрать";
-                    button.append(attach);
-                }
                 dropdown.appendChild(button);
             });
             if (!items.length) {
@@ -184,7 +148,7 @@
                 const scopeButton = document.createElement("button");
                 scopeButton.type = "button";
                 scopeButton.className = "crm-smart-create uk-button uk-button-default uk-button-small";
-                scopeButton.textContent = globalScope ? "Искать у выбранного перевозчика" : "Искать среди всех";
+                scopeButton.textContent = globalScope ? "Популярные у перевозчика" : "Весь справочник";
                 scopeButton.addEventListener("mousedown", (event) => event.preventDefault());
                 scopeButton.addEventListener("click", () => { globalScope = !globalScope; runServerSearch(); });
                 dropdown.appendChild(scopeButton);
@@ -348,8 +312,7 @@
         document.querySelectorAll(`${SMART_SELECTOR}[data-entity-type="${type}"]`).forEach((select) => {
             let option = Array.from(select.options).find((candidate) => String(candidate.value) === String(item.id));
             const carrier = document.getElementById(select.dataset.parentSource || "")?.value;
-            const carrierAllowed = !carrier || !Array.isArray(item.carrier_ids)
-                || item.carrier_ids.map(String).includes(String(carrier));
+            const carrierAllowed = true;
             const kindAllowed = !select.dataset.resourceKind || (
                 select.dataset.resourceKind === "trailer"
                     ? ["trailer", "semitrailer"].includes(item.kind)

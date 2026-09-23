@@ -1187,13 +1187,13 @@ class CrmTestCase(TestCase):
         self.assertEqual(vehicle_response.status_code, 200)
         self.assertTrue(
             Driver.objects.filter(
-                carrier=self.carrier,
+                carrier__isnull=True,
                 license_number="QUICK-DRIVER",
             ).exists()
         )
         self.assertTrue(
             Vehicle.objects.filter(
-                carrier=self.carrier,
+                carrier__isnull=True,
                 registration_number="А999АА77",
             ).exists()
         )
@@ -2974,7 +2974,7 @@ class CrmTestCase(TestCase):
         payload = response.json()
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["item"]["kind"], Vehicle.Kind.TRACTOR)
-        self.assertIn(self.carrier.organization_id, payload["item"]["carrier_ids"])
+        self.assertEqual(payload["item"]["carrier_ids"], [])
 
     def test_vehicle_form_creates_trailer_as_separate_linked_vehicle(self):
         self.client.force_login(self.user)
@@ -3042,12 +3042,12 @@ class CrmTestCase(TestCase):
 
         self.assertRedirects(response, reverse("vehicle-list"))
         vehicle = Vehicle.objects.get(registration_number="А777АА198")
-        self.assertEqual(vehicle.carrier, self.carrier)
-        self.assertEqual(VehicleCarrier.objects.filter(vehicle=vehicle).count(), 2)
+        self.assertIsNone(vehicle.carrier)
+        self.assertFalse(VehicleCarrier.objects.filter(vehicle=vehicle).exists())
         resources = self.client.get(
             reverse("carrier-resources"), {"carrier": second_carrier.pk}
         ).json()
-        self.assertIn(vehicle.pk, [item["id"] for item in resources["vehicles"]])
+        self.assertNotIn(vehicle.pk, [item["id"] for item in resources["vehicles"]])
         trip_form = TransportationDocumentForm(
             data={"actual_carrier": second_carrier.organization_id},
             instance=self.shipment.transportation,
@@ -3171,10 +3171,7 @@ class CrmTestCase(TestCase):
         self.shipment.carrier = self.carrier
         self.shipment.driver = other_driver
         self.shipment.vehicle = other_vehicle
-        with self.assertRaises(ValidationError) as error:
-            self.shipment.full_clean()
-        self.assertIn("driver", error.exception.message_dict)
-        self.assertIn("vehicle", error.exception.message_dict)
+        self.shipment.full_clean()
 
     def test_shipment_accepts_resources_of_selected_carrier(self):
         self.shipment.driver = self.driver
@@ -3556,7 +3553,7 @@ class CrmTestCase(TestCase):
         self.assertIn("tax_id", form.fields)
         self.assertIn("employment_formset", response.context)
         self.assertIn("license_formset", response.context)
-        self.assertContains(response, "Привязать к контрагенту")
+        self.assertNotContains(response, "Привязать к контрагенту")
         self.assertContains(response, "Добавить паспорт")
         self.assertContains(response, "Добавить водительское удостоверение")
         self.assertContains(response, "js/driver-suggestions.js")
@@ -3624,19 +3621,8 @@ class CrmTestCase(TestCase):
                 series="4010", number="987654", is_current=True
             ).exists()
         )
-        self.assertTrue(
-            driver.employments.filter(
-                carrier=self.carrier, is_primary=True, is_active=True
-            ).exists()
-        )
-        self.assertEqual(
-            set(
-                driver.employments.filter(
-                    is_active=True, is_primary=False
-                ).values_list("carrier_id", flat=True)
-            ),
-            {additional_carrier_one.pk, additional_carrier_two.pk},
-        )
+        self.assertIsNone(driver.carrier)
+        self.assertFalse(driver.employments.exists())
         self.assertTrue(
             driver.licenses.filter(
                 number="MODAL-DRIVER", categories="C, CE", is_current=True
@@ -3649,9 +3635,9 @@ class CrmTestCase(TestCase):
                 for row in edit_response.context["employment_formset"].forms
                 if row.instance.pk
             },
-            {self.carrier.pk, additional_carrier_one.pk, additional_carrier_two.pk},
+            set(),
         )
-        self.assertContains(edit_response, "data-employment-add")
+        self.assertNotContains(edit_response, "data-employment-add")
         self.assertContains(edit_response, "data-license-add")
 
     def test_driver_can_be_created_without_license_and_registry_prompts_to_add_it(self):
@@ -3842,7 +3828,7 @@ class CrmTestCase(TestCase):
         self.assertRedirects(response, self.driver.get_absolute_url())
         self.driver.refresh_from_db()
         old_license.refresh_from_db()
-        self.assertEqual(self.driver.carrier, second_carrier)
+        self.assertEqual(self.driver.carrier, self.carrier)
         self.assertFalse(old_license.is_current)
         self.assertEqual(self.driver.license_number, "77 22 654321")
         self.assertEqual(
@@ -3851,11 +3837,11 @@ class CrmTestCase(TestCase):
                     "carrier_id", flat=True
                 )
             ),
-            {self.carrier.pk, second_carrier.pk},
+            {self.carrier.pk},
         )
         self.assertTrue(
             self.driver.employments.filter(
-                carrier=second_carrier, is_primary=True
+                carrier=self.carrier, is_primary=True
             ).exists()
         )
 
@@ -3969,7 +3955,7 @@ class CrmTestCase(TestCase):
         hidden_employment.refresh_from_db()
         self.driver.refresh_from_db()
         self.assertTrue(primary_employment.is_active)
-        self.assertFalse(hidden_employment.is_active)
+        self.assertTrue(hidden_employment.is_active)
         self.assertTrue(self.driver.is_active)
 
     def test_hidden_driver_is_excluded_from_selection_but_kept_in_old_trip(self):
@@ -6154,4 +6140,37 @@ class CrmTestCase(TestCase):
             },
         )
         self.assertEqual(link_response.status_code, 200)
-        self.assertTrue(other_driver.works_for_organization(self.carrier.organization_id))
+        self.assertFalse(other_driver.works_for_organization(self.carrier.organization_id))
+    def test_unaffiliated_resources_can_be_created_and_assigned(self):
+        driver = Driver.objects.create(last_name="Свободный", first_name="Водитель", phone="+7 900 000-00-00")
+        vehicle = Vehicle.objects.create(kind=Vehicle.Kind.TRUCK, registration_number="А123ВС777")
+        assignment = self.shipment.transportation.active_vehicle_assignment()
+        assignment.driver = driver
+        assignment.vehicle = vehicle
+        assignment.full_clean()
+        assignment.save()
+        self.assertFalse(driver.employments.exists())
+        self.assertFalse(vehicle.carrier_links.exists())
+        form = TransportationChainForm(transportation=self.shipment.transportation)
+        self.assertIn(driver, form.fields["driver"].queryset)
+        self.assertIn(vehicle, form.fields["vehicle"].queryset)
+
+    def test_resource_suggestions_use_trip_history_and_allow_all(self):
+        self.client.force_login(self.user)
+        driver = Driver.objects.create(last_name="Новый", first_name="Водитель", phone="+7 900 000-00-00")
+        assignment = self.shipment.transportation.active_vehicle_assignment()
+        assignment.driver = driver
+        assignment.save()
+        unused = Driver.objects.create(carrier=self.carrier, last_name="Неездивший", first_name="Водитель", phone="+7 900 000-00-01")
+        params = {"resource": "driver", "organization": self.carrier.organization_id}
+        popular = self.client.get(reverse("search-select"), params)
+        self.assertEqual(popular.status_code, 200)
+        ids = [item["id"] for item in popular.json()["items"]]
+        self.assertIn(driver.pk, ids)
+        self.assertNotIn(unused.pk, ids)
+        all_items = self.client.get(reverse("search-select"), {**params, "scope": "all"}).json()["items"]
+        self.assertIn(unused.pk, [item["id"] for item in all_items])
+        self.assertFalse(driver.employments.exists())
+        for resource in ("vehicle", "combination"):
+            response = self.client.get(reverse("search-select"), {**params, "resource": resource})
+            self.assertEqual(response.status_code, 200)

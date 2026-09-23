@@ -947,6 +947,28 @@ SHIPMENT_SCOPE_LABELS = {
 }
 
 
+def rank_carrier_resources(queryset, resource, organization_id, scope):
+    """Rank by distinct trips instead of directory affiliations."""
+    relations = {
+        "driver": ["transportation_assignments"],
+        "vehicle": ["transportation_assignments", "trailer_transportation_assignments"],
+        "combination": ["vehicle_assignments"],
+    }
+    if resource not in relations or not organization_id.isdigit() or scope == "all":
+        return queryset
+    counts = [
+        Count(f"{relation}__transportation", distinct=True,
+              filter=Q(**{f"{relation}__actual_carrier_id": int(organization_id)}))
+        for relation in relations[resource]
+    ]
+    usage = counts[0]
+    for count in counts[1:]:
+        usage = usage + count
+    return queryset.annotate(carrier_usage=usage).filter(
+        carrier_usage__gt=0
+    ).order_by("-carrier_usage", "-updated_at", "pk")
+
+
 @login_required
 @require_POST
 def dadata_party_by_inn(request):
@@ -1094,6 +1116,7 @@ def search_select(request):
             ).order_by("search_rank", "short_name", "name")
         else:
             queryset = queryset.order_by("-updated_at")
+        queryset = rank_carrier_resources(queryset, resource, organization_id, scope)
         rows = list(queryset.distinct()[offset:offset + limit + 1])
         items = [{
             "id": row.pk,
@@ -1103,11 +1126,7 @@ def search_select(request):
         } for row in rows[:limit]]
     elif resource == "driver":
         queryset = Driver.objects.filter(is_active=True).prefetch_related("passports", "licenses")
-        if organization_id.isdigit() and scope != "all":
-            queryset = queryset.filter(
-                Q(carrier__organization_id=organization_id)
-                | Q(employments__carrier__organization_id=organization_id, employments__is_active=True)
-            )
+
         if query:
             digits = re.sub(r"\D", "", query)
             condition = (
@@ -1132,12 +1151,13 @@ def search_select(request):
             ).order_by("search_rank", "last_name", "first_name")
         else:
             queryset = queryset.order_by("-updated_at", "last_name")
+        queryset = rank_carrier_resources(queryset, resource, organization_id, scope)
         rows = list(queryset.distinct()[offset:offset + limit + 1])
         items = [{
             "id": row.pk,
             "label": row.full_name,
             "meta": driver_label_for_user(row, request.user),
-            "linked": (not organization_id.isdigit()) or row.works_for_organization(int(organization_id)),
+            "linked": True,
         } for row in rows[:limit]]
     elif resource == "vehicle":
         queryset = Vehicle.objects.filter(is_active=True)
@@ -1145,11 +1165,7 @@ def search_select(request):
             queryset = queryset.filter(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
         elif kind == "vehicle":
             queryset = queryset.exclude(kind__in=[Vehicle.Kind.TRAILER, Vehicle.Kind.SEMITRAILER])
-        if organization_id.isdigit() and scope != "all":
-            queryset = queryset.filter(
-                Q(carrier__organization_id=organization_id)
-                | Q(carrier_links__carrier__organization_id=organization_id, carrier_links__is_active=True)
-            )
+
         if query:
             normalized = re.sub(r"[^0-9A-Za-zА-Яа-я]", "", query)
             condition = Q(registration_number__icontains=query) | Q(vin__icontains=query) | Q(make__icontains=query) | Q(model__icontains=query)
@@ -1164,21 +1180,18 @@ def search_select(request):
             ).order_by("search_rank", "registration_number")
         else:
             queryset = queryset.order_by("-updated_at", "registration_number")
+        queryset = rank_carrier_resources(queryset, resource, organization_id, scope)
         rows = list(queryset.distinct()[offset:offset + limit + 1])
         items = [{
             "id": row.pk,
             "label": f"{row.registration_number} · {' '.join(filter(None, (row.make, row.model)))}",
             "meta": f"{row.get_kind_display()}{' · VIN ' + row.vin if row.vin else ''}",
             "kind": row.kind,
-            "linked": (not organization_id.isdigit()) or row.works_for_organization(int(organization_id)),
+            "linked": True,
         } for row in rows[:limit]]
     elif resource == "combination":
         queryset = VehicleCombination.objects.filter(is_active=True).select_related("tractor", "trailer")
-        if organization_id.isdigit() and scope != "all":
-            queryset = queryset.filter(
-                Q(tractor__carrier__organization_id=organization_id)
-                | Q(tractor__carrier_links__carrier__organization_id=organization_id, tractor__carrier_links__is_active=True)
-            )
+
         if query:
             queryset = queryset.filter(
                 Q(tractor__registration_number__icontains=query)
@@ -1186,6 +1199,7 @@ def search_select(request):
                 | Q(tractor__make__icontains=query) | Q(tractor__model__icontains=query)
             )
         queryset = queryset.order_by("-updated_at")
+        queryset = rank_carrier_resources(queryset, resource, organization_id, scope)
         rows = list(queryset.distinct()[offset:offset + limit + 1])
         items = [{
             "id": row.pk, "label": str(row),
@@ -1200,7 +1214,7 @@ def search_select(request):
 @login_required
 @require_POST
 def search_select_link(request):
-    """Attach an existing driver/vehicle to a carrier without leaving the trip."""
+    """Compatibility endpoint: select without creating carrier relationships."""
     if not user_can_manage_operations(request.user):
         return JsonResponse({"error": "Недостаточно прав."}, status=403)
     resource = request.POST.get("resource", "")
@@ -1216,13 +1230,6 @@ def search_select_link(request):
         if not user_can_manage_personal_data(request.user):
             return JsonResponse({"error": "Недостаточно прав для изменения привязки водителя."}, status=403)
         driver = get_object_or_404(Driver, pk=object_id, is_active=True)
-        relation, _ = DriverEmployment.objects.get_or_create(
-            driver=driver, carrier=carrier,
-            defaults={"is_active": True, "is_primary": False},
-        )
-        if not relation.is_active:
-            relation.is_active = True
-            relation.save(update_fields=["is_active", "updated_at"])
         item = {
             "id": driver.pk,
             "label": driver.full_name,
@@ -1231,13 +1238,6 @@ def search_select_link(request):
         }
     elif resource == "vehicle":
         vehicle = get_object_or_404(Vehicle, pk=object_id, is_active=True)
-        relation, _ = VehicleCarrier.objects.get_or_create(
-            vehicle=vehicle, carrier=carrier,
-            defaults={"is_active": True, "is_primary": False},
-        )
-        if not relation.is_active:
-            relation.is_active = True
-            relation.save(update_fields=["is_active", "updated_at"])
         item = {
             "id": vehicle.pk,
             "label": f"{vehicle.registration_number} · {' '.join(filter(None, (vehicle.make, vehicle.model)))}",
@@ -1586,11 +1586,11 @@ class QuickCarrierResourceCreateView(LoginRequiredMixin, View):
         )
 
     def get_form(self, data=None):
-        carrier = self.get_carrier()
         if data is not None:
             data = data.copy()
-            data["carrier"] = str(carrier.pk)
-        form = self.form_class(data=data, initial={"carrier": carrier.pk})
+            data["carrier"] = ""
+        form = self.form_class(data=data)
+        form.fields["carrier"].required = False
         form.fields["carrier"].widget = HiddenInput()
         return form
 
@@ -10428,15 +10428,13 @@ class DriverRegistersFormSetMixin:
         form_valid = form.is_valid()
         passport_valid = passport_formset.is_valid()
         license_valid = license_formset.is_valid()
-        employment_valid = employment_formset.is_valid()
+        employment_valid = True
         phone_valid = phone_formset.is_valid()
         if form_valid and passport_valid and license_valid and employment_valid and phone_valid:
             current_license = license_formset.current_data()
-            form.instance.carrier = employment_formset.primary_carrier()
-            form.instance.is_active = any(
-                row.cleaned_data.get("is_active", False)
-                for row in employment_formset.active_forms()
-            )
+            form.instance.carrier_id = self.object.carrier_id if self.object else None
+            form.instance.is_active = form.initial.get("is_active", True)
+            # Directory visibility is independent of carrier relationships.
             form.instance.phone = phone_formset.primary_phone()
             if current_license:
                 form.instance.license_number = current_license["number"]
@@ -10450,7 +10448,6 @@ class DriverRegistersFormSetMixin:
                 form.instance.license_expiry_date = None
             with transaction.atomic():
                 self.object = form.save()
-                employment_formset.save_register(self.object)
                 phone_formset.save_register(self.object)
                 passport_formset.instance = self.object
                 passport_formset.save()
@@ -10749,12 +10746,11 @@ class VehicleAttachmentFormMixin:
         carrier_formset = self.get_carrier_formset(form, data=carrier_data)
         form_valid = form.is_valid()
         attachment_valid = attachment_form.is_valid()
-        carriers_valid = carrier_formset.is_valid()
+        carriers_valid = True
         if form_valid and attachment_valid and carriers_valid:
-            form.instance.carrier = carrier_formset.primary_carrier()
+            form.instance.carrier_id = self.object.carrier_id if self.object else None
             with transaction.atomic():
                 self.object = form.save()
-                carrier_formset.save_register(self.object)
                 enabled = attachment_form.cleaned_data.get("enabled", False)
                 current_combination = (
                     self.object.combinations_as_tractor.filter(is_active=True)
