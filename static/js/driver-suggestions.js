@@ -35,8 +35,11 @@
         let activeIndex = -1;
         let requestNumber = 0;
 
+        const normalizeValue = (value) => input.dataset.dadataDriver === "fms"
+            ? String(value || "").toUpperCase()
+            : titleCaseName(value);
         const normalizeName = () => {
-            const normalized = titleCaseName(input.value);
+            const normalized = normalizeValue(input.value);
             if (normalized === input.value) return;
             const selectionStart = input.selectionStart;
             const selectionEnd = input.selectionEnd;
@@ -45,6 +48,8 @@
                 input.setSelectionRange(selectionStart, selectionEnd);
             }
         };
+
+        normalizeName();
 
         const close = () => {
             dropdown.hidden = true;
@@ -64,7 +69,7 @@
             open();
         };
         const choose = (suggestion) => {
-            input.value = titleCaseName(suggestion.value);
+            input.value = normalizeValue(suggestion.value);
             const targets = {
                 surname: input.dataset.dadataSurnameTarget,
                 name: input.dataset.dadataNameTarget,
