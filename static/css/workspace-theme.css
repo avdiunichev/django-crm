@@ -56,8 +56,10 @@ html[data-theme="dark"] body.crm-workspace-theme {
             position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
         }
     }
-    html body.crm-workspace-theme [data-driver-form] .driver-personal-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); }
+    html body.crm-workspace-theme [data-driver-form] .driver-personal-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; border-bottom: 0; padding-bottom: 0; }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid > .field { grid-column: auto; min-width: 0; }
+    html body.crm-workspace-theme [data-driver-form] .driver-active-field { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; white-space: nowrap; color: var(--workspace-text); font-size: 14px; cursor: pointer; }
+    html body.crm-workspace-theme [data-driver-form] .driver-active-field input { margin: 0; }
     [data-driver-form] .orders-breadcrumb { margin-bottom: 24px; }
     [data-driver-form] :is(.field-error, .errorlist, .form-text, .phone-input-warning) { display: none !important; }
     html body.uikit-theme.crm-workspace-theme [data-driver-form] :is(input, select, textarea):is([aria-invalid="true"], .is-phone-invalid) { border: 3px solid #d10000 !important; }
@@ -72,6 +74,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-add]:focus {
         border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;
     }
+    html body.uikit-theme.crm-workspace-theme [data-driver-form] :is([data-driver-phone-add], [data-passport-add], [data-license-add]) { margin-top: 18px !important; }
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:hover:not(:disabled),
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:focus:not(:disabled) {
         border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;

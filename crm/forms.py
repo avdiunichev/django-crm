@@ -3251,7 +3251,7 @@ class DriverForm(StyledModelForm):
             {"inputmode": "numeric", "placeholder": "ИНН физического лица", "maxlength": "12"}
         )
         self.fields["tax_id"].help_text = ""
-        self.fields["is_active"].widget = forms.HiddenInput()
+        self.fields["is_active"].label = "Активный"
         self.fields["license_number"].widget.attrs.update(
             {"placeholder": "00 00 000000"}
         )

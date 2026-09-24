@@ -26,6 +26,7 @@
             {% include "crm/includes/form_field.html" with field=form.full_name %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}
             {% include "crm/includes/form_field.html" with field=form.birth_date %}
+            <label class="driver-active-field" for="{{ form.is_active.id_for_label }}">{{ form.is_active }} <span>Активный</span></label>
         </div>
     </section>
 
