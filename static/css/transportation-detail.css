@@ -104,3 +104,49 @@ html[data-theme="dark"] body.uikit-theme .transportation-card .transportation-fi
     }
     .transportation-card .trip-heading-separator { display: block; height: 4px; font-size: 0; }
 }
+
+/* Карточка рейса: единый профильный интерфейс реестров и справочников. */
+body.transportation-card-page .trip-profile { display: grid; gap: 24px; max-width: none; }
+body.transportation-card-page .trip-profile-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--workspace-muted, #77767e); font-size: 12px; }
+body.transportation-card-page .trip-profile-breadcrumb a { color: inherit; }
+body.transportation-card-page .trip-profile-breadcrumb strong { color: var(--workspace-text, #29292d); font-weight: 600; }
+body.transportation-card-page .trip-profile-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+body.transportation-card-page .trip-profile-heading { display: flex; align-items: center; gap: 14px; min-width: 0; }
+body.transportation-card-page .trip-profile-avatar { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 auto; color: #d10000; border: 1px solid var(--workspace-line, #e9e7e7); border-radius: 12px; background: var(--workspace-soft, #f6f5f5); }
+body.transportation-card-page .trip-profile-title-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+body.transportation-card-page .trip-profile-title-line h1 { margin: 0; color: var(--workspace-text, #29292d); font-size: 28px; font-weight: 650; letter-spacing: -.7px; line-height: 1.25; }
+body.transportation-card-page .trip-profile-heading p { max-width: 780px; margin: 6px 0 0; color: var(--workspace-muted, #77767e); font-size: 13px; overflow-wrap: anywhere; }
+body.transportation-card-page .trip-profile-status { display: inline-flex; align-items: center; min-height: 25px; padding: 2px 9px; border: 1px solid var(--workspace-line, #e9e7e7); border-radius: 7px; color: var(--workspace-muted, #77767e); background: var(--workspace-soft, #f6f5f5); font-size: 12px; }
+body.transportation-card-page .trip-profile-status.is-active { color: #237d57; border-color: #bee8d5; background: #ecfaf3; }
+body.transportation-card-page .trip-profile-status.is-danger { color: #d10000; border-color: #f0b8b8; background: #fff3f3; }
+body.transportation-card-page .trip-profile-status.is-muted { color: #657080; background: #f0f2f4; }
+body.transportation-card-page .trip-profile-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 710px; }
+body.transportation-card-page .trip-profile-actions .uk-button { min-height: 38px; border-radius: 7px !important; font-size: 12px; text-transform: none; }
+body.transportation-card-page .trip-profile-actions .trip-edit-command { color: #fff; background: #d10000; border-color: #d10000; }
+body.transportation-card-page .trip-profile-actions .trip-delete-button { color: #d10000; border-color: #e3b3b3; background: #fff; }
+body.transportation-card-page .trip-profile-card { min-width: 0; box-sizing: border-box; padding: 24px; border: 1px solid var(--workspace-line, #e9e7e7); border-radius: 12px; background: var(--workspace-surface, #fff); }
+body.transportation-card-page .trip-profile-card-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--workspace-line, #e9e7e7); }
+body.transportation-card-page .trip-profile-card-head h2 { margin: 0; color: var(--workspace-text, #29292d); font-size: 18px; font-weight: 600; line-height: 1.3; }
+body.transportation-card-page .trip-profile-card-head p { margin: 5px 0 0; color: var(--workspace-muted, #77767e); font-size: 13px; }
+body.transportation-card-page .trip-profile-summary .transportation-summary-grid { display: grid; grid-template-columns: minmax(220px, 1.8fr) repeat(3, minmax(150px, 1fr)) minmax(130px, .8fr); gap: 0; }
+body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div { min-width: 0; padding: 4px 18px; border-left: 1px solid var(--workspace-line, #e9e7e7); }
+body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:first-child { padding-left: 0; border-left: 0; }
+body.transportation-card-page .trip-profile-summary .uk-text-meta { margin-bottom: 7px; color: var(--workspace-muted, #77767e); font-size: 12px; }
+body.transportation-card-page .trip-profile-summary strong, body.transportation-card-page .trip-profile-summary a { display: block; color: var(--workspace-text, #29292d); font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+body.transportation-card-page .trip-profile-summary .uk-text-success { color: #237d57 !important; }
+body.transportation-card-page .trip-profile-chain { padding-bottom: 22px; }
+body.transportation-card-page .trip-profile-chain .transport-chain-group-title { margin: 18px 0 10px; color: var(--workspace-muted, #77767e); font-size: 12px; font-weight: 600; }
+body.transportation-card-page .trip-profile-chain .transport-chain { gap: 9px; }
+body.transportation-card-page .trip-profile-chain .transport-chain-node { border-radius: 9px !important; background: var(--workspace-soft, #f6f5f5) !important; }
+body.transportation-card-page .trip-profile-tabs { margin: 0; overflow-x: auto; flex-wrap: nowrap; border-bottom-color: var(--workspace-line, #e9e7e7); }
+body.transportation-card-page .trip-profile-tabs > * { flex: 0 0 auto; }
+body.transportation-card-page .trip-profile-tabs > * > a { padding: 0 16px 12px; color: var(--workspace-muted, #77767e); font-size: 13px; text-transform: none; white-space: nowrap; }
+body.transportation-card-page .trip-profile-tabs > .uk-active > a { color: var(--workspace-text, #29292d); border-color: #d10000; }
+body.transportation-card-page .trip-profile-tabs a span { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 4px; padding: 0 4px; border-radius: 5px; background: var(--workspace-soft, #f6f5f5); font-size: 11px; }
+body.transportation-card-page .trip-profile .transportation-overview-grid > .panel { border-radius: 12px !important; }
+body.transportation-card-page .trip-profile .transportation-role-card .eyebrow, body.transportation-card-page .trip-profile .transportation-finance-card .eyebrow { color: #d10000; font-weight: 600; }
+html[data-theme="dark"] body.transportation-card-page .trip-profile-breadcrumb strong, html[data-theme="dark"] body.transportation-card-page .trip-profile-title-line h1, html[data-theme="dark"] body.transportation-card-page .trip-profile-card-head h2, html[data-theme="dark"] body.transportation-card-page .trip-profile-summary strong, html[data-theme="dark"] body.transportation-card-page .trip-profile-summary a { color: #edf2f8; }
+html[data-theme="dark"] body.transportation-card-page .trip-profile-card { border-color: #304054; background: #151f2e; }
+
+@media (max-width: 1100px) { body.transportation-card-page .trip-profile-summary .transportation-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:nth-child(4) { border-left: 0; margin-top: 16px; padding-left: 0; } }
+@media (max-width: 720px) { body.transportation-card-page .trip-profile { gap: 18px; } body.transportation-card-page .trip-profile-header { gap: 16px; } body.transportation-card-page .trip-profile-title-line h1 { font-size: 23px; } body.transportation-card-page .trip-profile-actions { width: 100%; justify-content: stretch; } body.transportation-card-page .trip-profile-actions .uk-button, body.transportation-card-page .trip-profile-actions .inline-form { flex: 1 1 calc(50% - 5px); } body.transportation-card-page .trip-profile-actions .inline-form .uk-button { width: 100%; } body.transportation-card-page .trip-profile-card { padding: 18px 16px; } body.transportation-card-page .trip-profile-summary .transportation-summary-grid { grid-template-columns: 1fr; } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div, body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:nth-child(4) { margin-top: 0; padding: 12px 0; border-left: 0; border-top: 1px solid var(--workspace-line, #e9e7e7); } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:first-child { padding-top: 0; border-top: 0; } body.transportation-card-page .trip-profile-tabs > * > a { padding: 0 12px 10px; } }
