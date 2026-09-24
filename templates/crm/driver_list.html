@@ -9,12 +9,13 @@
     <div><div class="orders-title-line"><h1 id="drivers-title">Водители</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Карточки водителей, документы и контактные данные в одном месте.</p></div>
     <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal><span uk-icon="plus"></span> Создать водителя</a></div>
 </header>
-<form class="filters order-register-filters driver-register-filters" method="get">
-    <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон, удостоверение или перевозчик" autocomplete="off">
+<form class="filters order-register-filters driver-register-filters" method="get" data-filter-text-submit="enter">
+    <label class="driver-search-field">
+        <span uk-icon="search" aria-hidden="true"></span>
+        <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон или удостоверение" autocomplete="off" aria-label="Поиск водителя">
+    </label>
     <select class="uk-select" name="active"><option value="">Все водители</option><option value="1" {% if current_active == '1' %}selected{% endif %}>Активные</option><option value="0" {% if current_active == '0' %}selected{% endif %}>Неактивные</option></select>
-    <select class="uk-select" name="carrier"><option value="">Все компании</option>{% for carrier in driver_carriers %}<option value="{{ carrier.pk }}" {% if current_carrier == carrier.pk|stringformat:'s' %}selected{% endif %}>{{ carrier.name }}</option>{% endfor %}</select>
-    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_q or current_active or current_carrier %}<a class="clear-link" href="{% url 'driver-list' %}">Сбросить</a>{% endif %}
+    {% if current_q or current_active %}<a class="clear-link" href="{% url 'driver-list' %}">Сбросить</a>{% endif %}
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel driver-register-panel">

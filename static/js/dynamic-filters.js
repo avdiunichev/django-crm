@@ -107,19 +107,21 @@
             link.addEventListener("click", () => clearFilterState(form));
         });
 
-        form.querySelectorAll('input[type="search"], input[type="text"]:not([data-crm-date])').forEach((field) => {
-            field.addEventListener("compositionstart", () => { composing = true; });
-            field.addEventListener("compositionend", () => {
-                composing = false;
-                clearTimeout(timer);
-                timer = setTimeout(() => submitFilter(form, field), textDelay);
+        if (form.dataset.filterTextSubmit !== "enter") {
+            form.querySelectorAll('input[type="search"], input[type="text"]:not([data-crm-date])').forEach((field) => {
+                field.addEventListener("compositionstart", () => { composing = true; });
+                field.addEventListener("compositionend", () => {
+                    composing = false;
+                    clearTimeout(timer);
+                    timer = setTimeout(() => submitFilter(form, field), textDelay);
+                });
+                field.addEventListener("input", () => {
+                    if (composing) return;
+                    clearTimeout(timer);
+                    timer = setTimeout(() => submitFilter(form, field), textDelay);
+                });
             });
-            field.addEventListener("input", () => {
-                if (composing) return;
-                clearTimeout(timer);
-                timer = setTimeout(() => submitFilter(form, field), textDelay);
-            });
-        });
+        }
 
         form.querySelectorAll("select, input[type=checkbox], input[type=radio], input[type=date], [data-crm-date]").forEach((field) => {
             field.addEventListener("change", () => submitFilter(form, field));

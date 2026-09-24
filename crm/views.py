@@ -10087,7 +10087,6 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
         "license_categories", "licenses__number", "licenses__categories",
         "passports__series", "passports__number", "passports__issued_by",
-        "carrier__name", "employments__carrier__name",
     )
     ordering_field = "last_name"
 
@@ -10095,7 +10094,6 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         queryset = (
             super()
             .get_queryset()
-            .select_related("carrier", "carrier__organization")
             .prefetch_related(
                 Prefetch(
                     "passports",
@@ -10115,12 +10113,6 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
             queryset = queryset.filter(is_active=True)
         elif active == "0":
             queryset = queryset.filter(is_active=False)
-        carrier = self.request.GET.get("carrier", "").strip()
-        if carrier.isdigit():
-            queryset = queryset.filter(
-                Q(carrier_id=carrier)
-                | Q(employments__carrier_id=carrier, employments__is_active=True)
-            )
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
@@ -10140,10 +10132,6 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
                     employments__is_active=True
                 ).values("employments__carrier_id").distinct().count(),
                 "current_active": self.request.GET.get("active", ""),
-                "current_carrier": self.request.GET.get("carrier", ""),
-                "driver_carriers": Carrier.objects.filter(is_active=True).order_by(
-                    "name"
-                ),
             }
         )
         return context
