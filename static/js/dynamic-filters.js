@@ -121,6 +121,14 @@
                     timer = setTimeout(() => submitFilter(form, field), textDelay);
                 });
             });
+        } else {
+            form.querySelectorAll('input[type="search"], input[type="text"]:not([data-crm-date])').forEach((field) => {
+                field.addEventListener("keydown", (event) => {
+                    if (event.key !== "Enter" || event.isComposing) return;
+                    event.preventDefault();
+                    submitFilter(form, field);
+                });
+            });
         }
 
         form.querySelectorAll("select, input[type=checkbox], input[type=radio], input[type=date], [data-crm-date]").forEach((field) => {
