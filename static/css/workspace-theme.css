@@ -75,6 +75,9 @@ html[data-theme="dark"] body.crm-workspace-theme {
         border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;
     }
     html body.uikit-theme.crm-workspace-theme [data-driver-form] :is([data-driver-phone-add], [data-passport-add], [data-license-add]) { margin-top: 18px !important; }
+    /* Phone rows have a shorter internal block; compensate so the visual gap
+       before its add action matches passport and licence sections. */
+    html body.uikit-theme.crm-workspace-theme [data-driver-form] .driver-phone-section [data-driver-phone-add] { margin-top: 36px !important; }
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:hover:not(:disabled),
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:focus:not(:disabled) {
         border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;
