@@ -185,6 +185,46 @@ html[data-theme="dark"] body.crm-workspace-theme {
         border-radius: 12px !important; color: var(--workspace-text);
     }
     html body.uikit-theme.crm-workspace-theme .transportation-card :is(.transportation-titlebar h2, .trip-breadcrumbs strong) { color: var(--workspace-text); }
+    /* Trip cards must fit the workspace, not the full browser width. */
+    html body.uikit-theme.crm-workspace-theme .transportation-card { min-width: 0; color: var(--workspace-text); }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-overview-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-overview-grid > .transportation-finance-card {
+        grid-column: auto !important; grid-row: auto !important;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card :is(.transportation-role-card, .transportation-finance-card) {
+        min-width: 0; container-type: inline-size;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card :is(h2, h3, dd, p, a, strong) { overflow-wrap: anywhere; }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-role-card dl {
+        grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr); align-items: start;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card :is(dt, .transportation-role-card p, .driver-copy-card small) { color: var(--workspace-muted) !important; }
+    html body.uikit-theme.crm-workspace-theme .transportation-card :is(dd, h2, h3) { color: var(--workspace-text); }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-titlebar {
+        flex-wrap: wrap; gap: 16px; background: transparent !important;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-commandbar { flex-wrap: wrap; justify-content: flex-start; }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card :is(.trip-finance-hero, .trip-finance-mini-grid article) {
+        background: var(--workspace-soft) !important; border-color: var(--workspace-line) !important;
+        border-radius: 10px; min-width: 0;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card .trip-finance-mini-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)) !important;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card .trip-finance-mini-grid article {
+        grid-column: auto !important; grid-row: auto !important;
+    }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card :is(span, small) { color: var(--workspace-muted) !important; }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card strong { color: var(--workspace-text) !important; white-space: normal; }
+    html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-finance-card .amount-problem { color: var(--workspace-accent) !important; }
+    @container (max-width: 500px) {
+        html body.uikit-theme.crm-workspace-theme .transportation-card .trip-finance-hero { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+        html body.uikit-theme.crm-workspace-theme .transportation-card .trip-finance-hero strong { grid-column: 1; grid-row: auto; text-align: left; font-size: 26px; }
+        html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-role-card dl { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+        html body.uikit-theme.crm-workspace-theme .transportation-card .transportation-role-card dd { text-align: left; margin-bottom: 12px; }
+    }
     /* Keep the accepted orders composition; do not add a second container. */
     html body.uikit-theme.crm-workspace-theme.orders-workspace-page .order-register-filters { background: transparent !important; }
 }
