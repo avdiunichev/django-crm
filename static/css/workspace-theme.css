@@ -26,6 +26,30 @@ html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-focus: #ff767633;
 }
 @media screen {
+    /* Hide only scrollbar chrome; do not disable scrolling or keyboard access. */
+    html:has(body.crm-workspace-theme), body.crm-workspace-theme,
+    body.crm-workspace-theme * { scrollbar-width: none !important; }
+    html:has(body.crm-workspace-theme)::-webkit-scrollbar,
+    body.crm-workspace-theme::-webkit-scrollbar,
+    body.crm-workspace-theme *::-webkit-scrollbar { display: none !important; width: 0; height: 0; }
+    html body.crm-workspace-theme .crm-nav-block {
+        margin: 8px 0; border: 1px solid var(--workspace-line); border-radius: 12px;
+        background: var(--workspace-surface); overflow: visible;
+    }
+    html body.crm-workspace-theme .crm-nav-block-title {
+        display: flex; align-items: center; gap: 10px; padding: 14px 12px;
+        color: var(--workspace-text); font-size: 14px; font-weight: 600; cursor: pointer; list-style: none;
+    }
+    .crm-nav-block-title::-webkit-details-marker { display: none; }
+    .crm-nav-block-title::after {
+        content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin-left: auto; flex: 0 0 auto;
+    }
+    .crm-nav-block[open] > .crm-nav-block-title::after { transform: rotate(225deg); }
+    .crm-nav-block-title:focus-visible { outline: 2px solid var(--workspace-accent); outline-offset: 2px; border-radius: 10px; }
+    html body.crm-workspace-theme .crm-nav-block-links { padding: 0 6px 8px; }
+    html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a { display: block; box-sizing: border-box; width: 100%; white-space: normal; padding: 10px 12px; font-size: 13px; border-radius: 8px; }
+    html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a:is(.is-active, :hover) { background: var(--workspace-soft) !important; }
     html body.login-page.crm-workspace-theme { min-height: 100vh; padding: 24px; box-sizing: border-box; }
     html body.login-page.crm-workspace-theme .login-card { width: 100%; max-width: 420px; padding: 36px; border-radius: 22px !important; }
     html body.login-page.crm-workspace-theme .login-brand h1 { font-size: 24px; font-weight: 650; color: var(--workspace-text); }
