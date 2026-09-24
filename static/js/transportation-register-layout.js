@@ -1,5 +1,5 @@
 (() => {
-    const content = document.querySelector('.transportations-workspace-page .main > .content');
+    const content = document.querySelector('.transportations-workspace-page .main > .content, .driver-directory-page .main > .content');
     if (!content) return;
     const resize = () => {
         // Keep the toolbar outside the scroll area; only the table rows scroll.

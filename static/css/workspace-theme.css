@@ -41,6 +41,20 @@ html[data-theme="dark"] body.crm-workspace-theme {
         html body.transportations-workspace-page .transportation-register-table thead th {
             position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
         }
+        html body.uikit-theme.crm-workspace-theme.driver-directory-page .main > .content {
+            height: var(--register-height, calc(100dvh - 150px)); min-height: 0;
+            display: flex; flex-direction: column;
+        }
+        html body.driver-directory-page .content > :not(.driver-register-panel) { flex-shrink: 0; }
+        html body.driver-directory-page .driver-register-panel {
+            flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-bottom: 0;
+        }
+        html body.driver-directory-page .driver-register-panel .table-wrap {
+            flex: 1 1 auto; min-height: 0; overflow: auto; max-height: none;
+        }
+        html body.driver-directory-page .driver-directory-table thead th {
+            position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
+        }
     }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid > .field { grid-column: auto; min-width: 0; }
