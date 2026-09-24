@@ -163,8 +163,6 @@
         {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
     </section>
 
-</form>
-</div>
 {% if not object %}
 <div id="driver-smart-input-modal" class="uk-modal" uk-modal="bg-close: false; esc-close: false">
     <div class="uk-modal-dialog driver-smart-input-dialog" data-driver-smart-input>
@@ -179,4 +177,6 @@
     </div>
 </div>
 {% endif %}
+</form>
+</div>
 {% endblock %}

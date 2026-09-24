@@ -122,6 +122,7 @@
         window.CRMDriverLicenses?.enhanceWithin(dialog);
         window.CRMDriverCarriers?.enhanceWithin(dialog);
         window.CRMDriverPhones?.enhanceWithin(dialog);
+        window.CRMDriverSmartInput?.enhanceWithin(dialog);
         restoreDraft(form, draft);
         window.UIkit?.update?.(modalElement);
         if (showErrors) {

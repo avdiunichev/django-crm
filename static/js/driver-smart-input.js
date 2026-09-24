@@ -1,8 +1,14 @@
 (() => {
     "use strict";
-    const root = document.querySelector("[data-driver-smart-input]");
-    const form = document.querySelector("[data-driver-form]");
-    if (!root || !form) return;
+    const enhance = (root) => {
+    if (!root || root.dataset.driverSmartReady === "true") return;
+    const modalElement = root.closest(".uk-modal");
+    const form = root.closest("[data-driver-form]") || document.querySelector("[data-driver-form]");
+    if (!modalElement || !form) return;
+    root.dataset.driverSmartReady = "true";
+    // A driver card can itself be opened in a modal. Keep the smart-input
+    // dialog at document level so it is not hidden together with its parent.
+    if (modalElement.parentElement !== document.body) document.body.append(modalElement);
 
     const source = root.querySelector("[data-driver-smart-source]");
     const resultBox = root.querySelector("[data-driver-smart-result]");
@@ -70,4 +76,12 @@
     };
     root.querySelector("[data-driver-smart-recognize]")?.addEventListener("click", recognize);
     applyButton?.addEventListener("click", apply);
+    };
+
+    const enhanceWithin = (scope = document) => {
+        if (scope.matches?.("[data-driver-smart-input]")) enhance(scope);
+        scope.querySelectorAll?.("[data-driver-smart-input]").forEach(enhance);
+    };
+    document.addEventListener("DOMContentLoaded", () => enhanceWithin(document));
+    window.CRMDriverSmartInput = {enhanceWithin};
 })();
