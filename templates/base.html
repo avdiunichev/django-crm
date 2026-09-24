@@ -34,7 +34,7 @@
     <meta name="apple-mobile-web-app-title" content="Моя CRM">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=20260923">
     {% block extra_head %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/workspace-theme.css' %}?v=20260924-driver-search">
+    <link rel="stylesheet" href="{% static 'css/workspace-theme.css' %}?v=20260924-topnav-tools">
 </head>
 <body class="uk-background-muted uikit-theme crm-workspace-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
@@ -110,10 +110,10 @@
                     <button type="button" data-theme-choice="dark" aria-pressed="false"><span uk-icon="moon"></span><span>Тёмная</span></button>
                 </div>
             </div>
-            {% if user.is_staff %}<a class="topnav-logout-button" href="{% url 'admin:index' %}">Административная панель</a>{% endif %}
+            {% if user.is_staff %}<a class="topnav-logout-button topnav-admin-button" href="{% url 'admin:index' %}" title="Администрирование" aria-label="Администрирование"><span uk-icon="settings" aria-hidden="true"></span><span class="topnav-action-label">Администрирование</span></a>{% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button class="topnav-logout-button" type="submit">Выйти</button>
+                <button class="topnav-logout-button topnav-signout-button" type="submit" title="Выйти" aria-label="Выйти"><span uk-icon="sign-out" aria-hidden="true"></span><span class="topnav-action-label">Выйти</span></button>
             </form>
             <button class="mobile-nav-toggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="crm-mobile-navigation" data-mobile-nav-toggle><span uk-icon="menu"></span></button>
         </div>

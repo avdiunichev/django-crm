@@ -163,6 +163,39 @@ html[data-theme="dark"] body.crm-workspace-theme {
         background: var(--workspace-shell) !important; box-shadow: none !important;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav { border-bottom: 0; }
+    /* Верхние сервисные действия собраны в единую компактную панель. */
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools {
+        gap: 8px; padding: 6px 10px; border: 1px solid var(--workspace-line);
+        border-radius: 14px; background: var(--workspace-surface);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .navbar-notification-toggle {
+        display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+        border: 0; border-radius: 9px; color: var(--workspace-muted); background: transparent;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .navbar-notification-toggle:hover,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .navbar-notification-toggle:focus {
+        color: var(--workspace-text); background: var(--workspace-soft); outline: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .theme-switcher { width: auto; }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .theme-switcher-options {
+        min-height: 34px; padding: 3px; border: 0; border-radius: 9px; background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .theme-switcher-options button {
+        display: grid; place-items: center; width: 28px; min-width: 28px; height: 28px;
+        padding: 0; border-radius: 7px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav .theme-switcher-options button span:last-child { display: none; }
+    html body.uikit-theme.crm-workspace-theme .topnav-logout-button {
+        display: grid; place-items: center; width: 34px; min-height: 34px; padding: 0;
+        border: 0; border-radius: 9px; color: var(--workspace-muted); background: transparent;
+    }
+    html body.uikit-theme.crm-workspace-theme .topnav-logout-button:hover,
+    html body.uikit-theme.crm-workspace-theme .topnav-logout-button:focus {
+        color: var(--workspace-text); background: var(--workspace-soft); outline: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .topnav-signout-button:hover,
+    html body.uikit-theme.crm-workspace-theme .topnav-signout-button:focus { color: var(--workspace-danger, #d10000); }
+    html body.uikit-theme.crm-workspace-theme .topnav-action-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
     html body.uikit-theme.crm-workspace-theme:not(.order-modal-page):not(.orders-workspace-page) .app-shell-topnav > .main {
         padding: 24px 28px 32px; box-sizing: border-box;
     }
