@@ -2019,7 +2019,8 @@ class CrmTestCase(TestCase):
     def test_transportation_register_has_counterparty_style_scopes(self):
         self.client.force_login(self.user)
         register = self.client.get(reverse("transportation-list"))
-        self.assertContains(register, "Реестр")
+        self.assertContains(register, 'id="transportations-title"')
+        self.assertContains(register, 'orders-page-header')
         self.assertContains(register, "Создать заказ")
         self.assertNotContains(register, "Создать рейс")
         self.assertContains(register, "1 записей")
