@@ -99,6 +99,10 @@ html[data-theme="dark"] body.crm-workspace-theme {
     .driver-smart-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
     html body.driver-directory-page .driver-directory-table { min-width: 1000px; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 23%; }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row > td { background: #fff2f2 !important; }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row:hover > td { background: #ffe8e8 !important; }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table .driver-document-expired { color: #d10000 !important; font-weight: 700; }
+    html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row > td { background: #3a2529 !important; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 30%; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(3) { width: 20%; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(4) { width: 15%; }
