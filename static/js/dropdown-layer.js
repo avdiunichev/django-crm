@@ -36,7 +36,7 @@
             }
         }
         const gap = 4, margin = 8;
-        const menuWidth = Math.min(Math.max(rect.width, menu.classList.contains("crm-date-dropdown") ? 300 : 0), width - margin * 2);
+        const menuWidth = Math.min(menu.classList.contains("crm-date-dropdown") ? 300 : rect.width, width - margin * 2);
         const below = Math.max(0, top + height - rect.bottom - gap - margin);
         const above = Math.max(0, rect.top - top - gap - margin);
         const desired = menu.classList.contains("crm-date-dropdown") ? 380 : 320;

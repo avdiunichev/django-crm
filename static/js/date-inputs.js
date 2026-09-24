@@ -82,6 +82,17 @@
         dropdown.hidden = true;
         wrapper.appendChild(dropdown);
         let viewDate = parseDate(field.value) || new Date();
+        let inputBase = new Date(viewDate);
+        const previewDate = () => {
+            const digits = field.value.replace(/\D/g, "");
+            if (digits.length < 2) return null;
+            if (digits.length === 8) return parseDate(formatDateDigits(digits));
+            const day = Number(digits.slice(0, 2));
+            const month = digits.length >= 4 ? Number(digits.slice(2, 4)) - 1 : inputBase.getMonth();
+            const year = inputBase.getFullYear();
+            const date = new Date(year, month, day);
+            return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day ? date : null;
+        };
         const close = () => {
             dropdown.hidden = true;
             field.setAttribute("aria-expanded", "false");
@@ -93,7 +104,7 @@
             close();
         };
         const render = () => {
-            const selected = parseDate(field.value);
+            const selected = previewDate();
             const today = new Date();
             const year = viewDate.getFullYear();
             const month = viewDate.getMonth();
@@ -150,7 +161,7 @@
             dropdown.hidden = false;
             field.setAttribute("aria-expanded", "true");
         };
-        field.addEventListener("focus", () => { viewDate = parseDate(field.value) || new Date(); render(); });
+        field.addEventListener("focus", () => { viewDate = parseDate(field.value) || new Date(); inputBase = new Date(viewDate); render(); });
         field.addEventListener("click", () => { viewDate = parseDate(field.value) || viewDate || new Date(); render(); });
         field.addEventListener("keydown", (event) => {
             if (event.key === "Escape") close();
@@ -161,9 +172,8 @@
             }
         });
         field.addEventListener("input", () => setTimeout(() => {
-            const parsed = parseDate(field.value);
-            if (!parsed) return;
-            viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+            const parsed = previewDate();
+            if (parsed) viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
             if (!dropdown.hidden) render();
         }, 0));
         wrapper.addEventListener("focusout", () => setTimeout(() => { if (!wrapper.contains(document.activeElement) && !dropdown.contains(document.activeElement)) close(); }, 0));

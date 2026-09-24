@@ -9986,7 +9986,9 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
 }
 
 .crm-date-dropdown {
-    width: 276px;
+    width: 300px;
+    min-width: 0;
+    box-sizing: border-box;
     max-width: calc(100vw - 32px);
     padding: 8px;
     overflow: visible;
