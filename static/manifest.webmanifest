@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Моя CRM",
-  "short_name": "Моя CRM",
+  "name": "CRM.Экспедитор",
+  "short_name": "CRM.Экспедитор",
   "description": "CRM для работы с заказами, рейсами, документами и финансами.",
   "lang": "ru",
   "start_url": "/",
