@@ -1,18 +1,23 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Водители — Моя CRM{% endblock %}
 {% block body_class %}driver-directory-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1">{% endblock %}
 {% block content %}
+<div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span aria-hidden="true">/</span> Водители</div>
+<header class="orders-page-header">
+    <div><div class="orders-title-line"><h1 id="drivers-title">Водители</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Карточки водителей, документы и контактные данные в одном месте.</p></div>
+    <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal><span uk-icon="plus"></span> Создать водителя</a></div>
+</header>
 <form class="filters order-register-filters driver-register-filters" method="get">
     <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон, удостоверение или перевозчик" autocomplete="off">
     <select class="uk-select" name="active"><option value="">Все водители</option><option value="1" {% if current_active == '1' %}selected{% endif %}>Активные</option><option value="0" {% if current_active == '0' %}selected{% endif %}>Неактивные</option></select>
     <select class="uk-select" name="carrier"><option value="">Все компании</option>{% for carrier in driver_carriers %}<option value="{{ carrier.pk }}" {% if current_carrier == carrier.pk|stringformat:'s' %}selected{% endif %}>{{ carrier.name }}</option>{% endfor %}</select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
     {% if current_q or current_active or current_carrier %}<a class="clear-link" href="{% url 'driver-list' %}">Сбросить</a>{% endif %}
-    <a class="uk-button uk-button-primary order-register-create" href="{% url 'driver-create' %}" data-driver-modal><span uk-icon="plus"></span> Создать водителя</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel driver-register-panel">
-    <div class="onec-register-header"><div><span class="eyebrow">Реестр</span><h2>Водители</h2><p>Карточки водителей, документы и места работы.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} записей</span></div>
     <div class="table-wrap">
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table driver-directory-table">
             <thead><tr><th>ФИО / ИНН / дата рождения</th><th>Основной контрагент</th><th>Действующий паспорт</th><th>Водительское удостоверение</th><th>Телефон</th><th>Состояние</th><th></th></tr></thead>

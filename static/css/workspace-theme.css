@@ -26,6 +26,16 @@ html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-focus: #ff767633;
 }
 @media screen {
+    body.driver-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
+    html body.driver-directory-page #drivers-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
+    html body.driver-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
+    html body.driver-directory-page .driver-register-filters {
+        display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
+        padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
+    }
+    html body.driver-directory-page .driver-register-filters .search { width: 420px !important; max-width: 100%; flex: 0 1 420px !important; }
+    html body.driver-directory-page .driver-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }
+    html body.driver-directory-page .driver-register-filters :is(input, select, button) { min-height: 42px; }
     body.transportations-workspace-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.transportations-workspace-page #transportations-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.transportations-workspace-page .orders-page-actions { flex-wrap: wrap; }
