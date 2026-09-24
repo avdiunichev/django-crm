@@ -10261,6 +10261,7 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
         )
         if not phones and driver.phone:
             phones = [driver.phone]
+        context["phones"] = phones
         vehicle_text = driver_vehicle_copy_text(driver)
         context["driver_copy_text"] = "\n".join(
             part

@@ -2910,7 +2910,8 @@ class CrmTestCase(TestCase):
         detail = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
         self.assertContains(detail, "driver-view-workspace")
         self.assertContains(detail, "01 Основные данные")
-        self.assertContains(detail, "Места работы водителя")
+        self.assertContains(detail, "Контактные данные")
+        self.assertNotContains(detail, "Места работы водителя")
         self.assertContains(detail, "История карточки")
 
     def test_driver_create_offers_local_smart_text_input(self):
