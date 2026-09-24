@@ -1,26 +1,21 @@
 {% extends "base.html" %}
 {% load crm_format %}
 {% block title %}{{ organization }} — Моя CRM{% endblock %}
+{% block body_class %}organization-card-page{% endblock %}
 {% block content %}
-<div class="onec-workspace organization-workspace organization-view-workspace">
-    <section class="form-section uk-card uk-card-default order-command-header organization-command-header organization-view-command">
-        <div class="form-section-title order-command-title">
-            <span class="order-command-icon" uk-icon="users"></span>
-            <div><h2>{{ organization }}</h2><p>Карточка контрагента · ИНН {{ organization.tax_id|default:"не указан" }}{% if organization.kpp %} · КПП {{ organization.kpp }}{% endif %}</p></div>
-        </div>
-        <div class="order-command-actions organization-command-actions">
-            <a class="onec-save-close uk-button uk-button-primary" href="{% url 'organization-update' organization.pk %}"><span uk-icon="pencil"></span> Изменить</a>
-            <a class="onec-command uk-button uk-button-default" href="{% url 'organization-pdf' organization.pk %}" target="_blank" rel="noopener"><span uk-icon="download"></span> Скачать PDF</a>
-            <a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a>
-        </div>
-    </section>
+<div class="organization-workspace organization-view-workspace organization-profile">
+    <div class="organization-profile-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span>/</span> Контрагенты <span>/</span> {{ organization.short_name|default:organization }}</div>
+    <header class="organization-profile-header">
+        <div class="organization-profile-heading"><span class="organization-profile-avatar" uk-icon="icon: users; ratio: 1.05"></span><div><div class="organization-profile-title-line"><h1>{{ organization.short_name|default:organization }}</h1><span class="organization-profile-status{% if organization.is_active %} is-active{% endif %}">{% if organization.is_active %}Активен{% else %}Неактивен{% endif %}</span></div><p>{{ organization.get_kind_display }} · ИНН {{ organization.tax_id|default:"не указан" }}{% if organization.kpp %} · КПП {{ organization.kpp }}{% endif %}</p></div></div>
+        <div class="organization-profile-actions"><a class="uk-button uk-button-primary" href="{% url 'organization-update' organization.pk %}">Изменить</a><a class="uk-button uk-button-default" href="{% url 'organization-pdf' organization.pk %}" target="_blank" rel="noopener">Скачать PDF</a><a class="uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a></div>
+    </header>
 
-    <ul class="onec-tabs uk-tab organization-view-tabs" uk-tab="connect: #organization-detail-tabs; animation: uk-animation-fade">
-        <li><a href="#">01 Основные данные</a></li><li><a href="#">02 Банковские реквизиты</a></li><li><a href="#">03 Финансовые настройки</a></li><li><a href="#">04 Роли</a></li><li><a href="#">05 Контакты</a></li><li><a href="#">06 Изменения в реквизитах</a></li>
+    <ul class="uk-tab organization-profile-tabs organization-view-tabs" uk-tab="connect: #organization-detail-tabs; animation: uk-animation-fade">
+        <li><a href="#">01 Основные данные</a></li><li><a href="#">Банковские реквизиты <span>{{ bank_accounts|length }}</span></a></li><li><a href="#">Финансовые настройки</a></li><li><a href="#">Роли</a></li><li><a href="#">Контакты <span>{{ contacts|length }}</span></a></li><li><a href="#">История</a></li>
     </ul>
     <ul id="organization-detail-tabs" class="uk-switcher organization-view-switcher">
-        <li><section class="form-section uk-card uk-card-default organization-view-section">
-            <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div></div>
+        <li><section class="organization-profile-card organization-view-section">
+            <div class="organization-profile-card-head"><div><h2>Основные данные</h2><p>Вид контрагента, реквизиты и юридический адрес</p></div><a class="uk-button uk-button-default uk-button-small" href="{% url 'organization-update' organization.pk %}">Изменить реквизиты</a></div>
             <div class="organization-view-grid">
                 <div class="organization-view-field"><span>Вид контрагента</span><strong>{{ organization.get_kind_display }}</strong></div>
                 <div class="organization-view-field field-wide"><span>Наименование</span><strong>{{ organization.short_name|default:"—" }}</strong></div>
@@ -65,6 +60,5 @@
             <div class="organization-view-record-list">{% for change in requisite_changes %}<article class="order-route-stop organization-view-record"><div class="order-route-stop-head"><div><span class="route-stop-index">{{ forloop.counter }}</span><strong>Изменение реквизитов</strong></div></div><div class="organization-view-grid organization-view-record-grid"><div class="organization-view-field"><span>Дата изменения</span><strong>{{ change.effective_date|date:"d.m.Y" }}</strong></div><div class="organization-view-field"><span>Реквизит</span><strong>{{ change.get_field_name_display }}</strong></div><div class="organization-view-field field-wide"><span>Что изменилось</span><strong>{{ change.new_value }}</strong></div></div></article>{% empty %}<p class="organization-view-empty">Изменения реквизитов не зафиксированы.</p>{% endfor %}</div>
         </section></li>
     </ul>
-    <section class="form-section uk-card uk-card-default order-command-header order-command-footer organization-command-panel"><div class="form-section-title order-command-title"><span class="order-command-icon" uk-icon="cog"></span><div><h2>Панель управления</h2><p>Действия с карточкой контрагента</p></div></div><div class="order-command-actions organization-command-actions"><a class="onec-save-close uk-button uk-button-primary" href="{% url 'organization-update' organization.pk %}"><span uk-icon="pencil"></span> Изменить</a><a class="onec-command uk-button uk-button-default" href="{% url 'organization-pdf' organization.pk %}" target="_blank" rel="noopener"><span uk-icon="download"></span> Скачать PDF</a><a class="onec-command uk-button uk-button-default" href="{% url 'organization-list' %}">Закрыть</a></div></section>
 </div>
 {% endblock %}
