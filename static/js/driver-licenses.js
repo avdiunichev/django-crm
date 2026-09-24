@@ -51,6 +51,42 @@
             return 0;
         };
 
+        const parseDisplayDate = (value) => {
+            const match = String(value || "").trim().match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+            if (!match) return null;
+            const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+            return date.getFullYear() === Number(match[3])
+                && date.getMonth() === Number(match[2]) - 1
+                && date.getDate() === Number(match[1]) ? date : null;
+        };
+
+        const displayDate = (date) => [
+            String(date.getDate()).padStart(2, "0"),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            date.getFullYear(),
+        ].join(".");
+
+        const tenYearsLater = (issued) => {
+            const result = new Date(issued.getFullYear() + 10, issued.getMonth(), issued.getDate());
+            // 29 February becomes 28 February when the target year is not leap.
+            if (result.getMonth() !== issued.getMonth()) result.setDate(0);
+            return result;
+        };
+
+        const fillExpiryFromIssueDate = (row) => {
+            const issue = row?.querySelector("input[name$='-issue_date']");
+            const expiry = row?.querySelector("input[name$='-expiry_date']");
+            const issued = parseDisplayDate(issue?.value);
+            if (!issued || !expiry || (expiry.value.trim() && row.dataset.expiryManual === "true")) return;
+            const value = displayDate(tenYearsLater(issued));
+            if (expiry.value === value) return;
+            row.dataset.applyingExpiry = "true";
+            row.dataset.expiryAuto = "true";
+            expiry.value = value;
+            expiry.dispatchEvent(new Event("change", {bubbles: true}));
+            delete row.dataset.applyingExpiry;
+        };
+
         const chooseCurrent = (selected, {manual = false} = {}) => {
             if (!selected) return;
             selected.checked = true;
@@ -99,6 +135,12 @@
                 formatLicenseNumber(input);
             }
             if (event.target.matches("input[name$='-issue_date'], input[name$='-expiry_date'], input[name$='-DELETE']")) {
+                const row = event.target.closest("[data-license-form]");
+                if (event.target.matches("input[name$='-issue_date']")) fillExpiryFromIssueDate(row);
+                if (event.target.matches("input[name$='-expiry_date']") && row && row.dataset.applyingExpiry !== "true") {
+                    row.dataset.expiryManual = "true";
+                    delete row.dataset.expiryAuto;
+                }
                 autoChooseByDate();
             }
         });
@@ -110,6 +152,11 @@
             if (!event.target.matches("input[name^='licenses-'][name$='-number'], input[name$='-issue_date'], input[name$='-expiry_date']")) return;
             const row = event.target.closest("[data-license-form]");
             if (!row || row.dataset.currentManual === "true") return;
+            if (event.target.matches("input[name$='-issue_date']")) fillExpiryFromIssueDate(row);
+            if (event.target.matches("input[name$='-expiry_date']") && row.dataset.applyingExpiry !== "true") {
+                row.dataset.expiryManual = "true";
+                delete row.dataset.expiryAuto;
+            }
             if (!event.target.value.trim()) return;
             autoChooseByDate();
         });
@@ -124,11 +171,21 @@
             const added = list.lastElementChild;
             window.CRMDateInputs?.enhanceWithin?.(added);
             formatLicenseNumber(added?.querySelector("[data-driver-license-number]"));
+            fillExpiryFromIssueDate(added);
             autoChooseByDate();
             added?.querySelector("input[name$='-number']")?.focus();
         });
 
         formatAllRows();
+        visibleRows().forEach((row) => {
+            // Existing expiry dates are treated as user-approved values.
+            // Auto-fill is only applied to an empty expiry field.
+            if (row.querySelector("input[name$='-expiry_date']")?.value.trim()) {
+                row.dataset.expiryManual = "true";
+            } else {
+                fillExpiryFromIssueDate(row);
+            }
+        });
         autoChooseByDate();
     };
 
