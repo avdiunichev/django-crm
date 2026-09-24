@@ -10433,7 +10433,7 @@ class DriverRegistersFormSetMixin:
         if form_valid and passport_valid and license_valid and employment_valid and phone_valid:
             current_license = license_formset.current_data()
             form.instance.carrier_id = self.object.carrier_id if self.object else None
-            form.instance.is_active = form.initial.get("is_active", True)
+            form.instance.is_active = form.cleaned_data["is_active"]
             # Directory visibility is independent of carrier relationships.
             form.instance.phone = phone_formset.primary_phone()
             if current_license:
