@@ -437,6 +437,16 @@ class CrmTestCase(TestCase):
             form.fields["executor_amount"].widget.attrs["data-money-input"], ""
         )
 
+    def test_shared_workspace_theme_is_loaded_across_crm(self):
+        self.client.force_login(self.user)
+        for path in ('/orders/', '/transportations/', '/drivers/', '/vehicles/', '/organizations/'):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertContains(response, 'css/workspace-theme.css')
+                self.assertContains(response, 'crm-workspace-theme')
+        self.client.logout()
+        self.assertContains(self.client.get('/login/'), 'css/workspace-theme.css')
+
     def test_order_form_supports_multiple_route_operations_and_registry(self):
         self.client.force_login(self.user)
         register = self.client.get(reverse("order-list"))

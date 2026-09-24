@@ -34,8 +34,9 @@
     <meta name="apple-mobile-web-app-title" content="Моя CRM">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=20260923">
     {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/workspace-theme.css' %}?v=20260924-1">
 </head>
-<body class="uk-background-muted uikit-theme {% block body_class %}{% endblock %}">
+<body class="uk-background-muted uikit-theme crm-workspace-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
     <header class="crm-topnav uk-navbar-container uk-navbar-transparent" uk-navbar="mode: click">
         <div class="uk-navbar-left">
