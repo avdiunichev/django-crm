@@ -65,6 +65,13 @@ html[data-theme="dark"] body.crm-workspace-theme {
         width: 100%; min-height: 40px; align-self: center; margin: 0;
         border-color: #d10000 !important; background: transparent !important; color: #d10000 !important;
     }
+    html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-add] {
+        border-color: #d10000 !important; background: transparent !important; color: #d10000 !important;
+    }
+    html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-add]:hover,
+    html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-add]:focus {
+        border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;
+    }
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:hover:not(:disabled),
     html body.uikit-theme.crm-workspace-theme [data-driver-form] [data-driver-phone-remove]:focus:not(:disabled) {
         border-color: #a80000 !important; background: transparent !important; color: #a80000 !important;
