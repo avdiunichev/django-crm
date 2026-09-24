@@ -9,7 +9,6 @@
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
-        <div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span aria-hidden="true">/</span> Водители</div>
         <div class="order-command-actions">
             {% if not object %}<button class="uk-button uk-button-default" type="button" uk-toggle="target: #driver-smart-input-modal">Заполнить из текста</button>{% endif %}
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
