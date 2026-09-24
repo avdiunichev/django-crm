@@ -10537,14 +10537,12 @@ class VehicleListView(SearchableDirectoryListView):
     context_object_name = "vehicles"
     search_fields = (
         "registration_number", "trailer_registration_number", "vin", "make",
-        "model", "body_type", "carrier__name", "carrier_links__carrier__name",
+        "model", "body_type",
     )
     ordering_field = "registration_number"
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related(
-            "carrier", "carrier__organization"
-        ).prefetch_related(
+        queryset = super().get_queryset().prefetch_related(
             Prefetch(
                 "combinations_as_tractor",
                 queryset=VehicleCombination.objects.filter(is_active=True).select_related(
@@ -10561,12 +10559,6 @@ class VehicleListView(SearchableDirectoryListView):
         kind = self.request.GET.get("kind", "").strip()
         if kind in Vehicle.Kind.values:
             queryset = queryset.filter(kind=kind)
-        carrier = self.request.GET.get("carrier", "").strip()
-        if carrier.isdigit():
-            queryset = queryset.filter(
-                Q(carrier_id=carrier)
-                | Q(carrier_links__carrier_id=carrier, carrier_links__is_active=True)
-            )
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
@@ -10589,11 +10581,7 @@ class VehicleListView(SearchableDirectoryListView):
                 ).count(),
                 "current_active": self.request.GET.get("active", ""),
                 "current_kind": self.request.GET.get("kind", ""),
-                "current_carrier": self.request.GET.get("carrier", ""),
                 "vehicle_kinds": Vehicle.Kind.choices,
-                "vehicle_carriers": Carrier.objects.filter(is_active=True).order_by(
-                    "name"
-                ),
             }
         )
         return context

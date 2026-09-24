@@ -55,6 +55,20 @@ html[data-theme="dark"] body.crm-workspace-theme {
         html body.driver-directory-page .driver-directory-table thead th {
             position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
         }
+        html body.uikit-theme.crm-workspace-theme.vehicle-directory-page .main > .content {
+            height: var(--register-height, calc(100dvh - 150px)); min-height: 0;
+            display: flex; flex-direction: column;
+        }
+        html body.vehicle-directory-page .content > :not(.vehicle-register-panel) { flex-shrink: 0; }
+        html body.vehicle-directory-page .vehicle-register-panel {
+            flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-bottom: 0;
+        }
+        html body.vehicle-directory-page .vehicle-register-panel .table-wrap {
+            flex: 1 1 auto; min-height: 0; overflow: auto; max-height: none;
+        }
+        html body.vehicle-directory-page .vehicle-directory-table thead th {
+            position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
+        }
     }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; border-bottom: 0; padding-bottom: 0; }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid > .field { grid-column: auto; min-width: 0; }
@@ -119,6 +133,24 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.driver-directory-page .driver-register-filters .search { width: 100% !important; max-width: none; padding-left: 43px !important; }
     html body.driver-directory-page .driver-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }
     html body.driver-directory-page .driver-register-filters :is(input, select, button) { min-height: 42px; }
+    body.vehicle-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
+    html body.vehicle-directory-page #vehicles-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
+    html body.vehicle-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
+    html body.vehicle-directory-page .vehicle-register-filters {
+        display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
+        padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
+    }
+    html body.vehicle-directory-page .vehicle-register-filters .vehicle-search-field { position: relative; display: block; width: 420px; max-width: 100%; flex: 0 1 420px; }
+    html body.vehicle-directory-page .vehicle-register-filters .vehicle-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
+    html body.vehicle-directory-page .vehicle-register-filters .search { width: 100% !important; max-width: none; padding-left: 43px !important; }
+    html body.vehicle-directory-page .vehicle-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }
+    html body.vehicle-directory-page .vehicle-register-filters :is(input, select, button) { min-height: 42px; }
+    html body.vehicle-directory-page .vehicle-directory-table { min-width: 1000px; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(1) { width: 16%; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(2) { width: 27%; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(3) { width: 20%; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(4) { width: 25%; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(5) { width: 12%; }
     body.transportations-workspace-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.transportations-workspace-page #transportations-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.transportations-workspace-page .orders-page-actions { flex-wrap: wrap; }
