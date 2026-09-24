@@ -53,7 +53,7 @@
 
 <section class="form-section uk-card uk-card-default transportation-summary uk-margin-bottom">
     <div class="form-section-title"><span>01</span><div><h2>Основные данные</h2><p>Маршрут, стороны и ключевой финансовый результат рейса</p></div></div>
-    <div class="uk-grid-small uk-child-width-1-2@s uk-child-width-1-5@l transportation-summary-grid" uk-grid>
+    <div class="transportation-summary-grid">
         <div><div class="uk-text-meta">Маршрут</div><strong>{{ transportation.route }}</strong></div>
         <div><div class="uk-text-meta">Клиент</div><strong>{% if client_party %}<a href="{{ client_party.organization.get_absolute_url }}">{{ client_party.organization }}</a>{% else %}Не указан{% endif %}</strong></div>
         <div><div class="uk-text-meta">Исполнитель</div><strong>{% if execution_links.0 %}<a href="{{ execution_links.0.contractor_party.organization.get_absolute_url }}">{{ execution_links.0.contractor_party.organization }}</a>{% else %}Не выбран{% endif %}</strong></div>
