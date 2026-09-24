@@ -16,6 +16,7 @@
             </div>
         </div>
         <div class="order-command-actions">
+            {% if not object %}<button class="uk-button uk-button-default" type="button" uk-toggle="target: #driver-smart-input-modal">Заполнить из текста</button>{% endif %}
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
             <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
             <button class="uk-button uk-button-default" type="button" data-driver-copy {% if not object %}disabled title="Сначала сохраните карточку"{% endif %}>Скопировать данные</button>
@@ -164,4 +165,18 @@
 
 </form>
 </div>
+{% if not object %}
+<div id="driver-smart-input-modal" class="uk-modal" uk-modal="bg-close: false; esc-close: false">
+    <div class="uk-modal-dialog driver-smart-input-dialog" data-driver-smart-input>
+        <header><h2>Автозаполнение данных водителя</h2><p>Вставьте данные в свободной форме. Система использует только поля существующей карточки.</p></header>
+        <textarea class="uk-textarea" rows="10" data-driver-smart-source placeholder="ФИО, дата рождения, паспорт, телефон, ИНН или водительское удостоверение"></textarea>
+        <div class="driver-smart-result" data-driver-smart-result hidden></div>
+        <div class="driver-smart-actions">
+            <button class="uk-button uk-button-default" type="button" data-driver-smart-recognize>Распознать данные</button>
+            <button class="uk-button uk-button-primary" type="button" data-driver-smart-apply disabled>Заполнить карточку</button>
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Закрыть</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -2898,7 +2898,7 @@ class CrmTestCase(TestCase):
         self.assertContains(listing, "driver-directory-table")
         self.assertContains(listing, "Карточки водителей")
         self.assertContains(listing, "ФИО / ИНН / дата рождения")
-        self.assertContains(listing, "Основной контрагент")
+        self.assertNotContains(listing, "Основной контрагент")
         self.assertContains(listing, "Действующий паспорт")
         self.assertContains(listing, "Водительское удостоверение")
         self.assertContains(listing, "770100000001")
@@ -2912,6 +2912,14 @@ class CrmTestCase(TestCase):
         self.assertContains(detail, "01 Основные данные")
         self.assertContains(detail, "Места работы водителя")
         self.assertContains(detail, "История карточки")
+
+    def test_driver_create_offers_local_smart_text_input(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("driver-create"))
+        self.assertContains(response, "Заполнить из текста")
+        self.assertContains(response, "Автозаполнение данных водителя")
+        self.assertContains(response, "js/driver-smart-input.js")
+        self.assertContains(response, "использует только поля существующей карточки")
 
     def test_vehicle_directory_and_card_follow_onec_workspace(self):
         self.client.force_login(self.user)

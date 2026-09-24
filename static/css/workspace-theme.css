@@ -26,6 +26,18 @@ html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-focus: #ff767633;
 }
 @media screen {
+    html body.crm-workspace-theme .driver-smart-input-dialog { width: min(720px, calc(100vw - 32px)); padding: 28px; }
+    .driver-smart-input-dialog header { padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--workspace-line); }
+    .driver-smart-input-dialog header h2 { margin: 0; color: var(--workspace-text); font-size: 20px; }
+    .driver-smart-input-dialog header p { margin: 6px 0 0; color: var(--workspace-muted); font-size: 13px; }
+    .driver-smart-input-dialog textarea { min-height: 220px; resize: vertical; }
+    .driver-smart-result { margin-top: 18px; padding: 16px; border: 1px solid var(--workspace-line); border-left: 3px solid var(--workspace-accent); background: var(--workspace-soft); }
+    .driver-smart-result h3 { margin: 0 0 10px; font-size: 16px; color: var(--workspace-text); }
+    .driver-smart-result dl { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(0, 1.8fr); gap: 7px 16px; margin: 0; }
+    .driver-smart-result dt { color: var(--workspace-muted); }
+    .driver-smart-result dd { margin: 0; color: var(--workspace-text); overflow-wrap: anywhere; }
+    .driver-smart-result .is-warning { margin-top: 12px; color: var(--workspace-accent); }
+    .driver-smart-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
     html body.driver-directory-page .driver-directory-table { min-width: 1000px; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 23%; }
     html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 30%; }
