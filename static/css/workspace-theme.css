@@ -26,6 +26,12 @@ html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-focus: #ff767633;
 }
 @media screen {
+    html body.driver-directory-page .driver-directory-table { min-width: 1000px; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 23%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 30%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(3) { width: 20%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(4) { width: 15%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(5) { width: 12%; }
     body.driver-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.driver-directory-page #drivers-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.driver-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
