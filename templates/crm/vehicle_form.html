@@ -9,13 +9,6 @@
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel vehicle-command-panel">
-        <div class="driver-modal-titlebar">
-            <span class="driver-command-icon vehicle-command-icon" uk-icon="settings"></span>
-            <div>
-                <h1>{% if object %}Редактирование транспортного средства{% else %}Добавление транспортного средства{% endif %}</h1>
-                <p>Заполните основные характеристики транспортного средства.</p>
-            </div>
-        </div>
         <div class="order-command-actions">
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
             <button class="uk-button uk-button-default" type="submit" name="action" value="save">Записать</button>
@@ -26,14 +19,16 @@
 
     <section class="form-section vehicle-main-section">
         <div class="form-section-title"><div><h2>Основные данные</h2><p>Регистрационные данные и характеристики транспорта.</p></div></div>
-        <div class="form-grid vehicle-main-grid">
-            {% include "crm/includes/form_field.html" with field=form.kind %}
-            {% include "crm/includes/form_field.html" with field=form.make %}
-            {% include "crm/includes/form_field.html" with field=form.registration_number %}
-            {% include "crm/includes/form_field.html" with field=form.body_type %}
-            {% include "crm/includes/form_field.html" with field=form.capacity_kg %}
-            {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
-            {% include "crm/includes/form_field.html" with field=form.pallet_capacity %}
+        <div class="vehicle-data-card">
+            <div class="form-grid vehicle-main-grid">
+                {% include "crm/includes/form_field.html" with field=form.kind %}
+                {% include "crm/includes/form_field.html" with field=form.make %}
+                {% include "crm/includes/form_field.html" with field=form.registration_number %}
+                {% include "crm/includes/form_field.html" with field=form.body_type %}
+                {% include "crm/includes/form_field.html" with field=form.capacity_kg %}
+                {% include "crm/includes/form_field.html" with field=form.volume_m3 %}
+                {% include "crm/includes/form_field.html" with field=form.pallet_capacity %}
+            </div>
         </div>
     </section>
 

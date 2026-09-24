@@ -157,6 +157,14 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(3) { width: 20%; }
     html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(4) { width: 25%; }
     html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(5) { width: 12%; }
+    html body.uikit-theme.crm-workspace-theme [data-vehicle-form] .vehicle-command-panel { padding: 14px 0; background: var(--workspace-surface) !important; border-color: var(--workspace-line) !important; }
+    html body.uikit-theme.crm-workspace-theme [data-vehicle-form] .vehicle-data-card,
+    html body.uikit-theme.crm-workspace-theme [data-vehicle-form] .vehicle-attachment-card {
+        padding: 18px 18px 18px 14px; border: 1px solid var(--workspace-line); border-left: 4px solid var(--workspace-accent);
+        border-radius: 12px; background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-vehicle-dialog { width: min(1180px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 0 28px 28px; }
+    html body.uikit-theme.crm-workspace-theme .crm-vehicle-dialog .vehicle-form-workspace { padding: 0; }
     @media (max-width: 720px) {
         html body:is(.driver-directory-page, .vehicle-directory-page) .orders-breadcrumb { margin-bottom: 20px; }
         html body:is(.driver-directory-page, .vehicle-directory-page) .orders-page-header { gap: 18px; margin-bottom: 20px; }
