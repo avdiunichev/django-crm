@@ -9,12 +9,7 @@
     {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="form-section uk-card uk-card-default order-command-header driver-command-panel">
-        <div class="driver-modal-titlebar">
-            <span class="driver-command-icon" uk-icon="user"></span>
-            <div>
-                <h1>{% if object %}Редактирование карточки водителя{% else %}Добавление нового водителя{% endif %}</h1>
-            </div>
-        </div>
+        <div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span aria-hidden="true">/</span> Водители <span aria-hidden="true">/</span> {% if object %}Редактирование{% else %}Новый{% endif %}</div>
         <div class="order-command-actions">
             {% if not object %}<button class="uk-button uk-button-default" type="button" uk-toggle="target: #driver-smart-input-modal">Заполнить из текста</button>{% endif %}
             <button class="uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
@@ -28,9 +23,9 @@
     <section class="form-section">
         <div class="form-section-title"><div><h2>Личные данные</h2><p>DaData подскажет ФИО во время ввода.</p></div></div>
         <div class="form-grid driver-personal-grid">
-            {% include "crm/includes/form_field.html" with field=form.full_name wide=True %}
-            {% include "crm/includes/form_field.html" with field=form.birth_date %}
+            {% include "crm/includes/form_field.html" with field=form.full_name %}
             {% include "crm/includes/form_field.html" with field=form.tax_id %}
+            {% include "crm/includes/form_field.html" with field=form.birth_date %}
         </div>
     </section>
 
@@ -45,7 +40,7 @@
                     <div class="driver-phone-card-row">
                         <input class="uk-radio driver-phone-radio" type="radio" name="driver-phone-primary" value="{{ forloop.counter0 }}" data-driver-phone-primary aria-label="Основной номер" {% if phone_form.is_primary.value %}checked{% endif %}>
                         <div class="field driver-phone-field">{{ phone_form.phone }}{{ phone_form.phone.errors }}</div>
-                        <a class="driver-phone-remove" href="#" data-driver-phone-remove>Удалить номер</a>
+                        <button class="uk-button uk-button-default uk-button-small" type="button" data-driver-phone-remove>Удалить номер</button>
                     </div>
                 </article>
             {% endfor %}
@@ -56,7 +51,7 @@
                 <div class="driver-phone-card-row">
                     <input class="uk-radio driver-phone-radio" type="radio" name="driver-phone-primary" value="__prefix__" data-driver-phone-primary aria-label="Основной номер">
                     <div class="field driver-phone-field">{{ phone_formset.empty_form.phone }}{{ phone_formset.empty_form.phone.errors }}</div>
-                    <a class="driver-phone-remove" href="#" data-driver-phone-remove>Удалить номер</a>
+                    <button class="uk-button uk-button-default uk-button-small" type="button" data-driver-phone-remove>Удалить номер</button>
                 </div>
             </article>
         </template>
@@ -159,9 +154,7 @@
         <button class="uk-button uk-button-default uk-button-small" type="button" data-license-add>Добавить водительское удостоверение</button>
     </section>
 
-    <section class="form-section"><div class="form-section-title"><h2>Комментарий</h2></div>
-        {% include "crm/includes/form_field.html" with field=form.notes wide=True %}
-    </section>
+    {{ form.notes.as_hidden }}
 
 {% if not object %}
 <div id="driver-smart-input-modal" class="uk-modal" uk-modal="bg-close: false; esc-close: false; stack: true">

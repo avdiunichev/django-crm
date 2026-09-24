@@ -18,6 +18,7 @@
                 if (!remove) return;
                 remove.classList.toggle("is-disabled", disabled);
                 remove.setAttribute("aria-disabled", disabled ? "true" : "false");
+                remove.disabled = disabled;
             });
         };
         const choosePrimary = (selected) => {

@@ -122,12 +122,13 @@
         window.CRMDriverLicenses?.enhanceWithin(dialog);
         window.CRMDriverCarriers?.enhanceWithin(dialog);
         window.CRMDriverPhones?.enhanceWithin(dialog);
+        window.CRMDriverValidation?.enhanceWithin(dialog);
         window.CRMDriverSmartInput?.enhanceWithin(dialog);
         restoreDraft(form, draft);
         window.UIkit?.update?.(modalElement);
         if (showErrors) {
             notify(
-                errors.length ? errors.join(" ") : "Проверьте заполнение формы.",
+                "Заполните обязательное поле",
                 "danger"
             );
         }
