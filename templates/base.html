@@ -163,7 +163,7 @@
         </div>
     </aside>
     <aside class="crm-desktop-sidebar" aria-label="Основное меню">
-        <a class="brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" width="28" height="28" alt=""><strong>НОВЫЙ ПРОЕКТ</strong></a>
+        <a class="brand" href="{% url 'dashboard' %}"><img src="{% static 'img/newproject-logo.png' %}" width="28" height="28" alt="Логотип CRM.Экспедитор"><strong>CRM.Экспедитор</strong></a>
             <nav class="mobile-nav-list" aria-label="Основная навигация">
                 <span class="mobile-nav-group"><span uk-icon="git-fork"></span> Операции</span>
                 <a class="mobile-nav-subitem {% if 'order' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'order-list' %}">Заказы</a>
