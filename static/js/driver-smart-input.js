@@ -54,7 +54,10 @@
                 data.passportSeries = passport[1];
                 data.passportNumber = passport[2];
                 const afterPassport = flat.slice(passport.index + passport[0].length);
-                const boundary = afterPassport.search(/(?:вод\.?\s*удостоверен\w*|в\s*\/\s*у\b|ву\b|права\b|тел(?:ефон)?\.?|инн\b)/i);
+                // `\b` cannot be used after Cyrillic characters in JavaScript:
+                // they are not treated as word characters. Document markers are
+                // therefore matched directly.
+                const boundary = afterPassport.search(/(?:код\s+подразделения|прописка|регистрац\w*|вод\.?\s*удостоверен\w*|в\s*\/\s*у|ву|права|тел(?:ефон)?\.?|инн)/i);
                 const tail = boundary >= 0 ? afterPassport.slice(0, boundary) : afterPassport;
                 const issue = tail.match(new RegExp(`(?:дата\\s+выдачи|выдан(?:а|о)?|[,;]?\\s+от)\\s*${date}`, "i")) || tail.match(new RegExp(date));
                 const issueDate = issue?.[1];
@@ -71,7 +74,7 @@
             }
             const taxId = flat.match(/(?:инн)\D{0,8}(\d{12})/i);
             if (taxId) data.taxId = taxId[1];
-            const license = flat.match(/(?:вод(?:ительск)?\.?\s*удостоверен\w*|вод\.\s*удостоверен\w*|в\s*\/\s*у\b|ву\b|права)\D{0,24}\b(\d{2})\D{0,3}(\d{2})\D{0,3}(\d{6})\b/i);
+            const license = flat.match(/(?:вод(?:ительск)?\.?\s*удостоверен\w*|вод\.\s*удостоверен\w*|в\s*\/\s*у|ву|права)\D{0,24}\b(\d{2})\D{0,3}(\d{2})\D{0,3}(\d{6})\b/i);
             if (license) {
                 data.licenseNumber = `${license[1]} ${license[2]} ${license[3]}`;
                 const licenseTail = flat.slice(license.index + license[0].length);
