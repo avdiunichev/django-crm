@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{% if object %}Редактирование договора{% else %}Добавление договора{% endif %} — Моя CRM{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/contract-form.css' %}?v=20260925-1">{% endblock %}
 {% block content %}
+<nav class="contract-form-breadcrumb" aria-label="Навигация">Документы <span>/</span><a href="{% url 'contract-list' %}">Договоры</a><span>/</span>{% if object %}Редактирование{% else %}Новый договор{% endif %}</nav>
 <form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked contract-form" id="contract-form" data-contract-form>{% csrf_token %}
     <div class="form-command-bar"><div class="form-command-buttons">
         <button class="btn btn-primary uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>
@@ -13,10 +16,15 @@
     <section class="form-section uk-card uk-card-default">
         <div class="section-title"><div><h2>Стороны и роль договора</h2><p>Наша компания и контрагент, с которым заключён договор.</p></div></div>
         <div class="form-grid">
-            {% include "crm/includes/form_field.html" with field=form.kind wide=True %}
-            {% include "crm/includes/form_field.html" with field=form.expeditor wide=True %}
-            <div data-contract-customer>{% include "crm/includes/form_field.html" with field=form.customer wide=True %}</div>
-            <div data-contract-carrier>{% include "crm/includes/form_field.html" with field=form.carrier wide=True %}</div>
+            {% include "crm/includes/form_field.html" with field=form.kind %}
+            {% include "crm/includes/form_field.html" with field=form.expeditor %}
+            <div data-contract-customer>{% include "crm/includes/form_field.html" with field=form.customer %}</div>
+            <div data-contract-carrier>{% include "crm/includes/form_field.html" with field=form.carrier %}</div>
+        </div>
+    </section>
+    <section class="form-section uk-card uk-card-default">
+        <div class="section-title"><div><h2>Реквизиты договора</h2><p>Номер, статус и дата начала действия.</p></div></div>
+        <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.number %}
             {% include "crm/includes/form_field.html" with field=form.status %}
             {% include "crm/includes/form_field.html" with field=form.contract_date %}
