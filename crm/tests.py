@@ -6250,8 +6250,16 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "organization-register-table")
+        self.assertContains(response, "data-organization-export-toggle-all")
+        self.assertContains(response, "Экспорт XLSX")
         self.assertContains(response, "Создать контрагента")
         self.assertNotContains(response, "Все группы")
+
+        export = self.client.get(
+            reverse("organization-export"), {"ids": self.customer.organization.pk}
+        )
+        self.assertEqual(export.status_code, 200)
+        self.assertIn("attachment;", export["Content-Disposition"])
 
     def test_organization_card_pdf_download(self):
         self.client.force_login(self.user)

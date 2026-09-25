@@ -6342,6 +6342,10 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_organizations = Organization.objects.all()
+        export_params = self.request.GET.copy()
+        export_params.pop("page", None)
+        export_params.pop("per_page", None)
+        export_query = export_params.urlencode()
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
@@ -6362,9 +6366,48 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
                     roles__role=OrganizationRole.Role.CARRIER,
                     roles__is_active=True,
                 ).distinct().count(),
+                "organization_export_url": reverse("organization-export") + (
+                    f"?{export_query}" if export_query else ""
+                ),
             }
         )
         return context
+
+
+class OrganizationExportView(OrganizationListView):
+    """Export selected counterparties or the current filtered directory."""
+
+    paginate_by = None
+
+    def get(self, request, *args, **kwargs):
+        selected_ids = [int(value) for value in request.GET.getlist("ids") if value.isdigit()]
+        organizations = self.get_queryset()
+        if selected_ids:
+            organizations = organizations.filter(pk__in=selected_ids)
+        rows = [[
+            "Контрагент", "Вид", "ИНН", "КПП", "ОГРН", "Роли", "Состояние",
+            "Контакт", "Телефон", "E-mail", "Статус ФНС", "Проверка реквизитов",
+        ]]
+        for organization in organizations:
+            roles = getattr(organization, "active_roles", [])
+            rows.append([
+                organization.name,
+                organization.get_kind_display(),
+                organization.tax_id or "",
+                organization.kpp or "",
+                organization.ogrn or "",
+                ", ".join(role.get_role_display() for role in roles),
+                "Активен" if organization.is_active else "Неактивен",
+                organization.contact_name or "",
+                organization.phone or "",
+                organization.email or "",
+                organization.get_fns_status_display(),
+                organization.get_verification_status_display(),
+            ])
+        return _xlsx_response(
+            f"organizations-{timezone.localdate():%Y%m%d}.xlsx",
+            [("Контрагенты", rows)],
+        )
 
 
 class OrganizationDetailView(LoginRequiredMixin, DetailView):

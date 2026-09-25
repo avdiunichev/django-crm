@@ -375,6 +375,11 @@ urlpatterns = [
         name="organization-list",
     ),
     path(
+        "organizations/export/",
+        views.OrganizationExportView.as_view(),
+        name="organization-export",
+    ),
+    path(
         "organizations/new/",
         views.OrganizationCreateView.as_view(),
         name="organization-create",
