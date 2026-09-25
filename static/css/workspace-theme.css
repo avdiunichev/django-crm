@@ -216,6 +216,15 @@ html body.crm-workspace-theme :is(
         font-size: 10px;
         line-height: 18px;
     }
+    /* Keep row selection aligned exactly below the select-all checkbox. */
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table :is(th, td).driver-register-select {
+        width: 56px !important;
+        min-width: 56px;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        text-align: center;
+        vertical-align: middle;
+    }
 }
 html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-shell: #191b20;
@@ -315,7 +324,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
     .driver-smart-result .is-warning { margin-top: 12px; color: var(--workspace-accent); }
     .driver-smart-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
     html body.driver-directory-page .driver-directory-table { min-width: 1000px; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 3%; }
+html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 56px; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row > td { background: #fff2f2 !important; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row:hover > td { background: #ffe8e8 !important; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table .driver-document-expired { color: #d10000 !important; font-weight: 700; }
