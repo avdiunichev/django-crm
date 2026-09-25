@@ -45,6 +45,7 @@ body.driver-card-page .driver-profile-status { display: inline-flex; align-items
 body.driver-card-page .driver-profile-status.is-active { color: #237d57; border-color: #bee8d5; background: #ecfaf3; }
 body.driver-card-page .driver-profile-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 body.driver-card-page .driver-profile-tabs { margin: 0 0 24px; padding-left: 0; border-bottom-color: var(--workspace-line, #e9e7e7); }
+body.driver-card-page .driver-profile-tabs::before { left: 0; margin-left: 0; }
 body.driver-card-page .driver-profile-tabs > :first-child { padding-left: 0; }
 body.driver-card-page .driver-profile-tabs > :first-child > a { padding-left: 0; }
 body.driver-card-page .driver-profile-tabs > * > a { padding: 0 16px 12px; color: var(--workspace-muted, #77767e); font-size: 13px; text-transform: none; }
