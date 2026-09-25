@@ -200,14 +200,15 @@ html body.crm-workspace-theme :is(
         padding-bottom: 11px;
     }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table td {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        line-height: 1.3;
+        height: auto !important;
+        padding: 7px 10px !important;
+        line-height: 1.2;
+        vertical-align: top;
     }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table td small {
-        margin-top: 2px;
+        margin-top: 1px;
         font-size: 11px;
-        line-height: 1.3;
+        line-height: 1.2;
     }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table .uk-label {
         min-height: 20px;
