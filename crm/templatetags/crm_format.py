@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+import re
 
 from django import template
 
@@ -62,6 +63,22 @@ def days(value):
         tail = abs(number) % 10
         suffix = "день" if tail == 1 else "дня" if 2 <= tail <= 4 else "дней"
     return f"{number} {suffix}"
+
+
+@register.filter
+def phone(value):
+    """Display a Russian phone in the CRM mask without changing stored data."""
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    digits = re.sub(r"\D", "", raw)
+    if len(digits) == 10 and digits.startswith("9"):
+        digits = f"7{digits}"
+    elif len(digits) == 11 and digits.startswith("8"):
+        digits = f"7{digits[1:]}"
+    if len(digits) == 11 and digits.startswith("7"):
+        return f"+7 {digits[1:4]} {digits[4:7]}-{digits[7:9]}-{digits[9:11]}"
+    return raw
 
 
 @register.simple_tag(takes_context=True)
