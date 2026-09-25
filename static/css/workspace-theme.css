@@ -476,7 +476,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
     /* Keep the accepted orders composition; do not add a second container. */
     html body.uikit-theme.crm-workspace-theme.orders-workspace-page .order-register-filters { background: transparent !important; }
 }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
     html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar { background: var(--workspace-shell) !important; border-right: 0; padding: 26px 18px; }
     html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .brand { color: var(--workspace-text); }
     html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-group { border-top: 1px solid var(--workspace-line); padding: 16px 10px 4px; margin-top: 14px; color: var(--workspace-muted); font-size: 11px; }
@@ -498,7 +498,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
 }
 
 /* Desktop workspace: compact dispatch-console composition. */
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
     html body.crm-workspace-theme {
         --workspace-shell: #ebeae9;
         --workspace-surface: #ffffff;
