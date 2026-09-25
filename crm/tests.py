@@ -2908,6 +2908,7 @@ class CrmTestCase(TestCase):
         self.assertContains(listing, "4501 123456")
         self.assertContains(listing, "ГУ МВД РОССИИ ПО Г. МОСКВЕ")
         self.assertContains(listing, "77 01 654321")
+        self.assertContains(listing, "Категории: B, C")
         self.assertContains(listing, "с 01.06.2022 по 01.06.2032")
         detail = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
         self.assertContains(detail, "driver-view-workspace")
