@@ -1219,4 +1219,19 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
         box-shadow: 0 1px 4px rgba(41, 41, 45, .10);
         font-weight: 650;
     }
+
+    /* On desktop the tool dock is physically placed in the sidebar. This
+       avoids it being clipped by the collapsed legacy top navigation. */
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar > .crm-topnav-tools {
+        position: static;
+        z-index: auto;
+        width: 100%;
+        max-height: none;
+        margin-top: auto;
+        overflow: visible;
+        flex: 0 0 auto;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar > .mobile-nav-list {
+        padding-bottom: 12px;
+    }
 }
