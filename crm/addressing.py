@@ -139,6 +139,14 @@ class AddressFormatter:
         postal_code = cls.text(cls.data(payload).get("postal_code"))
         if postal_code:
             original = re.sub(r"^" + re.escape(postal_code) + r",\s*", "", original)
+        # DaData's extended address can contain joined abbreviations such as
+        # ``г.Санкт-Петербург`` or ``вн.тер.г.``. They are readable only with
+        # a separating space and this formatter is shared by all requisites.
+        original = re.sub(
+            r"(?<=[0-9A-Za-zА-Яа-яЁё])\.(?=[0-9A-Za-zА-Яа-яЁё])",
+            ". ",
+            original,
+        )
         return original
 
     @classmethod
