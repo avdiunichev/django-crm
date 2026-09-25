@@ -354,6 +354,22 @@ body.organization-card-page .organization-profile-contract-table-wrap {
     border: 1px solid var(--workspace-line, #e9e7e7);
     border-radius: 0;
 }
+body.organization-card-page .organization-profile-contracts-head {
+    align-items: center;
+    min-height: 40px;
+}
+body.organization-card-page .organization-profile-contract-create {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 16px;
+    border-radius: 7px !important;
+    font-size: 12px;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+}
 body.organization-card-page .organization-profile-contract-table {
     min-width: 850px;
     margin: 0;
@@ -402,4 +418,6 @@ html[data-theme="dark"] body.organization-card-page .organization-profile-docume
     body.organization-card-page .organization-profile-document { padding: 16px 14px 16px 12px; }
     body.organization-card-page .organization-profile-document dl { grid-template-columns: 1fr; gap: 14px; }
     body.organization-card-page .organization-profile-document dl > div:first-child { grid-column: auto; }
+    body.organization-card-page .organization-profile-contracts-head { align-items: stretch; }
+    body.organization-card-page .organization-profile-contract-create { width: 100%; }
 }
