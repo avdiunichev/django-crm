@@ -2898,6 +2898,7 @@ class CrmTestCase(TestCase):
             {"q": self.driver.last_name, "active": "1", "carrier": self.carrier.pk},
         )
         self.assertEqual(listing.context["page_obj"].paginator.count, 1)
+        self.assertEqual(listing.context["driver_total"], Driver.objects.count())
         self.assertContains(listing, "driver-directory-table")
         self.assertContains(listing, "Карточки водителей")
         self.assertContains(listing, "ФИО / ИНН / дата рождения")
