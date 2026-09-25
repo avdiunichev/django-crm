@@ -190,6 +190,32 @@ html body.crm-workspace-theme :is(
     padding-bottom: 14px;
     border-bottom: 1px solid var(--workspace-line);
 }
+
+/* More rows in the driver register without turning document data into a wall
+   of text. The mobile card layout keeps its deliberately roomier spacing. */
+@media screen and (min-width: 721px) {
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table { font-size: 13px; }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table th {
+        padding-top: 11px;
+        padding-bottom: 11px;
+    }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table td {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        line-height: 1.3;
+    }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table td small {
+        margin-top: 2px;
+        font-size: 11px;
+        line-height: 1.3;
+    }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table .uk-label {
+        min-height: 20px;
+        padding: 1px 7px;
+        font-size: 10px;
+        line-height: 18px;
+    }
+}
 html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-shell: #191b20;
     --workspace-surface: #23262c;
