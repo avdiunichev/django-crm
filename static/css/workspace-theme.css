@@ -314,15 +314,16 @@ html[data-theme="dark"] body.crm-workspace-theme {
     .driver-smart-result .is-warning { margin-top: 12px; color: var(--workspace-accent); }
     .driver-smart-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
     html body.driver-directory-page .driver-directory-table { min-width: 1000px; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 23%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 3%; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row > td { background: #fff2f2 !important; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row:hover > td { background: #ffe8e8 !important; }
     html body.uikit-theme.crm-workspace-theme .driver-directory-table .driver-document-expired { color: #d10000 !important; font-weight: 700; }
     html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .driver-directory-table tr.driver-license-expired-row > td { background: #3a2529 !important; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 30%; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(3) { width: 20%; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(4) { width: 15%; }
-    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(5) { width: 12%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 20%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(3) { width: 28%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(4) { width: 20%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(5) { width: 15%; }
+    html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(6) { width: 14%; }
     body.driver-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.driver-directory-page #drivers-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body:is(.driver-directory-page, .vehicle-directory-page) .orders-breadcrumb { display: flex; align-items: center; gap: 12px; margin: 0 0 28px; color: var(--workspace-muted); font-size: 12px; }
@@ -751,6 +752,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
         display: block;
         line-height: 1.45;
     }
+    html body.driver-directory-page .driver-directory-table .driver-register-select { display: none !important; }
     /* Keep all driver cards neutral on mobile, including expired licences. */
     html body.driver-directory-page .driver-directory-table tbody tr {
         background: var(--workspace-surface) !important;

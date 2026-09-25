@@ -7,7 +7,6 @@
 <div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span aria-hidden="true">/</span> Водители</div>
 <header class="orders-page-header">
     <div><div class="orders-title-line"><h1 id="drivers-title">Водители</h1><span class="orders-count">{{ driver_total }}</span></div><p>Карточки водителей, документы и контактные данные в одном месте.</p></div>
-    <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal>Создать водителя</a></div>
 </header>
 <form class="filters order-register-filters driver-register-filters" method="get" data-filter-text-submit="enter">
     <label class="driver-search-field">
@@ -20,16 +19,19 @@
     {% else %}
     <button class="uk-button uk-button-default driver-search-action" type="button" disabled>Сбросить</button>
     {% endif %}
+    <a class="uk-button uk-button-default driver-search-action" href="{{ driver_export_url }}" data-driver-export data-export-url="{{ driver_export_url }}"><span uk-icon="download" aria-hidden="true"></span> Экспорт XLSX</a>
+    <a class="uk-button uk-button-primary driver-search-action" href="{% url 'driver-create' %}" data-driver-modal>Создать водителя</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel driver-register-panel">
     <div class="table-wrap">
         <table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table driver-directory-table">
-            <thead><tr><th>ФИО / ИНН / дата рождения</th><th>Действующий паспорт</th><th>Водительское удостоверение</th><th>Телефон</th><th>Состояние</th></tr></thead>
+            <thead><tr><th class="driver-register-select"><input type="checkbox" aria-label="Выбрать всех водителей" data-driver-export-toggle-all></th><th>ФИО / ИНН / дата рождения</th><th>Действующий паспорт</th><th>Водительское удостоверение</th><th>Телефон</th><th>Состояние</th></tr></thead>
             <tbody>
             {% for driver in drivers %}
                 {% with passport=driver.registry_current_passports.0 license=driver.registry_current_licenses.0 %}
                 <tr{% if license.is_expired or driver.license_is_expired %} class="driver-license-expired-row"{% endif %}>
+                    <td data-label="" class="driver-register-select"><input type="checkbox" value="{{ driver.pk }}" aria-label="Выбрать {{ driver.full_name }}" data-driver-export-select></td>
                     <td data-label="ФИО / ИНН / дата рождения"><a class="primary-link" href="{{ driver.get_absolute_url }}">{{ driver.full_name }}</a><small>ИНН: {{ driver.tax_id|default:"не указан" }}</small><small>Дата рождения: {{ driver.birth_date|date:"d.m.Y"|default:"не указана" }}</small></td>
                     <td data-label="Действующий паспорт">{% if passport %}<strong>{{ passport.series }} {{ passport.number }}</strong><small>{{ passport.issued_by|upper|default:"Кем выдан — не указано" }}</small><small>Дата выдачи: {{ passport.issue_date|date:"d.m.Y"|default:"не указана" }}</small>{% elif driver.passport_series or driver.passport_number %}<strong>{{ driver.passport_series }} {{ driver.passport_number }}</strong><small>{{ driver.passport_issued_by|upper|default:"Кем выдан — не указано" }}</small><small>Дата выдачи: {{ driver.passport_issue_date|date:"d.m.Y"|default:"не указана" }}</small>{% else %}<span class="uk-label uk-label-warning">Паспорт не внесён</span>{% endif %}</td>
                     <td data-label="Водительское удостоверение">{% if license %}<strong>{{ license.number }}</strong><small>Категории: {{ license.categories|default:"не указаны" }}</small><small>с {{ license.issue_date|date:"d.m.Y"|default:"—" }} по {{ license.expiry_date|date:"d.m.Y"|default:"—" }}</small>{% if license.is_expired %}<small class="driver-document-expired">Срок действия истёк</small>{% endif %}{% elif driver.license_number %}<strong>{{ driver.license_number }}</strong><small>Категории: {{ driver.license_categories|default:"не указаны" }}</small><small>с {{ driver.license_issue_date|date:"d.m.Y"|default:"—" }} по {{ driver.license_expiry_date|date:"d.m.Y"|default:"—" }}</small>{% if driver.license_is_expired %}<small class="driver-document-expired">Срок действия истёк</small>{% endif %}{% else %}<span class="uk-label uk-label-warning">ВУ не внесено</span>{% endif %}</td>
@@ -37,11 +39,32 @@
                     <td data-label="Состояние">{% if driver.is_active %}<span class="uk-label uk-label-success">Активный</span><small>Доступен для назначения</small>{% else %}<span class="uk-label uk-label-danger">Неактивен</span><small>Скрыт из списков</small>{% endif %}</td>
                 </tr>
                 {% endwith %}
-            {% empty %}<tr><td colspan="5" class="empty-state">Водители не найдены. Создайте первую карточку.</td></tr>{% endfor %}
+            {% empty %}<tr><td colspan="6" class="empty-state">Водители не найдены. Создайте первую карточку.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>
 </section>
 {% include "crm/includes/pagination.html" %}
 <script src="{% static 'js/transportation-register-layout.js' %}?v=20260924-driver-register"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const exportButton = document.querySelector("[data-driver-export]");
+    const selectAll = document.querySelector("[data-driver-export-toggle-all]");
+    const selectors = Array.from(document.querySelectorAll("[data-driver-export-select]"));
+    if (!exportButton || !selectAll) return;
+    const sync = () => {
+        const selected = selectors.filter((item) => item.checked);
+        selectAll.checked = selectors.length > 0 && selected.length === selectors.length;
+        selectAll.indeterminate = selected.length > 0 && selected.length < selectors.length;
+        const url = new URL(exportButton.dataset.exportUrl, window.location.origin);
+        url.searchParams.delete("ids");
+        selected.forEach((item) => url.searchParams.append("ids", item.value));
+        exportButton.href = url.pathname + url.search;
+        exportButton.title = selected.length ? `Экспорт выбранных водителей: ${selected.length}` : "Экспорт всех водителей текущей выборки";
+    };
+    selectAll.addEventListener("change", () => { selectors.forEach((item) => { item.checked = selectAll.checked; }); sync(); });
+    selectors.forEach((item) => item.addEventListener("change", sync));
+    sync();
+});
+</script>
 {% endblock %}

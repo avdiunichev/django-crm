@@ -10284,7 +10284,34 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
                 "search_terms": search_terms(self.request) or [""],
             }
         )
+        export_params = self.request.GET.copy()
+        export_params.pop("page", None)
+        export_params.pop("per_page", None)
+        export_query = export_params.urlencode()
+        context["driver_export_url"] = reverse("driver-export") + (
+            f"?{export_query}" if export_query else ""
+        )
         return context
+
+
+class DriverExportView(DriverListView):
+    """Export either selected drivers or the current filtered directory."""
+
+    paginate_by = None
+
+    def get(self, request, *args, **kwargs):
+        selected_ids = [int(value) for value in request.GET.getlist("ids") if value.isdigit()]
+        drivers = self.get_queryset()
+        if selected_ids:
+            drivers = drivers.filter(pk__in=selected_ids)
+        rows = [["ФИО", "ИНН", "Дата рождения", "Паспорт", "Кем выдан", "Дата выдачи паспорта", "Водительское удостоверение", "Категории", "Действительно до", "Телефон", "Состояние"]]
+        for driver in drivers:
+            passports = getattr(driver, "registry_current_passports", [])
+            licenses = getattr(driver, "registry_current_licenses", [])
+            passport = passports[0] if passports else None
+            license_item = licenses[0] if licenses else None
+            rows.append([driver.full_name, driver.tax_id or "", driver.birth_date, f"{passport.series} {passport.number}" if passport else "", passport.issued_by if passport else "", passport.issue_date if passport else "", license_item.number if license_item else "", license_item.categories if license_item else "", license_item.expiry_date if license_item else "", driver.phone or "", "Активный" if driver.is_active else "Неактивен"])
+        return _xlsx_response(f"drivers-{timezone.localdate():%Y%m%d}.xlsx", [("Водители", rows)])
 
 
 def driver_vehicle_copy_text(driver):

@@ -594,6 +594,7 @@ urlpatterns = [
     path("carriers/<int:pk>/", views.CarrierDetailView.as_view(), name="carrier-detail"),
     path("carriers/<int:pk>/edit/", views.CarrierUpdateView.as_view(), name="carrier-update"),
     path("drivers/", views.DriverListView.as_view(), name="driver-list"),
+    path("drivers/export/", views.DriverExportView.as_view(), name="driver-export"),
     path("drivers/new/", views.DriverCreateView.as_view(), name="driver-create"),
     path("drivers/<int:pk>/", views.DriverDetailView.as_view(), name="driver-detail"),
     path("drivers/<int:pk>/edit/", views.DriverUpdateView.as_view(), name="driver-update"),
