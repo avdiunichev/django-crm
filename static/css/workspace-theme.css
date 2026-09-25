@@ -240,15 +240,34 @@ html body.crm-workspace-theme :is(
     }
 }
 html[data-theme="dark"] body.crm-workspace-theme {
-    --workspace-shell: #191b20;
-    --workspace-surface: #23262c;
-    --workspace-soft: #2c3037;
-    --workspace-line: #3c414a;
-    --workspace-text: #f0f0f2;
-    --workspace-muted: #aaaeb8;
-    --workspace-accent: #ff7676;
-    --workspace-tint: #38282c;
-    --workspace-focus: #ff767633;
+    --workspace-shell: #1a1a1a;
+    --workspace-surface: #202020;
+    --workspace-soft: #292929;
+    --workspace-line: #3b3b3b;
+    --workspace-text: #f5f5f5;
+    --workspace-muted: #b7b3be;
+    --workspace-accent: #7c4dff;
+    --workspace-tint: #2d214b;
+    --workspace-focus: #7c4dff55;
+}
+/* Dark palette: Deep Black, Off-white and Vibrant Violet. */
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar {
+    background: var(--workspace-shell) !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(.uk-button-primary, .btn-primary) {
+    background: var(--workspace-accent) !important;
+    border-color: var(--workspace-accent) !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .uk-button-primary:hover:not(:disabled) {
+    background: #6938e6 !important;
+    border-color: #6938e6 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme input:is([type="checkbox"], [type="radio"]) {
+    accent-color: var(--workspace-accent);
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .driver-registry-status.is-inactive::before {
+    background: var(--workspace-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--workspace-accent) 18%, transparent);
 }
 /* The driver registry is a working table, so its frame stays deliberately
    strict rather than card-like. */
