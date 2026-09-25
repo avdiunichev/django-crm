@@ -27,6 +27,15 @@
             return decoder.value.replace(/\*\*/g, "").replace(/\u00a0/g, " ");
         };
         const findName = (text, until) => {
+            const labelled = text.match(/(?:^|\s)(?:водитель|фио)\s*[:,-]?\s*([А-ЯЁ][А-ЯЁа-яё-]+)\s+([А-ЯЁ][А-ЯЁа-яё-]+)\s+([А-ЯЁ][А-ЯЁа-яё-]+)(?=\s|$)/iu);
+            if (labelled) {
+                const firstNamePart = labelled[1];
+                return {
+                    parts: labelled.slice(1, 4),
+                    index: labelled.index + labelled[0].lastIndexOf(firstNamePart),
+                    length: `${labelled[1]} ${labelled[2]} ${labelled[3]}`.length,
+                };
+            }
             const rawSample = text.slice(0, until || text.length);
             const sample = rawSample.replace(/^\s*(?:водитель|фио)\s*[:,-]?\s*/i, "");
             const offset = rawSample.length - sample.length;
