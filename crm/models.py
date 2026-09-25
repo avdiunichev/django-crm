@@ -253,7 +253,7 @@ class Organization(TimestampedModel):
     contact_name = models.CharField("Контактное лицо", max_length=150, blank=True)
     director_position = models.CharField("Должность руководителя", max_length=150, blank=True)
     director_name = models.CharField("Руководитель", max_length=150, blank=True)
-    acting_basis = models.CharField("Действует на основании", max_length=255, blank=True)
+    acting_basis = models.CharField("Документ, подтверждающий полномочия", max_length=255, blank=True)
     phone = models.CharField("Телефон", max_length=30, blank=True, db_index=True)
     email = models.EmailField("Email", blank=True, db_index=True)
     bank_name = models.CharField("Наименование банка", max_length=255, blank=True)
@@ -528,7 +528,7 @@ class OrganizationRequisiteChange(TimestampedModel):
         LEGAL_ADDRESS = "legal_address", "Юридический адрес"
         DIRECTOR_POSITION = "director_position", "Должность руководителя"
         DIRECTOR_NAME = "director_name", "Ф. И. О. руководителя"
-        ACTING_BASIS = "acting_basis", "Действует на основании"
+        ACTING_BASIS = "acting_basis", "Документ, подтверждающий полномочия"
 
     organization = models.ForeignKey(
         Organization,

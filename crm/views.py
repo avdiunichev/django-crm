@@ -6583,7 +6583,7 @@ class OrganizationPDFView(LoginRequiredMixin, View):
                 ("Дата регистрации", date_value(organization.registration_date)),
                 ("Юридический адрес", organization.formatted_legal_address),
                 ("Руководитель", f"{organization.director_position or '—'} · {organization.director_name or '—'}"),
-                ("Основание", organization.acting_basis),
+                ("Документ, подтверждающий полномочия", organization.acting_basis),
                 ("Роли", " · ".join(active_roles) or "Не назначены"),
             ]),
             Paragraph("Финансовые настройки", section_style),
@@ -9971,6 +9971,12 @@ def contract_party_defaults(party, prefix):
         or party_name.startswith("индивидуальный предприниматель")
         or party_name.startswith("ип ")
     )
+    authority_document = getattr(source, "acting_basis", "").strip()
+    # The contract renderer handles declension in its opening paragraph; keep
+    # the source document title in the form used on the counterparty card.
+    authority_basis = authority_document or (
+        "Лист записи ЕГРИП" if is_entrepreneur else "Устав"
+    )
     values = {
         f"{prefix}_representative": getattr(source, "director_name", "")
         or getattr(party, "director_name", ""),
@@ -9978,11 +9984,7 @@ def contract_party_defaults(party, prefix):
             "" if is_entrepreneur else getattr(source, "director_position", "") or "Генеральный директор"
         ),
         f"{prefix}_authority_type": Contract.AuthorityType.CHARTER,
-        f"{prefix}_authority_basis": (
-            "листа записи ЕГРИП"
-            if is_entrepreneur
-            else getattr(source, "acting_basis", "") or "Устава"
-        ),
+        f"{prefix}_authority_basis": authority_basis,
     }
     if prefix == "counterparty" and organization:
         payment_trigger = {
