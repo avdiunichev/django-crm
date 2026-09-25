@@ -494,6 +494,11 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.uikit-theme.crm-workspace-theme :is(.page-heading, .directory-titlebar, .onec-titlebar) h1 { font-size: 24px; overflow-wrap: anywhere; }
     html body.uikit-theme.crm-workspace-theme .filters { padding: 12px; }
     html body.uikit-theme.crm-workspace-theme .uk-table td { padding-top: 10px; padding-bottom: 10px; }
+    /* On touch screens a tap can leave :hover stuck on a table row. Keep
+       registry rows visually neutral; statuses carry the necessary warning. */
+    html body.uikit-theme.crm-workspace-theme .uk-table tbody tr:is(:hover, :focus-within, .is-selected) > td {
+        background: var(--workspace-surface) !important;
+    }
     html body.uikit-theme.crm-workspace-theme .uk-modal-dialog { border-radius: 12px !important; }
     /* The driver lookup is the primary control on the directory page. Keep it
        on its own full-width row and retain the icon inside the input. */
@@ -543,20 +548,15 @@ html[data-theme="dark"] body.crm-workspace-theme {
         display: block;
         line-height: 1.45;
     }
-    /* Touch browsers keep :hover after a tap. A directory row is a card on
-       mobile, so do not tint it as if it remained hovered. */
-    html body.driver-directory-page .driver-directory-table tbody tr:not(.driver-license-expired-row) {
+    /* Keep all driver cards neutral on mobile, including expired licences. */
+    html body.driver-directory-page .driver-directory-table tbody tr {
         background: var(--workspace-surface) !important;
-    }
-    html body.driver-directory-page .driver-directory-table tbody tr:not(.driver-license-expired-row):hover,
-    html body.driver-directory-page .driver-directory-table tbody tr:not(.driver-license-expired-row):focus-within {
-        background: var(--workspace-soft) !important;
     }
     html body.driver-directory-page .driver-directory-table td {
         background: transparent !important;
     }
     html body.driver-directory-page .driver-directory-table tbody tr.driver-license-expired-row {
-        background: #fff2f2 !important;
+        background: var(--workspace-surface) !important;
     }
     html body.driver-directory-page .driver-directory-table tbody tr.driver-license-expired-row > td {
         background: transparent !important;
