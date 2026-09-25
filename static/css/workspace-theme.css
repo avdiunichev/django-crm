@@ -248,6 +248,27 @@ html[data-theme="dark"] body.crm-workspace-theme {
 html body.uikit-theme.crm-workspace-theme.driver-directory-page :is(.driver-register-panel, .driver-register-panel .table-wrap) {
     border-radius: 0 !important;
 }
+html body.uikit-theme.crm-workspace-theme .driver-registry-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--workspace-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+}
+html body.uikit-theme.crm-workspace-theme .driver-registry-status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #28ae7b;
+    box-shadow: 0 0 0 3px rgba(40, 174, 123, .12);
+}
+html body.uikit-theme.crm-workspace-theme .driver-registry-status.is-inactive::before {
+    background: var(--workspace-accent);
+    box-shadow: 0 0 0 3px rgba(209, 0, 0, .10);
+}
 @media screen {
     @media (min-width: 961px) and (min-height: 650px) {
         html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .main > .content {
