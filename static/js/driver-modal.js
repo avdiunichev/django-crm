@@ -107,6 +107,17 @@
         if (heading && !form.contains(heading)) dialog.append(heading);
         dialog.append(form);
         form.action = sourceUrl;
+        // Remember the page that opened this card. It lets a direct form
+        // return to its caller after saving, while a modal simply closes over
+        // that same page.
+        let returnTo = form.querySelector('input[name="return_to"]');
+        if (!returnTo) {
+            returnTo = document.createElement("input");
+            returnTo.type = "hidden";
+            returnTo.name = "return_to";
+            form.append(returnTo);
+        }
+        returnTo.value = `${window.location.pathname}${window.location.search}${window.location.hash}`;
         form.querySelectorAll(".back-link, .form-actions a[href], .driver-command-panel a[href]").forEach((link) => {
             if (link.matches(".uk-button-danger, .driver-delete-button, a[href*='/delete/']")) return;
             link.addEventListener("click", (event) => {

@@ -27,6 +27,7 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import (
@@ -10523,6 +10524,17 @@ class DriverRegistersFormSetMixin:
     employment_prefix = "employments"
     phone_prefix = "phones"
 
+    def get_return_url(self):
+        """Return a safe page to which the driver form may be closed."""
+        candidate = (self.request.POST.get("return_to") or self.request.GET.get("return_to") or "").strip()
+        if candidate and url_has_allowed_host_and_scheme(
+            candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return reverse("driver-list")
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["register_mode"] = True
@@ -10709,9 +10721,9 @@ class DriverRegistersFormSetMixin:
 
         action = self.request.POST.get("action")
         if action == "save":
-            return reverse("driver-update", kwargs={"pk": self.object.pk})
+            return f"{reverse('driver-update', kwargs={'pk': self.object.pk})}?{urlencode({'return_to': self.get_return_url()})}"
         if action == "save_close":
-            return reverse("driver-list")
+            return self.get_return_url()
         return self.object.get_absolute_url()
 
 
