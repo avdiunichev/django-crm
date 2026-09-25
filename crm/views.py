@@ -10220,6 +10220,14 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
             for field in self.search_fields:
                 condition |= Q(**{f"{field}__iunicodecontains": query})
 
+            # Status is displayed as a human-readable value in the registry,
+            # so it should be searchable alongside names and document numbers.
+            status_token = re.sub(r"[\s_-]+", "", query.casefold().replace("ё", "е"))
+            if "неактив" in status_token or status_token in {"inactive", "disabled"}:
+                condition |= Q(is_active=False)
+            elif "актив" in status_token or status_token == "active":
+                condition |= Q(is_active=True)
+
             # Normalisation is meaningful for digit-based values only. Keeping
             # text searches out of these relation annotations avoids duplicate
             # rows when a name occurs alongside several document records.
