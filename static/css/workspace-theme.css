@@ -295,6 +295,38 @@ html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driv
     font-weight: 400;
     line-height: normal;
 }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+}
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(430px, 100%);
+    padding: 0 14px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 10px;
+    background: var(--workspace-surface);
+}
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field .search {
+    min-width: 0;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters > .uk-select { width: 210px; height: 42px; }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action { height: 42px; white-space: nowrap; }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action:last-child { margin-left: auto; }
+@media (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters { display: grid; grid-template-columns: 1fr 1fr; }
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field,
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters > .uk-select,
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action:last-child { grid-column: 1 / -1; width: 100%; margin-left: 0; }
+}
 html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
