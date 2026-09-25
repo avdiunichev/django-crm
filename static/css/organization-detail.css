@@ -246,6 +246,7 @@ body.organization-card-page .organization-profile { gap: 0; }
 body.organization-card-page .organization-profile-breadcrumb { margin-bottom: 28px; }
 body.organization-card-page .organization-profile-header { margin-bottom: 24px; }
 body.organization-card-page .organization-profile-tabs { margin: 0 0 24px; padding-left: 0; }
+body.organization-card-page .organization-profile-tabs::before { left: 0; margin-left: 0; }
 body.organization-card-page .organization-profile-tabs > :first-child { padding-left: 0; }
 body.organization-card-page .organization-profile-tabs > :first-child > a { padding-left: 0; }
 body.organization-card-page .organization-profile-overview {
