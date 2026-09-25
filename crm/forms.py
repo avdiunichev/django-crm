@@ -3116,6 +3116,22 @@ class ContractForm(StyledModelForm):
             position = getattr(organization, "director_position", "") or "Генеральный директор"
             cleaned["counterparty_representative_position"] = position
             self.instance.counterparty_representative_position = position
+        for prefix, party in (("expeditor", expeditor), ("counterparty", counterparty)):
+            organization = getattr(party, "organization", None)
+            party_name = str(getattr(party, "name", "")).strip().lower()
+            is_entrepreneur = (
+                getattr(organization, "kind", "") == Organization.Kind.ENTREPRENEUR
+                or party_name.startswith("индивидуальный предприниматель")
+                or party_name.startswith("ип ")
+            )
+            if is_entrepreneur:
+                cleaned[f"{prefix}_representative_position"] = ""
+                self.instance.__setattr__(f"{prefix}_representative_position", "")
+                if cleaned.get(f"{prefix}_authority_type") == Contract.AuthorityType.CHARTER:
+                    cleaned[f"{prefix}_authority_basis"] = "листа записи ЕГРИП"
+                    self.instance.__setattr__(
+                        f"{prefix}_authority_basis", "листа записи ЕГРИП"
+                    )
         if cleaned.get("debt_limit") is None:
             cleaned["debt_limit"] = Decimal("0.00")
             self.instance.debt_limit = Decimal("0.00")

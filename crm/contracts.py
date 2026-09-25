@@ -48,7 +48,7 @@ def _capitalize_like(value, source):
     return value.capitalize() if source[:1].isupper() else value
 
 
-def _genitive_word(word):
+def _genitive_word(word, *, surname=False):
     """Small deterministic declension for full Russian names in contract headers."""
     lowered = word.lower()
     if len(word) < 3 or "-" in word:
@@ -57,7 +57,7 @@ def _genitive_word(word):
         if lowered.endswith("ой"):
             return _capitalize_like(word[:-2] + "ого", word)
         return _capitalize_like(word + "а", word)
-    if lowered.endswith(("ова", "ева", "ёва", "ина", "ына")):
+    if surname and lowered.endswith(("ова", "ева", "ёва", "ина", "ына")):
         return _capitalize_like(word[:-1] + "ой", word)
     if lowered.endswith("ский"):
         return _capitalize_like(word[:-2] + "ого", word)
@@ -85,7 +85,10 @@ def genitive_full_name(value):
     pieces = [piece for piece in str(value or "").strip().split() if piece]
     if len(pieces) < 2:
         return " ".join(pieces)
-    return " ".join(_genitive_word(piece) for piece in pieces)
+    return " ".join(
+        _genitive_word(piece, surname=index == 0)
+        for index, piece in enumerate(pieces)
+    )
 
 
 def genitive_position(value):
@@ -100,8 +103,20 @@ def genitive_position(value):
     return known.get(position.lower(), position)
 
 
+def _party_organization(party):
+    return getattr(party, "organization", None)
+
+
+def _is_entrepreneur(party):
+    organization = _party_organization(party)
+    if getattr(organization, "kind", "") == "entrepreneur":
+        return True
+    name = str(getattr(party, "name", "")).strip().lower()
+    return name.startswith("индивидуальный предприниматель") or name.startswith("ип ")
+
+
 def _representative_text(party, name, position):
-    organization = getattr(party, "organization", None)
+    organization = _party_organization(party)
     display_name = value_or_dash(
         name
         or getattr(party, "director_name", "")
@@ -113,9 +128,30 @@ def _representative_text(party, name, position):
         or getattr(organization, "director_position", "")
         or "Генеральный директор"
     )
-    gender_feminine = any(part.lower().endswith(("вна", "ична", "на")) for part in str(display_name).split())
+    gender_feminine = any(
+        part.lower().endswith(("вна", "ична", "на"))
+        for part in str(display_name).split()
+    )
     acting = "действующей" if gender_feminine else "действующего"
+    if _is_entrepreneur(party):
+        return f"{genitive_full_name(display_name)}, {acting}"
     return f"{genitive_position(display_position)} {genitive_full_name(display_name)}, {acting}"
+
+
+def _authority_basis(contract, prefix, party):
+    authority_type = getattr(contract, f"{prefix}_authority_type", "")
+    basis = str(getattr(contract, f"{prefix}_authority_basis", "") or "").strip()
+    if _is_entrepreneur(party) and authority_type == Contract.AuthorityType.CHARTER:
+        return "листа записи ЕГРИП"
+    if authority_type == Contract.AuthorityType.CHARTER or basis.lower() in {"устав", "устава"}:
+        return "Устава"
+    normalized = {
+        "доверенность": "доверенности",
+        "доверенности": "доверенности",
+        "приказ": "приказа",
+        "решение": "решения",
+    }
+    return normalized.get(basis.lower(), basis or "документа, подтверждающего полномочия")
 
 
 def party_address(party):
@@ -205,10 +241,10 @@ def _intro_text(contract, roles):
     return (
         f"{contract.expeditor.name}, именуемое в дальнейшем «{roles['left_role']}», "
         f"в лице {left_representative} на основании "
-        f"{value_or_dash(contract.expeditor_authority_basis)}, с одной стороны, и "
+        f"{_authority_basis(contract, 'expeditor', contract.expeditor)}, с одной стороны, и "
         f"{contract.counterparty_name}, именуемое в дальнейшем "
         f"«{roles['right_role']}», в лице {right_representative} на "
-        f"основании {value_or_dash(contract.counterparty_authority_basis)}, с другой "
+        f"основании {_authority_basis(contract, 'counterparty', contract.counterparty)}, с другой "
         "стороны, совместно именуемые «Стороны», заключили настоящий Договор."
     )
 

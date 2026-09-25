@@ -29,6 +29,7 @@ from .forms import (
 )
 from .accounting import post_bank_statement, post_transportation
 from .bank_import import parse_client_bank_exchange
+from .contracts import _contract_roles, _intro_text, genitive_full_name
 from .epd import epd_validation_errors, prepare_documents
 from .orders import assign_order_to_transportation, sync_order_from_transportation
 from .models import (
@@ -4263,6 +4264,46 @@ class CrmTestCase(TestCase):
             }
         )
         self.assertTrue(another_pair.is_valid(), another_pair.errors)
+
+    def test_contract_intro_uses_legal_wording_for_entrepreneur(self):
+        entrepreneur_organization = Organization.objects.create(
+            kind=Organization.Kind.ENTREPRENEUR,
+            name="Индивидуальный предприниматель Потапков Роман Николаевич",
+            director_name="Потапков Роман Николаевич",
+        )
+        entrepreneur = Customer.objects.create(
+            name=entrepreneur_organization.name,
+            organization=entrepreneur_organization,
+            director_name="Потапков Роман Николаевич",
+        )
+        contract = Contract(
+            kind=Contract.Kind.CLIENT_FORWARDING,
+            number="ТЭ-2026-0001",
+            expeditor=self.company_profile,
+            customer=entrepreneur,
+            contract_date=date(2026, 9, 25),
+            expeditor_representative="Мищенко Дина Владимировна",
+            expeditor_representative_position="Генеральный директор",
+            expeditor_authority_basis="Устав",
+            counterparty_representative="Потапков Роман Николаевич",
+            counterparty_representative_position="Генеральный директор",
+            counterparty_authority_basis="Устав",
+        )
+        self.assertEqual(
+            genitive_full_name("Мищенко Дина Владимировна"),
+            "Мищенко Дины Владимировны",
+        )
+        intro = _intro_text(contract, _contract_roles(contract))
+        self.assertIn(
+            "в лице Генерального директора Мищенко Дины Владимировны, "
+            "действующей на основании Устава",
+            intro,
+        )
+        self.assertIn(
+            "в лице Потапкова Романа Николаевича, действующего на основании "
+            "листа записи ЕГРИП",
+            intro,
+        )
 
     def test_user_can_start_direct_chat(self):
         colleague = get_user_model().objects.create_user(
