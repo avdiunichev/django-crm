@@ -301,6 +301,27 @@ html body.uikit-theme.crm-workspace-theme.organization-directory-page .organizat
     gap: 8px;
     margin-bottom: 22px;
 }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+}
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters .uk-select,
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-action { height: 42px; }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters .uk-select { width: 180px; }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary { display: flex; justify-content: flex-end; gap: 28px; padding: 18px 20px; border-bottom: 1px solid var(--workspace-line); }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary > div { min-width: 155px; text-align: right; }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary span { display: block; color: var(--workspace-muted); font-size: 11px; }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary strong { display: block; margin-top: 4px; font-size: 15px; }
+html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-table small { display: block; margin-top: 4px; color: var(--workspace-muted); font-size: 11px; }
+@media (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters { display: grid; grid-template-columns: 1fr 1fr; }
+    html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters .uk-select,
+    html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-action { width: 100%; }
+    html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary > div { text-align: left; }
+}
 html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field {
     display: flex;
     align-items: center;
