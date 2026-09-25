@@ -267,6 +267,9 @@ html[data-theme="dark"] body.crm-workspace-theme {
         }
         html body.driver-directory-page .driver-register-panel {
             display: block; margin-bottom: 0;
+            /* The legacy panel clips descendants, which prevents a sticky
+               table header from following the document scroll. */
+            overflow: visible !important;
         }
         html body.driver-directory-page .driver-register-panel .table-wrap {
             overflow: visible; max-height: none;
