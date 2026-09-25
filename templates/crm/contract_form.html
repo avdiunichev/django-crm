@@ -3,7 +3,7 @@
 {% block title %}{% if object %}Редактирование договора{% else %}Добавление договора{% endif %} — Моя CRM{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/contract-form.css' %}?v=20260925-1">{% endblock %}
 {% block content %}
-<nav class="contract-form-breadcrumb" aria-label="Навигация">Документы <span>/</span><a href="{% url 'contract-list' %}">Договоры</a><span>/</span>{% if object %}Редактирование{% else %}Новый договор{% endif %}</nav>
+<nav class="contract-form-breadcrumb" aria-label="Навигация"><span uk-icon="git-fork"></span><a href="{% url 'shipment-document-list' %}">Документы</a><span aria-hidden="true">/</span><a href="{% url 'contract-list' %}">Договоры</a><span aria-hidden="true">/</span><span aria-current="page">{% if object %}Редактирование{% else %}Новый договор{% endif %}</span></nav>
 <form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked contract-form" id="contract-form" data-contract-form data-party-defaults-url="{% url 'contract-party-defaults' %}">{% csrf_token %}
     <div class="form-command-bar"><div class="form-command-buttons">
         <button class="btn btn-primary uk-button uk-button-primary" type="submit" name="action" value="save_close">Записать и закрыть</button>

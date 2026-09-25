@@ -4,7 +4,7 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/contract-detail.css' %}?v=20260925-1">{% endblock %}
 {% block content %}
 <div class="contract-profile">
-<nav class="contract-breadcrumb" aria-label="Навигация">Документы <span>/</span><a href="{% url 'contract-list' %}">Договоры</a><span>/</span> № {{ contract.number }}</nav>
+<nav class="contract-breadcrumb" aria-label="Навигация"><span uk-icon="git-fork"></span><a href="{% url 'shipment-document-list' %}">Документы</a><span aria-hidden="true">/</span><a href="{% url 'contract-list' %}">Договоры</a><span aria-hidden="true">/</span><span aria-current="page">№ {{ contract.number }}</span></nav>
 <header class="contract-header">
     <div><div class="contract-title"><h1>Договор № {{ contract.number }}</h1><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></div><p>{{ contract.get_kind_display }} · от {{ contract.contract_date|date:"d.m.Y" }}</p></div>
     <div class="heading-actions"><a class="uk-button uk-button-primary" href="{% url 'contract-update' contract.pk %}">Изменить</a><a class="uk-button uk-button-default" href="{% url 'contract-download' contract.pk %}">Скачать DOCX</a><a class="uk-button uk-button-default" href="{% url 'contract-list' %}">Закрыть</a></div>
