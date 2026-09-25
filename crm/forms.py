@@ -3073,12 +3073,49 @@ class ContractForm(StyledModelForm):
             if cleaned.get("kind") == Contract.Kind.CLIENT_FORWARDING
             else cleaned.get("carrier")
         )
+        number = (cleaned.get("number") or "").strip()
+        if not number and expeditor and counterparty:
+            number = Contract.next_number(
+                kind=cleaned["kind"],
+                expeditor=expeditor,
+                customer=cleaned.get("customer"),
+                carrier=cleaned.get("carrier"),
+                contract_date=cleaned.get("contract_date"),
+            )
+            cleaned["number"] = number
+            self.instance.number = number
+        if number and expeditor and counterparty:
+            same_pair = Contract.objects.filter(expeditor=expeditor, number=number)
+            same_pair = (
+                same_pair.filter(customer=counterparty)
+                if cleaned.get("customer")
+                else same_pair.filter(carrier=counterparty)
+            )
+            if self.instance.pk:
+                same_pair = same_pair.exclude(pk=self.instance.pk)
+            if same_pair.exists():
+                self.add_error(
+                    "number",
+                    "У этой пары сторон уже есть договор с таким номером.",
+                )
         if expeditor and not cleaned.get("expeditor_representative"):
             cleaned["expeditor_representative"] = expeditor.director_name
             self.instance.expeditor_representative = expeditor.director_name
+        if expeditor and not cleaned.get("expeditor_representative_position"):
+            cleaned["expeditor_representative_position"] = "Генеральный директор"
+            self.instance.expeditor_representative_position = "Генеральный директор"
         if counterparty and not cleaned.get("counterparty_representative"):
-            cleaned["counterparty_representative"] = counterparty.director_name
-            self.instance.counterparty_representative = counterparty.director_name
+            organization = getattr(counterparty, "organization", None)
+            representative = counterparty.director_name or getattr(
+                organization, "director_name", ""
+            )
+            cleaned["counterparty_representative"] = representative
+            self.instance.counterparty_representative = representative
+        if counterparty and not cleaned.get("counterparty_representative_position"):
+            organization = getattr(counterparty, "organization", None)
+            position = getattr(organization, "director_position", "") or "Генеральный директор"
+            cleaned["counterparty_representative_position"] = position
+            self.instance.counterparty_representative_position = position
         if cleaned.get("debt_limit") is None:
             cleaned["debt_limit"] = Decimal("0.00")
             self.instance.debt_limit = Decimal("0.00")

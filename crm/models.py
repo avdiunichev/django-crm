@@ -942,7 +942,14 @@ class Contract(TimestampedModel):
         ordering = ("-contract_date", "-created_at")
         constraints = [
             models.UniqueConstraint(
-                fields=("expeditor", "number"), name="unique_contract_number_per_expeditor"
+                fields=("expeditor", "customer", "number"),
+                condition=models.Q(customer__isnull=False),
+                name="unique_contract_number_per_customer_pair",
+            ),
+            models.UniqueConstraint(
+                fields=("expeditor", "carrier", "number"),
+                condition=models.Q(carrier__isnull=False),
+                name="unique_contract_number_per_carrier_pair",
             ),
             models.UniqueConstraint(
                 fields=("expeditor", "customer", "kind"),
@@ -970,6 +977,31 @@ class Contract(TimestampedModel):
     @property
     def start_date(self):
         return self.effective_from or self.contract_date
+
+    @classmethod
+    def next_number(cls, *, kind, expeditor, customer=None, carrier=None, contract_date=None):
+        """Generate the next readable number only within one pair of parties."""
+        prefix = {
+            cls.Kind.CLIENT_FORWARDING: "ТЭ",
+            cls.Kind.SUBCONTRACTOR_FORWARDING: "ДЭ",
+            cls.Kind.CARRIER_TRANSPORT: "ДП",
+        }[kind]
+        year = (contract_date or timezone.localdate()).year
+        queryset = cls.objects.filter(expeditor=expeditor)
+        if customer:
+            queryset = queryset.filter(customer=customer)
+        else:
+            queryset = queryset.filter(carrier=carrier)
+        pattern = re.compile(rf"^{re.escape(prefix)}-{year}-(\d{{4}})$")
+        sequence = max(
+            (
+                int(match.group(1))
+                for number in queryset.values_list("number", flat=True)
+                if (match := pattern.match(number or ""))
+            ),
+            default=0,
+        ) + 1
+        return f"{prefix}-{year}-{sequence:04d}"
 
     def lifecycle_status_on(self, value=None):
         value = value or timezone.localdate()

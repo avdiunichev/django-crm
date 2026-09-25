@@ -17,6 +17,7 @@ from django.utils import timezone
 from docx import Document
 
 from .forms import (
+    ContractForm,
     DriverEmploymentFormSet,
     ShipmentForm,
     ShipmentDocumentForm,
@@ -4217,6 +4218,51 @@ class CrmTestCase(TestCase):
         self.assertContains(response, first_contract.number)
         self.assertNotContains(response, "CARRIER-SECOND")
         self.assertEqual(response.context["contract_count"], 1)
+
+    def test_contract_numbers_are_generated_and_unique_per_pair(self):
+        required_contract_data = {
+            "city": "Санкт-Петербург",
+            "status": Contract.Status.DRAFT,
+            "expeditor_authority_basis": "Устава",
+            "counterparty_authority_basis": "Устава",
+        }
+        first = ContractForm(
+            data={
+                **required_contract_data,
+                "kind": Contract.Kind.CLIENT_FORWARDING,
+                "expeditor": self.company_profile.pk,
+                "customer": self.customer.pk,
+                "contract_date": "2026-09-25",
+            }
+        )
+        self.assertTrue(first.is_valid(), first.errors)
+        self.assertEqual(first.cleaned_data["number"], "ТЭ-2026-0001")
+        first.save()
+
+        duplicate = ContractForm(
+            data={
+                **required_contract_data,
+                "kind": Contract.Kind.CLIENT_FORWARDING,
+                "expeditor": self.company_profile.pk,
+                "customer": self.customer.pk,
+                "number": "ТЭ-2026-0001",
+                "contract_date": "2026-09-25",
+            }
+        )
+        self.assertFalse(duplicate.is_valid())
+        self.assertIn("number", duplicate.errors)
+
+        another_pair = ContractForm(
+            data={
+                **required_contract_data,
+                "kind": Contract.Kind.CARRIER_TRANSPORT,
+                "expeditor": self.company_profile.pk,
+                "carrier": self.carrier.pk,
+                "number": "ТЭ-2026-0001",
+                "contract_date": "2026-09-25",
+            }
+        )
+        self.assertTrue(another_pair.is_valid(), another_pair.errors)
 
     def test_user_can_start_direct_chat(self):
         colleague = get_user_model().objects.create_user(

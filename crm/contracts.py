@@ -44,6 +44,80 @@ def value_or_dash(value):
     return str(value).strip() if value else "—"
 
 
+def _capitalize_like(value, source):
+    return value.capitalize() if source[:1].isupper() else value
+
+
+def _genitive_word(word):
+    """Small deterministic declension for full Russian names in contract headers."""
+    lowered = word.lower()
+    if len(word) < 3 or "-" in word:
+        return word
+    if lowered.endswith(("ов", "ев", "ёв", "ин", "ын", "ой")):
+        if lowered.endswith("ой"):
+            return _capitalize_like(word[:-2] + "ого", word)
+        return _capitalize_like(word + "а", word)
+    if lowered.endswith(("ова", "ева", "ёва", "ина", "ына")):
+        return _capitalize_like(word[:-1] + "ой", word)
+    if lowered.endswith("ский"):
+        return _capitalize_like(word[:-2] + "ого", word)
+    if lowered.endswith("цкий"):
+        return _capitalize_like(word[:-2] + "ого", word)
+    if lowered.endswith(("ич", "вич")):
+        return _capitalize_like(word + "а", word)
+    if lowered.endswith(("на", "вна")):
+        return _capitalize_like(word[:-1] + "ы", word)
+    if lowered.endswith("ий"):
+        return _capitalize_like(word[:-2] + "ия", word)
+    if lowered.endswith("ей"):
+        return _capitalize_like(word[:-2] + "ея", word)
+    if lowered.endswith("а"):
+        return _capitalize_like(word[:-1] + "ы", word)
+    if lowered.endswith("я"):
+        return _capitalize_like(word[:-1] + "и", word)
+    if lowered.endswith(("н", "р", "л", "м", "т", "д", "б", "г", "в", "п", "к", "х", "ч", "ш", "щ", "ж")):
+        return _capitalize_like(word + "а", word)
+    return word
+
+
+def genitive_full_name(value):
+    """Return a presentation-ready genitive full name; keeps incomplete input intact."""
+    pieces = [piece for piece in str(value or "").strip().split() if piece]
+    if len(pieces) < 2:
+        return " ".join(pieces)
+    return " ".join(_genitive_word(piece) for piece in pieces)
+
+
+def genitive_position(value):
+    position = " ".join(str(value or "").split())
+    known = {
+        "генеральный директор": "Генерального директора",
+        "директор": "Директора",
+        "коммерческий директор": "Коммерческого директора",
+        "исполнительный директор": "Исполнительного директора",
+        "индивидуальный предприниматель": "Индивидуального предпринимателя",
+    }
+    return known.get(position.lower(), position)
+
+
+def _representative_text(party, name, position):
+    organization = getattr(party, "organization", None)
+    display_name = value_or_dash(
+        name
+        or getattr(party, "director_name", "")
+        or getattr(organization, "director_name", "")
+    )
+    display_position = (
+        position
+        or getattr(party, "director_position", "")
+        or getattr(organization, "director_position", "")
+        or "Генеральный директор"
+    )
+    gender_feminine = any(part.lower().endswith(("вна", "ична", "на")) for part in str(display_name).split())
+    acting = "действующей" if gender_feminine else "действующего"
+    return f"{genitive_position(display_position)} {genitive_full_name(display_name)}, {acting}"
+
+
 def party_address(party):
     return getattr(party, "legal_address", "") or getattr(party, "address", "")
 
@@ -118,14 +192,22 @@ def _contract_roles(contract):
 
 
 def _intro_text(contract, roles):
-    left_representative = value_or_dash(contract.expeditor_representative)
-    right_representative = value_or_dash(contract.counterparty_representative)
+    left_representative = _representative_text(
+        contract.expeditor,
+        contract.expeditor_representative,
+        contract.expeditor_representative_position,
+    )
+    right_representative = _representative_text(
+        contract.counterparty,
+        contract.counterparty_representative,
+        contract.counterparty_representative_position,
+    )
     return (
         f"{contract.expeditor.name}, именуемое в дальнейшем «{roles['left_role']}», "
-        f"в лице {left_representative}, действующего на основании "
+        f"в лице {left_representative} на основании "
         f"{value_or_dash(contract.expeditor_authority_basis)}, с одной стороны, и "
         f"{contract.counterparty_name}, именуемое в дальнейшем "
-        f"«{roles['right_role']}», в лице {right_representative}, действующего на "
+        f"«{roles['right_role']}», в лице {right_representative} на "
         f"основании {value_or_dash(contract.counterparty_authority_basis)}, с другой "
         "стороны, совместно именуемые «Стороны», заключили настоящий Договор."
     )
@@ -137,23 +219,17 @@ def build_contract_docx(contract):
     roles = _contract_roles(contract)
 
     title = document.paragraphs[0]
-    title_text = re.sub(r"№\s*_+", f"№ {contract.number}", title.text)
+    title_text = re.sub(r"№\s*[^\n]+$", f"№ {contract.number}", title.text)
     _set_paragraph(title, title_text, bold=True)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    if len(document.paragraphs) > 1:
-        _set_paragraph(document.paragraphs[1], roles["subtitle"])
-        document.paragraphs[1].alignment = WD_ALIGN_PARAGRAPH.CENTER
     if len(document.paragraphs) > 2:
-        _set_paragraph(document.paragraphs[2], _intro_text(contract, roles))
+        _set_paragraph(document.paragraphs[2], f"г. {contract.city}\t\t{russian_date(contract.contract_date)}")
+    if len(document.paragraphs) > 4:
+        _set_paragraph(document.paragraphs[4], _intro_text(contract, roles))
 
     if document.tables:
-        header_table = document.tables[0]
-        header_table.cell(0, 0).text = f"г. {contract.city}"
-        header_table.cell(0, 1).text = russian_date(contract.contract_date)
-
-    if len(document.tables) > 1:
-        requisites_table = document.tables[1]
+        requisites_table = document.tables[0]
         requisites_table.cell(0, 0).text = party_requisites(
             roles["left"], contract.expeditor, contract.expeditor_representative
         )
@@ -168,6 +244,12 @@ def build_contract_docx(contract):
                     r"до\s+(?:«?_+»?\s+_+\s+20_+\s*г\.|_+)",
                     f"до {short_date(contract.valid_until)}",
                     paragraph.text,
+                )
+                text = re.sub(
+                    r"Договор действует[^.]*\.",
+                    f"Договор действует до {short_date(contract.valid_until)}.",
+                    text,
+                    count=1,
                 )
                 _set_paragraph(paragraph, text)
 
