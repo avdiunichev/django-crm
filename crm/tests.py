@@ -4329,6 +4329,21 @@ class CrmTestCase(TestCase):
         self.assertEqual(values["payment_term_days"], 21)
         self.assertEqual(values["debt_limit"], "125000.00")
 
+        create_response = self.client.get(
+            reverse("contract-create"),
+            {
+                "kind": Contract.Kind.CLIENT_FORWARDING,
+                "customer": self.customer.pk,
+                "expeditor": self.company_profile.pk,
+            },
+        )
+        self.assertEqual(create_response.status_code, 200)
+        form = create_response.context["form"]
+        self.assertEqual(
+            form.initial["counterparty_representative"], organization.director_name
+        )
+        self.assertEqual(form.initial["payment_term_days"], 21)
+
     def test_user_can_start_direct_chat(self):
         colleague = get_user_model().objects.create_user(
             username="colleague", password="test-password",
