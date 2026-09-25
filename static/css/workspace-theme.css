@@ -1158,4 +1158,65 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
         gap: 5px;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button span:last-child { display: inline; }
+
+    /* The sidebar dock must keep its theme control legible.  It shares markup
+       with the former header controls, so make the desktop-dock treatment
+       explicit after all generic header rules. */
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools {
+        z-index: 1100;
+        max-height: calc(100dvh - 40px);
+        overflow-y: auto;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher {
+        display: grid;
+        width: 100%;
+        gap: 6px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-label {
+        display: block;
+        padding: 0 10px;
+        color: var(--workspace-muted);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        min-height: 38px;
+        padding: 3px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button {
+        width: 100%;
+        min-width: 0;
+        min-height: 32px;
+        height: 32px;
+        padding: 0 6px;
+        border: 0;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        color: var(--workspace-muted);
+        background: transparent;
+        font-size: 11px;
+        cursor: pointer;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button:is(:hover, :focus-visible) {
+        color: var(--workspace-text);
+        background: color-mix(in srgb, var(--workspace-surface) 74%, transparent);
+        outline: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button[aria-pressed="true"] {
+        color: var(--workspace-text);
+        background: var(--workspace-surface);
+        box-shadow: 0 1px 4px rgba(41, 41, 45, .10);
+        font-weight: 650;
+    }
 }
