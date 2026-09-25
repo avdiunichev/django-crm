@@ -286,12 +286,13 @@ html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driv
     background: transparent;
 }
 html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driver-registry-status.is-archived {
-    padding: 6px 14px;
-    border: 1px solid var(--workspace-line);
-    border-radius: 10px;
-    background: #fff;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--workspace-muted);
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 400;
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
     display: grid;
