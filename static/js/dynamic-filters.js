@@ -137,6 +137,12 @@
 
         const multiSearch = form.querySelector("[data-multi-search]");
         if (multiSearch) {
+            form.addEventListener("keydown", (event) => {
+                const field = event.target.closest('[data-multi-search] input[type="search"][name="q"]');
+                if (!field || event.key !== "Enter" || event.isComposing) return;
+                event.preventDefault();
+                submitFilter(form, field);
+            });
             multiSearch.addEventListener("click", (event) => {
                 const add = event.target.closest("[data-add-search-filter]");
                 const remove = event.target.closest("[data-remove-search-filter]");

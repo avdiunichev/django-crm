@@ -310,9 +310,10 @@ html[data-theme="dark"] body.crm-workspace-theme {
         display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
         padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
     }
-    html body.crm-workspace-theme .crm-multi-search { display: grid; gap: 10px; flex: 1 1 420px; max-width: 100%; }
+    html body.crm-workspace-theme .crm-multi-search { display: grid; gap: 10px; flex: 1 0 100%; width: 100%; max-width: none; }
     html body.crm-workspace-theme .crm-multi-search-row { display: flex; align-items: stretch; gap: 8px; width: 100%; }
     html body.crm-workspace-theme .crm-multi-search-row > label { flex: 1 1 auto; min-width: 0; }
+    html body.crm-workspace-theme .crm-multi-search-row > :is(.driver-search-field, .vehicle-search-field, .orders-search) { width: auto !important; max-width: none !important; }
     html body.crm-workspace-theme .crm-multi-search-action { flex: 0 0 auto; min-height: 42px; white-space: nowrap; }
     html body.driver-directory-page .driver-register-filters .driver-search-field { position: relative; display: block; width: 420px; max-width: 100%; flex: 0 1 420px; }
     html body.driver-directory-page .driver-register-filters .driver-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
