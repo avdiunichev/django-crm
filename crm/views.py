@@ -10162,7 +10162,7 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
     template_name = "crm/driver_list.html"
     context_object_name = "drivers"
     search_fields = (
-        "full_name", "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
+        "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
         "license_categories", "licenses__number", "licenses__categories",
         "passports__series", "passports__number", "passports__issued_by",
         "phone_numbers__phone",
