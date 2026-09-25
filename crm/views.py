@@ -10422,10 +10422,41 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
         ).filter(is_active=True)
         context["passports"] = self.object.passports.all()
         context["licenses"] = self.object.licenses.all()
-        context["transportation_assignments"] = (
+        transportation_assignments = list(
             self.object.transportation_assignments.filter(is_active=True)
-            .select_related("transportation", "actual_carrier", "vehicle", "trailer")
-            .prefetch_related("transportation__stops")[:12]
+            .select_related(
+                "transportation",
+                "transportation__legacy_shipment__customer",
+                "actual_carrier",
+                "vehicle",
+                "trailer",
+            )
+            .prefetch_related("transportation__stops", "transportation__parties__organization")[:12]
+        )
+        for assignment in transportation_assignments:
+            transportation = assignment.transportation
+            client_party = next(
+                (
+                    party
+                    for party in transportation.parties.all()
+                    if party.is_active and party.role == TransportationParty.Role.CLIENT
+                ),
+                None,
+            )
+            assignment.trip_client = (
+                client_party.organization
+                if client_party
+                else getattr(transportation.legacy_shipment, "customer", None)
+            )
+        context["transportation_assignments"] = transportation_assignments
+        transportation_ids = self.object.transportation_assignments.filter(
+            is_active=True
+        ).values("transportation_id")
+        context["transportation_total"] = (
+            Transportation.objects.filter(pk__in=transportation_ids).aggregate(
+                total=Sum("customer_amount")
+            )["total"]
+            or Decimal("0")
         )
         context["shipment_count"] = self.object.shipments.count()
         context["transportation_count"] = self.object.transportation_assignments.filter(
