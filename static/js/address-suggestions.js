@@ -58,7 +58,9 @@
         };
 
         const choose = (suggestion) => {
-            input.value = suggestion.value;
+            input.value = input.dataset.dadataUppercase !== undefined
+                ? String(suggestion.value || "").toUpperCase()
+                : suggestion.value;
             input.dataset.dadataSelected = suggestion.value;
             const metaTargetId = input.dataset.dadataMetaTarget;
             const metaTarget = metaTargetId && document.getElementById(metaTargetId);

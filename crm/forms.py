@@ -487,6 +487,7 @@ class OrganizationForm(StyledModelForm):
                 "data-dadata-address": "",
                 "data-dadata-address-url": reverse("dadata-address-suggestions"),
                 "data-dadata-meta-target": "id_legal_address_meta",
+                "data-dadata-uppercase": "",
                 "placeholder": "Начните вводить полный юридический адрес",
             }
         )

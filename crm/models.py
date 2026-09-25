@@ -388,11 +388,12 @@ class Organization(TimestampedModel):
         if postal_code:
             address = re.sub(r"^(?:\d{6}\s*,\s*)+", "", address or "")
             if not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
-                return f"{postal_code}, {address}" if address else postal_code
-        return address
+                address = f"{postal_code}, {address}" if address else postal_code
+        return (address or "").upper()
 
     def save(self, *args, **kwargs):
         self.tax_id = re.sub(r"\D", "", self.tax_id or "")
+        self.legal_address = (self.legal_address or "").upper()
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

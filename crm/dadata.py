@@ -65,7 +65,7 @@ def _normalize_party(suggestion):
         "ogrn": data.get("ogrn") or "",
         "okato": data.get("okato") or "",
         "registration_date": registration_date,
-        "legal_address": AddressFormatter.format(address) if has_legal_address else "",
+        "legal_address": AddressFormatter.format(address).upper() if has_legal_address else "",
         "director_name": management.get("name") or "",
         "director_post": management.get("post") or "",
         "phone": _first_value(data.get("phones")),
@@ -76,7 +76,7 @@ def _normalize_party(suggestion):
         "organization_type": organization_type,
         "address_data": {
             "raw_data": address,
-            "value": AddressFormatter.format(address),
+            "value": AddressFormatter.format(address).upper(),
             "fias_id": address_parts.get("fias_id") or "",
             "postal_code": address_parts.get("postal_code") or "",
             "region_code": str(address_parts.get("region_kladr_id") or "")[:2],
