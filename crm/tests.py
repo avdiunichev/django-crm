@@ -2034,6 +2034,27 @@ class CrmTestCase(TestCase):
         closed = self.client.get(reverse("transportation-list"), {"scope": "closed"})
         self.assertEqual(closed.context["page_obj"].paginator.count, 0)
 
+    def test_transportation_register_filters_by_selected_trip_date(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        Transportation.objects.filter(pk=transportation.pk).update(
+            document_date=date(2026, 9, 10),
+            planned_start_date=date(2026, 9, 12),
+            planned_end_date=date(2026, 9, 15),
+        )
+
+        response = self.client.get(
+            reverse("transportation-list"),
+            {"date_type": "unloading", "date_from": "14.09.2026", "date_to": "16.09.2026"},
+        )
+        self.assertEqual(response.context["page_obj"].paginator.count, 1)
+
+        response = self.client.get(
+            reverse("transportation-list"),
+            {"date_type": "loading", "date_from": "13.09.2026", "date_to": "16.09.2026"},
+        )
+        self.assertEqual(response.context["page_obj"].paginator.count, 0)
+
     def test_transportation_register_displays_owner_company_in_participants(self):
         from django.utils.html import escape
 
