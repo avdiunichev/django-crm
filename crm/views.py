@@ -5081,6 +5081,102 @@ class TaxReportExportView(ReportsView):
         )
 
 
+class QuarterlyTaxReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
+    """Tax totals grouped by the last planned unloading date of each trip."""
+
+    template_name = "crm/quarterly_tax_report.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        currency = self.request.GET.get("currency", "RUB").upper().strip()
+        if currency not in {"RUB", "USD", "EUR"}:
+            currency = "RUB"
+        year_value = self.request.GET.get("year", str(today.year)).strip()
+        selected_year = int(year_value) if year_value.isdigit() else today.year
+
+        transportations = list(
+            Transportation.objects.exclude(status=Transportation.Status.CANCELLED)
+            .exclude(posting_status=Transportation.PostingStatus.VOIDED)
+            .filter(currency=currency)
+            .select_related("owner_company", "customer_vat_rate", "executor_vat_rate")
+            .prefetch_related("stops")
+        )
+        years = {today.year}
+        grouped = defaultdict(
+            lambda: {
+                "trip_count": 0,
+                "sales_vat": Decimal("0.00"),
+                "purchase_vat": Decimal("0.00"),
+                "profit": Decimal("0.00"),
+            }
+        )
+        for transportation in transportations:
+            deliveries = [
+                stop for stop in transportation.stops.all()
+                if stop.kind == TransportationStop.Kind.DELIVERY
+            ]
+            last_delivery = deliveries[-1] if deliveries else None
+            unloading_date = (
+                last_delivery.planned_to.date()
+                if last_delivery and last_delivery.planned_to
+                else last_delivery.planned_from.date()
+                if last_delivery and last_delivery.planned_from
+                else transportation.planned_end_date
+            )
+            if not unloading_date:
+                continue
+            years.add(unloading_date.year)
+            if unloading_date.year != selected_year:
+                continue
+            quarter = ((unloading_date.month - 1) // 3) + 1
+            values = grouped[(quarter, transportation.owner_company)]
+            values["trip_count"] += 1
+            values["sales_vat"] += transportation.customer_vat_amount
+            values["purchase_vat"] += transportation.executor_vat_amount
+            values["profit"] += transportation.profit
+
+        totals = {
+            "trip_count": 0,
+            "sales_vat": Decimal("0.00"),
+            "purchase_vat": Decimal("0.00"),
+            "vat_payable": Decimal("0.00"),
+            "profit_tax": Decimal("0.00"),
+            "total_tax": Decimal("0.00"),
+        }
+        rows = []
+        for (quarter, company), values in sorted(
+            grouped.items(), key=lambda item: (item[0][0], item[0][1].name.casefold())
+        ):
+            vat_payable = max(values["sales_vat"] - values["purchase_vat"], Decimal("0.00"))
+            profit_tax = (
+                max(values["profit"], Decimal("0.00"))
+                * Decimal(company.profit_tax_rate or 0)
+                / Decimal("100")
+            ).quantize(Decimal("0.01"))
+            row = {
+                "quarter": quarter,
+                "company": company,
+                **values,
+                "vat_payable": vat_payable,
+                "profit_tax": profit_tax,
+                "total_tax": vat_payable + profit_tax,
+            }
+            rows.append(row)
+            for key in totals:
+                totals[key] += row[key]
+
+        context.update({
+            "quarterly_tax_rows": rows,
+            "quarterly_tax_totals": totals,
+            "tax_years": sorted(years, reverse=True),
+            "current_tax_year": str(selected_year),
+            "current_currency": currency,
+            "currency_choices": ("RUB", "USD", "EUR"),
+        })
+        return context
+
+
 class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
     template_name = "crm/debt_report.html"
 

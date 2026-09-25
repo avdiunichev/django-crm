@@ -89,6 +89,7 @@ urlpatterns = [
         name="chat-message-attachment",
     ),
     path("reports/", views.ReportsView.as_view(), name="reports"),
+    path("taxes/", views.QuarterlyTaxReportView.as_view(), name="quarterly-tax-report"),
     path(
         "reports/taxes/export/",
         views.TaxReportExportView.as_view(),

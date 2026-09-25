@@ -53,7 +53,7 @@
                     </div>
                 </li>
                 {% if crm_access.can_access_finance %}
-                <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'customer-document' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
+                <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'customer-document' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or request.resolver_match.url_name == 'quarterly-tax-report' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
                     <a href="#"><span uk-icon="credit-card"></span> Бухгалтерия <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
@@ -64,6 +64,7 @@
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Приходы / расходы</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
                             <li><a href="{% url 'profitability-report' %}"><span uk-icon="triangle-up"></span> Прибыльность</a></li>
+                            <li><a href="{% url 'quarterly-tax-report' %}"><span uk-icon="calculator"></span> Налоги</a></li>
                             <li><a href="{% url 'reconciliation-act-list' %}"><span uk-icon="future"></span> Акты сверки</a></li>
                             <li><a href="{% url 'reports' %}"><span uk-icon="table"></span> Отчёты</a></li>
                         </ul>
@@ -136,6 +137,7 @@
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'quarterly-tax-report' %}is-active{% endif %}" href="{% url 'quarterly-tax-report' %}">Налоги</a>
                 <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
                 {% endif %}
@@ -178,6 +180,7 @@
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'quarterly-tax-report' %}is-active{% endif %}" href="{% url 'quarterly-tax-report' %}">Налоги</a>
                 <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
                 {% endif %}
