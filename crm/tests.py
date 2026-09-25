@@ -4305,6 +4305,30 @@ class CrmTestCase(TestCase):
             intro,
         )
 
+    def test_contract_party_defaults_copy_counterparty_card_data(self):
+        organization = self.customer.organization
+        Organization.objects.filter(pk=organization.pk).update(
+            name="ООО Автологистика",
+            director_name="Смирнова Марина Викторовна",
+            director_position="Коммерческий директор",
+            acting_basis="Устав",
+            payment_term_days=21,
+            credit_limit=Decimal("125000.00"),
+        )
+        organization.refresh_from_db()
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("contract-party-defaults"),
+            {"party": "customer", "id": self.customer.pk, "side": "counterparty"},
+        )
+        self.assertEqual(response.status_code, 200)
+        values = response.json()["values"]
+        self.assertEqual(values["counterparty_representative"], organization.director_name)
+        self.assertEqual(values["counterparty_representative_position"], "Коммерческий директор")
+        self.assertEqual(values["counterparty_authority_basis"], "Устав")
+        self.assertEqual(values["payment_term_days"], 21)
+        self.assertEqual(values["debt_limit"], "125000.00")
+
     def test_user_can_start_direct_chat(self):
         colleague = get_user_model().objects.create_user(
             username="colleague", password="test-password",

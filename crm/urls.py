@@ -402,6 +402,11 @@ urlpatterns = [
         "contracts/new/", views.ContractCreateView.as_view(), name="contract-create"
     ),
     path(
+        "contracts/party-defaults/",
+        views.ContractPartyDefaultsView.as_view(),
+        name="contract-party-defaults",
+    ),
+    path(
         "contracts/<int:pk>/",
         views.ContractDetailView.as_view(),
         name="contract-detail",

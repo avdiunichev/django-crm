@@ -9769,6 +9769,66 @@ class ContractDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+def contract_party_defaults(party, prefix):
+    """Values that can be safely copied from a party card into a new contract."""
+
+    organization = getattr(party, "organization", None)
+    source = organization or party
+    party_name = str(getattr(party, "name", "")).strip().lower()
+    is_entrepreneur = (
+        getattr(organization, "kind", "") == Organization.Kind.ENTREPRENEUR
+        or party_name.startswith("индивидуальный предприниматель")
+        or party_name.startswith("ип ")
+    )
+    values = {
+        f"{prefix}_representative": getattr(source, "director_name", "")
+        or getattr(party, "director_name", ""),
+        f"{prefix}_representative_position": (
+            "" if is_entrepreneur else getattr(source, "director_position", "") or "Генеральный директор"
+        ),
+        f"{prefix}_authority_type": Contract.AuthorityType.CHARTER,
+        f"{prefix}_authority_basis": (
+            "листа записи ЕГРИП"
+            if is_entrepreneur
+            else getattr(source, "acting_basis", "") or "Устава"
+        ),
+    }
+    if prefix == "counterparty" and organization:
+        payment_trigger = {
+            "delivery_date": Contract.PaymentTrigger.DELIVERY,
+            "document_date": Contract.PaymentTrigger.INVOICE,
+            "originals_received": Contract.PaymentTrigger.ORIGINALS,
+        }.get(organization.payment_term_basis, Contract.PaymentTrigger.DELIVERY)
+        values.update(
+            {
+                "payment_term_days": organization.payment_term_days,
+                "payment_trigger": payment_trigger,
+                "debt_limit": str(organization.credit_limit),
+                "vat_rate": organization.default_vat_rate_id or "",
+            }
+        )
+    return values
+
+
+class ContractPartyDefaultsView(LoginRequiredMixin, View):
+    """Return contract fields copied from the selected party card."""
+
+    def get(self, request):
+        party_type = request.GET.get("party", "")
+        party_id = request.GET.get("id", "")
+        side = request.GET.get("side", "")
+        models = {"expeditor": CompanyProfile, "customer": Customer, "carrier": Carrier}
+        if party_type not in models or side not in {"expeditor", "counterparty"}:
+            return JsonResponse({"ok": False, "message": "Некорректная сторона договора."}, status=400)
+        try:
+            party = models[party_type].objects.select_related("organization").get(
+                pk=int(party_id), is_active=True
+            )
+        except (ValueError, models[party_type].DoesNotExist):
+            return JsonResponse({"ok": False, "message": "Карточка контрагента не найдена."}, status=404)
+        return JsonResponse({"ok": True, "values": contract_party_defaults(party, side)})
+
+
 class ContractCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Contract
     form_class = ContractForm
@@ -9851,6 +9911,23 @@ class ContractCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
                 ).first()
                 if carrier:
                     initial["carrier"] = carrier.pk
+        expeditor_id = initial.get("expeditor")
+        if expeditor_id:
+            expeditor = CompanyProfile.objects.filter(pk=expeditor_id).select_related("organization").first()
+            if expeditor:
+                initial.update(contract_party_defaults(expeditor, "expeditor"))
+        counterparty_model = (
+            Customer
+            if initial.get("kind") == Contract.Kind.CLIENT_FORWARDING
+            else Carrier
+        )
+        counterparty_id = initial.get(
+            "customer" if counterparty_model is Customer else "carrier"
+        )
+        if counterparty_id:
+            counterparty = counterparty_model.objects.filter(pk=counterparty_id).select_related("organization").first()
+            if counterparty:
+                initial.update(contract_party_defaults(counterparty, "counterparty"))
         return initial
 
     def form_valid(self, form):
