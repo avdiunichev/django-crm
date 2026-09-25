@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static crm_format %}
 {% block body_class %}orders-workspace-page contracts-register-page{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1"><link rel="stylesheet" href="{% static 'css/contracts-register.css' %}?v=20260925-1">{% endblock %}
 {% block title %}Договоры — Моя CRM{% endblock %}
@@ -27,7 +27,7 @@
                 <td><a href="{{ contract.expeditor.get_absolute_url }}">{{ contract.expeditor }}</a></td>
                 <td><a href="{{ contract.counterparty.get_absolute_url }}">{{ contract.counterparty_name }}</a><small>ИНН {{ contract.counterparty.tax_id|default:"не указан" }}</small></td>
                 <td>{{ contract.contract_date|date:"d.m.Y" }}<small>{% if contract.valid_until %}до {{ contract.valid_until|date:"d.m.Y" }}{% else %}срок не указан{% endif %}{% if contract.terminated_on %} · расторгнут {{ contract.terminated_on|date:"d.m.Y" }}{% endif %}</small></td>
-                <td>{{ contract.payment_term_days }} дн.<small>лимит {{ contract.debt_limit|floatformat:2 }} ₽</small></td>
+                <td>{{ contract.payment_term_days|days }}<small>лимит {{ contract.debt_limit|floatformat:2 }} ₽</small></td>
                 <td><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></td>
                 <td><a class="row-action" href="{% url 'contract-download' contract.pk %}"><span uk-icon="download"></span> DOCX</a></td>
             </tr>

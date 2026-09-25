@@ -48,6 +48,22 @@ def decimal_input(value, decimals=2):
     return f"{amount:.{places}f}"
 
 
+@register.filter
+def days(value):
+    """Render a number of days using the correct Russian form."""
+    try:
+        number = int(value or 0)
+    except (TypeError, ValueError):
+        return value
+    remainder = abs(number) % 100
+    if 11 <= remainder <= 14:
+        suffix = "дней"
+    else:
+        tail = abs(number) % 10
+        suffix = "день" if tail == 1 else "дня" if 2 <= tail <= 4 else "дней"
+    return f"{number} {suffix}"
+
+
 @register.simple_tag(takes_context=True)
 def query_replace(context, **kwargs):
     """Return current query string with selected parameters replaced/removed."""

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static crm_format %}
 {% block title %}Договор № {{ contract.number }} — Моя CRM{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/contract-detail.css' %}?v=20260925-1">{% endblock %}
 {% block content %}
@@ -25,7 +25,7 @@
         <dl class="uk-description-list uk-description-list-divider"><dt>Наша компания</dt><dd>{{ contract.expeditor_representative|default:"Не указан" }}, на основании {{ contract.expeditor_authority_basis }}</dd><dt>Контрагент</dt><dd>{{ contract.counterparty_representative|default:"Не указан" }}, на основании {{ contract.counterparty_authority_basis }}</dd></dl>
         {% if contract.notes %}<hr><h3>Внутренний комментарий</h3><p>{{ contract.notes|linebreaksbr }}</p>{% endif %}
     </section>
-    <section class="panel contract-terms"><div class="section-title"><h2>Условия расчётов</h2></div><dl class="uk-description-list uk-description-list-divider"><dt>Отсрочка оплаты</dt><dd>{{ contract.payment_term_days }} дней</dd><dt>Лимит задолженности</dt><dd>{{ contract.debt_limit|floatformat:2 }} ₽</dd><dt>Ставка НДС</dt><dd>{{ contract.vat_rate|default:"Не задана" }}</dd><dt>Условия оплаты</dt><dd>{{ contract.payment_terms|default:"Не указаны"|linebreaksbr }}</dd><dt>Файл договора</dt><dd>{% if contract.document_file %}<a href="{{ contract.document_file.url }}" target="_blank" rel="noopener">Открыть PDF</a>{% else %}Не загружен{% endif %}</dd></dl>
+    <section class="panel contract-terms"><div class="section-title"><h2>Условия расчётов</h2></div><dl class="uk-description-list uk-description-list-divider"><dt>Отсрочка оплаты</dt><dd>{{ contract.payment_term_days|days }}</dd><dt>Лимит задолженности</dt><dd>{{ contract.debt_limit|floatformat:2 }} ₽</dd><dt>Ставка НДС</dt><dd>{{ contract.vat_rate|default:"Не задана" }}</dd><dt>Условия оплаты</dt><dd>{{ contract.payment_terms|default:"Не указаны"|linebreaksbr }}</dd><dt>Файл договора</dt><dd>{% if contract.document_file %}<a href="{{ contract.document_file.url }}" target="_blank" rel="noopener">Открыть PDF</a>{% else %}Не загружен{% endif %}</dd></dl>
     </section>
     <aside class="detail-side">
         <section class="panel info-card uk-card uk-card-default"><h2>Карточка договора</h2><span>Статус</span><strong><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></strong><span>Дата</span><strong>{{ contract.contract_date|date:"d.m.Y" }}</strong><span>Город</span><strong>{{ contract.city }}</strong><span>Действует до</span><strong>{{ contract.valid_until|date:"d.m.Y"|default:"Не указано" }}</strong><span>Расторгнут</span><strong>{{ contract.terminated_on|date:"d.m.Y"|default:"Нет" }}</strong><span>Лимит задолженности</span><strong>{{ contract.debt_limit|floatformat:2 }} ₽</strong><span>Создал</span><strong>{{ contract.created_by.get_full_name|default:contract.created_by.username|default:"—" }}</strong></section>

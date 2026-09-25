@@ -24,7 +24,7 @@
             <div class="form-section-title"><span>03</span><div><h2>Финансовые настройки</h2><p>Условия оплаты, ЭДО и работа с оригиналами</p></div></div>
             <div class="organization-view-grid">
                 <div class="organization-view-field"><span>Форма оплаты по умолчанию</span><strong>{{ organization.get_default_payment_form_display|default:"—" }}</strong></div>
-                <div class="organization-view-field"><span>Отсрочка оплаты</span><strong>{{ organization.payment_term_days|default:"0" }} дн.</strong></div>
+                <div class="organization-view-field"><span>Отсрочка оплаты</span><strong>{{ organization.payment_term_days|days }}</strong></div>
                 <div class="organization-view-field"><span>Вид отсрочки</span><strong>{{ organization.get_payment_day_type_display|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Отсчёт срока оплаты</span><strong>{{ organization.get_payment_trigger_display|default:"—" }}</strong></div>
                 <div class="organization-view-field"><span>Кредитный лимит</span><strong>{% if organization.credit_limit %}{{ organization.credit_limit|money }} ₽{% else %}Не указан{% endif %}</strong></div>
