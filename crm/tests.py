@@ -3633,6 +3633,7 @@ class CrmTestCase(TestCase):
         self.assertEqual(form.fields["license_number"].widget.input_type, "hidden")
         self.assertIn("tax_id", form.fields)
         self.assertIn("employment_formset", response.context)
+        self.assertContains(response, 'name="licenses-0-categories"')
         self.assertIn("license_formset", response.context)
         self.assertNotContains(response, "Привязать к контрагенту")
         self.assertContains(response, "Добавить паспорт")

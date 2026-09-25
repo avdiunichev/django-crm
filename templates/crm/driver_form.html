@@ -124,7 +124,7 @@
                                 {% include "crm/includes/form_field.html" with field=license_form.number %}
                                 {% include "crm/includes/form_field.html" with field=license_form.issue_date %}
                                 {% include "crm/includes/form_field.html" with field=license_form.expiry_date %}
-                                {{ license_form.categories.as_hidden }}
+                                {% include "crm/includes/form_field.html" with field=license_form.categories %}
                                 {{ license_form.notes.as_hidden }}
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                             {% include "crm/includes/form_field.html" with field=license_formset.empty_form.number %}
                             {% include "crm/includes/form_field.html" with field=license_formset.empty_form.issue_date %}
                             {% include "crm/includes/form_field.html" with field=license_formset.empty_form.expiry_date %}
-                            {{ license_formset.empty_form.categories.as_hidden }}
+                            {% include "crm/includes/form_field.html" with field=license_formset.empty_form.categories %}
                             {{ license_formset.empty_form.notes.as_hidden }}
                         </div>
                     </div>
