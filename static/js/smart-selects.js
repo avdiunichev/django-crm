@@ -49,6 +49,7 @@
         let activeIndex = -1;
         let committedValue = "";
         let committedText = "";
+        let isOpen = false;
         const commitFreeText = () => {
             if (!allowsFreeText) return;
             select.value = "";
@@ -69,13 +70,11 @@
             dropdown.hidden = true;
             search.setAttribute("aria-expanded", "false");
             activeIndex = -1;
+            isOpen = false;
             if (restore && search.value !== committedText) {
-                if (allowsFreeText) {
-                    commitFreeText();
-                    return;
-                }
                 select.value = committedValue;
                 search.value = committedText;
+                if (allowsFreeText) freeTextTarget.value = committedText;
                 search.setCustomValidity(required && !committedValue ? "Выберите значение из списка" : "");
             }
         };
@@ -99,7 +98,6 @@
             syncFromSelect();
             close();
             select.dispatchEvent(new Event("change", {bubbles: true}));
-            search.focus();
         };
         const optionIsVisible = (option, query) => {
             const label = option.textContent.trim();
@@ -161,8 +159,13 @@
         };
 
         search.addEventListener("focus", () => {
+            if (!isOpen) {
+                // Keep the actual selection intact, but turn the visible field into
+                // a query so all directory entries can be shown immediately.
+                isOpen = true;
+                search.value = "";
+            }
             render();
-            search.select();
         });
         search.addEventListener("input", () => {
             if (search.value !== committedText) {

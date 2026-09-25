@@ -88,6 +88,13 @@
         const close = () => {
             dropdown.hidden = true;
             search.setAttribute("aria-expanded", "false");
+            if (search.dataset.openValue !== undefined) {
+                select.value = search.dataset.openValue;
+                search.value = search.dataset.openLabel || "";
+                delete search.dataset.openValue;
+                delete search.dataset.openLabel;
+                syncDisabled();
+            }
         };
         const syncDisabled = () => {
             search.disabled = select.disabled;
@@ -100,6 +107,8 @@
             select.value = option.value;
             search.value = option.textContent.trim();
             search.dataset.selectedLabel = search.value;
+            delete search.dataset.openValue;
+            delete search.dataset.openLabel;
             close();
             select.dispatchEvent(new Event("change", {bubbles: true}));
         };
@@ -247,7 +256,16 @@
             else search.setCustomValidity("");
         };
 
-        search.addEventListener("focus", () => select.dataset.searchUrl ? scheduleServerSearch(true) : render());
+        search.addEventListener("focus", () => {
+            if (search.dataset.openValue === undefined) {
+                // The selected record remains assigned until another option is
+                // chosen. Only the visible query is cleared to show the catalog.
+                search.dataset.openValue = select.value;
+                search.dataset.openLabel = search.value;
+                search.value = "";
+            }
+            select.dataset.searchUrl ? scheduleServerSearch(true) : render();
+        });
         search.addEventListener("input", () => {
             if (search.value !== search.dataset.selectedLabel) {
                 select.value = "";
