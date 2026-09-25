@@ -310,7 +310,8 @@ html[data-theme="dark"] body.crm-workspace-theme {
         display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
         padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
     }
-    html body.driver-directory-page .driver-register-filters .driver-search-field { position: relative; display: block; width: 100%; max-width: none; flex: 1 1 100%; }
+    html body.driver-directory-page .driver-register-filters .driver-search-field { position: relative; display: block; width: auto; max-width: none; flex: 1 1 420px; }
+    html body.driver-directory-page .driver-register-filters .driver-search-action { flex: 0 0 auto; min-height: 42px; padding-inline: 16px; }
     html body.driver-directory-page .driver-register-filters .driver-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
     html body.driver-directory-page .driver-register-filters .search { width: 100% !important; max-width: none; padding-left: 43px !important; }
     html body.driver-directory-page .driver-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }

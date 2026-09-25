@@ -14,6 +14,12 @@
         <span uk-icon="search" aria-hidden="true"></span>
         <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон или удостоверение · уточнение через запятую" autocomplete="off" aria-label="Поиск водителя">
     </label>
+    <button class="uk-button uk-button-default driver-search-action" type="submit"><span uk-icon="search" aria-hidden="true"></span> Найти</button>
+    {% if current_q %}
+    <a class="uk-button uk-button-default driver-search-action" data-reset-filters href="{% url 'driver-list' %}">Сбросить</a>
+    {% else %}
+    <button class="uk-button uk-button-default driver-search-action" type="button" disabled>Сбросить</button>
+    {% endif %}
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel driver-register-panel">
