@@ -5,7 +5,7 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1">{% endblock %}
 {% block content %}
 <div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'directory-hub' %}">Справочники</a><span aria-hidden="true">/</span><span aria-current="page">Контрагенты</span></div>
-<header class="orders-page-header"><div><div class="orders-title-line"><h1>Контрагенты</h1><span class="orders-count">{{ organization_count }}</span></div><p>Компании, ИП и физические лица для работы в CRM.</p></div></header>
+<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="organizations-title">Контрагенты</h1><span class="orders-count">{{ organization_count }}</span></div><p>Компании, ИП и физические лица для работы в CRM.</p></div></header>
 <form class="filters order-register-filters organization-register-filters" method="get" data-filter-text-submit="enter">
     <label class="organization-search-field"><span uk-icon="search" aria-hidden="true"></span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН или контакт" autocomplete="off" aria-label="Поиск контрагента"></label>
     <select class="form-control uk-select" name="role" aria-label="Роль контрагента"><option value="">Все роли</option>{% for value,label in role_choices %}<option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
