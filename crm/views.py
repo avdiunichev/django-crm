@@ -10431,6 +10431,7 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
                 "vehicle",
                 "trailer",
             )
+            .order_by("-transportation__planned_start_date", "-transportation__created_at")
             .prefetch_related("transportation__stops", "transportation__parties__organization")[:12]
         )
         for assignment in transportation_assignments:
