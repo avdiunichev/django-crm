@@ -213,6 +213,16 @@ class Organization(TimestampedModel):
         PAPER = "paper", "Бумажные оригиналы"
         BOTH = "both", "ЭДО и бумажные оригиналы"
 
+    class PaymentDayType(models.TextChoices):
+        CALENDAR = "calendar", "Календарные дни"
+        BANKING = "banking", "Банковские дни (рабочие)"
+
+    class PaymentTrigger(models.TextChoices):
+        ORIGINALS = "originals_received", "Получение оригиналов документов"
+        SCANS = "scans_received", "Получение сканов документов"
+        UNLOADING = "unloading", "По факту выгрузки"
+        EDO_SIGNED = "edo_signed", "После подписания документов по ЭДО"
+
     kind = models.CharField(
         "Вид контрагента",
         max_length=20,
@@ -304,6 +314,18 @@ class Organization(TimestampedModel):
             ("originals_received", "Получение оригиналов"),
         ),
         default="delivery_date",
+    )
+    payment_day_type = models.CharField(
+        "Вид отсрочки",
+        max_length=20,
+        choices=PaymentDayType.choices,
+        default=PaymentDayType.CALENDAR,
+    )
+    payment_trigger = models.CharField(
+        "Отсчёт срока оплаты",
+        max_length=30,
+        choices=PaymentTrigger.choices,
+        default=PaymentTrigger.UNLOADING,
     )
     default_payment_form = models.CharField(
         "Форма оплаты по умолчанию",

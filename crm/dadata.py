@@ -52,6 +52,11 @@ def _normalize_party(suggestion):
             registration_timestamp / 1000,
             tz=timezone.utc,
         ).date().isoformat()
+    organization_type = data.get("type") or ""
+    # DaData does not reliably supply a legal address for an entrepreneur.
+    # Do not turn an absent value into a misleading auto-filled address;
+    # the operator can specify it manually through the common address picker.
+    has_legal_address = organization_type != "INDIVIDUAL"
     return {
         "full_name": names.get("full_with_opf") or suggestion.get("value") or "",
         "short_name": names.get("short_with_opf") or suggestion.get("value") or "",
@@ -60,7 +65,7 @@ def _normalize_party(suggestion):
         "ogrn": data.get("ogrn") or "",
         "okato": data.get("okato") or "",
         "registration_date": registration_date,
-        "legal_address": AddressFormatter.format(address),
+        "legal_address": AddressFormatter.format(address) if has_legal_address else "",
         "director_name": management.get("name") or "",
         "director_post": management.get("post") or "",
         "phone": _first_value(data.get("phones")),
@@ -68,7 +73,7 @@ def _normalize_party(suggestion):
         "status": status,
         "status_label": STATUS_LABELS.get(status, status),
         "is_invalid": bool(data.get("invalid")),
-        "organization_type": data.get("type") or "",
+        "organization_type": organization_type,
         "address_data": {
             "raw_data": address,
             "value": AddressFormatter.format(address),
@@ -87,7 +92,7 @@ def _normalize_party(suggestion):
                 if part
             ),
             "flat": address_parts.get("flat") or "",
-        },
+        } if has_legal_address else {},
     }
 
 

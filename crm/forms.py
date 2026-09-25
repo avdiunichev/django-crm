@@ -407,7 +407,7 @@ class OrganizationForm(StyledModelForm):
             "legal_address", "director_position", "director_name", "acting_basis", "contact_name", "phone", "email",
             "bank_name", "bik", "settlement_account", "correspondent_account",
             "is_own_company", "profit_tax_rate", "verification_status", "fns_status",
-            "default_vat_rate", "default_payment_form", "payment_term_days", "payment_term_basis", "credit_limit", "edo_operator", "edo_id",
+            "default_vat_rate", "default_payment_form", "payment_term_days", "payment_day_type", "payment_trigger", "payment_term_basis", "credit_limit", "edo_operator", "edo_id",
             "originals_handling", "notes", "is_active",
         ]
         widgets = {
@@ -422,6 +422,7 @@ class OrganizationForm(StyledModelForm):
             "correspondent_account": forms.HiddenInput(),
             "verification_status": forms.HiddenInput(),
             "fns_status": forms.HiddenInput(),
+            "payment_term_basis": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -439,11 +440,22 @@ class OrganizationForm(StyledModelForm):
         self.fields["fns_status"].required = False
         self.fields["verification_status"].required = False
         self.fields["payment_term_days"].required = False
+        self.fields["payment_day_type"].required = False
+        self.fields["payment_trigger"].required = False
         self.fields["payment_term_basis"].required = False
         self.fields["credit_limit"].required = False
         self.fields["edo_operator"].required = False
         self.fields["edo_id"].required = False
         self.fields["originals_handling"].required = False
+        self.fields["legal_address"].widget.attrs.update(
+            {
+                "autocomplete": "off",
+                "data-dadata-address": "",
+                "data-dadata-address-url": reverse("dadata-address-suggestions"),
+                "data-dadata-meta-target": "id_legal_address_meta",
+                "placeholder": "Начните вводить полный юридический адрес",
+            }
+        )
         self.fields["tax_id"].widget.attrs.update(
             {
                 "placeholder": "Введите ИНН для автоматического заполнения",
@@ -563,6 +575,23 @@ class OrganizationForm(StyledModelForm):
         # Поле визуально может быть пустым («Не указан»), но в базе лимит
         # хранится как обязательное числовое значение.
         return self.cleaned_data.get("credit_limit") or Decimal("0")
+
+    def clean(self):
+        cleaned = super().clean()
+        cleaned["payment_day_type"] = (
+            cleaned.get("payment_day_type") or Organization.PaymentDayType.CALENDAR
+        )
+        trigger = cleaned.get("payment_trigger") or Organization.PaymentTrigger.UNLOADING
+        cleaned["payment_trigger"] = trigger
+        # Заказы и рейсы пока используют прежнее поле основания. Сохраняем
+        # совместимое значение, а в карточке контрагента держим точное событие.
+        cleaned["payment_term_basis"] = {
+            Organization.PaymentTrigger.ORIGINALS: "originals_received",
+            Organization.PaymentTrigger.UNLOADING: "delivery_date",
+            Organization.PaymentTrigger.SCANS: "document_date",
+            Organization.PaymentTrigger.EDO_SIGNED: "document_date",
+        }[trigger]
+        return cleaned
 
     def save(self, commit=True):
         if self.is_bound:

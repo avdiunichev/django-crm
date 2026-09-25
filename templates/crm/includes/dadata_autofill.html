@@ -46,6 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
         field.value = normalizedValue;
         field.dispatchEvent(new Event("change", {bubbles: true}));
     };
+    const clearField = (id) => {
+        const field = document.getElementById(id);
+        if (!field) return;
+        field.value = "";
+        field.dispatchEvent(new Event("change", {bubbles: true}));
+    };
 
     button.addEventListener("click", async () => {
         const inn = innInput.value.trim();
@@ -87,9 +93,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 setField("id_ogrn", party.ogrn);
                 setField("id_okato", party.okato);
                 setField("id_registration_date", party.registration_date);
-                setField("id_legal_address", party.legal_address);
-                setField("id_address", party.legal_address);
-                setField("id_legal_address_meta", JSON.stringify(party.address_data || {}));
+                const isEntrepreneur = party.organization_type === "INDIVIDUAL";
+                if (isEntrepreneur) {
+                    // У ИП юридический адрес не подтягиваем: пользователь
+                    // при необходимости выберет его вручную из подсказок.
+                    clearField("id_legal_address");
+                    clearField("id_legal_address_meta");
+                } else {
+                    setField("id_legal_address", party.legal_address);
+                    setField("id_address", party.legal_address);
+                    setField("id_legal_address_meta", JSON.stringify(party.address_data || {}));
+                }
                 setField("id_director_position", party.director_post);
                 setField("id_director_name", party.director_name);
                 setField("id_phone", party.phone);
@@ -108,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     fnsStatusBadge.classList.toggle("uk-text-success", party.status === "ACTIVE");
                     fnsStatusBadge.classList.toggle("uk-text-danger", party.status && party.status !== "ACTIVE");
                 }
-                if (party.organization_type === "INDIVIDUAL") setField("id_kind", "entrepreneur");
+                if (isEntrepreneur) setField("id_kind", "entrepreneur");
             }
 
             let message = "Реквизиты заполнены";

@@ -1017,6 +1017,8 @@ def organization_defaults(request, pk):
         "vat_rate_label": str(organization.default_vat_rate) if organization.default_vat_rate_id else "",
         "payment_term_days": organization.payment_term_days,
         "payment_term_basis": organization.payment_term_basis,
+        "payment_day_type": organization.payment_day_type,
+        "payment_trigger": organization.payment_trigger,
         "payment_form": organization.default_payment_form
         or TransportOrder.payment_form_for_vat_rate(organization.default_vat_rate),
         "contract_id": None,
@@ -9988,13 +9990,15 @@ def contract_party_defaults(party, prefix):
     }
     if prefix == "counterparty" and organization:
         payment_trigger = {
-            "delivery_date": Contract.PaymentTrigger.DELIVERY,
-            "document_date": Contract.PaymentTrigger.INVOICE,
-            "originals_received": Contract.PaymentTrigger.ORIGINALS,
-        }.get(organization.payment_term_basis, Contract.PaymentTrigger.DELIVERY)
+            Organization.PaymentTrigger.ORIGINALS: Contract.PaymentTrigger.ORIGINALS,
+            Organization.PaymentTrigger.SCANS: Contract.PaymentTrigger.SCANS,
+            Organization.PaymentTrigger.UNLOADING: Contract.PaymentTrigger.UNLOADING,
+            Organization.PaymentTrigger.EDO_SIGNED: Contract.PaymentTrigger.ACT,
+        }.get(organization.payment_trigger, Contract.PaymentTrigger.DELIVERY)
         values.update(
             {
                 "payment_term_days": organization.payment_term_days,
+                "payment_day_type": organization.payment_day_type,
                 "payment_trigger": payment_trigger,
                 "debt_limit": str(organization.credit_limit),
                 "vat_rate": organization.default_vat_rate_id or "",

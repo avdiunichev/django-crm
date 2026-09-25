@@ -97,7 +97,9 @@
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.default_payment_form %}
             {% include "crm/includes/form_field.html" with field=form.payment_term_days %}
-            {% include "crm/includes/form_field.html" with field=form.payment_term_basis %}
+            {% include "crm/includes/form_field.html" with field=form.payment_day_type %}
+            {% include "crm/includes/form_field.html" with field=form.payment_trigger %}
+            {{ form.payment_term_basis }}
             {% include "crm/includes/form_field.html" with field=form.credit_limit %}
             {% include "crm/includes/form_field.html" with field=form.edo_operator %}
             {% include "crm/includes/form_field.html" with field=form.edo_id %}
