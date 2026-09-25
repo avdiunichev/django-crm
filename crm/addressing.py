@@ -111,9 +111,17 @@ class AddressFormatter:
         def meaningful_words(value):
             return {word for word in re.findall(r"\w+", value.casefold())
                     if word not in ignored and not re.fullmatch(r"\d{6}", word)}
-        if original and meaningful_words(original) - meaningful_words(result):
-            return original
-        return result or original or cls.text(fallback)
+        address = (
+            original
+            if original and meaningful_words(original) - meaningful_words(result)
+            else result or original or cls.text(fallback)
+        )
+        # The index is part of the postal address.  DaData keeps it as a
+        # separate attribute, so add it explicitly to the normalized value.
+        postal_code = cls.text(data.get("postal_code"))
+        if postal_code and not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
+            return f"{postal_code}, {address}" if address else postal_code
+        return address
 
     @classmethod
     def original(cls, payload):
