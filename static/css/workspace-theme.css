@@ -291,8 +291,9 @@ html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driv
     border-radius: 0;
     background: transparent;
     color: var(--workspace-muted);
-    font-size: 16px;
+    font-size: 11px;
     font-weight: 400;
+    line-height: normal;
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
     display: grid;
