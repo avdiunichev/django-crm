@@ -253,9 +253,16 @@ document.addEventListener("DOMContentLoaded", () => {
         legalAddress.value = legalAddress.value.toUpperCase();
     });
     const ownCompany = document.getElementById("{{ form.is_own_company.id_for_label }}");
+    const organizationKind = document.getElementById("{{ form.kind.id_for_label }}");
     const ownCompanyTax = document.querySelector("[data-own-company-tax]");
-    const syncOwnCompanyTax = () => ownCompanyTax?.classList.toggle("uk-hidden", !ownCompany?.checked);
+    const profitTaxRate = document.getElementById("{{ form.profit_tax_rate.id_for_label }}");
+    const syncOwnCompanyTax = () => {
+        const show = ownCompany?.checked && organizationKind?.value === "legal_entity";
+        ownCompanyTax?.classList.toggle("uk-hidden", !show);
+        if (!show && profitTaxRate) profitTaxRate.value = "0";
+    };
     ownCompany?.addEventListener("change", syncOwnCompanyTax);
+    organizationKind?.addEventListener("change", syncOwnCompanyTax);
     syncOwnCompanyTax();
     document.querySelectorAll("[data-add-form]").forEach((button) => {
         button.addEventListener("click", () => {

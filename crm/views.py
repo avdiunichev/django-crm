@@ -4695,7 +4695,11 @@ class ReportsView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
             vat_payable = max(vat_balance, Decimal("0.00"))
             profit_tax = (
                 max(values["profit"], Decimal("0.00"))
-                * Decimal(company.profit_tax_rate or 0)
+                * (
+                    Decimal(company.profit_tax_rate or 0)
+                    if company.kind == Organization.Kind.LEGAL_ENTITY
+                    else Decimal("0")
+                )
                 / Decimal("100")
             ).quantize(Decimal("0.01"))
             net_profit = values["profit"] - profit_tax
@@ -5153,7 +5157,11 @@ class QuarterlyTaxReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateVie
             vat_payable = max(values["sales_vat"] - values["purchase_vat"], Decimal("0.00"))
             profit_tax = (
                 max(values["profit"], Decimal("0.00"))
-                * Decimal(company.profit_tax_rate or 0)
+                * (
+                    Decimal(company.profit_tax_rate or 0)
+                    if company.kind == Organization.Kind.LEGAL_ENTITY
+                    else Decimal("0")
+                )
                 / Decimal("100")
             ).quantize(Decimal("0.01"))
             row = {

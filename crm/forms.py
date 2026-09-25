@@ -564,6 +564,10 @@ class OrganizationForm(StyledModelForm):
         return tax_id
 
     def clean_profit_tax_rate(self):
+        if self.cleaned_data.get("kind") != Organization.Kind.LEGAL_ENTITY:
+            # Налог на прибыль применяется к организациям. Для ИП и физлиц
+            # этот расчёт в CRM не используется.
+            return Decimal("0")
         value = self.cleaned_data.get("profit_tax_rate")
         if value is not None:
             return value

@@ -2547,7 +2547,11 @@ class Transportation(TimestampedModel):
     @property
     def profit_tax_amount(self):
         taxable_profit = max(self.profit, Decimal("0.00"))
-        rate = Decimal(self.owner_company.profit_tax_rate or 0)
+        rate = (
+            Decimal(self.owner_company.profit_tax_rate or 0)
+            if self.owner_company.kind == Organization.Kind.LEGAL_ENTITY
+            else Decimal("0")
+        )
         return (taxable_profit * rate / Decimal("100")).quantize(Decimal("0.01"))
 
     @property
