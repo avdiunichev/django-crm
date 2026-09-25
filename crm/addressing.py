@@ -43,6 +43,9 @@ class AddressFormatter:
         "stead": "уч.", "building": "стр.", "structure": "соор.",
         "letter": "лит.", "kilometer": "км",
     }
+    # In postal addresses the territory type follows its name. Building parts
+    # remain exceptions: their abbreviation precedes the number.
+    BUILDING_LEVELS = {"stead", "house", "block", "building", "structure", "letter", "flat", "room"}
 
     @staticmethod
     def text(value):
@@ -63,7 +66,22 @@ class AddressFormatter:
         name = cls.text(data.get(key))
         kind = cls.text(data.get(key + "_type") or data.get(key + "_type_full"))
         if not name:
-            return cls.text(data.get(key + "_with_type"))
+            with_type = cls.text(data.get(key + "_with_type"))
+            # DaData sometimes supplies only ``*_with_type`` (for example,
+            # ``г Москва``). Split it so it follows the same order as fully
+            # structured components below.
+            for alias in sorted(cls.TYPES, key=len, reverse=True):
+                matched = re.match(
+                    rf"^{re.escape(alias.rstrip('.'))}\.?(?:\s+)(.+)$",
+                    with_type,
+                    flags=re.I,
+                )
+                if matched:
+                    name = matched.group(1)
+                    kind = alias
+                    break
+            if not name:
+                return with_type
         kind = kind or cls.DEFAULT_TYPES.get(key, "")
         if not kind:
             return name
@@ -82,11 +100,37 @@ class AddressFormatter:
             return canonical
         if canonical == "км":
             return (name + "-й" if name.isdigit() else name) + " км"
-        if key == "region" and canonical in {"обл.", "АО", "край"}:
-            return f"{name} {canonical}"
-        if key in {"area", "city_district"} and canonical == "р-н":
-            return f"{name} {canonical}"
-        return f"{canonical} {name}"
+        if key in cls.BUILDING_LEVELS:
+            return f"{canonical} {name}"
+        return f"{name} {canonical}"
+
+    @classmethod
+    def normalize_raw_component_order(cls, address):
+        """Normalize an extended DaData string when granular fields are incomplete."""
+        suffix_types = (
+            "обл\\.?", "Респ\\.?", "АО", "край", "г\\.?", "р-н", "п\\.?",
+            "с\\.?", "рп\\.?", "гп\\.?", "пгт\\.?", "ул\\.?", "пр-кт", "пер\\.?",
+            "ш\\.?", "наб\\.?", "б-р", "пл\\.?", "пр-д", "туп\\.?", "тер\\.?",
+        )
+        normalized = []
+        for part in str(address or "").split(","):
+            item = cls.text(part)
+            if not item:
+                continue
+            item = re.sub(
+                r"^вн\.\s*тер\.\s*г\.\s+(.+)$",
+                r"\1 вн. тер. г.",
+                item,
+                flags=re.I,
+            )
+            match = re.match(
+                rf"^({'|'.join(suffix_types)})\s+(.+)$", item, flags=re.I
+            )
+            if match:
+                kind = cls.TYPES.get(match.group(1).casefold().rstrip("."), match.group(1))
+                item = f"{match.group(2)} {kind}"
+            normalized.append(item)
+        return ", ".join(normalized)
 
     @classmethod
     def format(cls, payload, fallback=""):
@@ -112,9 +156,9 @@ class AddressFormatter:
             return {word for word in re.findall(r"\w+", value.casefold())
                     if word not in ignored and not re.fullmatch(r"\d{6}", word)}
         address = (
-            original
+            cls.normalize_raw_component_order(original)
             if original and meaningful_words(original) - meaningful_words(result)
-            else result or original or cls.text(fallback)
+            else result or cls.normalize_raw_component_order(original) or cls.text(fallback)
         )
         # The index is part of the postal address.  DaData keeps it as a
         # separate attribute, so add it explicitly to the normalized value.

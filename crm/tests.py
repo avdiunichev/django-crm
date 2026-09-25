@@ -3375,7 +3375,7 @@ class CrmTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         suggestion = response.json()["suggestions"][0]
-        self.assertEqual(suggestion["value"], "125009, г Москва, ул Тверская, д 1")
+        self.assertEqual(suggestion["value"], "125009, Москва г., Тверская ул., д 1")
         self.assertEqual(suggestion["postal_code"], "125009")
         self.assertEqual(suggestion["fias_id"], "test-fias-id")
         request = mocked_urlopen.call_args.args[0]
