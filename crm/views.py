@@ -10185,13 +10185,28 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         "phone_numbers__phone",
     )
     ordering_field = "last_name"
+    sort_options = {
+        "name": ("last_name", "first_name", "middle_name", "pk"),
+        "passport": ("passport_series", "passport_number", "pk"),
+        "license": ("license_number", "pk"),
+        "phone": ("phone", "pk"),
+        "status": ("is_active", "last_name", "first_name", "pk"),
+    }
+
+    def get_sorting(self):
+        """Return a safe ordering key and direction for the complete registry."""
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options:
+            return "name", False
+        return sort_key, descending
 
     def get_queryset(self):
         # Telephone and document numbers are commonly pasted without spaces,
         # dashes or a leading plus. Search those values in a compact form too.
         queryset = (
             Driver.objects.annotate(shipment_count=Count("shipments"))
-            .order_by(self.ordering_field)
         )
         queries = search_terms(self.request)
         for query in queries:
@@ -10262,7 +10277,11 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
             queryset = queryset.filter(is_active=True)
         elif active == "0":
             queryset = queryset.filter(is_active=False)
-        return queryset.distinct()
+        sort_key, descending = self.get_sorting()
+        ordering = self.sort_options[sort_key]
+        if descending:
+            ordering = tuple(f"-{field}" for field in ordering)
+        return queryset.distinct().order_by(*ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -10291,6 +10310,18 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         context["driver_export_url"] = reverse("driver-export") + (
             f"?{export_query}" if export_query else ""
         )
+        sort_key, descending = self.get_sorting()
+        sort_columns = {}
+        for key in self.sort_options:
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if key != sort_key or descending else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": key == sort_key,
+                "label": "↓" if key == sort_key and descending else "↑",
+            }
+        context["sort_columns"] = sort_columns
         return context
 
 
