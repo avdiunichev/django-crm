@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Справочники — CRM.Экспедитор{% endblock %}
+{% block body_class %}directory-hub-page{% endblock %}
+{% block content %}
+<div class="orders-breadcrumb"><span uk-icon="git-fork"></span><span aria-current="page">Справочники</span></div>
+<header class="orders-page-header">
+    <div><h1>Справочники</h1><p>Карточки участников перевозок, водителей и транспорта.</p></div>
+</header>
+<section class="directory-hub-grid" aria-label="Разделы справочников">
+    <a class="directory-hub-card" href="{% url 'organization-list' %}"><span uk-icon="users"></span><strong>Контрагенты</strong><small>Клиенты, перевозчики и экспедиторы</small></a>
+    {% if crm_access.can_view_personal_data %}<a class="directory-hub-card" href="{% url 'driver-list' %}"><span uk-icon="user"></span><strong>Водители</strong><small>Контакты и водительские документы</small></a>{% endif %}
+    <a class="directory-hub-card" href="{% url 'vehicle-list' %}"><span uk-icon="nut"></span><strong>Автопарк</strong><small>Транспортные средства и сцепки</small></a>
+</section>
+{% endblock %}

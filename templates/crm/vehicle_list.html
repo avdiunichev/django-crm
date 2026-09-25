@@ -2,7 +2,7 @@
 {% block title %}Автопарк — Моя CRM{% endblock %}
 {% block body_class %}vehicle-directory-page{% endblock %}
 {% block content %}
-<div class="orders-breadcrumb"><span uk-icon="git-fork"></span> Справочники <span aria-hidden="true">/</span> Автопарк</div>
+<div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'directory-hub' %}">Справочники</a><span aria-hidden="true">/</span><span aria-current="page">Автопарк</span></div>
 <header class="orders-page-header">
     <div><div class="orders-title-line"><h1 id="vehicles-title">Автопарк</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Транспорт, документы и назначение на рейсы в одном месте.</p></div>
     <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'vehicle-create' %}" data-vehicle-modal><span uk-icon="plus"></span> Добавить транспорт</a></div>

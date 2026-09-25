@@ -269,6 +269,42 @@ html body.uikit-theme.crm-workspace-theme .driver-registry-status.is-inactive::b
     background: var(--workspace-accent);
     box-shadow: 0 0 0 3px rgba(209, 0, 0, .10);
 }
+html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    max-width: 980px;
+}
+html body.uikit-theme.crm-workspace-theme .directory-hub-card {
+    display: grid;
+    gap: 10px;
+    min-height: 150px;
+    padding: 24px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 12px;
+    color: var(--workspace-text);
+    background: var(--workspace-surface);
+    text-decoration: none;
+}
+html body.uikit-theme.crm-workspace-theme .directory-hub-card:hover {
+    border-color: var(--workspace-accent);
+    color: var(--workspace-text);
+    box-shadow: 0 8px 20px rgba(41, 41, 45, .06);
+}
+html body.uikit-theme.crm-workspace-theme .directory-hub-card > span { color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card strong { font-size: 17px; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card small { color: var(--workspace-muted); }
+html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-profile-breadcrumb) > a {
+    color: var(--workspace-muted);
+    text-decoration: none;
+}
+html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-profile-breadcrumb) > a:hover {
+    color: var(--workspace-accent);
+    text-decoration: underline;
+}
+@media screen and (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme .directory-hub-grid { grid-template-columns: 1fr; }
+}
 @media screen {
     @media (min-width: 961px) and (min-height: 650px) {
         html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .main > .content {

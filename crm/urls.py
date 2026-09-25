@@ -367,6 +367,7 @@ urlpatterns = [
         views.TransportationChainUpdateView.as_view(),
         name="transportation-chain-update",
     ),
+    path("directories/", views.DirectoryHubView.as_view(), name="directory-hub"),
     path(
         "organizations/",
         views.OrganizationListView.as_view(),

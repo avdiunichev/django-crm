@@ -1970,6 +1970,12 @@ class CompanyLandingView(TemplateView):
     template_name = "crm/company_landing.html"
 
 
+class DirectoryHubView(LoginRequiredMixin, TemplateView):
+    """Entry point for reference directories used by breadcrumb navigation."""
+
+    template_name = "crm/directory_hub.html"
+
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "crm/dashboard.html"
 
