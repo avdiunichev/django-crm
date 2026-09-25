@@ -295,6 +295,60 @@ body.organization-card-page :is(.organization-profile-contact-list, .organizatio
     overflow-wrap: anywhere;
 }
 body.organization-card-page .organization-profile-doc-summary .is-warning { color: #d10000 !important; font-weight: 650; }
+/* Банковские счета повторяют визуальный язык документов водителя. */
+body.organization-card-page .organization-profile-document-list { display: grid; gap: 14px; }
+body.organization-card-page .organization-profile-document {
+    padding: 18px 18px 18px 14px;
+    border: 1px solid var(--workspace-line, #e9e7e7);
+    border-left: 4px solid #c7c7c7;
+    border-radius: 9px;
+    background: var(--workspace-soft, #f6f5f5);
+}
+body.organization-card-page .organization-profile-document.is-current { border-left-color: #d10000; }
+body.organization-card-page .organization-profile-document-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+body.organization-card-page .organization-profile-document-heading strong {
+    color: var(--workspace-text, #29292d);
+    font-size: 16px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+body.organization-card-page .organization-profile-archived {
+    color: var(--workspace-muted, #77767e);
+    font-size: 12px;
+}
+body.organization-card-page .organization-profile-document dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+    margin: 0;
+}
+body.organization-card-page .organization-profile-document dl > div:first-child { grid-column: 1 / -1; }
+body.organization-card-page .organization-profile-document dt {
+    margin-bottom: 6px;
+    color: var(--workspace-muted, #77767e);
+    font-size: 12px;
+}
+body.organization-card-page .organization-profile-document dd {
+    margin: 0;
+    color: var(--workspace-text, #29292d);
+    font-size: 15px;
+    font-weight: 550;
+    overflow-wrap: anywhere;
+}
+body.organization-card-page .organization-profile-empty {
+    margin: 0;
+    color: var(--workspace-muted, #77767e);
+    font-size: 14px;
+}
+html[data-theme="dark"] body.organization-card-page .organization-profile-document { border-color: #304054; background: #192536; }
+html[data-theme="dark"] body.organization-card-page .organization-profile-document-heading strong,
+html[data-theme="dark"] body.organization-card-page .organization-profile-document dd { color: #edf2f8; }
 @media (max-width: 900px) {
     body.organization-card-page .organization-profile-overview { grid-template-columns: 1fr; }
     body.organization-card-page .organization-profile-personal { grid-row: auto; }
@@ -302,4 +356,7 @@ body.organization-card-page .organization-profile-doc-summary .is-warning { colo
 @media (max-width: 720px) {
     body.organization-card-page .organization-profile-data-grid { grid-template-columns: 1fr; gap: 16px; }
     body.organization-card-page .organization-profile-data-grid .is-wide { grid-column: auto; }
+    body.organization-card-page .organization-profile-document { padding: 16px 14px 16px 12px; }
+    body.organization-card-page .organization-profile-document dl { grid-template-columns: 1fr; gap: 14px; }
+    body.organization-card-page .organization-profile-document dl > div:first-child { grid-column: auto; }
 }
