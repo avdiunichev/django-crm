@@ -7,7 +7,7 @@
 <div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span aria-hidden="true">/</span> Водители</div>
 <header class="orders-page-header">
     <div><div class="orders-title-line"><h1 id="drivers-title">Водители</h1><span class="orders-count">{{ driver_total }}</span></div><p>Карточки водителей, документы и контактные данные в одном месте.</p></div>
-    <div class="orders-page-actions">{% if current_q %}<a class="clear-link" data-reset-filters href="{% url 'driver-list' %}">Сбросить фильтры</a>{% endif %}<a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal>Создать водителя</a></div>
+    <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'driver-create' %}" data-driver-modal>Создать водителя</a></div>
 </header>
 <form class="filters order-register-filters driver-register-filters" method="get" data-filter-text-submit="enter">
     <label class="driver-search-field">
