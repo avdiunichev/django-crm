@@ -442,6 +442,9 @@ class OrganizationForm(StyledModelForm):
         ]
         widgets = {
             "registration_date": forms.DateInput(attrs={"type": "date"}),
+            "legal_address": forms.TextInput(
+                attrs={"class": "form-control uk-input"}
+            ),
             "notes": forms.Textarea(attrs={"rows": 3}),
             "contact_name": forms.HiddenInput(),
             "phone": forms.HiddenInput(),

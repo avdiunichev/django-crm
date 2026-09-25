@@ -379,7 +379,15 @@ class Organization(TimestampedModel):
 
     @property
     def formatted_legal_address(self):
-        return AddressFormatter.format(self.legal_address_raw, self.legal_address) if self.legal_address_raw else self.legal_address
+        address = (
+            AddressFormatter.format(self.legal_address_raw, self.legal_address)
+            if self.legal_address_raw
+            else self.legal_address
+        )
+        postal_code = (self.legal_address_postal_code or "").strip()
+        if postal_code and not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address or ""):
+            return f"{postal_code}, {address}" if address else postal_code
+        return address
 
     def save(self, *args, **kwargs):
         self.tax_id = re.sub(r"\D", "", self.tax_id or "")
