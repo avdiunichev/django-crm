@@ -14,6 +14,166 @@ body.crm-workspace-theme {
     color: var(--workspace-text);
     background: var(--workspace-shell) !important;
 }
+/* Desktop workspace shell: a calm dock on the left and a separate white
+   working surface, so the navigation never competes with the document. */
+@media screen and (min-width: 1200px) {
+    html body.uikit-theme.crm-workspace-theme .app-shell.app-shell-topnav {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+        min-height: 100dvh;
+        background: var(--workspace-shell);
+    }
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .crm-topnav {
+        position: static;
+        z-index: auto;
+        width: 0;
+        min-height: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+        overflow: visible;
+    }
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main {
+        grid-column: 1;
+        grid-row: 1;
+        min-height: 100dvh;
+        margin-left: 244px;
+        padding: 24px;
+        background: var(--workspace-shell);
+    }
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main > .content {
+        box-sizing: border-box;
+        min-height: calc(100dvh - 48px);
+        padding: 32px;
+        border: 1px solid var(--workspace-line);
+        border-radius: 18px;
+        background: var(--workspace-surface);
+        box-shadow: 0 10px 30px rgba(41, 41, 45, .045);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar {
+        width: 244px;
+        padding: 24px 16px;
+        overflow: hidden;
+        background: #fafafa !important;
+        border-right: 1px solid var(--workspace-line);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .brand {
+        margin: 2px 8px 28px;
+        color: var(--workspace-text);
+        font-size: 16px;
+        font-weight: 650;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0 4px 224px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list::-webkit-scrollbar { display: none; }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-group {
+        margin: 20px 8px 6px;
+        color: var(--workspace-muted);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a {
+        min-height: 40px;
+        padding: 0 12px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        color: var(--workspace-text);
+        font-size: 14px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a:hover {
+        color: var(--workspace-text);
+        background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a.is-active {
+        color: var(--workspace-accent);
+        background: var(--workspace-tint);
+        box-shadow: none;
+        font-weight: 650;
+    }
+    /* The utility controls remain one component in the template, but are
+       docked at the base of the desktop navigation. */
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools {
+        position: fixed;
+        z-index: 1000;
+        left: 16px;
+        bottom: 20px;
+        width: 212px;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 0;
+        padding: 10px;
+        border: 1px solid var(--workspace-line);
+        border-radius: 14px;
+        background: var(--workspace-surface);
+        box-shadow: 0 12px 28px rgba(41, 41, 45, .09);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools > form,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools > .theme-switcher { width: 100%; }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-toggle,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-logout-button {
+        width: 100%;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 9px;
+        color: var(--workspace-text);
+        background: transparent;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-toggle:hover,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-logout-button:hover {
+        color: var(--workspace-text);
+        background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-toggle::after { content: "Уведомления"; }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-center { width: 100%; }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-menu {
+        right: auto;
+        bottom: calc(100% + 10px);
+        left: 0;
+        width: min(360px, calc(100vw - 32px));
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher {
+        display: grid;
+        gap: 6px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-label {
+        display: block;
+        padding: 0 10px;
+        color: var(--workspace-muted);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options {
+        min-height: 38px;
+        border-radius: 9px;
+        background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button { border-radius: 8px; }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .mobile-nav-toggle { display: none; }
+    html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar { background: #202329 !important; }
+}
 html[data-theme="dark"] body.crm-workspace-theme {
     --workspace-shell: #191b20;
     --workspace-surface: #23262c;
@@ -561,4 +721,33 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.driver-directory-page .driver-directory-table tbody tr.driver-license-expired-row > td {
         background: transparent !important;
     }
+}
+
+/* Keep these desktop dock rules last: legacy page styles also address the
+   former top navigation controls. */
+@media screen and (min-width: 1200px) {
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main > .content {
+        min-height: calc(100dvh - 48px);
+        padding: 32px;
+        border-radius: 18px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-action-label {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button {
+        width: auto;
+        min-width: 0;
+        height: 32px;
+        padding: 0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button span:last-child { display: inline; }
 }
