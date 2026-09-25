@@ -277,14 +277,21 @@ html body.uikit-theme.crm-workspace-theme .driver-registry-status.is-inactive::b
     box-shadow: 0 0 0 3px rgba(209, 0, 0, .10);
 }
 html body.uikit-theme.crm-workspace-theme .driver-registry-status.is-archived::before {
-    background: var(--workspace-muted);
-    box-shadow: 0 0 0 3px rgba(119, 118, 126, .10);
+    display: none;
 }
 html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driver-registry-status {
     padding: 0;
     border: 0;
     border-radius: 0;
     background: transparent;
+}
+html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driver-registry-status.is-archived {
+    padding: 6px 14px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--workspace-muted);
+    font-weight: 500;
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
     display: grid;
