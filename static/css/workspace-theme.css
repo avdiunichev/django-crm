@@ -518,4 +518,29 @@ html[data-theme="dark"] body.crm-workspace-theme {
         min-width: 0;
         padding-left: 43px !important;
     }
+    /* The desktop register assigns a fixed cell height. Once a table row is
+       presented as a mobile card, that height makes subsequent fields overlap. */
+    html body.driver-directory-page .driver-directory-table,
+    html body.driver-directory-page .driver-directory-table tbody,
+    html body.driver-directory-page .driver-directory-table tr,
+    html body.driver-directory-page .driver-directory-table td {
+        display: block;
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+    }
+    html body.driver-directory-page .driver-directory-table tbody tr {
+        padding: 16px;
+    }
+    html body.driver-directory-page .driver-directory-table td {
+        min-height: 0 !important;
+        padding: 11px 0;
+        overflow: visible;
+        white-space: normal !important;
+    }
+    html body.driver-directory-page .driver-directory-table td small {
+        display: block;
+        line-height: 1.45;
+    }
 }
