@@ -98,6 +98,36 @@ def vat_rate_for_payment_form(payment_form):
         is_active=True, is_without_vat=False, code=rate_code
     ).first()
 
+
+LEGACY_VAT_PAYMENT_FORMS = {
+    "bank_vat_18",
+    "bank_vat_20",
+}
+
+
+def restrict_to_current_vat_payment_forms(form, field_name):
+    """Hide retired VAT rates in new selections without rewriting old documents."""
+    field = form.fields.get(field_name)
+    if not field:
+        return
+    selected_value = (
+        form.data.get(form.add_prefix(field_name))
+        if form.is_bound
+        else getattr(form.instance, field_name, "")
+    )
+    original_choices = list(field.choices)
+    choices = [
+        choice for choice in original_choices
+        if choice[0] not in LEGACY_VAT_PAYMENT_FORMS
+    ]
+    if selected_value in LEGACY_VAT_PAYMENT_FORMS:
+        legacy_label = next(
+            (label for value, label in original_choices if value == selected_value),
+            selected_value,
+        )
+        choices.append((selected_value, f"{legacy_label} (архивная ставка)"))
+    field.choices = choices
+
 # Категории водительских удостоверений и пояснения из справочника категорий.
 # Коды хранятся в едином латинском формате, чтобы корректно сравнивать данные
 # из старых карточек, где визуально похожие буквы могли быть кириллицей.
@@ -437,6 +467,7 @@ class OrganizationForm(StyledModelForm):
         self.fields["default_vat_rate"].queryset = VATRate.objects.filter(is_active=True)
         self.fields["default_vat_rate"].required = False
         self.fields["default_payment_form"].required = False
+        restrict_to_current_vat_payment_forms(self, "default_payment_form")
         self.fields["fns_status"].required = False
         self.fields["verification_status"].required = False
         self.fields["payment_term_days"].required = False
@@ -1100,6 +1131,7 @@ class TransportOrderForm(StyledModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        restrict_to_current_vat_payment_forms(self, "payment_form")
         self.fields["owner_company"].queryset = Organization.objects.filter(
             is_own_company=True, is_active=True
         )
@@ -2000,6 +2032,8 @@ class TransportationDocumentForm(StyledModelForm):
         super().__init__(*args, **kwargs)
         configure_dadata_address_fields(self)
         self.user = user
+        restrict_to_current_vat_payment_forms(self, "customer_payment_form")
+        restrict_to_current_vat_payment_forms(self, "executor_payment_form")
         self.fields["owner_company"].queryset = Organization.objects.filter(
             is_own_company=True, is_active=True
         )
