@@ -10518,8 +10518,26 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
         ).filter(is_active=True)
         context["passports"] = self.object.passports.all()
         context["licenses"] = self.object.licenses.all()
+        trip_date_type = self.request.GET.get("trip_date_type", "unloading").strip()
+        trip_date_from_raw = self.request.GET.get("trip_date_from", "").strip()
+        trip_date_to_raw = self.request.GET.get("trip_date_to", "").strip()
+        trip_date_from = parse_crm_date(trip_date_from_raw) if trip_date_from_raw else None
+        trip_date_to = parse_crm_date(trip_date_to_raw) if trip_date_to_raw else None
+        trip_date_fields = {
+            "application": "transportation__document_date",
+            "loading": "transportation__planned_start_date",
+            "unloading": "transportation__planned_end_date",
+        }
+        if trip_date_type not in trip_date_fields:
+            trip_date_type = "unloading"
+        assignments_queryset = self.object.transportation_assignments.filter(is_active=True)
+        trip_date_field = trip_date_fields[trip_date_type]
+        if trip_date_from:
+            assignments_queryset = assignments_queryset.filter(**{f"{trip_date_field}__gte": trip_date_from})
+        if trip_date_to:
+            assignments_queryset = assignments_queryset.filter(**{f"{trip_date_field}__lte": trip_date_to})
         transportation_assignments = list(
-            self.object.transportation_assignments.filter(is_active=True)
+            assignments_queryset
             .select_related(
                 "transportation",
                 "transportation__legacy_shipment__customer",
@@ -10557,9 +10575,7 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
                 executor_party.organization if executor_party else assignment.actual_carrier
             )
         context["transportation_assignments"] = transportation_assignments
-        transportation_ids = self.object.transportation_assignments.filter(
-            is_active=True
-        ).values("transportation_id")
+        transportation_ids = assignments_queryset.values("transportation_id")
         transportation_totals = Transportation.objects.filter(
             pk__in=transportation_ids
         ).aggregate(
@@ -10575,6 +10591,10 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
         context["transportation_margin_total"] = (
             context["transportation_total"] - context["transportation_executor_total"]
         )
+        context["trip_date_type"] = trip_date_type
+        context["trip_date_from"] = trip_date_from_raw
+        context["trip_date_to"] = trip_date_to_raw
+        context["trip_period_is_filtered"] = bool(trip_date_from_raw or trip_date_to_raw)
         context["shipment_count"] = self.object.shipments.count()
         context["transportation_count"] = self.object.transportation_assignments.filter(
             is_active=True
