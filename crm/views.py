@@ -53,9 +53,10 @@ def search_terms(request, name="q"):
     """Return distinct non-empty search values in their entered order."""
     terms = []
     for value in request.GET.getlist(name):
-        value = value.strip()
-        if value and value not in terms:
-            terms.append(value)
+        for term in value.split(","):
+            term = term.strip()
+            if term and term not in terms:
+                terms.append(term)
     return terms
 
 

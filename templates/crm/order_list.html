@@ -14,7 +14,7 @@
         </div>
     </header>
 <form class="filters order-register-filters" method="get" data-order-register-filters data-filter-delay="900">
-    {% include "crm/includes/multi_search.html" with search_class="orders-search" input_class="form-control search uk-input" search_placeholder="Поиск по номеру, клиенту или маршруту" search_label="Поиск заказов" %}
+    <label class="orders-search"><span uk-icon="icon: search; ratio: .9"></span><input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" aria-label="Поиск заказов" placeholder="Поиск по номеру, клиенту или маршруту"></label>
     <select class="form-control uk-select" name="owner" aria-label="Наша компания">
         <option value="">Все наши компании</option>
         {% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}

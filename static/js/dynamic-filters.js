@@ -135,40 +135,6 @@
             field.addEventListener("change", () => submitFilter(form, field));
         });
 
-        const multiSearch = form.querySelector("[data-multi-search]");
-        if (multiSearch) {
-            form.addEventListener("keydown", (event) => {
-                const field = event.target.closest('[data-multi-search] input[type="search"][name="q"]');
-                if (!field || event.key !== "Enter" || event.isComposing) return;
-                event.preventDefault();
-                submitFilter(form, field);
-            });
-            multiSearch.addEventListener("click", (event) => {
-                const add = event.target.closest("[data-add-search-filter]");
-                const remove = event.target.closest("[data-remove-search-filter]");
-                if (!add && !remove) return;
-                event.preventDefault();
-                if (add) {
-                    const row = multiSearch.querySelector(".crm-multi-search-row");
-                    if (!row) return;
-                    const next = row.cloneNode(true);
-                    const input = next.querySelector('input[name="q"]');
-                    const button = next.querySelector("button");
-                    if (input) input.value = "";
-                    if (button) {
-                        button.textContent = "Удалить фильтр";
-                        button.removeAttribute("data-add-search-filter");
-                        button.setAttribute("data-remove-search-filter", "");
-                    }
-                    multiSearch.append(next);
-                    input?.focus();
-                } else {
-                    const row = remove.closest(".crm-multi-search-row");
-                    row?.remove();
-                    submitFilter(form);
-                }
-            });
-        }
     };
 
     const restoreSearchFocus = () => {
