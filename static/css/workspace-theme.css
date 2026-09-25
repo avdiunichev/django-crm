@@ -495,4 +495,27 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.uikit-theme.crm-workspace-theme .filters { padding: 12px; }
     html body.uikit-theme.crm-workspace-theme .uk-table td { padding-top: 10px; padding-bottom: 10px; }
     html body.uikit-theme.crm-workspace-theme .uk-modal-dialog { border-radius: 12px !important; }
+    /* The driver lookup is the primary control on the directory page. Keep it
+       on its own full-width row and retain the icon inside the input. */
+    html body.driver-directory-page .driver-register-filters .driver-search-field {
+        display: block;
+        box-sizing: border-box;
+        width: 100% !important;
+        max-width: none !important;
+        flex: 0 0 100% !important;
+    }
+    html body.driver-directory-page .driver-register-filters .driver-search-field > .uk-icon {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+    html body.driver-directory-page .driver-register-filters .driver-search-field .search {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0;
+        padding-left: 43px !important;
+    }
 }
