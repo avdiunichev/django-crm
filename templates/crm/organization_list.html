@@ -2,7 +2,7 @@
 {% block title %}Контрагенты — Моя CRM{% endblock %}
 {% block content %}
 <form class="filters order-register-filters organization-register-filters" method="get">
-    <input class="form-control search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Название, ИНН или контакт">
+    {% include "crm/includes/multi_search.html" with search_class="orders-search" input_class="form-control search uk-input" search_placeholder="Название, ИНН или контакт" search_label="Поиск контрагента" %}
     <select class="form-control uk-select" name="role"><option value="">Все роли</option>{% for value,label in role_choices %}<option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="own"><option value="">Все компании</option><option value="1" {% if current_own == '1' %}selected{% endif %}>Только наши компании</option></select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>

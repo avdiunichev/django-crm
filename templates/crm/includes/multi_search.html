@@ -1,0 +1,11 @@
+<div class="crm-multi-search" data-multi-search>
+    {% for term in search_terms %}
+    <div class="crm-multi-search-row">
+        <label class="{{ search_class }}">
+            <span uk-icon="search" aria-hidden="true"></span>
+            <input class="{{ input_class|default:'search uk-input' }}" type="search" name="q" value="{{ term }}" placeholder="{{ search_placeholder }}" autocomplete="off" aria-label="{{ search_label }}">
+        </label>
+        {% if forloop.first %}<button class="uk-button uk-button-default crm-multi-search-action" type="button" data-add-search-filter>Добавить фильтр</button>{% else %}<button class="uk-button uk-button-default crm-multi-search-action" type="button" data-remove-search-filter>Удалить фильтр</button>{% endif %}
+    </div>
+    {% endfor %}
+</div>

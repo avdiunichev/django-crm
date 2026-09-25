@@ -8,10 +8,7 @@
     <div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'vehicle-create' %}" data-vehicle-modal><span uk-icon="plus"></span> Добавить транспорт</a></div>
 </header>
 <form class="filters order-register-filters vehicle-register-filters" method="get" data-filter-text-submit="enter">
-    <label class="vehicle-search-field">
-        <span uk-icon="search" aria-hidden="true"></span>
-        <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Госномер, VIN или марка" autocomplete="off" aria-label="Поиск транспорта">
-    </label>
+    {% include "crm/includes/multi_search.html" with search_class="vehicle-search-field" search_placeholder="Госномер, VIN или марка" search_label="Поиск транспорта" %}
     <select class="uk-select" name="kind"><option value="">Все типы</option>{% for value,label in vehicle_kinds %}<option value="{{ value }}" {% if current_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="uk-select" name="active"><option value="">Весь автопарк</option><option value="1" {% if current_active == '1' %}selected{% endif %}>В эксплуатации</option><option value="0" {% if current_active == '0' %}selected{% endif %}>Неактивные</option></select>
     {% if current_q or current_kind or current_active %}<a class="clear-link" href="{% url 'vehicle-list' %}">Сбросить</a>{% endif %}

@@ -49,6 +49,16 @@ def _crm_profile(user):
     return getattr(user, "crm_profile", None)
 
 
+def search_terms(request, name="q"):
+    """Return distinct non-empty search values in their entered order."""
+    terms = []
+    for value in request.GET.getlist(name):
+        value = value.strip()
+        if value and value not in terms:
+            terms.append(value)
+    return terms
+
+
 @require_GET
 def pwa_service_worker(request):
     """Register a root-scoped worker without caching private CRM responses."""
@@ -2197,7 +2207,7 @@ class ShipmentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
         queryset = Shipment.objects.select_related(
             "expeditor", "customer", "carrier", "driver", "vehicle", "manager"
         )
-        query = self.request.GET.get("q", "").strip()
+        queries = search_terms(self.request)
         status = self.request.GET.get("status", "").strip()
         payment = self.request.GET.get("payment", "").strip()
         scope = self.request.GET.get("scope", "").strip()
@@ -2233,7 +2243,7 @@ class ShipmentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
                 )
             ]
             queryset = queryset.filter(pk__in=matching_ids)
-        if query:
+        for query in queries:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
                 | Q(expeditor__name__iunicodecontains=query)
@@ -2261,6 +2271,7 @@ class ShipmentListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
                 "status_choices": Shipment.Status.choices,
                 "payment_choices": Shipment.PaymentStatus.choices,
                 "current_q": self.request.GET.get("q", ""),
+                "search_terms": search_terms(self.request) or [""],
                 "current_status": self.request.GET.get("status", ""),
                 "current_payment": (
                     self.request.GET.get("payment", "")
@@ -5993,8 +6004,8 @@ class SearchableDirectoryListView(LoginRequiredMixin, PersistentPageSizeMixin, L
             .annotate(shipment_count=Count("shipments"))
             .order_by(self.ordering_field)
         )
-        query = self.request.GET.get("q", "").strip()
-        if query:
+        queries = search_terms(self.request)
+        for query in queries:
             condition = Q()
             for field in self.search_fields:
                 condition |= Q(**{f"{field}__iunicodecontains": query})
@@ -6003,6 +6014,7 @@ class SearchableDirectoryListView(LoginRequiredMixin, PersistentPageSizeMixin, L
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["search_terms"] = search_terms(self.request) or [""]
         context["current_q"] = self.request.GET.get("q", "")
         return context
 
@@ -6204,9 +6216,9 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
             ),
             "bank_accounts", "contact_people"
         )
-        query = self.request.GET.get("q", "").strip()
+        queries = search_terms(self.request)
         role = self.request.GET.get("role", "").strip()
-        if query:
+        for query in queries:
             queryset = queryset.filter(
                 Q(name__iunicodecontains=query)
                 | Q(short_name__iunicodecontains=query)
@@ -6225,6 +6237,7 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
+                "search_terms": search_terms(self.request) or [""],
                 "current_role": self.request.GET.get("role", ""),
                 "current_own": self.request.GET.get("own", ""),
                 "role_choices": OrganizationRole.Role.choices,
@@ -6871,11 +6884,11 @@ class TransportOrderQueryMixin:
             "owner_company", "client", "manager", "transportation", "package_type"
         ).prefetch_related("stops")
         queryset = scope_orders_for_user(queryset, self.request.user)
-        query = self.request.GET.get("q", "").strip()
+        queries = search_terms(self.request)
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
         currency = self.request.GET.get("currency", "").strip().upper()
-        if query:
+        for query in queries:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
                 | Q(client__name__iunicodecontains=query)
@@ -6909,6 +6922,7 @@ class TransportOrderListView(
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
+                "search_terms": search_terms(self.request) or [""],
                 "current_status": self.request.GET.get("status", ""),
                 "current_owner": current_owner,
                 "status_choices": TransportOrder.Status.choices,
@@ -7421,11 +7435,11 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
             ),
         )
         queryset = scope_transportations_for_user(queryset, self.request.user)
-        query = self.request.GET.get("q", "").strip()
+        queries = search_terms(self.request)
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
         currency = self.request.GET.get("currency", "").strip().upper()
-        if query:
+        for query in queries:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
                 | Q(cargo_name__iunicodecontains=query)
@@ -7504,6 +7518,7 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
+                "search_terms": search_terms(self.request) or [""],
                 "current_status": self.request.GET.get("status", ""),
                 "current_owner": current_owner,
                 "current_scope": self.request.GET.get("scope", ""),
@@ -9686,13 +9701,13 @@ class ContractListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
         queryset = Contract.objects.select_related(
             "expeditor", "customer", "carrier", "created_by"
         )
-        query = self.request.GET.get("q", "").strip()
+        queries = search_terms(self.request)
         kind = self.request.GET.get("kind", "").strip()
         status = self.request.GET.get("status", "").strip()
         expeditor = get_expeditor_filter(self.request)
         if expeditor:
             queryset = queryset.filter(expeditor_id=expeditor)
-        if query:
+        for query in queries:
             queryset = queryset.filter(
                 Q(number__iunicodecontains=query)
                 | Q(customer__name__iunicodecontains=query)
@@ -9715,6 +9730,7 @@ class ContractListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView):
         context.update(
             {
                 "current_q": self.request.GET.get("q", ""),
+                "search_terms": search_terms(self.request) or [""],
                 "current_kind": self.request.GET.get("kind", ""),
                 "current_status": self.request.GET.get("status", ""),
                 "current_expeditor": current_expeditor,
@@ -10176,8 +10192,8 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
             Driver.objects.annotate(shipment_count=Count("shipments"))
             .order_by(self.ordering_field)
         )
-        query = self.request.GET.get("q", "").strip()
-        if query:
+        queries = search_terms(self.request)
+        for query in queries:
             condition = Q()
             for field in self.search_fields:
                 condition |= Q(**{f"{field}__iunicodecontains": query})
@@ -10264,6 +10280,7 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
                     employments__is_active=True
                 ).values("employments__carrier_id").distinct().count(),
                 "current_active": self.request.GET.get("active", ""),
+                "search_terms": search_terms(self.request) or [""],
             }
         )
         return context
