@@ -4253,6 +4253,18 @@ class ReconciliationActListView(LoginRequiredMixin, FinanceAccessMixin, Persiste
         status = self.request.GET.get("status", "").strip()
         owner = self.request.GET.get("owner", "").strip()
         currency = self.request.GET.get("currency", "").strip().upper()
+        trip_date_type = self.request.GET.get("date_type", "unloading").strip()
+        trip_date_from_raw = self.request.GET.get("date_from", "").strip()
+        trip_date_to_raw = self.request.GET.get("date_to", "").strip()
+        trip_date_from = parse_crm_date(trip_date_from_raw) if trip_date_from_raw else None
+        trip_date_to = parse_crm_date(trip_date_to_raw) if trip_date_to_raw else None
+        trip_date_fields = {
+            "application": "document_date",
+            "loading": "planned_start_date",
+            "unloading": "planned_end_date",
+        }
+        if trip_date_type not in trip_date_fields:
+            trip_date_type = "unloading"
         query = self.request.GET.get("q", "").strip()
         if status in ReconciliationAct.Status.values:
             queryset = queryset.filter(status=status)
@@ -5459,6 +5471,10 @@ class ProfitabilityReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateVi
         currency = get_currency_filter(self.request, default="RUB")
         if currency:
             queryset = queryset.filter(currency=currency)
+        if trip_date_from:
+            queryset = queryset.filter(**{f"{trip_date_fields[trip_date_type]}__gte": trip_date_from})
+        if trip_date_to:
+            queryset = queryset.filter(**{f"{trip_date_fields[trip_date_type]}__lte": trip_date_to})
         date_from_raw = self.request.GET.get("date_from", "").strip()
         date_to_raw = self.request.GET.get("date_to", "").strip()
         date_from = parse_crm_date(date_from_raw) if date_from_raw else None
@@ -7626,6 +7642,9 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
                 "current_status": self.request.GET.get("status", ""),
                 "current_owner": current_owner,
                 "current_scope": self.request.GET.get("scope", ""),
+                "current_date_type": self.request.GET.get("date_type", "unloading"),
+                "current_date_from": self.request.GET.get("date_from", ""),
+                "current_date_to": self.request.GET.get("date_to", ""),
                 "status_choices": Transportation.Status.choices,
                 "owners": Organization.objects.filter(is_own_company=True),
                 "transportation_count": all_transportations.count(),

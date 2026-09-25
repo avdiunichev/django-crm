@@ -573,6 +573,9 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.transportations-workspace-page .transportation-register-filters .search { width: 420px !important; max-width: 100%; flex: 0 1 420px !important; }
     html body.transportations-workspace-page .transportation-register-filters select { width: 245px !important; max-width: 100%; flex: 0 1 245px !important; margin: 0 !important; }
     html body.transportations-workspace-page .transportation-register-filters :is(input, select) { height: 42px; }
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-type { width: 170px !important; flex-basis: 170px !important; }
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-input { width: 128px !important; flex-basis: 128px !important; }
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-apply { height: 42px; white-space: nowrap; }
     /* Hide only scrollbar chrome; do not disable scrolling or keyboard access. */
     html:has(body.crm-workspace-theme), body.crm-workspace-theme,
     body.crm-workspace-theme * { scrollbar-width: none !important; }
