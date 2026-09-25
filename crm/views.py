@@ -10448,15 +10448,35 @@ class DriverDetailView(PersonalDataViewMixin, LoginRequiredMixin, DetailView):
                 if client_party
                 else getattr(transportation.legacy_shipment, "customer", None)
             )
+            executor_party = next(
+                (
+                    party
+                    for party in transportation.parties.all()
+                    if party.is_active and party.role == TransportationParty.Role.EXECUTOR
+                ),
+                None,
+            )
+            assignment.trip_executor = (
+                executor_party.organization if executor_party else assignment.actual_carrier
+            )
         context["transportation_assignments"] = transportation_assignments
         transportation_ids = self.object.transportation_assignments.filter(
             is_active=True
         ).values("transportation_id")
+        transportation_totals = Transportation.objects.filter(
+            pk__in=transportation_ids
+        ).aggregate(
+            customer_total=Sum("customer_amount"),
+            executor_total=Sum("executor_amount"),
+        )
         context["transportation_total"] = (
-            Transportation.objects.filter(pk__in=transportation_ids).aggregate(
-                total=Sum("customer_amount")
-            )["total"]
-            or Decimal("0")
+            transportation_totals["customer_total"] or Decimal("0")
+        )
+        context["transportation_executor_total"] = (
+            transportation_totals["executor_total"] or Decimal("0")
+        )
+        context["transportation_margin_total"] = (
+            context["transportation_total"] - context["transportation_executor_total"]
         )
         context["shipment_count"] = self.object.shipments.count()
         context["transportation_count"] = self.object.transportation_assignments.filter(
