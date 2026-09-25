@@ -240,3 +240,66 @@ html[data-theme="dark"] body.organization-card-page .organization-profile-title-
 html[data-theme="dark"] body.organization-card-page .organization-profile-card, html[data-theme="dark"] body.organization-card-page .organization-view-section { border-color: #304054 !important; background: #151f2e !important; }
 html[data-theme="dark"] body.organization-card-page .organization-view-record, html[data-theme="dark"] body.organization-card-page .organization-view-role-box, html[data-theme="dark"] body.organization-card-page .organization-view-state-box { border-color: #304054; background: #192536; }
 @media (max-width: 720px) { body.organization-card-page .organization-profile { gap: 18px; } body.organization-card-page .organization-profile-title-line h1 { font-size: 23px; } body.organization-card-page .organization-profile-actions { width: 100%; justify-content: stretch; } body.organization-card-page .organization-profile-actions .uk-button { flex: 1 1 calc(50% - 5px); } body.organization-card-page .organization-profile-card, body.organization-card-page .organization-view-section { padding: 18px 16px; } body.organization-card-page .organization-view-grid, body.organization-card-page .organization-view-role-controls { padding: 0; } }
+
+/* Overview rebuilt on the same card rhythm as the driver profile. */
+body.organization-card-page .organization-profile { gap: 0; }
+body.organization-card-page .organization-profile-breadcrumb { margin-bottom: 28px; }
+body.organization-card-page .organization-profile-header { margin-bottom: 24px; }
+body.organization-card-page .organization-profile-tabs { margin: 0 0 24px; padding-left: 0; }
+body.organization-card-page .organization-profile-tabs > :first-child > a { padding-left: 0; }
+body.organization-card-page .organization-profile-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+    gap: 18px;
+}
+body.organization-card-page .organization-profile-personal { grid-row: span 2; }
+body.organization-card-page .organization-profile-data-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 18px;
+    margin: 0;
+}
+body.organization-card-page .organization-profile-data-grid .is-wide { grid-column: 1 / -1; }
+body.organization-card-page .organization-profile-data-grid dt {
+    margin-bottom: 6px;
+    color: var(--workspace-muted, #77767e);
+    font-size: 12px;
+}
+body.organization-card-page .organization-profile-data-grid dd {
+    margin: 0;
+    color: var(--workspace-text, #29292d);
+    font-size: 15px;
+    font-weight: 550;
+    overflow-wrap: anywhere;
+}
+body.organization-card-page .organization-profile-contact-list,
+body.organization-card-page .organization-profile-document-summary { display: grid; gap: 14px; }
+body.organization-card-page .organization-profile-contact-list > div,
+body.organization-card-page .organization-profile-document-summary > div {
+    padding-top: 12px;
+    border-top: 1px solid var(--workspace-line, #e9e7e7);
+}
+body.organization-card-page .organization-profile-contact-list > div:first-child,
+body.organization-card-page .organization-profile-document-summary > div:first-child { padding-top: 0; border-top: 0; }
+body.organization-card-page :is(.organization-profile-contact-list, .organization-profile-document-summary) :is(span, small) {
+    display: block;
+    color: var(--workspace-muted, #77767e);
+    font-size: 12px;
+}
+body.organization-card-page :is(.organization-profile-contact-list, .organization-profile-document-summary) strong {
+    display: block;
+    margin: 4px 0;
+    color: var(--workspace-text, #29292d);
+    font-size: 15px;
+    font-weight: 550;
+    overflow-wrap: anywhere;
+}
+body.organization-card-page .organization-profile-doc-summary .is-warning { color: #d10000 !important; font-weight: 650; }
+@media (max-width: 900px) {
+    body.organization-card-page .organization-profile-overview { grid-template-columns: 1fr; }
+    body.organization-card-page .organization-profile-personal { grid-row: auto; }
+}
+@media (max-width: 720px) {
+    body.organization-card-page .organization-profile-data-grid { grid-template-columns: 1fr; gap: 16px; }
+    body.organization-card-page .organization-profile-data-grid .is-wide { grid-column: auto; }
+}
