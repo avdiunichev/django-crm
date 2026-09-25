@@ -614,6 +614,50 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
         margin-top: 1px;
         padding-top: 4px;
     }
+    /* The transportation register follows the driver register behaviour:
+       records extend the page, while only the column header is pinned during
+       the normal document scroll. This avoids a second, cramped table scroll. */
+    @media (min-width: 961px) and (min-height: 650px) {
+        html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .main > .content {
+            height: auto;
+            min-height: calc(100dvh - 150px);
+            display: block;
+        }
+        html body.transportations-workspace-page .transportation-register-panel {
+            display: block;
+            margin-bottom: 0;
+            overflow: visible !important;
+        }
+        html body.transportations-workspace-page .transportation-register-panel .table-wrap {
+            overflow: visible;
+            max-height: none;
+        }
+        html body.transportations-workspace-page .transportation-register-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+        html body.transportations-workspace-page .transportation-register-table thead th {
+            position: static;
+            background: var(--workspace-soft, #f5f5f5);
+        }
+    }
+    /* Keep the frame deliberately strict, like the driver register. */
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page :is(.transportation-register-panel, .transportation-register-panel .table-wrap) {
+        border-radius: 0 !important;
+    }
+    @media (min-width: 721px) {
+        html body.transportations-workspace-page .transportation-register-table th {
+            padding: 10px !important;
+        }
+        html body.transportations-workspace-page .transportation-register-table td {
+            padding: 7px 10px !important;
+            vertical-align: top;
+        }
+        html body.transportations-workspace-page .transportation-register-table .transportation-register-finance { gap: 3px; }
+        html body.transportations-workspace-page .transportation-register-table .transportation-register-parties > strong { margin-bottom: 3px; }
+        html body.transportations-workspace-page .transportation-register-table .transportation-register-parties > small { margin-bottom: 3px; }
+    }
     /* Hide only scrollbar chrome; do not disable scrolling or keyboard access. */
     html:has(body.crm-workspace-theme), body.crm-workspace-theme,
     body.crm-workspace-theme * { scrollbar-width: none !important; }
