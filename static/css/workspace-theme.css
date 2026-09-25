@@ -335,7 +335,7 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body:is(.driver-directory-page, .vehicle-directory-page) .orders-page-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
     html body.driver-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
     html body.driver-directory-page .driver-register-filters {
-        display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
+        display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 6px !important;
         padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
     }
     html body.driver-directory-page .driver-register-filters .driver-search-field { position: relative; display: block; width: auto; max-width: none; flex: 1 1 420px; }
@@ -766,6 +766,9 @@ html[data-theme="dark"] body.crm-workspace-theme {
     }
     html body.driver-directory-page .driver-directory-table tbody tr.driver-license-expired-row > td {
         background: transparent !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table tr.driver-license-expired-row > td {
+        background: var(--workspace-surface) !important;
     }
 }
 
