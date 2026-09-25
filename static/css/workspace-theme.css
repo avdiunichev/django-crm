@@ -576,6 +576,44 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.transportations-workspace-page .transportation-register-filters .transportation-date-type { width: 170px !important; flex-basis: 170px !important; }
     html body.transportations-workspace-page .transportation-register-filters .transportation-date-input { width: 128px !important; flex-basis: 128px !important; }
     html body.transportations-workspace-page .transportation-register-filters .transportation-date-apply { height: 42px; white-space: nowrap; }
+    /* Dense but readable transportation register: preserve every column while
+       reducing vertical whitespace in the operational list. */
+    html body.transportations-workspace-page .transportation-register-table th {
+        padding: 11px 12px !important;
+        font-size: 11px;
+        line-height: 1.25;
+    }
+    html body.transportations-workspace-page .transportation-register-table td {
+        padding: 11px 12px !important;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+    html body.transportations-workspace-page .transportation-register-table td :is(strong, .route-compact, .primary-link) {
+        font-size: 12px;
+        line-height: 1.35;
+    }
+    html body.transportations-workspace-page .transportation-register-table td small {
+        margin-top: 2px;
+        font-size: 10px;
+        line-height: 1.3;
+    }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-trip > strong { margin-top: 3px; }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-parties > span,
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-finance span {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-parties > strong {
+        margin: 1px 0 5px;
+    }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-parties > small {
+        margin: -4px 0 5px;
+    }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-finance { gap: 4px; }
+    html body.transportations-workspace-page .transportation-register-table .transportation-register-finance .profit {
+        margin-top: 1px;
+        padding-top: 4px;
+    }
     /* Hide only scrollbar chrome; do not disable scrolling or keyboard access. */
     html:has(body.crm-workspace-theme), body.crm-workspace-theme,
     body.crm-workspace-theme * { scrollbar-width: none !important; }
