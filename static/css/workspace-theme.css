@@ -296,10 +296,14 @@ html body.uikit-theme.crm-workspace-theme .driver-profile-document-heading .driv
     line-height: normal;
 }
 html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters {
-    display: flex;
+    display: flex !important;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 6px !important;
+    padding: 0 !important;
+    margin: 0 0 24px;
+    border: 0 !important;
+    background: transparent !important;
 }
 html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-filters {
     display: flex;
@@ -323,25 +327,34 @@ html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-table
     html body.uikit-theme.crm-workspace-theme.tax-directory-page .tax-register-summary > div { text-align: left; }
 }
 html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: min(430px, 100%);
-    padding: 0 14px;
-    border: 1px solid var(--workspace-line);
-    border-radius: 10px;
-    background: var(--workspace-surface);
-}
-html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field .search {
-    min-width: 0;
-    height: 42px;
+    position: relative;
+    display: block;
+    width: auto;
+    max-width: none;
+    flex: 1 1 420px;
     padding: 0;
     border: 0;
     background: transparent;
 }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field > .uk-icon {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: var(--workspace-muted);
+    pointer-events: none;
+}
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field .search {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0;
+    height: 42px;
+    padding-left: 43px !important;
+}
 html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters > .uk-select { width: 210px; height: 42px; }
-html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action { height: 42px; white-space: nowrap; }
-html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action:last-child { margin-left: auto; }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action { flex: 0 0 auto; height: 42px; padding-inline: 16px; white-space: nowrap; }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-action:last-child { margin-left: 0; }
 @media (max-width: 720px) {
     html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-filters { display: grid; grid-template-columns: 1fr 1fr; }
     html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-search-field,

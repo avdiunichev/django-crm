@@ -11,7 +11,7 @@
     <select class="form-control uk-select" name="role" aria-label="Роль контрагента"><option value="">Все роли</option>{% for value,label in role_choices %}<option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="own" aria-label="Принадлежность компании"><option value="">Все компании</option><option value="1" {% if current_own == '1' %}selected{% endif %}>Только наши компании</option></select>
     <button class="uk-button uk-button-default organization-search-action" type="submit"><span uk-icon="search" aria-hidden="true"></span> Найти</button>
-    {% if current_q or current_role or current_own %}<a class="uk-button uk-button-default organization-search-action" href="{% url 'organization-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default organization-search-action" type="button" disabled>Сбросить</button>{% endif %}
+    {% if current_q or current_role or current_own %}<a class="uk-button uk-button-default organization-search-action" data-reset-filters href="{% url 'organization-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default organization-search-action" type="button" disabled>Сбросить</button>{% endif %}
     <a class="uk-button uk-button-default organization-search-action" href="{{ organization_export_url }}" data-organization-export data-export-url="{{ organization_export_url }}"><span uk-icon="download" aria-hidden="true"></span> Экспорт XLSX</a>
     <a class="uk-button uk-button-primary organization-search-action" href="{% url 'organization-create' %}">Создать контрагента</a>
 </form>
