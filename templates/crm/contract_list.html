@@ -5,7 +5,7 @@
 {% block title %}Договоры — Моя CRM{% endblock %}
 {% block content %}
 <section class="orders-workspace" aria-labelledby="contracts-title">
-<div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Документы <span>/</span> Договоры</div>
+<div class="orders-breadcrumb"><span uk-icon="git-fork"></span> Документы <span>/</span> Договоры</div>
 <header class="orders-page-header"><div><div class="orders-title-line"><h1 id="contracts-title">Договоры</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Договоры с клиентами, перевозчиками и экспедиторами в одном месте.</p></div><div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div></header>
 <form class="filters order-register-filters contract-register-filters" method="get" data-filter-text-submit="enter">
     <label class="orders-search"><span uk-icon="search" aria-hidden="true"></span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН" aria-label="Поиск договора"></label>

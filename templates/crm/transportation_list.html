@@ -4,7 +4,7 @@
 {% block body_class %}transportations-workspace-page{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1">{% endblock %}
 {% block content %}
-<div class="orders-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Операции <span aria-hidden="true">/</span> Рейсы</div>
+<div class="orders-breadcrumb"><span uk-icon="git-fork"></span> Операции <span aria-hidden="true">/</span> Рейсы</div>
 <header class="orders-page-header">
 <div><div class="orders-title-line"><h1 id="transportations-title">Рейсы</h1><span class="orders-count">{{ transportation_count }}</span></div><p>Маршруты, участники, документы и финансы перевозок в одном месте.</p></div>
 <div class="orders-page-actions"><a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}" data-accounting-document-create data-create-url="{% url 'shipment-document-create-general' %}">Создать документ</a><a class="uk-button uk-button-default" href="{{ transportation_export_url }}" data-transportation-export data-export-url="{{ transportation_export_url }}">Экспорт XLSX</a><a class="uk-button uk-button-primary order-register-create transportation-register-create" href="{% url 'order-create' %}" data-order-create-modal><span uk-icon="plus"></span> Создать заказ</a></div>
