@@ -543,4 +543,16 @@ html[data-theme="dark"] body.crm-workspace-theme {
         display: block;
         line-height: 1.45;
     }
+    /* Touch browsers keep :hover after a tap. A directory row is a card on
+       mobile, so do not tint it as if it remained hovered. */
+    html body.driver-directory-page .driver-directory-table tbody tr:not(.driver-license-expired-row),
+    html body.driver-directory-page .driver-directory-table tbody tr:not(.driver-license-expired-row):hover {
+        background: var(--workspace-surface) !important;
+    }
+    html body.driver-directory-page .driver-directory-table td {
+        background: transparent !important;
+    }
+    html body.driver-directory-page .driver-directory-table tbody tr.driver-license-expired-row > td {
+        background: #fff2f2 !important;
+    }
 }
