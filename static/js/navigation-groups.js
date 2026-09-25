@@ -1,8 +1,5 @@
 /* Progressive enhancement: without JavaScript all permitted links stay visible. */
 (() => {
-    // Desktop navigation is intentionally flat: every relevant destination is
-    // visible at once. Collapsible groups are reserved for narrow screens.
-    if (!window.matchMedia('(max-width: 959px)').matches) return;
     document.querySelectorAll('.mobile-nav-list').forEach((nav) => {
         nav.querySelectorAll(':scope > .mobile-nav-group').forEach((heading) => {
             const group = document.createElement('details');
