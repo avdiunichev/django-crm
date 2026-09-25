@@ -150,3 +150,43 @@ html[data-theme="dark"] body.transportation-card-page .trip-profile-card { borde
 
 @media (max-width: 1100px) { body.transportation-card-page .trip-profile-summary .transportation-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:nth-child(4) { border-left: 0; margin-top: 16px; padding-left: 0; } }
 @media (max-width: 720px) { body.transportation-card-page .trip-profile { gap: 18px; } body.transportation-card-page .trip-profile-header { gap: 16px; } body.transportation-card-page .trip-profile-title-line h1 { font-size: 23px; } body.transportation-card-page .trip-profile-actions { width: 100%; justify-content: stretch; } body.transportation-card-page .trip-profile-actions .uk-button, body.transportation-card-page .trip-profile-actions .inline-form { flex: 1 1 calc(50% - 5px); } body.transportation-card-page .trip-profile-actions .inline-form .uk-button { width: 100%; } body.transportation-card-page .trip-profile-card { padding: 18px 16px; } body.transportation-card-page .trip-profile-summary .transportation-summary-grid { grid-template-columns: 1fr; } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div, body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:nth-child(4) { margin-top: 0; padding: 12px 0; border-left: 0; border-top: 1px solid var(--workspace-line, #e9e7e7); } body.transportation-card-page .trip-profile-summary .transportation-summary-grid > div:first-child { padding-top: 0; border-top: 0; } body.transportation-card-page .trip-profile-tabs > * > a { padding: 0 12px 10px; } }
+/* Operational workspace: one overview, separate documents and accounting. */
+body.uikit-theme .trip-workspace { color: var(--workspace-text,#29292d); gap: 24px; }
+.trip-workspace nav, .trip-work-header p { color: var(--workspace-muted,#77767e); font-size:13px; }
+.trip-work-header { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap; }
+.trip-work-header h1 { font-size:30px; margin:0 0 8px; font-weight:650; }
+.trip-work-actions { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; }
+.trip-more { position:relative; }
+.trip-more > div { position:absolute; right:0; top:100%; z-index:1100; width:280px; padding:16px; background:var(--workspace-surface,#fff); border:1px solid var(--workspace-line,#e9e7e7); border-radius:12px; box-shadow:0 12px 32px #0002; display:grid; gap:12px; }
+.trip-more .uk-button { width:100%; }
+body.uikit-theme .trip-workspace .trip-work-tabs { margin:0; }
+.trip-work-tabs a { text-transform:none; }
+.trip-work-tabs .uk-active a { border-color:#d10000; }
+.trip-work-layout { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:20px; align-items:start; }
+.trip-work-main,.trip-work-sidebar { display:grid; gap:20px; min-width:0; }
+body.uikit-theme .trip-workspace .panel,body.uikit-theme .trip-workspace .transport-chain-panel,body.uikit-theme .trip-workspace .transportation-status-progress { margin:0!important; padding:24px!important; border-radius:12px!important; background:var(--workspace-surface,#fff)!important; border-color:var(--workspace-line,#e9e7e7)!important; min-width:0; }
+.trip-workspace h2 { font-size:18px; font-weight:600; }
+.trip-workspace h3 { font-size:15px; }
+.trip-workspace .section-title { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; }
+.trip-workspace .transport-chain { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.trip-workspace .transport-chain-arrow { display:none; }
+.trip-workspace .transport-chain-node { width:auto; min-width:0; }
+.trip-workspace .transport-chain-node a,.trip-workspace strong,.trip-workspace dd { white-space:normal!important; text-overflow:clip!important; overflow-wrap:anywhere; max-width:none!important; }
+.trip-workspace .route-stop-list { display:grid; gap:12px; }
+body.uikit-theme .trip-workspace .route-stop-list article { display:flex; gap:16px; padding:18px; border-left:3px solid #d10000!important; background:var(--workspace-soft,#f6f5f5)!important; }
+.trip-workspace .route-stop-list article > div { min-width:0; }
+.trip-workspace .route-stop-list p { margin:6px 0; }
+.trip-workspace .route-stop-list h3 { margin:5px 0; }
+.trip-workspace .onec-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.trip-workspace dt { color:var(--workspace-muted,#77767e); font-size:12px; }
+.trip-workspace dd { margin:4px 0 16px; }
+.trip-next-actions { display:grid; gap:10px; }
+.trip-next-actions .uk-button { width:100%; white-space:normal; line-height:1.5; padding:10px; }
+.trip-work-sidebar .transportation-status-progress { display:block; }
+.trip-work-sidebar .transportation-status-progress strong { display:block; margin:8px 0; }
+.trip-work-sidebar ul { padding-left:18px; font-size:13px; }
+.trip-workspace .table-wrap { max-width:100%; overflow:auto; }
+.trip-workspace #transportation-detail-tabs > li > .panel + .panel { margin-top:20px!important; }
+html[data-theme="dark"] .trip-workspace { --workspace-surface:#151f2e; --workspace-soft:#192536; --workspace-text:#edf2f8; --workspace-muted:#aab4c3; --workspace-line:#304054; }
+@media(max-width:1050px) { .trip-work-layout { grid-template-columns:1fr; } .trip-work-sidebar { grid-row:1; } }
+@media(max-width:650px) { .trip-work-header h1 { font-size:24px; } .trip-workspace .transport-chain,.trip-workspace .onec-details-grid { grid-template-columns:1fr; } body.uikit-theme .trip-workspace .panel,body.uikit-theme .trip-workspace .transport-chain-panel,body.uikit-theme .trip-workspace .transportation-status-progress { padding:16px!important; } .trip-work-tabs { flex-wrap:nowrap; overflow:auto; } .trip-work-tabs > li { flex-shrink:0; } }
