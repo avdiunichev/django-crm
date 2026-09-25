@@ -342,6 +342,21 @@ html[data-theme="dark"] body.uikit-theme .transportation-register-table .transpo
     font-weight: 600;
 }
 
+/* Автопарк использует ту же плотность и панель действий, что и водители. */
+@media (min-width: 721px) {
+    .uikit-theme .vehicle-register-filters { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; }
+    .uikit-theme .vehicle-register-filters .vehicle-search-field { flex: 1 1 auto; width: auto; max-width: none; }
+    .uikit-theme .vehicle-register-filters .vehicle-search-action { flex: 0 0 auto; white-space: nowrap; }
+}
+.uikit-theme .vehicle-directory-table { min-width: 1120px; table-layout: fixed; }
+.uikit-theme .vehicle-directory-table th:nth-child(1), .uikit-theme .vehicle-directory-table td:nth-child(1) { width: 44px; }
+.uikit-theme .vehicle-directory-table th:nth-child(2), .uikit-theme .vehicle-directory-table td:nth-child(2) { width: 150px; }
+.uikit-theme .vehicle-directory-table th:nth-child(3), .uikit-theme .vehicle-directory-table td:nth-child(3) { width: 30%; }
+.uikit-theme .vehicle-directory-table th:nth-child(4), .uikit-theme .vehicle-directory-table td:nth-child(4) { width: 22%; }
+.uikit-theme .vehicle-directory-table th:nth-child(5), .uikit-theme .vehicle-directory-table td:nth-child(5) { width: 205px; }
+.uikit-theme .vehicle-directory-table td { padding-top: 10px; padding-bottom: 10px; }
+.uikit-theme .vehicle-directory-table td > small { display: block; margin-top: 3px; color: #77869a; }
+
 @media (max-width: 1080px) {
     .uikit-theme .driver-register-filters,
     .uikit-theme .vehicle-register-filters,

@@ -511,18 +511,19 @@ html body.uikit-theme.crm-workspace-theme.organization-directory-page .organizat
             position: static; background: var(--workspace-soft, #f5f5f5);
         }
         html body.uikit-theme.crm-workspace-theme.vehicle-directory-page .main > .content {
-            height: var(--register-height, calc(100dvh - 150px)); min-height: 0;
-            display: flex; flex-direction: column;
+            height: auto; min-height: calc(100dvh - 150px); display: block;
         }
-        html body.vehicle-directory-page .content > :not(.vehicle-register-panel) { flex-shrink: 0; }
         html body.vehicle-directory-page .vehicle-register-panel {
-            flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-bottom: 0;
+            display: block; margin-bottom: 0; overflow: visible !important;
         }
         html body.vehicle-directory-page .vehicle-register-panel .table-wrap {
-            flex: 1 1 auto; min-height: 0; overflow: auto; max-height: none;
+            overflow: visible; max-height: none;
+        }
+        html body.vehicle-directory-page .vehicle-directory-table thead {
+            position: sticky; top: 0; z-index: 3;
         }
         html body.vehicle-directory-page .vehicle-directory-table thead th {
-            position: sticky; top: 0; z-index: 2; background: var(--workspace-soft, #f5f5f5);
+            position: static; background: var(--workspace-soft, #f5f5f5);
         }
     }
     html body.crm-workspace-theme [data-driver-form] .driver-personal-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; border-bottom: 0; padding-bottom: 0; }

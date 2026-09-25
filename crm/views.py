@@ -11031,6 +11031,20 @@ class VehicleListView(SearchableDirectoryListView):
         "model", "body_type",
     )
     ordering_field = "registration_number"
+    sort_options = {
+        "number": ("registration_number", "pk"),
+        "vehicle": ("make", "model", "pk"),
+        "documents": ("insurance_expiry_date", "inspection_expiry_date", "pk"),
+        "status": ("is_active", "registration_number", "pk"),
+    }
+
+    def get_sorting(self):
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options:
+            return "number", False
+        return sort_key, descending
 
     def get_queryset(self):
         queryset = super().get_queryset().prefetch_related(
@@ -11050,7 +11064,11 @@ class VehicleListView(SearchableDirectoryListView):
         kind = self.request.GET.get("kind", "").strip()
         if kind in Vehicle.Kind.values:
             queryset = queryset.filter(kind=kind)
-        return queryset.distinct()
+        sort_key, descending = self.get_sorting()
+        ordering = self.sort_options[sort_key]
+        if descending:
+            ordering = tuple(f"-{field}" for field in ordering)
+        return queryset.distinct().order_by(*ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -11075,7 +11093,54 @@ class VehicleListView(SearchableDirectoryListView):
                 "vehicle_kinds": Vehicle.Kind.choices,
             }
         )
+        export_params = self.request.GET.copy()
+        export_params.pop("page", None)
+        export_params.pop("per_page", None)
+        export_query = export_params.urlencode()
+        context["vehicle_export_url"] = reverse("vehicle-export") + (
+            f"?{export_query}" if export_query else ""
+        )
+        sort_key, descending = self.get_sorting()
+        sort_columns = {}
+        for key in self.sort_options:
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if key != sort_key or descending else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": key == sort_key,
+                "label": "↓" if key == sort_key and descending else "↑",
+            }
+        context["sort_columns"] = sort_columns
         return context
+
+
+class VehicleExportView(VehicleListView):
+    """Export selected vehicles or the current filtered fleet to XLSX."""
+
+    paginate_by = None
+
+    def get(self, request, *args, **kwargs):
+        selected_ids = [int(value) for value in request.GET.getlist("ids") if value.isdigit()]
+        vehicles = self.get_queryset()
+        if selected_ids:
+            vehicles = vehicles.filter(pk__in=selected_ids)
+        rows = [[
+            "Госномер", "Тип", "Марка", "Модель", "Год", "VIN", "Кузов",
+            "Грузоподъёмность, кг", "Объём, м³", "Паллеты", "Страховка до",
+            "Техосмотр до", "Состояние",
+        ]]
+        for vehicle in vehicles:
+            rows.append([
+                vehicle.registration_number, vehicle.get_kind_display(), vehicle.make,
+                vehicle.model, vehicle.year or "", vehicle.vin, vehicle.body_type,
+                vehicle.capacity_kg, vehicle.volume_m3, vehicle.pallet_capacity,
+                vehicle.insurance_expiry_date, vehicle.inspection_expiry_date,
+                "В эксплуатации" if vehicle.is_active else "Неактивен",
+            ])
+        return _xlsx_response(
+            f"vehicles-{timezone.localdate():%Y%m%d}.xlsx", [("Автопарк", rows)]
+        )
 
 
 class VehicleDetailView(LoginRequiredMixin, DetailView):

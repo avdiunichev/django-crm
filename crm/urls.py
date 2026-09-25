@@ -607,6 +607,7 @@ urlpatterns = [
     path("drivers/<int:pk>/edit/", views.DriverUpdateView.as_view(), name="driver-update"),
     path("drivers/<int:pk>/delete/", views.DriverDeleteView.as_view(), name="driver-delete"),
     path("vehicles/", views.VehicleListView.as_view(), name="vehicle-list"),
+    path("vehicles/export/", views.VehicleExportView.as_view(), name="vehicle-export"),
     path("vehicles/new/", views.VehicleCreateView.as_view(), name="vehicle-create"),
     path(
         "vehicles/combinations/new/",
