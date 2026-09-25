@@ -348,7 +348,48 @@ body.organization-card-page .organization-profile-empty {
     color: var(--workspace-muted, #77767e);
     font-size: 14px;
 }
+/* Таблица договоров повторяет компактную подачу вкладки рейсов. */
+body.organization-card-page .organization-profile-contract-table-wrap {
+    overflow: auto;
+    border: 1px solid var(--workspace-line, #e9e7e7);
+    border-radius: 0;
+}
+body.organization-card-page .organization-profile-contract-table {
+    min-width: 850px;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+body.organization-card-page .organization-profile-contract-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 11px 14px;
+    color: var(--workspace-muted, #77767e);
+    background: var(--workspace-soft, #f6f5f5);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
+}
+body.organization-card-page .organization-profile-contract-table td {
+    padding: 12px 14px;
+    color: var(--workspace-text, #29292d);
+    font-size: 13px;
+    vertical-align: middle;
+}
+body.organization-card-page .organization-profile-contract-table td small {
+    display: block;
+    margin-top: 3px;
+    color: var(--workspace-muted, #77767e);
+    font-size: 11px;
+}
+body.organization-card-page .organization-profile-contract-table .primary-link { font-weight: 650; }
+body.organization-card-page .organization-profile-contract-empty { padding: 22px 14px !important; color: var(--workspace-muted, #77767e) !important; text-align: center; }
 html[data-theme="dark"] body.organization-card-page .organization-profile-document { border-color: #304054; background: #192536; }
+html[data-theme="dark"] body.organization-card-page .organization-profile-contract-table-wrap { border-color: #304054; }
+html[data-theme="dark"] body.organization-card-page .organization-profile-contract-table th { background: #192536; }
 html[data-theme="dark"] body.organization-card-page .organization-profile-document-heading strong,
 html[data-theme="dark"] body.organization-card-page .organization-profile-document dd { color: #edf2f8; }
 @media (max-width: 900px) {

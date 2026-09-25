@@ -6441,11 +6441,15 @@ class OrganizationDetailView(LoginRequiredMixin, DetailView):
         context["contacts"] = organization.contact_people.filter(is_active=True)
         context["bank_accounts"] = organization.bank_accounts.filter(is_active=True)
         context["requisite_changes"] = organization.requisite_changes.all()
-        context["contracts"] = Contract.objects.filter(
+        contracts = Contract.objects.filter(
             Q(customer__organization=organization)
             | Q(carrier__organization=organization)
             | Q(expeditor__organization=organization)
-        ).select_related("expeditor", "customer", "carrier", "vat_rate").distinct()
+        ).select_related("expeditor", "customer", "carrier", "vat_rate").distinct().order_by(
+            "-contract_date", "-pk"
+        )
+        context["contracts"] = contracts
+        context["contract_count"] = contracts.count()
         context["history"] = organization.change_history.select_related("changed_by")[:30]
         context["transportation_count"] = Transportation.objects.filter(
             parties__organization=organization,
