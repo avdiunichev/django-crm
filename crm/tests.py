@@ -2874,8 +2874,9 @@ class CrmTestCase(TestCase):
     def test_driver_directory_and_card_follow_counterparty_workspace(self):
         self.client.force_login(self.user)
         self.driver.tax_id = "770100000001"
+        self.driver.phone = "+7 911 194-76-10"
         self.driver.birth_date = date(1988, 4, 15)
-        self.driver.save(update_fields=["tax_id", "birth_date", "updated_at"])
+        self.driver.save(update_fields=["tax_id", "phone", "birth_date", "updated_at"])
         DriverPassport.objects.create(
             driver=self.driver,
             series="4501",
@@ -2910,6 +2911,10 @@ class CrmTestCase(TestCase):
         self.assertContains(listing, "77 01 654321")
         self.assertContains(listing, "Категории: B, C")
         self.assertContains(listing, "с 01.06.2022 по 01.06.2032")
+        compact_phone_listing = self.client.get(
+            reverse("driver-list"), {"q": "+79111947610"}
+        )
+        self.assertEqual(compact_phone_listing.context["page_obj"].paginator.count, 1)
         detail = self.client.get(reverse("driver-detail", args=[self.driver.pk]))
         self.assertContains(detail, "driver-view-workspace")
         self.assertContains(detail, "01 Основные данные")

@@ -21,7 +21,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import Case, Count, DecimalField, Exists, F, IntegerField, OuterRef, Prefetch, Q, Sum, Value, When
 from django.db.models.deletion import ProtectedError
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Replace
 from django.forms import HiddenInput
 from django.http import FileResponse, Http404, JsonResponse
 from django.http import HttpResponse
@@ -492,6 +492,7 @@ from .models import (
     DriverEmployment,
     DriverLicense,
     DriverPassport,
+    DriverPhone,
     DirectConversation,
     ForwardingOrder,
     Organization,
@@ -10161,17 +10162,71 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
     template_name = "crm/driver_list.html"
     context_object_name = "drivers"
     search_fields = (
-        "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
+        "full_name", "last_name", "first_name", "middle_name", "phone", "tax_id", "license_number",
         "license_categories", "licenses__number", "licenses__categories",
         "passports__series", "passports__number", "passports__issued_by",
+        "phone_numbers__phone",
     )
     ordering_field = "last_name"
 
     def get_queryset(self):
+        # Telephone and document numbers are commonly pasted without spaces,
+        # dashes or a leading plus. Search those values in a compact form too.
         queryset = (
-            super()
-            .get_queryset()
-            .prefetch_related(
+            Driver.objects.annotate(shipment_count=Count("shipments"))
+            .order_by(self.ordering_field)
+        )
+        query = self.request.GET.get("q", "").strip()
+        if query:
+            condition = Q()
+            for field in self.search_fields:
+                condition |= Q(**{f"{field}__iunicodecontains": query})
+
+            # Normalisation is meaningful for digit-based values only. Keeping
+            # text searches out of these relation annotations avoids duplicate
+            # rows when a name occurs alongside several document records.
+            compact_query = re.sub(r"\D", "", query)
+            if compact_query:
+                def compact_field(field_name):
+                    expression = F(field_name)
+                    for character in (" ", "-", "+", "(", ")", "/"):
+                        expression = Replace(expression, Value(character), Value(""))
+                    return expression
+
+                queryset = queryset.annotate(
+                    search_phone_compact=compact_field("phone"),
+                    search_license_compact=compact_field("license_number"),
+                    has_compact_extra_phone=Exists(
+                        DriverPhone.objects.filter(driver_id=OuterRef("pk"))
+                        .annotate(compact_value=compact_field("phone"))
+                        .filter(compact_value__contains=compact_query)
+                    ),
+                    has_compact_license=Exists(
+                        DriverLicense.objects.filter(driver_id=OuterRef("pk"))
+                        .annotate(compact_value=compact_field("number"))
+                        .filter(compact_value__contains=compact_query)
+                    ),
+                    has_compact_passport=Exists(
+                        DriverPassport.objects.filter(driver_id=OuterRef("pk"))
+                        .annotate(compact_value=compact_field("series"))
+                        .filter(
+                            Q(compact_value__contains=compact_query)
+                            | Q(number__contains=compact_query)
+                        )
+                    ),
+                )
+                condition |= (
+                    Q(search_phone_compact__contains=compact_query)
+                    | Q(search_license_compact__contains=compact_query)
+                    | Q(has_compact_extra_phone=True)
+                    | Q(has_compact_license=True)
+                    | Q(has_compact_passport=True)
+                    | Q(tax_id__contains=compact_query)
+                )
+            queryset = queryset.filter(condition)
+
+        queryset = (
+            queryset.prefetch_related(
                 Prefetch(
                     "passports",
                     queryset=DriverPassport.objects.filter(is_current=True),
