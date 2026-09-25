@@ -496,3 +496,174 @@ html[data-theme="dark"] body.crm-workspace-theme {
     html body.uikit-theme.crm-workspace-theme .uk-table td { padding-top: 10px; padding-bottom: 10px; }
     html body.uikit-theme.crm-workspace-theme .uk-modal-dialog { border-radius: 12px !important; }
 }
+
+/* Desktop workspace: compact dispatch-console composition. */
+@media (min-width: 1200px) {
+    html body.crm-workspace-theme {
+        --workspace-shell: #ebeae9;
+        --workspace-surface: #ffffff;
+        --workspace-soft: #f7f7f6;
+        --workspace-line: #e7e6e4;
+        --workspace-text: #1d1d20;
+        --workspace-muted: #85848a;
+        --workspace-accent: #d10000;
+        background: var(--workspace-shell) !important;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar {
+        width: 258px;
+        padding: 18px 14px;
+        background: #1b1b1c !important;
+        border: 0;
+        color: #f5f5f4;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar .brand {
+        min-height: 52px;
+        margin: 0 0 18px;
+        padding: 0 12px;
+        border-radius: 10px;
+        background: #29292a;
+        color: #fff;
+        font-size: 14px;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar .brand img { width: 30px; height: 30px; }
+    html body.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list { gap: 3px; }
+    html body.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-group {
+        margin: 14px 8px 4px;
+        padding: 13px 4px 0;
+        border-top: 1px solid #343435;
+        color: #89898e;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a {
+        display: flex;
+        align-items: center;
+        min-height: 38px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: #d5d5d7;
+        font-size: 13px;
+        transition: background .15s ease, color .15s ease;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a:hover {
+        background: #282829;
+        color: #fff;
+    }
+    html body.crm-workspace-theme .crm-desktop-sidebar .mobile-nav-list a.is-active {
+        background: #302727;
+        color: #fff;
+        box-shadow: inset 3px 0 0 var(--workspace-accent);
+        font-weight: 650;
+    }
+    html body.crm-workspace-theme .app-shell-topnav > .main {
+        margin-left: 258px;
+        padding: 18px 20px 20px;
+        background: var(--workspace-shell);
+    }
+    html body.crm-workspace-theme .app-shell-topnav .main > .content {
+        min-height: calc(100vh - 108px);
+        padding: 34px 38px 36px;
+        border-radius: 24px;
+        background: var(--workspace-surface);
+        box-shadow: 0 1px 0 rgba(0, 0, 0, .03);
+    }
+    html body.crm-workspace-theme .app-shell-topnav > .crm-topnav {
+        min-height: 72px;
+        margin-left: 258px;
+        width: calc(100% - 258px);
+        padding: 12px 28px;
+        border: 0;
+        background: var(--workspace-shell);
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+    html body.crm-workspace-theme .crm-topnav-tools > :is(.theme-switcher, .topnav-logout-button, form) {
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, .03);
+    }
+    html body.crm-workspace-theme :is(.orders-breadcrumb, .contract-form-breadcrumb) {
+        margin-bottom: 24px;
+        color: var(--workspace-muted);
+        font-size: 12px;
+    }
+    html body.crm-workspace-theme :is(.orders-page-header, .page-heading, .directory-titlebar) { margin-bottom: 26px; }
+    html body.crm-workspace-theme :is(.orders-page-header h1, .page-heading h1, .directory-titlebar h1) {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -.9px;
+    }
+    html body.crm-workspace-theme .orders-count {
+        min-height: 23px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: #f1f0f0;
+        color: #75747a;
+        font-size: 12px;
+    }
+    html body.crm-workspace-theme :is(.orders-page-actions, .form-command-buttons, .order-command-actions) { gap: 8px; }
+    html body.crm-workspace-theme .uk-button {
+        min-height: 40px;
+        padding: 0 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+    html body.crm-workspace-theme .uk-button-primary {
+        border-color: var(--workspace-accent) !important;
+        background: var(--workspace-accent) !important;
+        color: #fff !important;
+        box-shadow: none;
+    }
+    html body.crm-workspace-theme .uk-button-primary:hover { background: #ad0000 !important; }
+    html body.crm-workspace-theme .uk-button-default {
+        border-color: var(--workspace-line) !important;
+        background: #fff !important;
+        color: var(--workspace-text) !important;
+    }
+    html body.crm-workspace-theme .order-register-filters,
+    html body.crm-workspace-theme :is(.driver-register-filters, .vehicle-register-filters, .transportation-register-filters) {
+        gap: 10px !important;
+        margin-bottom: 20px;
+    }
+    html body.crm-workspace-theme :is(.uk-input, .uk-select, .uk-textarea) {
+        border-color: var(--workspace-line);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: none;
+        color: var(--workspace-text);
+    }
+    html body.crm-workspace-theme :is(.uk-input, .uk-select) { min-height: 40px; }
+    html body.crm-workspace-theme :is(.uk-input, .uk-select, .uk-textarea):focus {
+        border-color: var(--workspace-accent);
+        box-shadow: 0 0 0 3px #d1000014;
+    }
+    html body.crm-workspace-theme :is(.order-register-panel, .driver-register-panel, .vehicle-register-panel, .transportation-register-panel) {
+        border: 1px solid var(--workspace-line);
+        border-radius: 12px !important;
+        box-shadow: none;
+        overflow: hidden;
+    }
+    html body.crm-workspace-theme .order-register-table thead th {
+        height: 50px;
+        background: #f7f7f6 !important;
+        color: #77767c !important;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    html body.crm-workspace-theme .order-register-table td { padding-top: 12px; padding-bottom: 12px; }
+    html body.crm-workspace-theme .order-register-table tbody tr:hover td { background: #fafafa !important; }
+    html body.crm-workspace-theme .uk-label {
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 650;
+        text-transform: none;
+    }
+    html body.crm-workspace-theme .uk-label-success { background: #ecf8f1; color: #198754; }
+    html body.crm-workspace-theme .uk-label-warning { background: #fff2f2; color: #d10000; }
+    html body.crm-workspace-theme .uk-label-danger { background: #fff0f0; color: #d10000; }
+}
