@@ -3,7 +3,6 @@
 {% block body_class %}driver-card-page{% endblock %}
 {% block content %}
 <div class="driver-profile driver-view-workspace">
-    <div class="driver-profile-breadcrumb"><span uk-icon="icon: grid; ratio: .8"></span> Справочники <span>/</span> Водители <span>/</span> {{ driver.full_name }}</div>
     <header class="driver-profile-header">
         <div class="driver-profile-heading"><div><div class="driver-profile-title-line"><h1>{{ driver.full_name }}</h1>{% if driver.is_active %}<span class="driver-profile-status is-active">Активный</span>{% else %}<span class="driver-profile-status">Неактивен</span>{% endif %}</div><p>{% if driver.birth_date %}Дата рождения: {{ driver.birth_date|date:"d.m.Y" }}{% else %}Дата рождения не указана{% endif %}{% if driver.tax_id %} · ИНН {{ driver.tax_id }}{% endif %}</p></div></div>
         <div class="driver-profile-actions"><a class="uk-button uk-button-primary" href="{% url 'driver-update' driver.pk %}" data-driver-modal>Изменить</a><button class="uk-button uk-button-default copy-driver-data" type="button" data-copy-text="{{ driver_copy_text|escape }}">Скопировать данные</button><a class="uk-button uk-button-default" href="{% url 'transportation-create' %}">Новый рейс</a>{% if crm_access.can_delete_records %}<a class="uk-button uk-button-default driver-delete-button" href="{% url 'driver-delete' driver.pk %}">Удалить</a>{% endif %}<a class="uk-button uk-button-default" href="{% url 'driver-list' %}">Закрыть</a></div>
