@@ -119,8 +119,12 @@ class AddressFormatter:
         # The index is part of the postal address.  DaData keeps it as a
         # separate attribute, so add it explicitly to the normalized value.
         postal_code = cls.text(data.get("postal_code"))
-        if postal_code and not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
-            return f"{postal_code}, {address}" if address else postal_code
+        if postal_code:
+            # A manually entered or legacy value can already begin with an
+            # outdated index. Keep exactly the index returned by DaData.
+            address = re.sub(r"^(?:\d{6}\s*,\s*)+", "", address)
+            if not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
+                return f"{postal_code}, {address}" if address else postal_code
         return address
 
     @classmethod

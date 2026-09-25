@@ -541,6 +541,9 @@ class OrganizationForm(StyledModelForm):
                 self.initial["legal_address_meta"] = json.dumps(
                     address_values, ensure_ascii=False
                 )
+            # Render historical entries through the same normalizer as newly
+            # selected DaData suggestions, including one current postal code.
+            self.initial["legal_address"] = self.instance.formatted_legal_address
 
     def clean_kind(self):
         return self.cleaned_data.get("kind") or Organization.Kind.LEGAL_ENTITY

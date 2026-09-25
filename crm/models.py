@@ -385,8 +385,10 @@ class Organization(TimestampedModel):
             else self.legal_address
         )
         postal_code = (self.legal_address_postal_code or "").strip()
-        if postal_code and not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address or ""):
-            return f"{postal_code}, {address}" if address else postal_code
+        if postal_code:
+            address = re.sub(r"^(?:\d{6}\s*,\s*)+", "", address or "")
+            if not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
+                return f"{postal_code}, {address}" if address else postal_code
         return address
 
     def save(self, *args, **kwargs):
