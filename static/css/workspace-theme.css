@@ -220,10 +220,16 @@ html body.crm-workspace-theme :is(
     html body.uikit-theme.crm-workspace-theme .driver-directory-table :is(th, td).driver-register-select {
         width: 56px !important;
         min-width: 56px;
+        box-sizing: border-box;
         padding-left: 0 !important;
         padding-right: 0 !important;
         text-align: center;
         vertical-align: middle;
+    }
+    html body.uikit-theme.crm-workspace-theme .driver-directory-table .driver-register-select input {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 html[data-theme="dark"] body.crm-workspace-theme {
