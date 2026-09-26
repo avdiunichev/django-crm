@@ -2338,3 +2338,27 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
     .mailbox-directory-page .mailbox-register-filters .driver-search-field { flex-basis: 100%; }
     .mailbox-filter-spacer { display: none; }
 }
+
+/* Keep the transportation filter toolbar on one row on wide screens. This
+   belongs at the end to supersede legacy flex sizes declared above. */
+@media screen and (min-width: 1500px) {
+    html body.transportations-workspace-page .transportation-register-filters {
+        display: grid !important;
+        grid-template-columns: minmax(300px, 1.7fr) repeat(3, minmax(160px, .9fr)) repeat(2, minmax(130px, .72fr)) max-content;
+        align-items: center;
+        flex-wrap: nowrap !important;
+    }
+    html body.transportations-workspace-page .transportation-register-filters .search,
+    html body.transportations-workspace-page .transportation-register-filters select,
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-type,
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-input {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none;
+        flex: none !important;
+    }
+    html body.transportations-workspace-page .transportation-register-filters .transportation-date-apply {
+        grid-column: auto;
+        width: auto;
+    }
+}
