@@ -2381,3 +2381,20 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
         width: auto;
     }
 }
+
+/* One column map for both the header and body of the driver register. Older
+   rules described different column counts, which made the header look narrower
+   than the data table on wide screens. */
+@media screen and (min-width: 721px) {
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table {
+        width: 100% !important;
+        min-width: 1180px;
+        table-layout: fixed;
+    }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(1) { width: 56px !important; }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(2) { width: 20% !important; }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(3) { width: 25% !important; }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(4) { width: 22% !important; }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(5) { width: 14% !important; }
+    html body.uikit-theme.crm-workspace-theme.driver-directory-page .driver-directory-table :is(th, td):nth-child(6) { width: 15% !important; }
+}
