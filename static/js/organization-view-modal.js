@@ -178,12 +178,7 @@
         if (!form) throw new Error("Форма контрагента не найдена");
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page";
-        const close = document.createElement("button");
-        close.type = "button";
-        close.className = "uk-modal-close-default";
-        close.setAttribute("uk-close", "");
-        close.setAttribute("aria-label", "Закрыть");
-        dialog.append(close, form);
+        dialog.append(form);
         modalElement.replaceChildren(dialog);
         bindForm(dialog, sourceUrl);
         window.CRMUniversalSelects?.enhanceWithin?.(dialog);
@@ -201,7 +196,7 @@
             if (!response.ok) throw new Error();
             render(await response.text(), response.url || url);
         } catch (_error) {
-            modalElement.innerHTML = '<div class="uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page"><button class="uk-modal-close-default" type="button" uk-close aria-label="Закрыть"></button><div class="uk-alert-danger" uk-alert>Не удалось открыть карточку контрагента.</div></div>';
+            modalElement.innerHTML = '<div class="uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page"><div class="uk-alert-danger" uk-alert>Не удалось открыть карточку контрагента.</div><button class="uk-button uk-button-default uk-modal-close" type="button">Закрыть</button></div>';
         }
     };
 
