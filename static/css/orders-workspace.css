@@ -91,6 +91,9 @@ body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(8) { width: 160px; }
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(9) { width: 185px; }
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(10) { width: 160px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(6),
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(7),
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(8) { display: none; }
 body.orders-workspace-page .order-register-table td :is(strong, .route-compact, .primary-link) { font-size: 13px; font-weight: 550; line-height: 1.55; color: var(--orders-ink); }
 body.orders-workspace-page .order-register-table .primary-link:hover { color: #D10000; }
 body.orders-workspace-page .order-register-table td small { display: block; margin-top: 5px; font-size: 11px; line-height: 1.5; color: var(--orders-muted); }

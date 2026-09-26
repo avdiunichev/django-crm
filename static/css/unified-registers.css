@@ -146,7 +146,7 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
 
 /* Реестр рейсов: один ряд показывает операционную и финансовую картину рейса. */
-.uikit-theme .transportation-register-table { min-width: 1840px; table-layout: fixed; }
+.uikit-theme .transportation-register-table { min-width: 1320px; table-layout: fixed; }
 .uikit-theme .transportation-register-table th:nth-child(1),
 .uikit-theme .transportation-register-table td:nth-child(1) { width: 46px; }
 .uikit-theme .transportation-register-table th:nth-child(2),
@@ -163,6 +163,18 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 .uikit-theme .transportation-register-table td:nth-child(7) { width: 112px; }
 .uikit-theme .transportation-register-table th:nth-child(8),
 .uikit-theme .transportation-register-table td:nth-child(8) { width: 160px; }
+.uikit-theme .transportation-register-table th:nth-child(9),
+.uikit-theme .transportation-register-table td:nth-child(9) { width: 185px; }
+.uikit-theme .transportation-register-table th:nth-child(10),
+.uikit-theme .transportation-register-table td:nth-child(10) { width: 160px; }
+
+/* Номера документов и сроки оплаты не выводим в реестре: они остаются в карточке рейса. */
+.uikit-theme .transportation-register-table th:nth-child(6),
+.uikit-theme .transportation-register-table th:nth-child(7),
+.uikit-theme .transportation-register-table th:nth-child(8),
+.uikit-theme .transportation-register-table td:nth-child(6),
+.uikit-theme .transportation-register-table td:nth-child(7),
+.uikit-theme .transportation-register-table td:nth-child(8) { display: none; }
 .uikit-theme .transportation-register-table th:nth-child(9),
 .uikit-theme .transportation-register-table td:nth-child(9) { width: 185px; }
 .uikit-theme .transportation-register-table th:nth-child(10),
