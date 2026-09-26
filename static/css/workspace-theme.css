@@ -1296,6 +1296,12 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
 /* Keep these desktop dock rules last: legacy page styles also address the
    former top navigation controls. */
 @media screen and (min-width: 1200px) {
+    /* When a registry is scrolled, the space revealed above its card must
+       remain part of the neutral workspace rather than flash white. */
+    html body.uikit-theme.crm-workspace-theme .app-shell.app-shell-topnav,
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .crm-topnav {
+        background: var(--workspace-shell) !important;
+    }
     html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main > .content {
         min-height: calc(100dvh - 48px);
         padding: 32px;
