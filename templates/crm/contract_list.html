@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% load static crm_format %}
-{% block body_class %}orders-workspace-page contracts-register-page{% endblock %}
+{% block body_class %}organization-directory-page contracts-register-page{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260924-1"><link rel="stylesheet" href="{% static 'css/contracts-register.css' %}?v=20260925-1">{% endblock %}
 {% block title %}Договоры — Моя CRM{% endblock %}
 {% block content %}
-<section class="orders-workspace" aria-labelledby="contracts-title">
 <div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'shipment-document-list' %}">Документы</a><span aria-hidden="true">/</span><span aria-current="page">Договоры</span></div>
-<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="contracts-title">Договоры</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Договоры с клиентами, перевозчиками и экспедиторами в одном месте.</p></div><div class="orders-page-actions"><a class="uk-button uk-button-primary" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a></div></header>
-<form class="filters order-register-filters contract-register-filters" method="get" data-filter-text-submit="enter">
-    <label class="orders-search"><span uk-icon="search" aria-hidden="true"></span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН" aria-label="Поиск договора"></label>
+<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="contracts-title">Договоры</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Договоры с клиентами, перевозчиками и экспедиторами в одном месте.</p></div></header>
+<form class="filters order-register-filters organization-register-filters contract-register-filters" method="get" data-filter-text-submit="enter">
+    <label class="organization-search-field"><span uk-icon="search" aria-hidden="true"></span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН" aria-label="Поиск договора"></label>
     <select class="form-control uk-select" name="expeditor"><option value="">Все наши компании</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="kind"><option value="">Все типы</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if value == current_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-    <button class="uk-hidden" type="submit" tabindex="-1" aria-hidden="true">Найти</button>
-    {% if current_q or current_kind or current_status or current_expeditor %}<a class="clear-link" href="{% url 'contract-list' %}">Сбросить</a>{% endif %}
+    <button class="uk-button uk-button-default organization-search-action" type="submit"><span uk-icon="search" aria-hidden="true"></span> Найти</button>
+    {% if current_q or current_kind or current_status or current_expeditor %}<a class="uk-button uk-button-default organization-search-action" href="{% url 'contract-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default organization-search-action" type="button" disabled>Сбросить</button>{% endif %}
+    <a class="uk-button uk-button-primary organization-search-action" href="{% url 'contract-create' %}"><span uk-icon="plus"></span> Создать договор</a>
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel">
@@ -38,5 +38,4 @@
     </table></div>
 </section>
 {% include "crm/includes/pagination.html" %}
-</section>
 {% endblock %}

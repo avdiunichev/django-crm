@@ -1,7 +1,73 @@
-body.contracts-register-page #contracts-title { margin:0; font-size:28px; line-height:1.3; font-weight:650; letter-spacing:-.7px; color:var(--orders-ink); }
-body.contracts-register-page .contract-register-filters { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:0 0 24px; padding:0; background:transparent; border:0; box-shadow:none; }
-body.contracts-register-page .contract-register-table :is(th,td) { width:auto!important; }
-body.contracts-register-page .contract-register-table :is(th,td):first-child { min-width:150px; padding-left:18px; }
-body.contracts-register-page .contract-register-table :is(th,td):nth-child(3), body.contracts-register-page .contract-register-table :is(th,td):nth-child(4) { min-width:180px; }
-body.contracts-register-page .contract-register-table td:last-child { white-space:nowrap; }
-@media(max-width:650px) { body.contracts-register-page #contracts-title { font-size:24px; } body.contracts-register-page .contract-register-filters .uk-select, body.contracts-register-page .orders-search { flex:1 1 100%; width:100%; max-width:none; } }
+/* Contracts use the same register rhythm and typography as counterparties. */
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-filters > .uk-select { width: 210px; height: 42px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table {
+    min-width: 1180px;
+    table-layout: fixed;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page :is(.order-register-panel, .order-register-panel .table-wrap) {
+    border-radius: 0 !important;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table th {
+    padding: 11px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table td {
+    height: auto !important;
+    padding: 7px 10px !important;
+    vertical-align: top;
+    font-size: 13px;
+    line-height: 1.2;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table td small {
+    display: block;
+    margin-top: 1px;
+    color: var(--workspace-muted);
+    font-size: 11px;
+    line-height: 1.2;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(1) { width: 155px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(2) { width: 165px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(3) { width: 190px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(4) { width: 245px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(5) { width: 150px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(6) { width: 135px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(7) { width: 145px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(8) { width: 75px; white-space: nowrap; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    color: var(--workspace-text) !important;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.2;
+    text-transform: none;
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .badge::before {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2bbf88;
+    content: "";
+}
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-draft::before { background: var(--workspace-muted); }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-ready::before { background: #e29a38; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(.contract-status-terminated, .contract-status-archived)::before { background: #d10000; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .row-action {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 12px;
+}
+@media (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .organization-search-field,
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-filters > .uk-select,
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .organization-search-action { grid-column: 1 / -1; width: 100%; }
+}
