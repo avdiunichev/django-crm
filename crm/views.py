@@ -503,6 +503,7 @@ from .mailbox_client import (
     fetch_message,
     fetch_mailbox_counts,
     fetch_recent_inbox,
+    mark_messages_as_read,
     reply_address,
     send_message as send_mail_message,
     verify_mailbox_access,
@@ -2151,6 +2152,26 @@ class MailboxDeleteSelectedView(PersonalMailboxMixin, View):
                 else:
                     messages.success(request, f"Перемещено в удалённые: {deleted_count}.")
                 cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
+        return redirect(f"{reverse('mailbox')}?folder={folder}")
+
+
+class MailboxMarkReadView(PersonalMailboxMixin, View):
+    def post(self, request):
+        mailbox, password = self.get_mailbox()
+        folder = request.POST.get("folder", "inbox")
+        if folder not in self.mailbox_folders:
+            raise Http404("Папка не найдена.")
+        selected = request.POST.getlist("message_uids")
+        if not selected:
+            messages.error(request, "Выберите хотя бы одно письмо.")
+        else:
+            try:
+                marked_count = mark_messages_as_read(mailbox.email, password, folder, selected)
+            except (OSError, imaplib.IMAP4.error, ValueError):
+                messages.error(request, "Не удалось отметить выбранные письма как прочитанные.")
+            else:
+                cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
+                messages.success(request, f"Отмечено как прочитанные: {marked_count}.")
         return redirect(f"{reverse('mailbox')}?folder={folder}")
 
 

@@ -262,6 +262,21 @@ def delete_messages(email, app_password, folder, uids):
         _close_client(client)
 
 
+def mark_messages_as_read(email, app_password, folder, uids):
+    """Mark selected messages as read without fetching their full bodies."""
+    message_ids = [str(uid) for uid in uids if str(uid).isdigit()]
+    if not message_ids:
+        return 0
+    client = _open_folder(email, app_password, folder, readonly=False)
+    try:
+        status, _ = client.uid("store", ",".join(message_ids), "+FLAGS.SILENT", "(\\Seen)")
+        if status != "OK":
+            raise imaplib.IMAP4.error("Messages could not be marked as read")
+        return len(message_ids)
+    finally:
+        _close_client(client)
+
+
 def _message_body_and_attachments(message):
     plain_parts, html_parts, attachments = [], [], []
     part_index = -1
