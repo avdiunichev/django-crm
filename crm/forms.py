@@ -342,6 +342,22 @@ class StyledModelForm(forms.ModelForm):
         return cleaned
 
 
+class PersonalSettingsForm(forms.ModelForm):
+    """Fields a user may safely manage for their own CRM account."""
+
+    class Meta:
+        model = get_user_model()
+        fields = ("first_name", "last_name")
+        labels = {
+            "first_name": "Имя",
+            "last_name": "Фамилия",
+        }
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "uk-input", "autocomplete": "given-name"}),
+            "last_name": forms.TextInput(attrs={"class": "uk-input", "autocomplete": "family-name"}),
+        }
+
+
 class OrganizationRoleSelect(forms.Select):
     """Adds organization roles to options for client-side filtering."""
 

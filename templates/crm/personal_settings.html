@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Личный кабинет — CRM.Экспедитор{% endblock %}
+{% block body_class %}personal-settings-page{% endblock %}
+{% block content %}
+<div class="orders-breadcrumb"><span uk-icon="user"></span><span aria-current="page">Личный кабинет</span></div>
+<header class="orders-page-header"><div><h1>Личный кабинет</h1><p>Настройки вашей учётной записи и рабочего пространства.</p></div></header>
+<div class="personal-settings-layout">
+    <section class="personal-settings-card">
+        <div class="personal-settings-card-head"><span class="personal-settings-avatar is-large">{{ user.get_full_name|default:user.username|first|upper }}</span><div><h2>{{ user.get_full_name|default:user.username }}</h2><p>{{ user.email|default:"Почта не указана" }}</p></div></div>
+        <form method="post" class="personal-settings-form">{% csrf_token %}
+            {% for field in form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<small class="uk-text-danger">{{ error }}</small>{% endfor %}</label>{% endfor %}
+            <button class="uk-button uk-button-primary" type="submit">Сохранить настройки</button>
+        </form>
+    </section>
+    <section class="personal-settings-card personal-settings-info"><h2>Учётная запись</h2><dl><div><dt>Логин</dt><dd>{{ user.username }}</dd></div><div><dt>Роль в CRM</dt><dd>{{ profile.get_role_display }}</dd></div><div><dt>Электронная почта</dt><dd>{% if user.email %}<a href="{% url 'mailbox' %}">{{ user.email }}</a>{% else %}Не указана{% endif %}</dd></div></dl><p>Корпоративную почту, роль и права доступа назначает администратор. Для смены пароля обратитесь к администратору CRM.</p></section>
+</div>
+{% endblock %}

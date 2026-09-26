@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+import imaplib
 import json
 import mimetypes
 from pathlib import Path
@@ -18,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Case, Count, DecimalField, Exists, F, IntegerField, OuterRef, Prefetch, Q, Sum, Value, When
 from django.db.models.deletion import ProtectedError
@@ -472,6 +474,7 @@ from .forms import (
     OrganizationRequisiteChangeFormSet,
     OrganizationForm,
     PaymentForm,
+    PersonalSettingsForm,
     PlannerTaskForm,
     QuickOrganizationForm,
     ReconciliationActForm,
@@ -490,6 +493,7 @@ from .forms import (
     VehicleCombinationForm,
 )
 from .bank_import import parse_client_bank_exchange
+from .mailbox_client import decrypt_app_password, encrypt_app_password, fetch_recent_inbox, verify_mailbox_access
 from .models import (
     BankStatement,
     BankStatementLine,
@@ -1991,23 +1995,97 @@ class DirectoryHubView(LoginRequiredMixin, TemplateView):
 
 
 class MailboxView(LoginRequiredMixin, TemplateView):
-    """Personal mailbox entry point. OAuth activation is configured per deployment."""
+    """Personal mailbox entry point for the current CRM user."""
 
     template_name = "crm/mailbox.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         mailbox, _ = MailboxConnection.objects.get_or_create(user=self.request.user)
+        inbox_messages = []
+        inbox_error = False
+        mailbox_folder = self.request.GET.get("folder", "inbox")
+        if mailbox_folder not in {"inbox", "sent", "drafts"}:
+            mailbox_folder = "inbox"
+        if mailbox.is_connected and mailbox.encrypted_app_password:
+            try:
+                inbox_messages = fetch_recent_inbox(
+                    mailbox.email,
+                    decrypt_app_password(mailbox.encrypted_app_password),
+                    folder=mailbox_folder,
+                )
+            except (OSError, imaplib.IMAP4.error, ValueError):
+                inbox_error = True
         context.update(
             {
                 "mailbox": mailbox,
                 "mailbox_address": mailbox.email or self.request.user.email,
-                "oauth_ready": bool(
-                    getattr(settings, "VK_WORKSPACE_OAUTH_CLIENT_ID", "")
-                    and getattr(settings, "VK_WORKSPACE_OAUTH_CLIENT_SECRET", "")
-                ),
+                "inbox_messages": inbox_messages,
+                "inbox_error": inbox_error,
+                "mailbox_folder": mailbox_folder,
             }
         )
+        return context
+
+
+class MailboxConnectView(LoginRequiredMixin, View):
+    """Verify and store a revocable VK WorkSpace app password per user."""
+
+    def post(self, request):
+        email = (request.POST.get("email") or "").strip().lower()
+        app_password = request.POST.get("app_password") or ""
+        user_email = (request.user.email or "").strip().lower()
+        if user_email and email != user_email:
+            messages.error(request, "Можно подключить только личный адрес, указанный в вашей учётной записи CRM.")
+            return redirect("mailbox")
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Укажите корректный адрес корпоративной почты.")
+            return redirect("mailbox")
+        if not app_password:
+            messages.error(request, "Введите пароль для внешнего приложения.")
+            return redirect("mailbox")
+        try:
+            verify_mailbox_access(email, app_password)
+        except (OSError, imaplib.IMAP4.error):
+            messages.error(
+                request,
+                "Не удалось подключиться к ящику. Проверьте адрес и пароль приложения VK WorkSpace.",
+            )
+            return redirect("mailbox")
+
+        mailbox, _ = MailboxConnection.objects.get_or_create(user=request.user)
+        mailbox.email = email
+        mailbox.encrypted_app_password = encrypt_app_password(app_password)
+        mailbox.is_connected = True
+        mailbox.connected_at = timezone.now()
+        mailbox.last_synced_at = timezone.now()
+        mailbox.save()
+        messages.success(request, "Личный ящик VK WorkSpace подключён.")
+        return redirect("mailbox")
+
+
+class PersonalSettingsView(LoginRequiredMixin, UpdateView):
+    """Self-service settings without exposing role or access controls."""
+
+    form_class = PersonalSettingsForm
+    template_name = "crm/personal_settings.html"
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, "Личные настройки сохранены.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("personal-settings")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        context["profile"] = profile
         return context
 
 
@@ -8372,12 +8450,21 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         status = self.request.GET.get("status", "").strip()
         direction = self.request.GET.get("direction", "").strip()
         owner = self.request.GET.get("owner", "").strip()
+        query = self.request.GET.get("q", "").strip()
         if status in BankStatement.Status.values:
             queryset = queryset.filter(status=status)
         if direction in BankStatement.Direction.values:
             queryset = queryset.filter(direction=direction)
         if owner.isdigit():
             queryset = queryset.filter(owner_company_id=owner)
+        if query:
+            queryset = queryset.filter(
+                Q(number__icontains=query)
+                | Q(reference__icontains=query)
+                | Q(owner_company__name__icontains=query)
+                | Q(bank_account__bank_name__icontains=query)
+                | Q(bank_account__account_number__icontains=query)
+            )
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -8393,6 +8480,7 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 "current_status": self.request.GET.get("status", ""),
                 "current_direction": self.request.GET.get("direction", ""),
                 "current_owner": self.request.GET.get("owner", ""),
+                "current_query": self.request.GET.get("q", "").strip(),
                 "draft_count": scoped_statements.filter(
                     status=BankStatement.Status.DRAFT
                 ).count(),

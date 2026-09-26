@@ -31,6 +31,7 @@ from .accounting import post_bank_statement, post_transportation
 from .bank_import import parse_client_bank_exchange
 from .contracts import _contract_roles, _intro_text, genitive_full_name
 from .epd import epd_validation_errors, prepare_documents
+from .mailbox_client import decrypt_app_password
 from .orders import assign_order_to_transportation, sync_order_from_transportation
 from .models import (
     BankStatement,
@@ -6436,3 +6437,53 @@ class MailboxViewTests(TestCase):
         connection = MailboxConnection.objects.get(user=self.user)
         self.assertFalse(connection.is_connected)
         self.assertContains(response, "user@newproject-spb.ru")
+
+    @patch("crm.views.verify_mailbox_access")
+    def test_connect_saves_only_encrypted_app_password(self, verify_mailbox_access):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("mailbox-connect"),
+            {"email": "user@newproject-spb.ru", "app_password": "app-password-value"},
+        )
+
+        self.assertRedirects(response, reverse("mailbox"))
+        verify_mailbox_access.assert_called_once_with(
+            "user@newproject-spb.ru", "app-password-value"
+        )
+        connection = MailboxConnection.objects.get(user=self.user)
+        self.assertTrue(connection.is_connected)
+        self.assertNotEqual(connection.encrypted_app_password, "app-password-value")
+        self.assertEqual(decrypt_app_password(connection.encrypted_app_password), "app-password-value")
+
+    @patch("crm.views.verify_mailbox_access")
+    def test_connect_rejects_another_users_email(self, verify_mailbox_access):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("mailbox-connect"),
+            {"email": "colleague@newproject-spb.ru", "app_password": "app-password-value"},
+        )
+
+        self.assertRedirects(response, reverse("mailbox"))
+        verify_mailbox_access.assert_not_called()
+        self.assertFalse(MailboxConnection.objects.filter(user=self.user, is_connected=True).exists())
+
+
+class PersonalSettingsViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="settings-user",
+            email="settings@newproject-spb.ru",
+            password="test-password",
+        )
+        self.client.force_login(self.user)
+
+    def test_user_can_update_own_name(self):
+        response = self.client.post(
+            reverse("personal-settings"),
+            {"first_name": "Иван", "last_name": "Иванов"},
+        )
+
+        self.assertRedirects(response, reverse("personal-settings"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.get_full_name(), "Иван Иванов")
+        self.assertEqual(self.user.email, "settings@newproject-spb.ru")

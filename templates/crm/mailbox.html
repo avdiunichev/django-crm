@@ -2,7 +2,7 @@
 {% block title %}Электронная почта — CRM.Экспедитор{% endblock %}
 {% block body_class %}mailbox-page{% endblock %}
 {% block content %}
-<div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'directory-hub' %}">Справочники</a><span aria-hidden="true">/</span><span aria-current="page">Электронная почта</span></div>
+<div class="orders-breadcrumb"><span uk-icon="mail"></span><span aria-current="page">Электронная почта</span></div>
 <header class="orders-page-header mailbox-page-header">
     <div><h1>Электронная почта</h1><p>Ваш личный ящик VK WorkSpace. Письма доступны только вам.</p></div>
 </header>
@@ -27,17 +27,32 @@
     </div>
 
     {% if mailbox.is_connected %}
-        <div class="mailbox-empty-state"><span uk-icon="mail; ratio: 1.8"></span><h2>Синхронизация почты готова</h2><p>Входящие, отправленные и черновики появятся здесь после первой синхронизации.</p></div>
-    {% else %}
-        <div class="mailbox-setup-card">
-            <div><span class="mailbox-step">01</span><h2>Подключите личный ящик</h2><p>При подключении вы войдёте через VK WorkSpace. CRM не получает и не хранит пароль от вашей почты.</p></div>
-            {% if oauth_ready %}
-                <button class="uk-button uk-button-primary" type="button" disabled>Подключить VK WorkSpace</button>
+        <section class="mailbox-inbox" aria-label="Входящие">
+            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div>
+            <nav class="mailbox-folder-tabs" aria-label="Папки почты"><a class="{% if mailbox_folder == 'inbox' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a><a class="{% if mailbox_folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a><a class="{% if mailbox_folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a></nav>
+            {% if inbox_error %}
+                <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
+            {% elif inbox_messages %}
+                <div class="mailbox-message-list">
+                    {% for message in inbox_messages %}
+                        <article class="mailbox-message"><strong>{{ message.sender }}</strong><span>{{ message.subject }}</span><small>{{ message.date }}</small></article>
+                    {% endfor %}
+                </div>
             {% else %}
-                <button class="uk-button uk-button-default" type="button" disabled title="Требуется настройка OAuth на сервере">Подключить VK WorkSpace</button>
-                <small>Подключение будет доступно после настройки OAuth для домена newproject-spb.ru.</small>
+                <p class="mailbox-inbox-empty">Во входящих пока нет писем.</p>
             {% endif %}
-        </div>
+        </section>
+    {% else %}
+        <form class="mailbox-setup-card mailbox-connect-form" method="post" action="{% url 'mailbox-connect' %}">
+            {% csrf_token %}
+            <div><span class="mailbox-step">01</span><h2>Подключите личный ящик</h2><p>Используется отдельный пароль внешнего приложения VK WorkSpace. Основной пароль от почты CRM не получает и не хранит.</p></div>
+            <div class="mailbox-connect-fields">
+                <label>Адрес ящика<input class="uk-input" type="email" name="email" value="{{ mailbox_address }}" required autocomplete="email" {% if mailbox_address %}readonly{% endif %}></label>
+                <label>Пароль приложения<input class="uk-input" type="password" name="app_password" required autocomplete="new-password"></label>
+                <button class="uk-button uk-button-primary" type="submit">Подключить</button>
+            </div>
+            <small>Создайте отдельный пароль приложения в настройках безопасности VK WorkSpace. Его можно отозвать в любой момент.</small>
+        </form>
         <div class="mailbox-security-note"><span uk-icon="lock"></span><span><strong>Личная почта</strong> — другие пользователи CRM не смогут видеть ваши письма, адресатов или вложения.</span></div>
     {% endif %}
 </section>

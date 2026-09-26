@@ -370,6 +370,8 @@ urlpatterns = [
     ),
     path("directories/", views.DirectoryHubView.as_view(), name="directory-hub"),
     path("mail/", views.MailboxView.as_view(), name="mailbox"),
+    path("mail/connect/", views.MailboxConnectView.as_view(), name="mailbox-connect"),
+    path("settings/", views.PersonalSettingsView.as_view(), name="personal-settings"),
     path(
         "organizations/",
         views.OrganizationListView.as_view(),

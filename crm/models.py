@@ -181,6 +181,7 @@ class MailboxConnection(TimestampedModel):
     )
     email = models.EmailField("Адрес ящика", blank=True)
     is_connected = models.BooleanField("Подключена", default=False)
+    encrypted_app_password = models.TextField("Пароль приложения (зашифрован)", blank=True)
     connected_at = models.DateTimeField("Подключена", null=True, blank=True)
     last_synced_at = models.DateTimeField("Последняя синхронизация", null=True, blank=True)
 
