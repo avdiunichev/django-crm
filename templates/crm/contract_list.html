@@ -5,7 +5,7 @@
 {% block title %}Договоры — Моя CRM{% endblock %}
 {% block content %}
 <div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'shipment-document-list' %}">Документы</a><span aria-hidden="true">/</span><span aria-current="page">Договоры</span></div>
-<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="contracts-title">Договоры</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Договоры с клиентами, перевозчиками и экспедиторами в одном месте.</p></div></header>
+<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="organizations-title">Договоры</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>Договоры с клиентами, перевозчиками и экспедиторами в одном месте.</p></div></header>
 <form class="filters order-register-filters organization-register-filters contract-register-filters" method="get" data-filter-text-submit="enter">
     <label class="organization-search-field"><span uk-icon="search" aria-hidden="true"></span><input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Номер, контрагент или ИНН" aria-label="Поиск договора"></label>
     <select class="form-control uk-select" name="expeditor"><option value="">Все наши компании</option>{% for expeditor in expeditors %}<option value="{{ expeditor.pk }}" {% if current_expeditor == expeditor.pk|stringformat:'s' %}selected{% endif %}>{{ expeditor }}</option>{% endfor %}</select>
