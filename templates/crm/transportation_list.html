@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
         {% for transportation in transportations %}
             "{{ transportation.pk }}": {% with assignment=transportation.vehicle_assignments.all.0 %}{% if assignment %}{
                 driver: {% if assignment.driver_id %}{ name: "{{ assignment.driver.full_name|escapejs }}", url: "{{ assignment.driver.get_absolute_url }}" }{% else %}null{% endif %},
-                vehicle: {% if assignment.vehicle_id %}{ name: "{{ assignment.vehicle.registration_number|escapejs }}{% if assignment.vehicle.make or assignment.vehicle.model %} · {{ assignment.vehicle.make|escapejs }} {{ assignment.vehicle.model|escapejs }}{% endif %}", url: "{{ assignment.vehicle.get_absolute_url }}" }{% else %}null{% endif %}
+                vehicle: {% if assignment.vehicle_id %}{ name: "{{ assignment.vehicle.registration_number|escapejs }}{% if assignment.vehicle.make or assignment.vehicle.model %} · {{ assignment.vehicle.make|escapejs }} {{ assignment.vehicle.model|escapejs }}{% endif %}", url: "{{ assignment.vehicle.get_absolute_url }}" }{% else %}null{% endif %},
+                trailer: {% if assignment.trailer_id %}{ name: "{{ assignment.trailer.registration_number|escapejs }}{% if assignment.trailer.make or assignment.trailer.model %} · {{ assignment.trailer.make|escapejs }} {{ assignment.trailer.model|escapejs }}{% endif %}", url: "{{ assignment.trailer.get_absolute_url }}" }{% elif assignment.trailer_registration_number %}{ name: "{{ assignment.trailer_registration_number|escapejs }}", url: "" }{% else %}null{% endif %}
             }{% else %}null{% endif %}{% endwith %}{% if not forloop.last %},{% endif %}
         {% endfor %}
     };
@@ -38,12 +39,18 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.className = "transportation-register-driver-vehicle";
         const driver = assignment?.driver;
         const vehicle = assignment?.vehicle;
+        const trailer = assignment?.trailer;
         cell.innerHTML = driver
             ? `<strong><a href="${driver.url}">${driver.name}</a></strong>`
             : "<strong class=\"uk-text-muted\">Водитель не назначен</strong>";
         cell.insertAdjacentHTML("beforeend", vehicle
             ? `<small><a href="${vehicle.url}">${vehicle.name}</a></small>`
             : "<small>ТС не назначено</small>");
+        if (trailer) {
+            cell.insertAdjacentHTML("beforeend", trailer.url
+                ? `<small>Прицеп: <a href="${trailer.url}">${trailer.name}</a></small>`
+                : `<small>Прицеп: ${trailer.name}</small>`);
+        }
     });
 });
 </script>
