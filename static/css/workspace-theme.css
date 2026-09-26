@@ -1,5 +1,8 @@
 /* Shared CRM visual system. Layouts, actions, status meanings and print forms
    remain owned by their components. Loaded last to replace legacy chrome. */
+html:has(body.crm-workspace-theme) {
+    background: #f1f0f0;
+}
 body.crm-workspace-theme {
     --workspace-shell: #f1f0f0;
     --workspace-surface: #fff;
@@ -13,6 +16,7 @@ body.crm-workspace-theme {
     --workspace-radius: 12px;
     color: var(--workspace-text);
     background: var(--workspace-shell) !important;
+    min-height: 100dvh;
 }
 /* Desktop workspace shell: a calm dock on the left and a separate white
    working surface, so the navigation never competes with the document. */
