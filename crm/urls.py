@@ -371,6 +371,9 @@ urlpatterns = [
     path("directories/", views.DirectoryHubView.as_view(), name="directory-hub"),
     path("mail/", views.MailboxView.as_view(), name="mailbox"),
     path("mail/connect/", views.MailboxConnectView.as_view(), name="mailbox-connect"),
+    path("mail/compose/", views.MailboxComposeView.as_view(), name="mailbox-compose"),
+    path("mail/<str:folder>/<str:uid>/", views.MailboxMessageView.as_view(), name="mailbox-message"),
+    path("mail/<str:folder>/<str:uid>/attachment/<int:attachment_index>/", views.MailboxAttachmentView.as_view(), name="mailbox-attachment"),
     path("settings/", views.PersonalSettingsView.as_view(), name="personal-settings"),
     path(
         "organizations/",

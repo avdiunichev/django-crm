@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ message.subject }} — Электронная почта{% endblock %}
+{% block body_class %}mailbox-page{% endblock %}
+{% block content %}
+<div class="orders-breadcrumb"><span uk-icon="mail"></span><a href="{% url 'mailbox' %}?folder={{ folder }}">Электронная почта</a><span>/</span><span>{% if folder == 'sent' %}Отправленные{% elif folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</span></div>
+<section class="mailbox-message-view">
+    <header><div><span class="mailbox-kicker">{% if folder == 'sent' %}Кому{% else %}От кого{% endif %}</span><h1>{{ message.subject|default:"Без темы" }}</h1><p>{% if folder == 'sent' %}{{ message.recipient }}{% else %}{{ message.sender }}{% endif %} · {{ message.date }}</p></div><div class="mailbox-inbox-actions"><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ folder }}">К списку</a>{% if folder != 'drafts' %}<a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}?reply_folder={{ folder }}&reply_uid={{ message.uid }}">Ответить</a>{% endif %}</div></header>
+    <article class="mailbox-message-body">{{ message.body|linebreaksbr|default:"Текст письма отсутствует." }}</article>
+    {% if message.attachments %}<section class="mailbox-attachments"><h2>Вложения</h2><div>{% for attachment in message.attachments %}<a href="{% url 'mailbox-attachment' folder message.uid attachment.index %}"><span uk-icon="file-text"></span>{{ attachment.filename }}<small>{{ attachment.size|filesizeformat }}</small></a>{% endfor %}</div></section>{% endif %}
+</section>
+{% endblock %}

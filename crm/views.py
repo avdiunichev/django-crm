@@ -7,6 +7,7 @@ import json
 import mimetypes
 from pathlib import Path
 import re
+import smtplib
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape
 from xml.etree import ElementTree
@@ -493,7 +494,16 @@ from .forms import (
     VehicleCombinationForm,
 )
 from .bank_import import parse_client_bank_exchange
-from .mailbox_client import decrypt_app_password, encrypt_app_password, fetch_recent_inbox, verify_mailbox_access
+from .mailbox_client import (
+    decrypt_app_password,
+    encrypt_app_password,
+    fetch_attachment,
+    fetch_message,
+    fetch_recent_inbox,
+    reply_address,
+    send_message as send_mail_message,
+    verify_mailbox_access,
+)
 from .models import (
     BankStatement,
     BankStatementLine,
@@ -2063,6 +2073,95 @@ class MailboxConnectView(LoginRequiredMixin, View):
         mailbox.last_synced_at = timezone.now()
         mailbox.save()
         messages.success(request, "Личный ящик VK WorkSpace подключён.")
+        return redirect("mailbox")
+
+
+class PersonalMailboxMixin(LoginRequiredMixin):
+    mailbox_folders = {"inbox", "sent", "drafts"}
+
+    def get_mailbox(self):
+        mailbox = get_object_or_404(MailboxConnection, user=self.request.user, is_connected=True)
+        if not mailbox.encrypted_app_password:
+            raise PermissionDenied("Почтовый ящик не подключён.")
+        return mailbox, decrypt_app_password(mailbox.encrypted_app_password)
+
+    def get_folder(self):
+        folder = self.kwargs.get("folder") or self.request.GET.get("folder", "inbox")
+        if folder not in self.mailbox_folders:
+            raise Http404("Папка не найдена.")
+        return folder
+
+
+class MailboxMessageView(PersonalMailboxMixin, TemplateView):
+    template_name = "crm/mailbox_message.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        mailbox, password = self.get_mailbox()
+        folder = self.get_folder()
+        try:
+            message = fetch_message(mailbox.email, password, folder, self.kwargs["uid"])
+        except (OSError, imaplib.IMAP4.error, ValueError):
+            raise Http404("Письмо не найдено.")
+        context.update({"message": message, "folder": folder})
+        return context
+
+
+class MailboxAttachmentView(PersonalMailboxMixin, View):
+    def get(self, request, folder, uid, attachment_index):
+        mailbox, password = self.get_mailbox()
+        try:
+            filename, content_type, content = fetch_attachment(
+                mailbox.email, password, folder, uid, attachment_index
+            )
+        except (OSError, imaplib.IMAP4.error, ValueError, IndexError):
+            raise Http404("Вложение не найдено.")
+        response = HttpResponse(content, content_type=content_type)
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class MailboxComposeView(PersonalMailboxMixin, View):
+    template_name = "crm/mailbox_compose.html"
+
+    def get(self, request):
+        initial = {"to": request.GET.get("to", ""), "subject": request.GET.get("subject", "")}
+        if request.GET.get("reply_folder") and request.GET.get("reply_uid"):
+            mailbox, password = self.get_mailbox()
+            try:
+                original = fetch_message(
+                    mailbox.email, password, request.GET["reply_folder"], request.GET["reply_uid"]
+                )
+                initial["to"] = reply_address(original)
+                subject = original["subject"]
+                initial["subject"] = subject if subject.lower().startswith("re:") else f"Re: {subject}"
+            except (OSError, imaplib.IMAP4.error, ValueError):
+                messages.error(request, "Не удалось подготовить ответ на письмо.")
+        return render(request, self.template_name, {"initial": initial})
+
+    def post(self, request):
+        recipient = (request.POST.get("to") or "").strip()
+        subject = (request.POST.get("subject") or "").strip()
+        body = (request.POST.get("body") or "").strip()
+        attachments = request.FILES.getlist("attachments")
+        try:
+            validate_email(recipient)
+        except ValidationError:
+            messages.error(request, "Укажите корректный адрес получателя.")
+            return render(request, self.template_name, {"initial": request.POST})
+        if not subject and not body and not attachments:
+            messages.error(request, "Введите текст письма или прикрепите файл.")
+            return render(request, self.template_name, {"initial": request.POST})
+        if any(item.size > 10 * 1024 * 1024 for item in attachments):
+            messages.error(request, "Размер каждого вложения не должен превышать 10 МБ.")
+            return render(request, self.template_name, {"initial": request.POST})
+        mailbox, password = self.get_mailbox()
+        try:
+            send_mail_message(mailbox.email, password, recipient, subject, body, attachments)
+        except (OSError, smtplib.SMTPException):
+            messages.error(request, "Не удалось отправить письмо. Проверьте доступ к почте и повторите попытку.")
+            return render(request, self.template_name, {"initial": request.POST})
+        messages.success(request, "Письмо отправлено.")
         return redirect("mailbox")
 
 

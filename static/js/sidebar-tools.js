@@ -13,6 +13,7 @@
         header.insertBefore(returnPoint, tools);
         const desktopNavigation = sidebar.querySelector(".mobile-nav-list");
         const chat = desktopNavigation?.querySelector(':scope > a[href*="/chat"]');
+        const profile = tools.querySelector(".personal-settings-link");
         const chatReturnPoint = chat ? document.createComment("crm sidebar chat return point") : null;
         if (chat && chatReturnPoint) desktopNavigation.insertBefore(chatReturnPoint, chat);
 
@@ -21,7 +22,11 @@
                 if (chat) {
                     chat.classList.add("crm-dock-chat");
                     chat.dataset.chatPopup = "";
-                    tools.insertBefore(chat, tools.firstChild);
+                    if (profile) {
+                        tools.insertBefore(chat, profile.nextSibling);
+                    } else {
+                        tools.insertBefore(chat, tools.firstChild);
+                    }
                 }
                 sidebar.appendChild(tools);
             } else {

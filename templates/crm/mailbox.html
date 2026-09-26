@@ -28,14 +28,14 @@
 
     {% if mailbox.is_connected %}
         <section class="mailbox-inbox" aria-label="Входящие">
-            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div>
+            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><div class="mailbox-inbox-actions"><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}"><span uk-icon="plus"></span>Написать</a><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div></div>
             <nav class="mailbox-folder-tabs" aria-label="Папки почты"><a class="{% if mailbox_folder == 'inbox' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a><a class="{% if mailbox_folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a><a class="{% if mailbox_folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a></nav>
             {% if inbox_error %}
                 <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
             {% elif inbox_messages %}
                 <div class="mailbox-message-list">
                     {% for message in inbox_messages %}
-                        <article class="mailbox-message"><strong>{{ message.sender }}</strong><span>{{ message.subject }}</span><small>{{ message.date }}</small></article>
+                        <a class="mailbox-message" href="{% url 'mailbox-message' mailbox_folder message.uid %}"><strong>{{ message.sender }}</strong><span>{{ message.subject }}</span><small>{{ message.date }}</small></a>
                     {% endfor %}
                 </div>
             {% else %}

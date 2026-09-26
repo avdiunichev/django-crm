@@ -6467,6 +6467,43 @@ class MailboxViewTests(TestCase):
         verify_mailbox_access.assert_not_called()
         self.assertFalse(MailboxConnection.objects.filter(user=self.user, is_connected=True).exists())
 
+    def _connect_mailbox(self):
+        return MailboxConnection.objects.create(
+            user=self.user,
+            email=self.user.email,
+            is_connected=True,
+            encrypted_app_password="gAAAAABmailbox-test-value",
+        )
+
+    @patch("crm.views.decrypt_app_password", return_value="app-password-value")
+    @patch("crm.views.fetch_message")
+    def test_message_view_reads_only_current_users_mailbox(self, fetch_message, decrypt_password):
+        self._connect_mailbox()
+        fetch_message.return_value = {
+            "uid": "42", "sender": "sender@example.com", "recipient": self.user.email,
+            "cc": "", "subject": "Тест", "date": "Сегодня", "body": "Текст", "attachments": [],
+        }
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("mailbox-message", args=["inbox", "42"]))
+
+        self.assertEqual(response.status_code, 200)
+        fetch_message.assert_called_once_with(self.user.email, "app-password-value", "inbox", "42")
+
+    @patch("crm.views.decrypt_app_password", return_value="app-password-value")
+    @patch("crm.views.send_mail_message")
+    def test_compose_sends_from_current_users_mailbox(self, send_mail_message, decrypt_password):
+        self._connect_mailbox()
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("mailbox-compose"),
+            {"to": "recipient@example.com", "subject": "Тест", "body": "Текст"},
+        )
+
+        self.assertRedirects(response, reverse("mailbox"))
+        self.assertEqual(send_mail_message.call_args.args[:5], (self.user.email, "app-password-value", "recipient@example.com", "Тест", "Текст"))
+
 
 class PersonalSettingsViewTests(TestCase):
     def setUp(self):

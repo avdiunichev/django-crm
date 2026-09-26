@@ -2172,6 +2172,7 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .personal-settings-link > .uk-icon { color: var(--workspace-muted); }
 .personal-settings-avatar { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; display: inline-grid; place-items: center; color: var(--workspace-accent); background: var(--workspace-tint); font-size: 13px; font-weight: 700; }
 .personal-settings-avatar.is-large { width: 54px; height: 54px; flex-basis: 54px; font-size: 21px; }
+@media screen and (min-width: 1200px) { .crm-topnav-tools > .personal-settings-link { margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); border-radius: 0; } }
 .personal-settings-layout { max-width: 960px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 16px; }
 .personal-settings-card { padding: 24px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
 .personal-settings-card h2 { margin: 0; color: var(--workspace-text); font-size: 19px; }
@@ -2211,13 +2212,32 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 @media (max-width: 720px) { .personal-settings-layout { grid-template-columns: 1fr; } }
 .mailbox-inbox { border: 1px solid var(--workspace-line); border-radius: 12px; padding: 22px; background: var(--workspace-surface); }
 .mailbox-inbox-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--workspace-line); }
+.mailbox-inbox-actions { display: flex; align-items: center; gap: 8px; }
 .mailbox-inbox-heading h2 { margin: 4px 0 0; color: var(--workspace-text); font-size: 18px; }
 .mailbox-folder-tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
-.mailbox-message { display: grid; grid-template-columns: minmax(180px, .9fr) minmax(240px, 2fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--workspace-line); color: var(--workspace-text); font-size: 13px; }
+.mailbox-message { display: grid; grid-template-columns: minmax(180px, .9fr) minmax(240px, 2fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--workspace-line); color: var(--workspace-text); font-size: 13px; text-decoration: none; }
+.mailbox-message:hover { color: var(--workspace-text); background: var(--workspace-soft); }
 .mailbox-message:last-child { border-bottom: 0; }
 .mailbox-message span, .mailbox-message small, .mailbox-inbox-empty { color: var(--workspace-muted); }
+.mailbox-message-view, .mailbox-compose { max-width: 920px; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
+.mailbox-message-view > header, .mailbox-compose > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--workspace-line); }
+.mailbox-message-view h1, .mailbox-compose h1 { margin: 5px 0; color: var(--workspace-text); font-size: 26px; }
+.mailbox-message-view header p, .mailbox-compose header p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
+.mailbox-message-body { min-height: 180px; padding: 24px 0; color: var(--workspace-text); font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.mailbox-attachments { padding-top: 18px; border-top: 1px solid var(--workspace-line); }
+.mailbox-attachments h2 { margin: 0 0 10px; color: var(--workspace-text); font-size: 15px; }
+.mailbox-attachments > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.mailbox-attachments a { display: grid; grid-template-columns: auto 1fr; gap: 2px 7px; min-width: 180px; padding: 9px; border: 1px solid var(--workspace-line); border-radius: 8px; color: var(--workspace-text); font-size: 12px; text-decoration: none; }
+.mailbox-attachments a .uk-icon { grid-row: span 2; color: var(--workspace-accent); }
+.mailbox-attachments small { color: var(--workspace-muted); }
+.mailbox-compose form { display: grid; gap: 15px; margin-top: 22px; }
+.mailbox-compose label { display: grid; gap: 6px; color: var(--workspace-muted); font-size: 12px; font-weight: 600; }
+.mailbox-compose :is(.uk-input, .uk-textarea) { border-color: var(--workspace-line); color: var(--workspace-text); background: var(--workspace-soft); }
+.mailbox-file-input { padding: 12px; border: 1px dashed var(--workspace-line); border-radius: 8px; }
+.mailbox-file-input small { color: var(--workspace-muted); font-weight: 400; }
+.mailbox-compose-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 @media (max-width: 720px) {
     .mailbox-connection-card, .mailbox-setup-card { align-items: flex-start; flex-wrap: wrap; }
@@ -2225,4 +2245,6 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
     .mailbox-setup-card .uk-button { width: 100%; }
     .mailbox-connect-fields { width: 100%; }
     .mailbox-message { grid-template-columns: 1fr; gap: 4px; }
+    .mailbox-inbox-heading, .mailbox-message-view > header, .mailbox-compose > header { align-items: stretch; flex-direction: column; }
+    .mailbox-inbox-actions { flex-wrap: wrap; }
 }
