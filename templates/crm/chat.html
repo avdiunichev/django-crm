@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Чат сотрудников — Моя CRM{% endblock %}
+{% block body_class %}{% if request.GET.embed %}chat-embed-page{% endif %}{% endblock %}
 {% block content %}
 <div class="page-heading"><div><span class="eyebrow">Команда</span><h1>Чат сотрудников</h1><p>Внутренняя переписка пользователей CRM.</p></div></div>
 

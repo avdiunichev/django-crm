@@ -175,6 +175,94 @@ body.crm-workspace-theme {
     html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar { background: #202329 !important; }
 }
 
+/* Chat is available without leaving the current register or card. */
+.crm-chat-popup[hidden] { display: none; }
+.crm-chat-popup {
+    position: fixed;
+    z-index: 2200;
+    inset: 0;
+}
+.crm-chat-popup-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 15, 16, .42);
+    cursor: default;
+}
+.crm-chat-popup-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
+    width: min(940px, calc(100vw - 40px));
+    display: grid;
+    grid-template-rows: 52px minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--workspace-line);
+    border-radius: 14px;
+    background: var(--workspace-surface);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .28);
+}
+.crm-chat-popup-panel > header {
+    padding: 0 16px 0 18px;
+    border-bottom: 1px solid var(--workspace-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--workspace-text);
+}
+.crm-chat-popup-panel > header > span { display: inline-flex; align-items: center; gap: 10px; }
+.crm-chat-popup-panel > header a {
+    color: var(--workspace-muted);
+    font-size: 12px;
+    text-decoration: none;
+}
+.crm-chat-popup-panel > header a:hover { color: var(--workspace-accent); }
+.crm-chat-popup-panel > header button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    color: var(--workspace-muted);
+    background: transparent;
+    font-size: 23px;
+    line-height: 1;
+    cursor: pointer;
+}
+.crm-chat-popup-panel > header button:hover { color: var(--workspace-text); background: var(--workspace-soft); }
+.crm-chat-popup-panel iframe { width: 100%; height: 100%; border: 0; background: var(--workspace-surface); }
+body.chat-popup-is-open { overflow: hidden; }
+
+/* The frame is a focused chat workspace, without duplicate CRM chrome. */
+html body.chat-embed-page .crm-topnav,
+html body.chat-embed-page .crm-desktop-sidebar { display: none !important; }
+html body.chat-embed-page .app-shell-topnav > .main {
+    min-height: 100dvh;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    background: var(--workspace-surface) !important;
+}
+html body.chat-embed-page .main > .content {
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+html body.chat-embed-page .page-heading { display: none; }
+html body.chat-embed-page .chat-shell {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+@media (max-width: 720px) {
+    .crm-chat-popup-panel { inset: 0; width: auto; border: 0; border-radius: 0; }
+    .crm-chat-popup-panel > header a { display: none; }
+}
+
 /* Dark mode uses a separate visual language: Deep Black, Off-white and
    Vibrant Violet from the approved palette. Red remains the light-theme
    brand accent only and is never used for interface emphasis in dark mode. */

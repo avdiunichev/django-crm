@@ -20,6 +20,7 @@
             if (desktopBreakpoint.matches) {
                 if (chat) {
                     chat.classList.add("crm-dock-chat");
+                    chat.dataset.chatPopup = "";
                     tools.insertBefore(chat, tools.firstChild);
                 }
                 sidebar.appendChild(tools);
@@ -27,6 +28,7 @@
                 header.insertBefore(tools, returnPoint.nextSibling);
                 if (chat && chatReturnPoint) {
                     chat.classList.remove("crm-dock-chat");
+                    delete chat.dataset.chatPopup;
                     desktopNavigation.insertBefore(chat, chatReturnPoint.nextSibling);
                 }
             }
