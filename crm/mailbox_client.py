@@ -135,6 +135,14 @@ def _html_to_text(value):
     return parser.text()
 
 
+def _mailbox_party(raw_value):
+    """Return a clean display name and address for a mailbox table row."""
+    raw_value = raw_value or ""
+    raw_name, address = parseaddr(raw_value)
+    display_name = _decode_header(raw_name).strip() or address or _decode_header(raw_value).strip()
+    return display_name, address
+
+
 def _open_folder(email, app_password, folder, readonly=True):
     client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
     client.login(email, app_password)
@@ -198,9 +206,13 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
                 received_at = parsedate_to_datetime(message.get("Date"))
             except (TypeError, ValueError, IndexError):
                 received_at = None
+            sender_value = message.get("To") if folder == "sent" else message.get("From")
+            sender_name, sender_email = _mailbox_party(sender_value)
             messages.append({
                 "uid": uid,
-                "sender": _decode_header(message.get("From")),
+                "sender": _decode_header(sender_value),
+                "sender_name": sender_name,
+                "sender_email": sender_email if sender_email != sender_name else "",
                 "subject": _decode_header(message.get("Subject")),
                 "preview": _message_preview(raw_message["preview"]),
                 "received_at": received_at,
