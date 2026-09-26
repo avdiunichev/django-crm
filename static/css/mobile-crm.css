@@ -1,0 +1,116 @@
+/* Shared mobile layer. It is loaded last so every CRM section follows the
+   same touch-first geometry without changing desktop registers. */
+@media screen and (max-width: 720px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main,
+    html body.uikit-theme.crm-workspace-theme.orders-workspace-page .app-shell-topnav > .main {
+        margin-left: 0;
+        min-width: 0;
+        padding: 10px;
+    }
+    html body.uikit-theme.crm-workspace-theme .app-shell-topnav > .main > .content,
+    html body.uikit-theme.crm-workspace-theme.orders-workspace-page .app-shell-topnav > .main > .content {
+        min-width: 0;
+        min-height: calc(100dvh - 20px);
+        padding: 18px 14px 28px;
+        border-radius: 14px;
+    }
+
+    /* Page headers and all action toolbars become predictable vertical blocks. */
+    html body.uikit-theme.crm-workspace-theme :is(
+        .page-heading.with-action, .orders-page-header, .primary-registry-header,
+        .onec-titlebar, .directory-titlebar, .mailbox-inbox-heading
+    ) { align-items: stretch; flex-direction: column; gap: 16px; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .heading-actions, .orders-page-actions, .primary-registry-actions,
+        .mailbox-inbox-actions
+    ) { width: 100%; margin-left: 0; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .heading-actions, .orders-page-actions, .primary-registry-actions,
+        .mailbox-inbox-actions
+    ) .uk-button { flex: 1 1 150px; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .orders-breadcrumb, .primary-registry-breadcrumb, .contract-breadcrumb,
+        .organization-profile-breadcrumb, .trip-profile-breadcrumb, .driver-profile-breadcrumb
+    ) { margin-bottom: 20px; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .orders-title-line, .primary-registry-title-line
+    ) { align-items: flex-start; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .orders-title-line h1, .primary-registry-title-line h1, .page-heading h1,
+        .directory-titlebar h1, .onec-titlebar h1
+    ) { font-size: 24px !important; line-height: 1.2; }
+
+    /* Each filter and form control remains comfortably tappable. */
+    html body.uikit-theme.crm-workspace-theme :is(
+        .filters, .order-register-filters, .organization-register-filters,
+        .driver-register-filters, .vehicle-register-filters, .transportation-register-filters,
+        .contract-register-filters, .primary-registry-filters
+    ) { display: flex !important; width: 100%; padding: 0 !important; gap: 8px !important; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .filters, .order-register-filters, .organization-register-filters,
+        .driver-register-filters, .vehicle-register-filters, .transportation-register-filters,
+        .contract-register-filters, .primary-registry-filters
+    ) > :is(label, input, select, .uk-input, .uk-select, .uk-button, a.uk-button) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 44px;
+        margin-left: 0 !important;
+    }
+    html body.uikit-theme.crm-workspace-theme :is(.uk-input, .uk-select, .uk-textarea) {
+        min-height: 44px;
+        font-size: 16px; /* prevents iOS Safari zooming into inputs */
+    }
+    html body.uikit-theme.crm-workspace-theme :is(.uk-button, .btn, button, [role="button"]) {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+    html body.uikit-theme.crm-workspace-theme :is(.field, .form-field) { min-width: 0; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .form-grid, .form-row, .form-row-2, .form-row-3, .form-row-4,
+        .route-city-address-grid, .driver-personal-grid, .organization-form-grid,
+        .contract-form-grid, .transportation-form-grid, .trip-finance-mini-grid
+    ) { grid-template-columns: minmax(0, 1fr) !important; }
+
+    /* Wide business tables keep their columns intact and scroll inside their
+       own frame instead of pushing the whole page sideways. */
+    html body.uikit-theme.crm-workspace-theme .table-wrap {
+        width: 100%;
+        overflow-x: auto !important;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+    html body.uikit-theme.crm-workspace-theme .table-wrap > table { margin-bottom: 0; }
+    html body.uikit-theme.crm-workspace-theme .register-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+    html body.uikit-theme.crm-workspace-theme .pagination-pages { flex-wrap: wrap; }
+
+    /* A modal always fits the visual viewport and its actions remain reachable. */
+    html body.uikit-theme.crm-workspace-theme .uk-modal-dialog {
+        box-sizing: border-box;
+        width: calc(100vw - 20px) !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 20px);
+        margin: 10px auto !important;
+        border-radius: 14px !important;
+    }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .driver-command-actions, .organization-command-actions, .trip-edit-actions,
+        .modal-actions, .form-actions, .command-actions
+    ) { display: flex; flex-wrap: wrap; gap: 8px; }
+    html body.uikit-theme.crm-workspace-theme :is(
+        .driver-command-actions, .organization-command-actions, .trip-edit-actions,
+        .modal-actions, .form-actions, .command-actions
+    ) .uk-button { flex: 1 1 140px; }
+
+    /* Detail cards and dashboards should never leave a two-column sliver. */
+    html body.uikit-theme.crm-workspace-theme :is(
+        .metrics-grid, .dashboard-grid, .directory-hub-grid, .summary-grid,
+        .trip-work-grid, .transportation-role-grid, .mailbox-layout
+    ) { grid-template-columns: minmax(0, 1fr) !important; }
+    html body.uikit-theme.crm-workspace-theme :is(.panel, .uk-card, .form-section) { min-width: 0; }
+}
