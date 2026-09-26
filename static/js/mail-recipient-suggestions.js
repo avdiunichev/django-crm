@@ -7,7 +7,10 @@
     const enhance = (input) => {
         if (!input || input.dataset.dadataEmailReady === "true") return;
         input.dataset.dadataEmailReady = "true";
-        input.autocomplete = "off";
+        // "new-password" is deliberately used here: some browsers ignore
+        // autocomplete="off" for e-mail fields, while this token suppresses
+        // their saved-address dropdown without affecting CRM suggestions.
+        input.autocomplete = "new-password";
 
         const wrapper = document.createElement("div");
         wrapper.className = "crm-address-suggest crm-mail-recipient-suggest";
