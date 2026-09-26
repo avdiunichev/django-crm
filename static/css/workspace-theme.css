@@ -2217,6 +2217,21 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .mailbox-folder-tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
+.mailbox-directory-page .mailbox-register { max-width: none; padding: 0; overflow: hidden; border-radius: 0; }
+.mailbox-directory-page .mailbox-register .mailbox-inbox-heading { padding: 18px 20px; }
+.mailbox-directory-page .mailbox-register .mailbox-folder-tabs { margin: 0; padding: 0 20px 12px; }
+.mailbox-directory-page .mailbox-register .mailbox-message-list { max-height: min(680px, calc(100dvh - 430px)); overflow: auto; border-top: 1px solid var(--workspace-line); }
+.mailbox-register-table { width: 100%; min-width: 720px; margin: 0; }
+.mailbox-register-table thead { position: sticky; top: 0; z-index: 2; }
+.mailbox-register-table th { height: 44px; padding: 0 16px; background: var(--workspace-soft); color: var(--workspace-muted); font-size: 11px; font-weight: 650; }
+.mailbox-register-table td { padding: 11px 16px; border-color: var(--workspace-line); font-size: 13px; }
+.mailbox-register-table :is(th, td):first-child { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
+.mailbox-compose-modal { width: min(720px, calc(100vw - 32px)); border-radius: 14px; background: var(--workspace-surface); color: var(--workspace-text); }
+.mailbox-compose-modal .uk-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--workspace-line); background: transparent; }
+.mailbox-compose-modal h2 { margin: 4px 0 0; color: var(--workspace-text); font-size: 21px; }
+.mailbox-compose-form { display: grid; gap: 14px; padding: 20px 24px 24px; }
+.mailbox-compose-form label { display: grid; gap: 6px; color: var(--workspace-muted); font-size: 12px; font-weight: 600; }
+.mailbox-compose-form :is(.uk-input, .uk-textarea) { border-color: var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-text); }
 .mailbox-message { display: grid; grid-template-columns: minmax(180px, .9fr) minmax(240px, 2fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--workspace-line); color: var(--workspace-text); font-size: 13px; text-decoration: none; }
 .mailbox-message:hover { color: var(--workspace-text); background: var(--workspace-soft); }
 .mailbox-message:last-child { border-bottom: 0; }

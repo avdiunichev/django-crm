@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Электронная почта — CRM.Экспедитор{% endblock %}
-{% block body_class %}mailbox-page{% endblock %}
+{% block body_class %}mailbox-page mailbox-directory-page{% endblock %}
 {% block content %}
 <div class="orders-breadcrumb"><span uk-icon="mail"></span><span aria-current="page">Электронная почта</span></div>
 <header class="orders-page-header mailbox-page-header">
@@ -27,17 +27,17 @@
     </div>
 
     {% if mailbox.is_connected %}
-        <section class="mailbox-inbox" aria-label="Входящие">
-            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><div class="mailbox-inbox-actions"><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}"><span uk-icon="plus"></span>Написать</a><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div></div>
+        <section class="mailbox-inbox mailbox-register" aria-label="Папка почты">
+            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><div class="mailbox-inbox-actions"><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open><span uk-icon="plus"></span>Написать</a><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div></div>
             <nav class="mailbox-folder-tabs" aria-label="Папки почты"><a class="{% if mailbox_folder == 'inbox' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a><a class="{% if mailbox_folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a><a class="{% if mailbox_folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a></nav>
             {% if inbox_error %}
                 <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
             {% elif inbox_messages %}
-                <div class="mailbox-message-list">
+                <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
                     {% for message in inbox_messages %}
-                        <a class="mailbox-message" href="{% url 'mailbox-message' mailbox_folder message.uid %}"><strong>{{ message.sender }}</strong><span>{{ message.subject }}</span><small>{{ message.date }}</small></a>
+                        <tr><td><strong>{{ message.sender }}</strong></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
                     {% endfor %}
-                </div>
+                </tbody></table></div>
             {% else %}
                 <p class="mailbox-inbox-empty">Во входящих пока нет писем.</p>
             {% endif %}

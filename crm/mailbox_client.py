@@ -4,7 +4,7 @@ import base64
 from email.message import EmailMessage
 from email import message_from_bytes
 from email.header import decode_header
-from email.utils import parseaddr
+from email.utils import parseaddr, parsedate_to_datetime
 import hashlib
 import imaplib
 import smtplib
@@ -114,13 +114,21 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
             if status != "OK" or not payload or not payload[0]:
                 continue
             message = message_from_bytes(payload[0][1])
+            try:
+                received_at = parsedate_to_datetime(message.get("Date"))
+            except (TypeError, ValueError, IndexError):
+                received_at = None
             messages.append({
                 "uid": message_id.decode("ascii"),
                 "sender": _decode_header(message.get("From")),
                 "subject": _decode_header(message.get("Subject")),
-                "date": message.get("Date", ""),
+                "received_at": received_at,
             })
-        return messages
+        return sorted(
+            messages,
+            key=lambda item: item["received_at"].timestamp() if item["received_at"] else 0,
+            reverse=True,
+        )
     finally:
         _close_client(client)
 
