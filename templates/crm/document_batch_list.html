@@ -1,29 +1,28 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize static %}
 {% block title %}Реестры первичных документов — Моя CRM{% endblock %}
+{% block body_class %}primary-registry-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/primary-registry.css' %}?v=20260926-1">{% endblock %}
 {% block content %}
-<div class="page-heading with-action">
-    <div><a class="back-link" href="{% url 'shipment-document-list' %}">← К общему реестру документов</a><span class="eyebrow">Бухгалтерия</span><h1>Реестры первичных документов</h1><p>Задания бухгалтерии на выставление счетов, актов, УПД, счетов-фактур, ТрН и привязку документов к рейсам.</p></div>
-    <div class="heading-actions">
+<section class="primary-registry" aria-labelledby="primary-registry-title">
+    <div class="primary-registry-breadcrumb"><span uk-icon="folder"></span> Документы <span aria-hidden="true">/</span> Первичка</div>
+    <header class="primary-registry-header">
+        <div><div class="primary-registry-title-line"><h1 id="primary-registry-title">Реестры первичных документов</h1><span class="primary-registry-count">{{ page_obj.paginator.count }}</span></div><p>Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.</p></div>
+        <div class="primary-registry-actions">
         <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
         <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="file-edit"></span> Реестр на реализацию</a>
-    </div>
-</div>
+        </div>
+    </header>
 
-<section class="metrics-grid">
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="file-edit"></i></span><strong>{{ draft_count }}</strong><small>можно редактировать</small></article>
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Проведены</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ posted_count }}</strong><small>строки уже в реестре</small></article>
-</section>
-
-<form class="filters" method="get">
+<form class="filters primary-registry-filters" method="get">
     <select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_direction or current_status %}<a class="clear-link" href="{% url 'document-batch-list' %}">Сбросить</a>{% endif %}
+    {% if current_direction or current_status %}<a class="uk-button uk-button-default" href="{% url 'document-batch-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
 </form>
 
-<section class="panel uk-card uk-card-default">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
+<section class="panel uk-card uk-card-default primary-registry-panel">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle primary-registry-table">
         <thead><tr><th>Документ</th><th>Направление</th><th>Наша компания</th><th>Строк</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
         <tbody>
         {% for batch in document_batches %}
@@ -43,4 +42,5 @@
     </table></div>
 </section>
 {% include "crm/includes/pagination.html" %}
+</section>
 {% endblock %}
