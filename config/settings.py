@@ -109,6 +109,7 @@ TEMPLATES = [
                 'crm.context_processors.crm_access',
                 'crm.context_processors.chat_unread',
                 'crm.context_processors.navbar_notifications',
+                'crm.context_processors.mail_recipient_suggestions',
             ],
             'builtins': [
                 'crm.templatetags.crm_format',

@@ -1,6 +1,8 @@
 from django.db.models import Q
 
-from .models import ChatMessage, UserProfile
+from django.contrib.auth import get_user_model
+
+from .models import ChatMessage, Organization, OrganizationContact, UserProfile
 from .navbar_notifications import get_navbar_notifications
 
 
@@ -64,3 +66,29 @@ def navbar_notifications(request):
         "navbar_notifications": items[:8],
         "navbar_notification_count": sum(not item["is_read"] for item in items),
     }
+
+
+def mail_recipient_suggestions(request):
+    """Addresses offered by the compose field, without exposing mailbox contents."""
+    if not request.user.is_authenticated:
+        return {"mail_recipient_suggestions": []}
+
+    current_email = (request.user.email or "").strip().casefold()
+    entries = []
+
+    for contact in OrganizationContact.objects.exclude(email="").filter(is_active=True).select_related("organization"):
+        entries.append((contact.email, f"{contact.full_name} · {contact.organization.name}"))
+    for organization in Organization.objects.exclude(email=""):
+        entries.append((organization.email, organization.name))
+    for user in get_user_model().objects.exclude(email=""):
+        entries.append((user.email, user.get_full_name() or user.username))
+
+    seen = set()
+    suggestions = []
+    for email, label in entries:
+        normalized = email.strip().casefold()
+        if not normalized or normalized == current_email or normalized in seen:
+            continue
+        seen.add(normalized)
+        suggestions.append({"email": email.strip(), "label": label})
+    return {"mail_recipient_suggestions": sorted(suggestions, key=lambda item: item["email"].casefold())}
