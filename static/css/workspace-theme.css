@@ -1109,6 +1109,11 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.uikit-theme.crm-workspace-theme .uk-table tr { border-color: var(--workspace-line) !important; }
     html body.uikit-theme.crm-workspace-theme .uk-table tbody tr:hover td,
     html body.uikit-theme.crm-workspace-theme .uk-table tbody tr.is-selected td { background: var(--workspace-soft) !important; }
+    /* The transportation register inherits both register and workspace table
+       rules. Keep the selected row uniform, including the finance cell. */
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td {
+        background: var(--workspace-soft) !important;
+    }
     html body.uikit-theme.crm-workspace-theme .uk-table td small { color: var(--workspace-muted) !important; font-size: 12px; line-height: 1.5; }
     html body.uikit-theme.crm-workspace-theme .uk-table .primary-link { color: var(--workspace-text) !important; font-weight: 600; }
     html body.uikit-theme.crm-workspace-theme .uk-table .primary-link:hover { color: var(--workspace-accent) !important; }
