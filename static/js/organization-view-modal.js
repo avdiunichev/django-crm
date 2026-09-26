@@ -176,6 +176,11 @@
         const page = new DOMParser().parseFromString(html, "text/html");
         const form = page.querySelector("form.organization-workspace");
         if (!form) throw new Error("Форма контрагента не найдена");
+        const commandPanel = form.querySelector(".organization-command-header");
+        if (commandPanel) {
+            commandPanel.classList.add("organization-modal-command-panel");
+            form.insertBefore(commandPanel, form.firstElementChild);
+        }
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page";
         dialog.append(form);
