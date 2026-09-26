@@ -495,10 +495,12 @@ from .forms import (
 )
 from .bank_import import parse_client_bank_exchange
 from .mailbox_client import (
+    delete_messages,
     decrypt_app_password,
     encrypt_app_password,
     fetch_attachment,
     fetch_message,
+    fetch_mailbox_counts,
     fetch_recent_inbox,
     reply_address,
     send_message as send_mail_message,
@@ -2027,16 +2029,19 @@ class MailboxView(LoginRequiredMixin, TemplateView):
             if current_per_page not in self.page_size_choices:
                 current_per_page = "25"
         fetch_limit = 100 if current_per_page == "all" else int(current_per_page)
-        if mailbox_folder not in {"inbox", "sent", "drafts"}:
+        if mailbox_folder not in {"inbox", "sent", "drafts", "trash"}:
             mailbox_folder = "inbox"
+        mailbox_counts = {folder: {"total": 0, "unread": 0} for folder in ("inbox", "sent", "drafts", "trash")}
         if mailbox.is_connected and mailbox.encrypted_app_password:
             try:
+                password = decrypt_app_password(mailbox.encrypted_app_password)
                 inbox_messages = fetch_recent_inbox(
                     mailbox.email,
-                    decrypt_app_password(mailbox.encrypted_app_password),
+                    password,
                     folder=mailbox_folder,
                     limit=fetch_limit,
                 )
+                mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
@@ -2054,6 +2059,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 "inbox_error": inbox_error,
                 "mailbox_folder": mailbox_folder,
                 "mailbox_query": mailbox_query,
+                "mailbox_counts": mailbox_counts,
                 "page_size_choices": [
                     {"value": "10", "label": "10"},
                     {"value": "25", "label": "25"},
@@ -2105,7 +2111,7 @@ class MailboxConnectView(LoginRequiredMixin, View):
 
 
 class PersonalMailboxMixin(LoginRequiredMixin):
-    mailbox_folders = {"inbox", "sent", "drafts"}
+    mailbox_folders = {"inbox", "sent", "drafts", "trash"}
 
     def get_mailbox(self):
         mailbox = get_object_or_404(MailboxConnection, user=self.request.user, is_connected=True)
@@ -2118,6 +2124,28 @@ class PersonalMailboxMixin(LoginRequiredMixin):
         if folder not in self.mailbox_folders:
             raise Http404("Папка не найдена.")
         return folder
+
+
+class MailboxDeleteSelectedView(PersonalMailboxMixin, View):
+    def post(self, request):
+        mailbox, password = self.get_mailbox()
+        folder = request.POST.get("folder", "inbox")
+        if folder not in self.mailbox_folders:
+            raise Http404("Папка не найдена.")
+        selected = request.POST.getlist("message_uids")
+        if not selected:
+            messages.error(request, "Выберите хотя бы одно письмо.")
+        else:
+            try:
+                deleted_count = delete_messages(mailbox.email, password, folder, selected)
+            except (OSError, imaplib.IMAP4.error, ValueError):
+                messages.error(request, "Не удалось удалить выбранные письма.")
+            else:
+                if folder == "trash":
+                    messages.success(request, f"Удалено навсегда: {deleted_count}.")
+                else:
+                    messages.success(request, f"Перемещено в удалённые: {deleted_count}.")
+        return redirect(f"{reverse('mailbox')}?folder={folder}")
 
 
 class MailboxMessageView(PersonalMailboxMixin, TemplateView):

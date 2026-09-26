@@ -2222,6 +2222,9 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-folder-tabs { flex: 0 0 auto; display: flex; gap: 4px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
+.mailbox-folder-count, .mailbox-folder-unread { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; margin-left: 4px; padding: 0 5px; border-radius: 9px; font-size: 10px; line-height: 1; font-variant-numeric: tabular-nums; }
+.mailbox-folder-count { color: var(--workspace-muted); background: var(--workspace-soft); }
+.mailbox-folder-unread { color: #fff; background: var(--workspace-accent); }
 .mailbox-directory-page .mailbox-register-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
 .mailbox-directory-page .mailbox-register-filters .driver-search-field { position: relative; display: block; flex: 1 1 440px; min-width: 260px; }
 .mailbox-directory-page .mailbox-register-filters .driver-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
@@ -2237,8 +2240,11 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-register-table td { padding: 11px 16px; border-color: var(--workspace-line); font-size: 13px; }
 .mailbox-register-table tr.is-unread td { background: var(--workspace-tint); font-weight: 650; }
 .mailbox-unread-dot { width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; background: var(--workspace-accent); }
-.mailbox-register-table :is(th, td):first-child { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
-.mailbox-page-size { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; min-height: 54px; padding: 0 16px; border-top: 1px solid var(--workspace-line); background: var(--workspace-surface); }
+.mailbox-register-table :is(th, td):nth-child(2) { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
+.mailbox-select-column { width: 44px; padding-right: 4px !important; text-align: center; }
+.mailbox-register-footer { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 0 16px; border-top: 1px solid var(--workspace-line); background: var(--workspace-surface); }
+.mailbox-delete-button { min-height: 32px !important; border-color: var(--workspace-line) !important; color: var(--workspace-muted) !important; }
+.mailbox-page-size { display: flex; align-items: center; }
 .mailbox-page-size label { display: inline-flex; align-items: center; gap: 10px; color: var(--workspace-muted); font-size: 12px; }
 .mailbox-page-size .uk-select { width: 82px; height: 32px; border-color: var(--workspace-line); border-radius: 6px; color: var(--workspace-text); background-color: var(--workspace-surface); }
 .mailbox-compose-modal { width: min(720px, calc(100vw - 32px)); border-radius: 14px; background: var(--workspace-surface); color: var(--workspace-text); }

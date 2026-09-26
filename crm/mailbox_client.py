@@ -61,7 +61,9 @@ def _decode_header(value):
 
 def _resolve_folder(client, folder):
     """Choose the provider's real folder name from its IMAP special-use flag."""
-    expected_flag = {"inbox": "\\INBOX", "sent": "\\SENT", "drafts": "\\DRAFTS"}[folder]
+    expected_flag = {
+        "inbox": "\\INBOX", "sent": "\\SENT", "drafts": "\\DRAFTS", "trash": "\\TRASH",
+    }[folder]
     if folder == "inbox":
         return "INBOX"
     status, folders = client.list()
@@ -70,7 +72,7 @@ def _resolve_folder(client, folder):
             text = entry.decode("utf-8", errors="replace") if isinstance(entry, bytes) else entry
             if expected_flag in text.upper():
                 return text.rsplit('"', 2)[-2] if '"' in text else text.rsplit(" ", 1)[-1]
-    return {"sent": "Sent", "drafts": "Drafts"}[folder]
+    return {"sent": "Sent", "drafts": "Drafts", "trash": "Trash"}[folder]
 
 
 def _decode_part(part):
@@ -130,6 +132,53 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
             key=lambda item: item["received_at"].timestamp() if item["received_at"] else 0,
             reverse=True,
         )
+    finally:
+        _close_client(client)
+
+
+def fetch_mailbox_counts(email, app_password):
+    """Return total and unread message counts for the visible mailbox folders."""
+    counts = {}
+    for folder in ("inbox", "sent", "drafts", "trash"):
+        client = _open_folder(email, app_password, folder)
+        try:
+            total_status, total_data = client.uid("search", None, "ALL")
+            unread_status, unread_data = client.uid("search", None, "UNSEEN")
+            counts[folder] = {
+                "total": len(total_data[0].split()) if total_status == "OK" and total_data else 0,
+                "unread": len(unread_data[0].split()) if unread_status == "OK" and unread_data else 0,
+            }
+        finally:
+            _close_client(client)
+    return counts
+
+
+def delete_messages(email, app_password, folder, uids):
+    """Move selected messages to Trash, or permanently remove them from Trash."""
+    message_ids = [str(uid) for uid in uids if str(uid).isdigit()]
+    if not message_ids:
+        return 0
+    client = _open_folder(email, app_password, folder, readonly=False)
+    try:
+        uid_set = ",".join(message_ids)
+        if folder == "trash":
+            status, _ = client.uid("store", uid_set, "+FLAGS.SILENT", "(\\Deleted)")
+            if status != "OK":
+                raise imaplib.IMAP4.error("Messages could not be deleted")
+            client.expunge()
+            return len(message_ids)
+
+        trash_folder = _resolve_folder(client, "trash")
+        status, _ = client.uid("move", uid_set, trash_folder)
+        if status != "OK":
+            status, _ = client.uid("copy", uid_set, trash_folder)
+            if status != "OK":
+                raise imaplib.IMAP4.error("Messages could not be moved to Trash")
+            status, _ = client.uid("store", uid_set, "+FLAGS.SILENT", "(\\Deleted)")
+            if status != "OK":
+                raise imaplib.IMAP4.error("Messages could not be deleted")
+            client.expunge()
+        return len(message_ids)
     finally:
         _close_client(client)
 

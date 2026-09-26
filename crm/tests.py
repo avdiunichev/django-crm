@@ -6476,6 +6476,38 @@ class MailboxViewTests(TestCase):
         )
 
     @patch("crm.views.decrypt_app_password", return_value="app-password-value")
+    @patch("crm.views.fetch_mailbox_counts")
+    @patch("crm.views.fetch_recent_inbox")
+    def test_mailbox_shows_folder_counts_and_deleted_tab(self, fetch_messages, fetch_counts, decrypt_password):
+        self._connect_mailbox()
+        fetch_messages.return_value = []
+        fetch_counts.return_value = {
+            "inbox": {"total": 12, "unread": 3}, "sent": {"total": 4, "unread": 0},
+            "drafts": {"total": 1, "unread": 0}, "trash": {"total": 2, "unread": 0},
+        }
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("mailbox"))
+
+        self.assertContains(response, "Удалённые")
+        self.assertContains(response, "12")
+        self.assertContains(response, "3")
+
+    @patch("crm.views.decrypt_app_password", return_value="app-password-value")
+    @patch("crm.views.delete_messages")
+    def test_selected_messages_are_moved_to_trash(self, delete_messages, decrypt_password):
+        self._connect_mailbox()
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("mailbox-delete-selected"),
+            {"folder": "inbox", "message_uids": ["31", "32"]},
+        )
+
+        self.assertRedirects(response, f"{reverse('mailbox')}?folder=inbox")
+        delete_messages.assert_called_once_with(self.user.email, "app-password-value", "inbox", ["31", "32"])
+
+    @patch("crm.views.decrypt_app_password", return_value="app-password-value")
     @patch("crm.views.fetch_message")
     def test_message_view_reads_only_current_users_mailbox(self, fetch_message, decrypt_password):
         self._connect_mailbox()
