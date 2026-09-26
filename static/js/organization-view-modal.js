@@ -42,7 +42,7 @@
         const button = tools?.querySelector("[data-dadata-button]");
         const status = tools?.querySelector("[data-dadata-status]");
         const form = dialog.querySelector("form.organization-workspace");
-        const taxId = form?.querySelector("#id_tax_id");
+        const taxId = dialog.querySelector("#id_tax_id");
         if (!tools || !button || !form || !taxId) return;
         button.addEventListener("click", async () => {
             const inn = taxId.value.replace(/\D/g, "");
@@ -92,7 +92,7 @@
         if (!form) return;
         const submitUrl = new URL(sourceUrl, document.baseURI).href;
         form.setAttribute("action", submitUrl);
-        const taxId = form.querySelector("#id_tax_id");
+        const taxId = dialog.querySelector("#id_tax_id");
         form.querySelectorAll("[data-tax-id-mirror]").forEach((mirror) => {
             mirror.addEventListener("input", () => {
                 taxId.value = mirror.value;
@@ -187,6 +187,9 @@
             commandPanel.classList.add("organization-modal-command-panel");
             commandPanel.querySelector(".form-section-title")?.remove();
             form.id = "organization-modal-form";
+            commandPanel.querySelectorAll("input, select, textarea").forEach((field) => {
+                if (field.name) field.setAttribute("form", form.id);
+            });
             commandPanel.querySelectorAll('button[type="submit"]').forEach((button) => {
                 button.setAttribute("form", form.id);
                 button.dataset.organizationModalSubmit = "";
