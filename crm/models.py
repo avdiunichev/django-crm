@@ -88,6 +88,7 @@ class UserProfile(TimestampedModel):
         default=Role.MANAGER,
     )
     can_see_all_records = models.BooleanField("Видит все записи", default=True)
+    email_signature = models.TextField("Подпись для электронной почты", blank=True)
     personal_data_view_override = models.BooleanField(
         "Просмотр персональных данных",
         null=True,

@@ -156,7 +156,7 @@
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
                 <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open><span uk-icon="plus"></span> Написать письмо</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
@@ -205,7 +205,7 @@
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
                 <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open><span uk-icon="plus"></span> Написать письмо</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
@@ -234,7 +234,7 @@
         <button class="uk-modal-close-default" type="button" uk-close aria-label="Закрыть"></button>
         <div class="uk-modal-header"><span class="mailbox-kicker">Почтовый ящик</span><h2>Новое письмо</h2></div>
         <form method="post" action="{% url 'mailbox-compose' %}" enctype="multipart/form-data" class="mailbox-compose-form">{% csrf_token %}
-            <label>Кому<input class="uk-input" type="email" name="to" required></label><label>Тема<input class="uk-input" type="text" name="subject"></label><label>Текст письма<textarea class="uk-textarea" name="body" rows="10"></textarea></label><label class="mailbox-file-input">Вложения<input type="file" name="attachments" multiple><small>До 10 МБ на каждый файл.</small></label><div class="mailbox-compose-actions"><button class="uk-button uk-button-default uk-modal-close" type="button">Отмена</button><button class="uk-button uk-button-primary" type="submit"><span uk-icon="forward"></span>Отправить</button></div>
+            <label>Кому<input class="uk-input" type="email" name="to" required></label><label>Тема<input class="uk-input" type="text" name="subject"></label><label>Текст письма<textarea class="uk-textarea" name="body" rows="10">{{ user.crm_profile.email_signature }}</textarea></label><label class="mailbox-file-input">Вложения<input type="file" name="attachments" multiple><small>До 10 МБ на каждый файл.</small></label><div class="mailbox-compose-actions"><button class="uk-button uk-button-default uk-modal-close" type="button">Отмена</button><button class="uk-button uk-button-primary" type="submit"><span uk-icon="forward"></span>Отправить</button></div>
         </form>
     </div>
 </div>

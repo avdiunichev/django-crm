@@ -6494,6 +6494,8 @@ class MailboxViewTests(TestCase):
     @patch("crm.views.send_mail_message")
     def test_compose_sends_from_current_users_mailbox(self, send_mail_message, decrypt_password):
         self._connect_mailbox()
+        self.user.crm_profile.email_signature = "С уважением,\nТестовый пользователь"
+        self.user.crm_profile.save(update_fields=["email_signature", "updated_at"])
         self.client.force_login(self.user)
 
         response = self.client.post(
@@ -6502,7 +6504,7 @@ class MailboxViewTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("mailbox"))
-        self.assertEqual(send_mail_message.call_args.args[:5], (self.user.email, "app-password-value", "recipient@example.com", "Тест", "Текст"))
+        self.assertEqual(send_mail_message.call_args.args[:5], (self.user.email, "app-password-value", "recipient@example.com", "Тест", "Текст\n\nС уважением,\nТестовый пользователь"))
 
 
 class PersonalSettingsViewTests(TestCase):
@@ -6524,3 +6526,13 @@ class PersonalSettingsViewTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.get_full_name(), "Иван Иванов")
         self.assertEqual(self.user.email, "settings@newproject-spb.ru")
+
+    def test_user_can_save_email_signature(self):
+        response = self.client.post(
+            reverse("personal-settings"),
+            {"first_name": "", "last_name": "", "email_signature": "С уважением,\nИван"},
+        )
+
+        self.assertRedirects(response, reverse("personal-settings"))
+        self.user.crm_profile.refresh_from_db()
+        self.assertEqual(self.user.crm_profile.email_signature, "С уважением,\nИван")

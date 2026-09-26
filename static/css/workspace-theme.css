@@ -2115,7 +2115,7 @@ html[data-theme="dark"] body.crm-workspace-theme .chat-compose { box-shadow: non
 
 /* Personal VK WorkSpace mailbox setup. */
 html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
-.mailbox-workspace { max-width: 920px; display: grid; gap: 14px; }
+.mailbox-workspace { max-width: none; display: grid; gap: 18px; }
 .mailbox-connection-card,
 .mailbox-setup-card,
 .mailbox-security-note,
@@ -2181,7 +2181,8 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .personal-settings-card-head p { margin: 4px 0 0; font-size: 13px; }
 .personal-settings-form { display: grid; gap: 14px; margin-top: 20px; }
 .personal-settings-form label { display: grid; gap: 6px; color: var(--workspace-muted); font-size: 12px; font-weight: 600; }
-.personal-settings-form .uk-input { border-color: var(--workspace-line); color: var(--workspace-text); background: var(--workspace-soft); }
+.personal-settings-form :is(.uk-input, .uk-textarea) { border-color: var(--workspace-line); color: var(--workspace-text); background: var(--workspace-soft); }
+.personal-settings-form small { color: var(--workspace-muted); font-size: 11px; font-weight: 400; }
 .personal-settings-form .uk-button { justify-self: start; }
 .personal-settings-info dl { display: grid; gap: 14px; margin: 20px 0; }
 .personal-settings-info dl div { display: grid; gap: 3px; }
@@ -2217,11 +2218,11 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .mailbox-folder-tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
-.mailbox-directory-page .mailbox-register { max-width: none; padding: 0; overflow: hidden; border-radius: 0; }
+.mailbox-directory-page .mailbox-register { width: 100%; max-width: none; padding: 0; overflow: hidden; border-radius: 0; }
 .mailbox-directory-page .mailbox-register .mailbox-inbox-heading { padding: 18px 20px; }
 .mailbox-directory-page .mailbox-register .mailbox-folder-tabs { margin: 0; padding: 0 20px 12px; }
 .mailbox-directory-page .mailbox-register .mailbox-message-list { max-height: min(680px, calc(100dvh - 430px)); overflow: auto; border-top: 1px solid var(--workspace-line); }
-.mailbox-register-table { width: 100%; min-width: 720px; margin: 0; }
+.mailbox-register-table { width: 100%; min-width: 860px; margin: 0; }
 .mailbox-register-table thead { position: sticky; top: 0; z-index: 2; }
 .mailbox-register-table th { height: 44px; padding: 0 16px; background: var(--workspace-soft); color: var(--workspace-muted); font-size: 11px; font-weight: 650; }
 .mailbox-register-table td { padding: 11px 16px; border-color: var(--workspace-line); font-size: 13px; }

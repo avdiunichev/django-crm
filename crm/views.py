@@ -2125,7 +2125,12 @@ class MailboxComposeView(PersonalMailboxMixin, View):
     template_name = "crm/mailbox_compose.html"
 
     def get(self, request):
-        initial = {"to": request.GET.get("to", ""), "subject": request.GET.get("subject", "")}
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        initial = {
+            "to": request.GET.get("to", ""),
+            "subject": request.GET.get("subject", ""),
+            "body": profile.email_signature,
+        }
         if request.GET.get("reply_folder") and request.GET.get("reply_uid"):
             mailbox, password = self.get_mailbox()
             try:
@@ -2144,6 +2149,10 @@ class MailboxComposeView(PersonalMailboxMixin, View):
         subject = (request.POST.get("subject") or "").strip()
         body = (request.POST.get("body") or "").strip()
         attachments = request.FILES.getlist("attachments")
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        signature = profile.email_signature.strip()
+        if signature and signature not in body:
+            body = f"{body}\n\n{signature}".strip()
         try:
             validate_email(recipient)
         except ValidationError:
@@ -2175,6 +2184,9 @@ class PersonalSettingsView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def form_valid(self, form):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        profile.email_signature = (self.request.POST.get("email_signature") or "").strip()
+        profile.save(update_fields=["email_signature", "updated_at"])
         messages.success(self.request, "Личные настройки сохранены.")
         return super().form_valid(form)
 

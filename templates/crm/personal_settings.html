@@ -9,6 +9,7 @@
         <div class="personal-settings-card-head"><span class="personal-settings-avatar is-large">{{ user.get_full_name|default:user.username|first|upper }}</span><div><h2>{{ user.get_full_name|default:user.username }}</h2><p>{{ user.email|default:"Почта не указана" }}</p></div></div>
         <form method="post" class="personal-settings-form">{% csrf_token %}
             {% for field in form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<small class="uk-text-danger">{{ error }}</small>{% endfor %}</label>{% endfor %}
+            <label>Подпись для электронной почты<textarea class="uk-textarea" name="email_signature" rows="6" placeholder="С уважением,&#10;Имя Фамилия&#10;Должность · телефон">{{ profile.email_signature }}</textarea><small>Подставляется в новые письма и ответы.</small></label>
             <button class="uk-button uk-button-primary" type="submit">Сохранить настройки</button>
         </form>
     </section>
