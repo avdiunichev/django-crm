@@ -192,6 +192,9 @@
                 button.dataset.organizationModalSubmit = "";
             });
             commandPanel.querySelector('a[href$="/organizations/"]')?.setAttribute("data-organization-modal-close", "");
+            const divider = document.createElement("div");
+            divider.className = "organization-modal-control-divider";
+            commandPanel.querySelector(".organization-command-footer")?.after(divider);
         }
         const primaryDetails = form.querySelector(".organization-primary-details");
         primaryDetails?.querySelector(".form-section-title > span")?.remove();
