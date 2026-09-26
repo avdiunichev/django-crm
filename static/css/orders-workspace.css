@@ -81,16 +81,16 @@ body.orders-workspace-page .order-register-table tbody tr.is-selected { backgrou
 body.orders-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td {
     background: var(--orders-soft) !important;
 }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(1) { width: 42px; padding-left: 16px; padding-right: 8px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(2) { width: 145px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(3) { width: 18%; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(4) { width: 22%; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(5) { width: 190px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(6) { width: 170px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(7) { width: 110px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(8) { width: 155px; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(9) { width: 18%; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(10) { width: 145px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(1) { width: 46px; padding-left: 16px; padding-right: 8px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(2) { width: 150px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(3) { width: 245px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(4) { width: 240px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(5) { width: 220px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(6) { width: 170px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(7) { width: 112px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(8) { width: 160px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(9) { width: 185px; }
+body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(10) { width: 160px; }
 body.orders-workspace-page .order-register-table td :is(strong, .route-compact, .primary-link) { font-size: 13px; font-weight: 550; line-height: 1.55; color: var(--orders-ink); }
 body.orders-workspace-page .order-register-table .primary-link:hover { color: #D10000; }
 body.orders-workspace-page .order-register-table td small { display: block; margin-top: 5px; font-size: 11px; line-height: 1.5; color: var(--orders-muted); }

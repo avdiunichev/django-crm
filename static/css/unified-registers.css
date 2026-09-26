@@ -146,23 +146,27 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
 
 /* Реестр рейсов: один ряд показывает операционную и финансовую картину рейса. */
-.uikit-theme .transportation-register-table { min-width: 1910px; table-layout: fixed; }
+.uikit-theme .transportation-register-table { min-width: 1840px; table-layout: fixed; }
 .uikit-theme .transportation-register-table th:nth-child(1),
-.uikit-theme .transportation-register-table td:nth-child(1) { width: 190px; }
+.uikit-theme .transportation-register-table td:nth-child(1) { width: 46px; }
 .uikit-theme .transportation-register-table th:nth-child(2),
-.uikit-theme .transportation-register-table td:nth-child(2) { width: 28%; max-width: 410px; }
+.uikit-theme .transportation-register-table td:nth-child(2) { width: 150px; }
 .uikit-theme .transportation-register-table th:nth-child(3),
-.uikit-theme .transportation-register-table td:nth-child(3) { width: 250px; }
+.uikit-theme .transportation-register-table td:nth-child(3) { width: 245px; }
 .uikit-theme .transportation-register-table th:nth-child(4),
-.uikit-theme .transportation-register-table td:nth-child(4) { width: 280px; }
+.uikit-theme .transportation-register-table td:nth-child(4) { width: 240px; }
 .uikit-theme .transportation-register-table th:nth-child(5),
 .uikit-theme .transportation-register-table td:nth-child(5) { width: 220px; }
 .uikit-theme .transportation-register-table th:nth-child(6),
 .uikit-theme .transportation-register-table td:nth-child(6) { width: 170px; }
 .uikit-theme .transportation-register-table th:nth-child(7),
-.uikit-theme .transportation-register-table td:nth-child(7) { width: 110px; }
+.uikit-theme .transportation-register-table td:nth-child(7) { width: 112px; }
 .uikit-theme .transportation-register-table th:nth-child(8),
-.uikit-theme .transportation-register-table td:nth-child(8) { width: 155px; }
+.uikit-theme .transportation-register-table td:nth-child(8) { width: 160px; }
+.uikit-theme .transportation-register-table th:nth-child(9),
+.uikit-theme .transportation-register-table td:nth-child(9) { width: 185px; }
+.uikit-theme .transportation-register-table th:nth-child(10),
+.uikit-theme .transportation-register-table td:nth-child(10) { width: 160px; }
 
 .uikit-theme .transportation-register-table .transportation-register-driver-vehicle > strong,
 .uikit-theme .transportation-register-table .transportation-register-driver-vehicle > small {
