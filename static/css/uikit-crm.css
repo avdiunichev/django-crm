@@ -9771,6 +9771,32 @@ html[data-theme="dark"] body.uikit-theme .metric-card .metric-icon.uk-icon-butto
     gap: 12px;
 }
 
+.uikit-theme .register-pagination .pagination-pages {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.uikit-theme .register-pagination .pagination-pages a,
+.uikit-theme .register-pagination .pagination-pages .is-current {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    display: inline-flex;
+    height: 30px;
+    justify-content: center;
+    min-width: 30px;
+    padding: 0 7px;
+}
+
+.uikit-theme .register-pagination .pagination-pages a:hover { border-color: #d6dce5; }
+.uikit-theme .register-pagination .pagination-pages .is-current {
+    background: #eef3f9;
+    color: #1e293b;
+    font-weight: 700;
+}
+
 .uikit-theme .page-size-selector {
     margin: 0;
 }
