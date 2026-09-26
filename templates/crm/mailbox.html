@@ -4,38 +4,19 @@
 {% block content %}
 <div class="orders-breadcrumb"><span uk-icon="mail"></span><span aria-current="page">Электронная почта</span></div>
 <header class="orders-page-header mailbox-page-header">
-    <div><h1>Электронная почта</h1><p>Ваш личный ящик VK WorkSpace. Письма доступны только вам.</p></div>
+    <div><div class="mailbox-title-line"><h1>Электронная почта</h1>{% if mailbox.is_connected %}<span class="driver-registry-status is-active">Подключена</span>{% endif %}</div><p>Ваш личный ящик VK WorkSpace. Письма доступны только вам.</p></div>
 </header>
 
 <section class="mailbox-workspace" aria-label="Подключение личной почты">
-    <div class="mailbox-connection-card">
-        <span class="mailbox-provider-icon" uk-icon="mail; ratio: 1.2"></span>
-        <div>
-            <span class="mailbox-kicker">VK WorkSpace</span>
-            <h2>{{ mailbox_address|default:"Личный ящик" }}</h2>
-            {% if mailbox.is_connected %}
-                <p><span class="status-dot status-dot-positive"></span>Подключён и доступен только вам</p>
-            {% else %}
-                <p>Ящик ещё не подключён к CRM.</p>
-            {% endif %}
-        </div>
-        {% if mailbox.is_connected %}
-            <span class="mailbox-status">Подключён</span>
-        {% else %}
-            <span class="mailbox-status mailbox-status-pending">Ожидает подключения</span>
-        {% endif %}
-    </div>
-
     {% if mailbox.is_connected %}
-        <section class="mailbox-inbox mailbox-register" aria-label="Папка почты">
-            <div class="mailbox-inbox-heading"><div><span class="mailbox-kicker">Почтовый ящик</span><h2>{% if mailbox_folder == 'sent' %}Отправленные{% elif mailbox_folder == 'drafts' %}Черновики{% else %}Входящие{% endif %}</h2></div><div class="mailbox-inbox-actions"><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open><span uk-icon="plus"></span>Написать</a><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a></div></div>
-            <nav class="mailbox-folder-tabs" aria-label="Папки почты"><a class="{% if mailbox_folder == 'inbox' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a><a class="{% if mailbox_folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a><a class="{% if mailbox_folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a></nav>
+        <form class="mailbox-register-filters" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><label class="driver-search-field"><span uk-icon="search"></span><input class="uk-input search" type="search" name="q" value="{{ mailbox_query }}" placeholder="Отправитель или тема письма"></label><button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span>Найти</button>{% if mailbox_query %}<a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}<span class="mailbox-filter-spacer"></span><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}"><span uk-icon="refresh"></span>Обновить</a><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a></form>
+        <section class="mailbox-register" aria-label="Папка почты">
             {% if inbox_error %}
                 <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
             {% elif inbox_messages %}
                 <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
                     {% for message in inbox_messages %}
-                        <tr><td><strong>{{ message.sender }}</strong></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
+                        <tr class="{% if message.is_unread %}is-unread{% endif %}"><td><strong>{% if message.is_unread %}<span class="mailbox-unread-dot" title="Новое письмо"></span>{% endif %}{{ message.sender }}</strong></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
                     {% endfor %}
                 </tbody></table></div>
             {% else %}

@@ -2116,6 +2116,7 @@ html[data-theme="dark"] body.crm-workspace-theme .chat-compose { box-shadow: non
 /* Personal VK WorkSpace mailbox setup. */
 html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .mailbox-workspace { max-width: none; display: grid; gap: 18px; }
+.mailbox-title-line { display: flex; align-items: center; gap: 10px; }
 .mailbox-connection-card,
 .mailbox-setup-card,
 .mailbox-security-note,
@@ -2218,14 +2219,20 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .mailbox-folder-tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
-.mailbox-directory-page .mailbox-register { width: 100%; max-width: none; padding: 0; overflow: hidden; border-radius: 0; }
-.mailbox-directory-page .mailbox-register .mailbox-inbox-heading { padding: 18px 20px; }
-.mailbox-directory-page .mailbox-register .mailbox-folder-tabs { margin: 0; padding: 0 20px 12px; }
+.mailbox-directory-page .mailbox-register-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
+.mailbox-directory-page .mailbox-register-filters .driver-search-field { position: relative; display: block; flex: 1 1 440px; min-width: 260px; }
+.mailbox-directory-page .mailbox-register-filters .driver-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
+.mailbox-directory-page .mailbox-register-filters .search { width: 100%; max-width: none; min-height: 42px; padding-left: 43px; border-color: var(--workspace-line); border-radius: 8px; background: var(--workspace-surface); color: var(--workspace-text); }
+.mailbox-directory-page .mailbox-register-filters .uk-button { min-height: 42px; padding-inline: 16px; border-radius: 8px; }
+.mailbox-filter-spacer { flex: 1 1 0; }
+.mailbox-directory-page .mailbox-register { width: 100%; max-width: none; padding: 0; overflow: hidden; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); box-shadow: none; }
 .mailbox-directory-page .mailbox-register .mailbox-message-list { max-height: min(680px, calc(100dvh - 430px)); overflow: auto; border-top: 1px solid var(--workspace-line); }
 .mailbox-register-table { width: 100%; min-width: 860px; margin: 0; }
 .mailbox-register-table thead { position: sticky; top: 0; z-index: 2; }
 .mailbox-register-table th { height: 44px; padding: 0 16px; background: var(--workspace-soft); color: var(--workspace-muted); font-size: 11px; font-weight: 650; }
 .mailbox-register-table td { padding: 11px 16px; border-color: var(--workspace-line); font-size: 13px; }
+.mailbox-register-table tr.is-unread td { background: var(--workspace-tint); font-weight: 650; }
+.mailbox-unread-dot { width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; background: var(--workspace-accent); }
 .mailbox-register-table :is(th, td):first-child { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
 .mailbox-compose-modal { width: min(720px, calc(100vw - 32px)); border-radius: 14px; background: var(--workspace-surface); color: var(--workspace-text); }
 .mailbox-compose-modal .uk-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--workspace-line); background: transparent; }
@@ -2263,4 +2270,6 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
     .mailbox-message { grid-template-columns: 1fr; gap: 4px; }
     .mailbox-inbox-heading, .mailbox-message-view > header, .mailbox-compose > header { align-items: stretch; flex-direction: column; }
     .mailbox-inbox-actions { flex-wrap: wrap; }
+    .mailbox-directory-page .mailbox-register-filters .driver-search-field { flex-basis: 100%; }
+    .mailbox-filter-spacer { display: none; }
 }

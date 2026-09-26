@@ -78,10 +78,10 @@ def _decode_part(part):
     return payload.decode(part.get_content_charset() or "utf-8", errors="replace")
 
 
-def _open_folder(email, app_password, folder):
+def _open_folder(email, app_password, folder, readonly=True):
     client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
     client.login(email, app_password)
-    status, _ = client.select(_resolve_folder(client, folder), readonly=True)
+    status, _ = client.select(_resolve_folder(client, folder), readonly=readonly)
     if status != "OK":
         try:
             client.logout()
@@ -109,7 +109,7 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
         messages = []
         for message_id in reversed(message_ids):
             status, payload = client.uid(
-                "fetch", message_id, "(BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)])"
+                "fetch", message_id, "(FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)])"
             )
             if status != "OK" or not payload or not payload[0]:
                 continue
@@ -123,6 +123,7 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
                 "sender": _decode_header(message.get("From")),
                 "subject": _decode_header(message.get("Subject")),
                 "received_at": received_at,
+                "is_unread": b"\\Seen" not in payload[0][0],
             })
         return sorted(
             messages,
@@ -158,8 +159,9 @@ def _message_body_and_attachments(message):
 
 
 def fetch_message(email, app_password, folder, uid):
-    client = _open_folder(email, app_password, folder)
+    client = _open_folder(email, app_password, folder, readonly=False)
     try:
+        client.uid("store", str(uid), "+FLAGS.SILENT", "(\\Seen)")
         status, payload = client.uid("fetch", str(uid), "(RFC822)")
         if status != "OK" or not payload or not payload[0]:
             raise imaplib.IMAP4.error("Message was not found")

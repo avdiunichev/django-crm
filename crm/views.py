@@ -2015,6 +2015,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         inbox_messages = []
         inbox_error = False
         mailbox_folder = self.request.GET.get("folder", "inbox")
+        mailbox_query = self.request.GET.get("q", "").strip()
         if mailbox_folder not in {"inbox", "sent", "drafts"}:
             mailbox_folder = "inbox"
         if mailbox.is_connected and mailbox.encrypted_app_password:
@@ -2024,6 +2025,13 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     decrypt_app_password(mailbox.encrypted_app_password),
                     folder=mailbox_folder,
                 )
+                if mailbox_query:
+                    needle = mailbox_query.casefold()
+                    inbox_messages = [
+                        message for message in inbox_messages
+                        if needle in message["sender"].casefold()
+                        or needle in message["subject"].casefold()
+                    ]
             except (OSError, imaplib.IMAP4.error, ValueError):
                 inbox_error = True
         context.update(
@@ -2033,6 +2041,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 "inbox_messages": inbox_messages,
                 "inbox_error": inbox_error,
                 "mailbox_folder": mailbox_folder,
+                "mailbox_query": mailbox_query,
             }
         )
         return context
