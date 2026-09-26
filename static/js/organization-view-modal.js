@@ -196,6 +196,22 @@
         const primaryDetails = form.querySelector(".organization-primary-details");
         primaryDetails?.querySelector(".form-section-title > span")?.remove();
         primaryDetails?.classList.add("organization-modal-primary-details");
+        const verification = form.querySelector(".organization-verification-card");
+        const fnsStatus = verification?.querySelector("[data-fns-status]");
+        const checkedAt = verification?.querySelector("p");
+        const primaryTitle = primaryDetails?.querySelector(".form-section-title > div");
+        if (fnsStatus && primaryTitle) {
+            const meta = document.createElement("div");
+            meta.className = "organization-modal-verification-meta";
+            meta.append(fnsStatus.cloneNode(true));
+            if (checkedAt?.textContent.trim()) {
+                const date = document.createElement("span");
+                date.textContent = checkedAt.textContent.trim();
+                meta.append(date);
+            }
+            primaryTitle.append(meta);
+        }
+        verification?.remove();
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page";
         const scroll = document.createElement("div");
