@@ -1501,6 +1501,56 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
     background: #2d214b !important;
 }
 
+/* Fleet register follows the same dense, full-width work-table geometry as
+   the driver register. Earlier vehicle rules predated the selection column. */
+@media screen and (min-width: 721px) {
+    html body.vehicle-directory-page .vehicle-register-filters {
+        gap: 6px !important;
+    }
+    html body.vehicle-directory-page .vehicle-register-filters .vehicle-search-field {
+        width: auto;
+        max-width: none;
+        flex: 1 1 420px;
+    }
+    html body.vehicle-directory-page .vehicle-register-panel,
+    html body.vehicle-directory-page .vehicle-register-panel .table-wrap {
+        width: 100%;
+        border-radius: 0 !important;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table {
+        width: 100% !important;
+        min-width: 1080px;
+        table-layout: fixed;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(1) {
+        width: 56px !important;
+        min-width: 56px;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        text-align: center;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(2) { width: 14% !important; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(3) { width: 25% !important; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(4) { width: 19% !important; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(5) { width: 23% !important; }
+    html body.vehicle-directory-page .vehicle-directory-table :is(th, td):nth-child(6) { width: 13% !important; }
+    html body.vehicle-directory-page .vehicle-directory-table th {
+        padding: 10px !important;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table td {
+        padding: 7px 10px !important;
+        vertical-align: top;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table td > small {
+        margin-top: 2px;
+        line-height: 1.35;
+    }
+    html body.vehicle-directory-page .vehicle-directory-table .driver-registry-status {
+        line-height: 18px;
+        font-size: 12px;
+    }
+}
+
 /* Quiet utility footer: the service actions belong to navigation, not to a
    separate floating card. */
 @media screen and (min-width: 1200px) {

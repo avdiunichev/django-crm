@@ -13,7 +13,7 @@
         <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Госномер, VIN или марка" autocomplete="off" aria-label="Поиск транспорта">
     </label>
     <button class="uk-button uk-button-default vehicle-search-action" type="submit"><span uk-icon="search" aria-hidden="true"></span> Найти</button>
-    {% if current_q or current_kind or current_active %}<a class="uk-button uk-button-default vehicle-search-action" href="{% url 'vehicle-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default vehicle-search-action" type="button" disabled>Сбросить</button>{% endif %}
+    {% if current_q or current_kind or current_active %}<a class="uk-button uk-button-default vehicle-search-action" data-reset-filters href="{% url 'vehicle-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default vehicle-search-action" type="button" disabled>Сбросить</button>{% endif %}
     <a class="uk-button uk-button-default vehicle-search-action" href="{{ vehicle_export_url }}" data-vehicle-export data-export-url="{{ vehicle_export_url }}"><span uk-icon="download" aria-hidden="true"></span> Экспорт XLSX</a>
     <a class="uk-button uk-button-primary vehicle-search-action" href="{% url 'vehicle-create' %}" data-vehicle-modal>Добавить транспорт</a>
 </form>
