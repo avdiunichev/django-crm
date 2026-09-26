@@ -185,6 +185,9 @@
                 button.setAttribute("form", form.id);
             });
         }
+        const primaryDetails = form.querySelector(".organization-primary-details");
+        primaryDetails?.querySelector(".form-section-title > span")?.remove();
+        primaryDetails?.classList.add("organization-modal-primary-details");
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page";
         const scroll = document.createElement("div");
