@@ -37,9 +37,7 @@ html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-regi
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(7) { width: 145px; }
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(th, td):nth-child(8) { width: 75px; white-space: nowrap; }
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
+    display: inline;
     min-height: auto;
     padding: 0;
     border: 0;
@@ -47,20 +45,18 @@ html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-regi
     background: transparent !important;
     color: var(--workspace-text) !important;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.2;
     text-transform: none;
 }
-html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .badge::before {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #2bbf88;
-    content: "";
-}
-html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-draft::before { background: var(--workspace-muted); }
-html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-ready::before { background: #e29a38; }
-html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table :is(.contract-status-terminated, .contract-status-archived)::before { background: #d10000; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-draft,
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-archived { color: var(--workspace-muted) !important; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-ready { color: #b87919 !important; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-signed { color: #218739 !important; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-terminated { color: #c43c4b !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-ready { color: #e8b75d !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-signed { color: #72d48a !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .contract-status-terminated { color: #ff9da9 !important; }
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table .row-action {
     padding: 0;
     border: 0;
