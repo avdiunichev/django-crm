@@ -1500,3 +1500,70 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
     color: #a98cff !important;
     background: #2d214b !important;
 }
+
+/* Quiet utility footer: the service actions belong to navigation, not to a
+   separate floating card. */
+@media screen and (min-width: 1200px) {
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar > .crm-topnav-tools {
+        gap: 2px;
+        margin-top: auto;
+        padding: 13px 4px 0;
+        border: 0;
+        border-top: 1px solid var(--workspace-line);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .crm-dock-chat,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-toggle,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-logout-button {
+        min-height: 36px;
+        padding: 0 9px;
+        border-radius: 7px;
+        color: var(--workspace-muted);
+        font-weight: 500;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools :is(.crm-dock-chat, .navbar-notification-toggle, .topnav-logout-button):is(:hover, :focus-visible) {
+        color: var(--workspace-text);
+        background: var(--workspace-soft);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .crm-dock-chat.is-active {
+        color: var(--workspace-accent);
+        background: transparent;
+        box-shadow: inset 2px 0 0 var(--workspace-accent);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher {
+        margin: 8px 0 7px;
+        padding: 8px 9px;
+        border-top: 1px solid var(--workspace-line);
+        border-bottom: 1px solid var(--workspace-line);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-label {
+        padding: 0;
+        font-size: 10px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options {
+        min-height: 34px;
+        padding: 2px;
+        border: 1px solid var(--workspace-line);
+        border-radius: 7px;
+        background: transparent;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button {
+        min-height: 29px;
+        height: 29px;
+        border-radius: 5px;
+        font-size: 10px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button[aria-pressed="true"] {
+        color: var(--workspace-text);
+        background: var(--workspace-soft);
+        box-shadow: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-admin-button {
+        margin-top: 1px;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-signout-button {
+        color: var(--workspace-muted);
+    }
+}
