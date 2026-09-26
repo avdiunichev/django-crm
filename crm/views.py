@@ -2032,6 +2032,11 @@ class MailboxView(LoginRequiredMixin, TemplateView):
     template_name = "crm/mailbox.html"
     page_size_choices = ("10", "25", "50", "all")
     page_size_session_key = "crm_mailbox_page_size"
+    list_cache_seconds = 20
+
+    @staticmethod
+    def list_cache_key(user_id, folder, limit):
+        return f"crm-mailbox-list:{user_id}:{folder}:{limit}"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2055,12 +2060,17 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         if mailbox.is_connected and mailbox.encrypted_app_password:
             try:
                 password = decrypt_app_password(mailbox.encrypted_app_password)
-                inbox_messages = fetch_recent_inbox(
-                    mailbox.email,
-                    password,
-                    folder=mailbox_folder,
-                    limit=fetch_limit,
-                )
+                list_cache_key = self.list_cache_key(self.request.user.pk, mailbox_folder, fetch_limit)
+                refresh_requested = self.request.GET.get("refresh") == "1"
+                inbox_messages = None if refresh_requested else cache.get(list_cache_key)
+                if inbox_messages is None:
+                    inbox_messages = fetch_recent_inbox(
+                        mailbox.email,
+                        password,
+                        folder=mailbox_folder,
+                        limit=fetch_limit,
+                    )
+                    cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
                 cache_key = f"crm-mailbox-navigation-counts:{self.request.user.pk}"
                 mailbox_counts = cache.get(cache_key)
                 if mailbox_counts is None:
@@ -2094,6 +2104,14 @@ class MailboxView(LoginRequiredMixin, TemplateView):
             }
         )
         return context
+
+
+def invalidate_mailbox_list_cache(user_id, folder=None):
+    """Clear the short-lived mailbox list cache after a mail mutation."""
+    folders = (folder,) if folder else ("inbox", "sent", "drafts", "trash")
+    for cached_folder in folders:
+        for limit in (10, 25, 50, 100):
+            cache.delete(MailboxView.list_cache_key(user_id, cached_folder, limit))
 
 
 class MailboxConnectView(LoginRequiredMixin, View):
@@ -2170,6 +2188,7 @@ class MailboxDeleteSelectedView(PersonalMailboxMixin, View):
                 else:
                     messages.success(request, f"Перемещено в удалённые: {deleted_count}.")
                 cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
+                invalidate_mailbox_list_cache(request.user.pk)
         return redirect(f"{reverse('mailbox')}?folder={folder}")
 
 
@@ -2189,6 +2208,7 @@ class MailboxMarkReadView(PersonalMailboxMixin, View):
                 messages.error(request, "Не удалось отметить выбранные письма как прочитанные.")
             else:
                 cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
+                invalidate_mailbox_list_cache(request.user.pk, folder)
                 messages.success(request, f"Отмечено как прочитанные: {marked_count}.")
         return redirect(f"{reverse('mailbox')}?folder={folder}")
 
@@ -2205,6 +2225,7 @@ class MailboxMessageView(PersonalMailboxMixin, TemplateView):
         except (OSError, imaplib.IMAP4.error, ValueError):
             raise Http404("Письмо не найдено.")
         cache.delete(f"crm-mailbox-navigation-counts:{self.request.user.pk}")
+        invalidate_mailbox_list_cache(self.request.user.pk, folder)
         context.update({"message": message, "folder": folder})
         return context
 
@@ -2274,6 +2295,7 @@ class MailboxComposeView(PersonalMailboxMixin, View):
             return render(request, self.template_name, {"initial": request.POST})
         messages.success(request, "Письмо отправлено.")
         cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
+        invalidate_mailbox_list_cache(request.user.pk, "sent")
         return redirect("mailbox")
 
 

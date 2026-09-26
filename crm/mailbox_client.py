@@ -228,20 +228,26 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
 
 
 def fetch_mailbox_counts(email, app_password):
-    """Return total and unread message counts for the visible mailbox folders."""
-    counts = {}
-    for folder in ("inbox", "sent", "drafts", "trash"):
-        client = _open_folder(email, app_password, folder)
-        try:
-            total_status, total_data = client.uid("search", None, "ALL")
-            unread_status, unread_data = client.uid("search", None, "UNSEEN")
+    """Return folder counts through one IMAP session and lightweight STATUS calls."""
+    client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
+    try:
+        client.login(email, app_password)
+        folders = {folder: _resolve_folder(client, folder) for folder in ("inbox", "sent", "drafts", "trash")}
+        counts = {}
+        for folder, folder_name in folders.items():
+            status, data = client.status(folder_name, "(MESSAGES UNSEEN)")
+            summary = data[0] if status == "OK" and data else b""
+            if isinstance(summary, bytes):
+                summary = summary.decode("ascii", errors="ignore")
+            messages = re.search(r"MESSAGES\s+(\d+)", summary)
+            unread = re.search(r"UNSEEN\s+(\d+)", summary)
             counts[folder] = {
-                "total": len(total_data[0].split()) if total_status == "OK" and total_data else 0,
-                "unread": len(unread_data[0].split()) if unread_status == "OK" and unread_data else 0,
+                "total": int(messages.group(1)) if messages else 0,
+                "unread": int(unread.group(1)) if unread else 0,
             }
-        finally:
-            _close_client(client)
-    return counts
+        return counts
+    finally:
+        _close_client(client)
 
 
 def delete_messages(email, app_password, folder, uids):
