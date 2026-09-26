@@ -6,6 +6,8 @@ from email import message_from_bytes
 from email.header import decode_header
 from email.utils import parseaddr, parsedate_to_datetime
 import hashlib
+from html import unescape
+from html.parser import HTMLParser
 import imaplib
 import re
 import smtplib
@@ -89,8 +91,48 @@ def _message_preview(value):
     text = re.sub(r"=\r?\n", "", text)  # quoted-printable soft line break
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"(?im)^(content-[^\n]*|--[-_A-Za-z0-9=]+)\s*$", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s+", " ", unescape(text)).strip()
     return text[:600]
+
+
+class _HTMLTextExtractor(HTMLParser):
+    """Extract readable text from email HTML without rendering active content."""
+
+    block_tags = {"p", "div", "br", "tr", "li", "h1", "h2", "h3", "h4", "table"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.skip_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"script", "style", "head"}:
+            self.skip_depth += 1
+        elif tag in self.block_tags:
+            self.parts.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag in {"script", "style", "head"} and self.skip_depth:
+            self.skip_depth -= 1
+        elif tag in self.block_tags:
+            self.parts.append("\n")
+
+    def handle_data(self, data):
+        if not self.skip_depth:
+            self.parts.append(data)
+
+    def text(self):
+        value = unescape("".join(self.parts)).replace("\r", "")
+        value = re.sub(r"[ \t]+", " ", value)
+        value = re.sub(r"\n[ \t]*\n[ \t]*\n+", "\n\n", value)
+        return value.strip()
+
+
+def _html_to_text(value):
+    parser = _HTMLTextExtractor()
+    parser.feed(value)
+    parser.close()
+    return parser.text()
 
 
 def _open_folder(email, app_password, folder, readonly=True):
@@ -241,7 +283,7 @@ def _message_body_and_attachments(message):
         elif part.get_content_type() == "text/html":
             html_parts.append(_decode_part(part))
     # HTML is intentionally not rendered in CRM to prevent remote content and scripts.
-    return "\n\n".join(plain_parts) or "\n\n".join(html_parts), attachments
+    return "\n\n".join(plain_parts) or _html_to_text("\n\n".join(html_parts)), attachments
 
 
 def fetch_message(email, app_password, folder, uid):
