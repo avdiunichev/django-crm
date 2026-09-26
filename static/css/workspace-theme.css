@@ -1623,4 +1623,22 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-signout-button {
         color: var(--workspace-muted);
     }
+
+    /* Notification popover opens above the footer dock. The sidebar itself
+       must not clip that popover once the dock is moved inside it. */
+    html body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar {
+        overflow: visible;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-center {
+        position: relative;
+        overflow: visible;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-menu {
+        z-index: 1200;
+        top: auto;
+        bottom: calc(100% + 10px);
+        left: 0;
+        right: auto;
+        overflow: hidden;
+    }
 }
