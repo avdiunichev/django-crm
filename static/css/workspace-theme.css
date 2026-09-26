@@ -2232,7 +2232,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-directory-page .mailbox-register-filters .search { width: 100%; max-width: none; min-height: 42px; padding-left: 43px; border-color: var(--workspace-line); border-radius: 8px; background: var(--workspace-surface); color: var(--workspace-text); }
 .mailbox-directory-page .mailbox-register-filters .uk-button { min-height: 42px; padding-inline: 16px; border-radius: 8px; }
 .mailbox-filter-spacer { flex: 1 1 0; }
-.mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { min-height: calc(100dvh - 246px); grid-template-rows: auto minmax(0, 1fr); }
+.mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { min-height: calc(100dvh - 246px); grid-template-rows: auto auto minmax(0, 1fr); }
 .mailbox-directory-page .mailbox-register { width: 100%; max-width: none; min-height: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); box-shadow: none; }
 .mailbox-directory-page .mailbox-register .mailbox-message-list { flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; border-top: 1px solid var(--workspace-line); }
 .mailbox-register-table { width: 100%; min-width: 860px; margin: 0; }
