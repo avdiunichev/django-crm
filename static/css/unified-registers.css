@@ -146,7 +146,7 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
 
 /* Реестр рейсов: один ряд показывает операционную и финансовую картину рейса. */
-.uikit-theme .transportation-register-table { min-width: 1510px; table-layout: fixed; }
+.uikit-theme .transportation-register-table { min-width: 1740px; table-layout: fixed; }
 .uikit-theme .transportation-register-table th:nth-child(1),
 .uikit-theme .transportation-register-table td:nth-child(1) { width: 190px; }
 .uikit-theme .transportation-register-table th:nth-child(2),
@@ -164,6 +164,25 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 .uikit-theme .transportation-register-table .transportation-register-driver-vehicle > small {
     display: block;
     margin-top: 3px;
+}
+
+.uikit-theme .transportation-register-table .transportation-register-documents {
+    display: grid;
+    gap: 7px;
+}
+.uikit-theme .transportation-register-table .transportation-register-documents > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8px;
+    align-items: baseline;
+}
+.uikit-theme .transportation-register-table .transportation-register-documents span {
+    color: #77869a;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+.uikit-theme .transportation-register-table .transportation-register-documents small {
+    grid-column: 1 / -1;
 }
 
 .uikit-theme .transportation-register-table .transportation-register-trip > strong,

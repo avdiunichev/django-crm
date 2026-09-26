@@ -7944,6 +7944,16 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
                     "actual_carrier", "driver", "vehicle", "trailer", "combination"
                 ),
             ),
+            Prefetch(
+                "documents",
+                queryset=ShipmentDocument.objects.order_by("-document_date", "-created_at"),
+                to_attr="register_direct_documents",
+            ),
+            Prefetch(
+                "accounting_documents",
+                queryset=ShipmentDocument.objects.order_by("-document_date", "-created_at"),
+                to_attr="register_accounting_documents",
+            ),
         )
         queryset = scope_transportations_for_user(queryset, self.request.user)
         queries = search_terms(self.request)
@@ -8017,6 +8027,35 @@ class TransportationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_transportations = self.object_list
+        for transportation in all_transportations:
+            documents = {
+                document.pk: document
+                for document in (
+                    getattr(transportation, "register_direct_documents", ())
+                    + getattr(transportation, "register_accounting_documents", ())
+                )
+            }.values()
+            ordered_documents = sorted(
+                documents,
+                key=lambda document: (document.document_date or date.min, document.created_at),
+                reverse=True,
+            )
+            transportation.register_incoming_document = next(
+                (
+                    document
+                    for document in ordered_documents
+                    if document.direction == ShipmentDocument.Direction.INCOMING
+                ),
+                None,
+            )
+            transportation.register_outgoing_document = next(
+                (
+                    document
+                    for document in ordered_documents
+                    if document.direction == ShipmentDocument.Direction.OUTGOING
+                ),
+                None,
+            )
         current_owner = self.request.GET.get("owner", "").strip()
         register_totals = all_transportations.aggregate(
             customer_amount=Sum("customer_amount"),

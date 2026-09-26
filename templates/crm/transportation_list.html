@@ -47,6 +47,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const table = document.querySelector(".transportation-register-table");
+    if (!table || table.dataset.documentsColumnReady) return;
+    table.dataset.documentsColumnReady = "true";
+    const documents = {
+        {% for transportation in transportations %}
+            "{{ transportation.pk }}": {
+                incoming: {% with document=transportation.register_incoming_document %}{% if document %}{ number: "{{ document.number|default:document.crm_number|escapejs }}", received: "{{ document.document_date|date:'d.m.Y'|default:'—' }}" }{% else %}null{% endif %}{% endwith %},
+                outgoing: {% with document=transportation.register_outgoing_document %}{% if document %}{ number: "{{ document.number|default:document.crm_number|escapejs }}", received: "{{ document.document_date|date:'d.m.Y'|default:'—' }}" }{% else %}null{% endif %}{% endwith %},
+                incomingDue: "{{ transportation.executor_payment_due_date|date:'d.m.Y'|default:'—' }}",
+                outgoingDue: "{{ transportation.customer_payment_due_date|date:'d.m.Y'|default:'—' }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    const header = table.tHead?.rows[0];
+    if (header) {
+        const cell = header.insertCell(5);
+        cell.outerHTML = "<th>Документы и оплата</th>";
+    }
+    const escapeHtml = (value) => String(value).replace(/[&<>'\"]/g, (symbol) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;"})[symbol]);
+    const documentLine = (label, document, due, dateLabel) => `<div><span>${label}</span><strong>${document ? escapeHtml(document.number || "Без номера") : "Не зарегистрирован"}</strong><small>${document ? `${dateLabel}: ${escapeHtml(document.received)}` : ""} · Оплата до: ${escapeHtml(due)}</small></div>`;
+    table.tBodies[0]?.querySelectorAll("tr").forEach((row) => {
+        const selector = row.querySelector("[data-transportation-export-select]");
+        if (!selector) return;
+        const item = documents[selector.value];
+        const cell = row.insertCell(5);
+        cell.className = "transportation-register-documents";
+        cell.innerHTML = documentLine("Вх.", item?.incoming, item?.incomingDue || "—", "Получен")
+            + documentLine("Исх.", item?.outgoing, item?.outgoingDue || "—", "Дата");
+    });
+});
+</script>
 <script src="{% static 'js/transportation-register-layout.js' %}?v=20260924-1"></script>
 <script>document.addEventListener("DOMContentLoaded",()=>{const panel=document.querySelector("[data-transportation-register-filters]"),button=document.querySelector("[data-transportation-export]"),createButton=document.querySelector("[data-accounting-document-create]"),all=document.querySelector("[data-transportation-export-toggle-all]"),checks=Array.from(document.querySelectorAll("[data-transportation-export-select]"));if(!button||!all)return;const sync=()=>{const selected=checks.filter(item=>item.checked);all.checked=selected.length>0&&selected.length===checks.length;all.indeterminate=selected.length>0&&selected.length<checks.length;const url=new URL(button.dataset.exportUrl,window.location.origin);url.searchParams.delete("ids");selected.forEach(item=>url.searchParams.append("ids",item.value));button.href=url.pathname+url.search;button.title=selected.length?`Будут выгружены выбранные рейсы: ${selected.length}`:"Будет выгружен весь реестр с учётом фильтров";if(createButton){const createUrl=new URL(createButton.dataset.createUrl,window.location.origin);selected.forEach(item=>createUrl.searchParams.append("transportation_ids",item.value));createButton.href=createUrl.pathname+createUrl.search;createButton.classList.toggle("uk-disabled",!selected.length);createButton.setAttribute("aria-disabled",selected.length?"false":"true");createButton.title=selected.length?`Создать документ по выбранным рейсам: ${selected.length}`:"Сначала выберите рейсы";}};all.addEventListener("change",()=>{checks.forEach(item=>item.checked=all.checked);sync()});checks.forEach(item=>item.addEventListener("change",sync));panel?.querySelectorAll("select[name='owner'],select[name='scope']").forEach(item=>item.addEventListener("change",()=>panel.submit()));sync()});</script>
 {% endblock %}
