@@ -16,9 +16,9 @@ body.orders-workspace-page .app-shell-topnav > .crm-topnav {
 body.orders-workspace-page .app-shell-topnav > .main > .content { padding: 24px 28px 32px; }
 body.uikit-theme.orders-workspace-page .app-shell-topnav > .main { background: var(--orders-shell) !important; }
 body.orders-workspace-page .orders-workspace {
-    background: var(--orders-surface); border: 1px solid var(--orders-border);
-    border-radius: 22px; padding: 30px; min-width: 0;
-    min-height: calc(100vh - 150px); box-sizing: border-box;
+    background: transparent; border: 0;
+    border-radius: 0; padding: 0; min-width: 0;
+    min-height: 0; box-sizing: border-box;
 }
 .orders-breadcrumb { display: flex; align-items: center; gap: 12px; color: var(--orders-muted); font-size: 12px; margin-bottom: 28px; }
 .orders-page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 28px; }
@@ -55,9 +55,9 @@ body.orders-workspace-page .order-register-filters :is(input, select):focus { bo
 body.orders-workspace-page .order-register-filters .clear-link { font-size: 13px; color: var(--orders-muted); }
 body.orders-workspace-page .order-register-panel {
     padding: 0; margin: 0; border: 1px solid var(--orders-border);
-    border-radius: 12px !important; box-shadow: none; background: var(--orders-surface);
+    border-radius: 0 !important; box-shadow: none; background: var(--orders-surface);
 }
-body.orders-workspace-page .order-register-panel .table-wrap { overflow: auto; border-radius: 12px !important; max-height: 68vh; }
+body.orders-workspace-page .order-register-panel .table-wrap { overflow: auto; border-radius: 0 !important; max-height: 68vh; }
 body.orders-workspace-page .order-register-table { margin: 0; min-width: 1060px; width: 100%; font-size: 13px; border-collapse: separate; border-spacing: 0; background: var(--orders-surface) !important; }
 body.orders-workspace-page .order-register-table th {
     position: sticky; top: 0; z-index: 2; padding: 16px 14px;
