@@ -2219,7 +2219,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-inbox-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-inbox-actions { display: flex; align-items: center; gap: 8px; }
 .mailbox-inbox-heading h2 { margin: 4px 0 0; color: var(--workspace-text); font-size: 18px; }
-.mailbox-folder-tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); }
+.mailbox-folder-tabs { flex: 0 0 auto; display: flex; gap: 4px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-folder-tabs a { padding: 7px 10px; border-radius: 7px; color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 .mailbox-folder-tabs a:hover, .mailbox-folder-tabs a.is-active { color: var(--workspace-accent); background: var(--workspace-tint); font-weight: 650; }
 .mailbox-directory-page .mailbox-register-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
