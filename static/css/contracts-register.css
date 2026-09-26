@@ -1,5 +1,6 @@
 /* Contracts use the same register rhythm and typography as counterparties. */
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-filters > .uk-select { width: 210px; height: 42px; }
+html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-create-action { margin-left: auto; }
 html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table {
     min-width: 1180px;
     table-layout: fixed;
@@ -70,4 +71,5 @@ html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-regi
     html body.uikit-theme.crm-workspace-theme.contracts-register-page .organization-search-field,
     html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-filters > .uk-select,
     html body.uikit-theme.crm-workspace-theme.contracts-register-page .organization-search-action { grid-column: 1 / -1; width: 100%; }
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-create-action { margin-left: 0; }
 }
