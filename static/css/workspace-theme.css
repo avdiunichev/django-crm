@@ -2278,7 +2278,8 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-message:hover { color: var(--workspace-text); background: var(--workspace-soft); }
 .mailbox-message:last-child { border-bottom: 0; }
 .mailbox-message span, .mailbox-message small, .mailbox-inbox-empty { color: var(--workspace-muted); }
-.mailbox-message-view, .mailbox-compose { max-width: 920px; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
+.mailbox-message-view { width: 100%; max-width: none; box-sizing: border-box; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
+.mailbox-compose { max-width: 920px; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
 .mailbox-message-view > header, .mailbox-compose > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-message-view h1, .mailbox-compose h1 { margin: 5px 0; color: var(--workspace-text); font-size: 26px; }
 .mailbox-message-view header p, .mailbox-compose header p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
