@@ -1072,7 +1072,7 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
         .form-control, .form-select, .crm-smart-search) {
         border-radius: 9px !important; border-color: var(--workspace-line) !important;
         background-color: var(--workspace-surface) !important; color: var(--workspace-text) !important;
-        font-size: 14px; box-shadow: none;
+        font-family: inherit; font-size: 14px; font-weight: 400; box-shadow: none;
     }
     html body.uikit-theme.crm-workspace-theme :is(.uk-input, .uk-select, .uk-textarea,
         .form-control, .form-select, .crm-smart-search):focus {
