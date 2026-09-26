@@ -2008,6 +2008,8 @@ class MailboxView(LoginRequiredMixin, TemplateView):
     """Personal mailbox entry point for the current CRM user."""
 
     template_name = "crm/mailbox.html"
+    page_size_choices = ("10", "25", "50", "all")
+    page_size_session_key = "crm_mailbox_page_size"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2016,6 +2018,15 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         inbox_error = False
         mailbox_folder = self.request.GET.get("folder", "inbox")
         mailbox_query = self.request.GET.get("q", "").strip()
+        requested_page_size = self.request.GET.get("per_page", "").strip().lower()
+        if requested_page_size in self.page_size_choices:
+            self.request.session[self.page_size_session_key] = requested_page_size
+            current_per_page = requested_page_size
+        else:
+            current_per_page = self.request.session.get(self.page_size_session_key, "25")
+            if current_per_page not in self.page_size_choices:
+                current_per_page = "25"
+        fetch_limit = 100 if current_per_page == "all" else int(current_per_page)
         if mailbox_folder not in {"inbox", "sent", "drafts"}:
             mailbox_folder = "inbox"
         if mailbox.is_connected and mailbox.encrypted_app_password:
@@ -2024,6 +2035,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     mailbox.email,
                     decrypt_app_password(mailbox.encrypted_app_password),
                     folder=mailbox_folder,
+                    limit=fetch_limit,
                 )
                 if mailbox_query:
                     needle = mailbox_query.casefold()
@@ -2042,6 +2054,13 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 "inbox_error": inbox_error,
                 "mailbox_folder": mailbox_folder,
                 "mailbox_query": mailbox_query,
+                "page_size_choices": [
+                    {"value": "10", "label": "10"},
+                    {"value": "25", "label": "25"},
+                    {"value": "50", "label": "50"},
+                    {"value": "all", "label": "Все"},
+                ],
+                "current_per_page": current_per_page,
             }
         )
         return context
