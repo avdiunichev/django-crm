@@ -179,6 +179,7 @@
         const commandPanel = form.querySelector(".organization-command-header");
         if (commandPanel) {
             commandPanel.classList.add("organization-modal-command-panel");
+            commandPanel.querySelector(".form-section-title")?.remove();
             form.insertBefore(commandPanel, form.firstElementChild);
         }
         const dialog = document.createElement("div");
