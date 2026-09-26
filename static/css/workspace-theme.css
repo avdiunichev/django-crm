@@ -2252,16 +2252,18 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-directory-page .mailbox-register .mailbox-message-list { position: static; min-height: 0; max-height: none; overflow: visible; border-top: 0; }
 .mailbox-register-table { width: 100%; min-width: 1120px; margin: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .mailbox-register-table thead { position: sticky; top: 0; z-index: 3; }
-.mailbox-register-table th { position: static; box-sizing: border-box; height: auto; padding: 11px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
-.mailbox-register-table td { height: auto; padding: 5px 10px; vertical-align: top; border-color: var(--workspace-line); border-bottom: 1px solid var(--workspace-line); font-size: 13px; line-height: 1.2; }
+.mailbox-register-table th { position: static; box-sizing: border-box; height: auto; padding: 9px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
+.mailbox-register-table td { height: 42px; padding: 4px 10px !important; vertical-align: middle; border-color: var(--workspace-line); border-bottom: 1px solid var(--workspace-line); font-size: 13px; line-height: 1.2; }
 .mailbox-register-table tr.is-unread td { background: var(--workspace-tint); font-weight: 650; }
 .mailbox-register-table tr:not(.is-unread) td { font-weight: 400; }
 .mailbox-message-row { cursor: pointer; }
 .mailbox-message-row:hover td { background: var(--workspace-soft); }
-.mailbox-sender, .mailbox-sender-address { display: block; }
-.mailbox-sender { color: var(--workspace-text); font-size: 13px; font-weight: inherit; line-height: 1.35; }
-.mailbox-sender-address { margin-top: 1px; color: var(--workspace-muted); font-size: 11px; font-weight: 400; line-height: 1.2; }
-.mailbox-message-subject { display: block; color: var(--workspace-text) !important; font-size: 13px; font-weight: inherit; line-height: 1.2; text-decoration: none; }
+.mailbox-register-table td:nth-child(2), .mailbox-register-table td:nth-child(3) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mailbox-sender, .mailbox-sender-address { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mailbox-sender { color: var(--workspace-text); font-size: 13px; font-weight: inherit; line-height: 1.25; }
+.mailbox-sender-address { margin-left: 4px; color: var(--workspace-muted); font-size: 11px; font-weight: 400; line-height: 1.25; }
+.mailbox-sender-address::before { content: "· "; }
+.mailbox-message-subject { display: block; overflow: hidden; color: var(--workspace-text) !important; font-size: 13px; font-weight: inherit; line-height: 1.25; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .mailbox-message-preview { display: -webkit-box; margin-top: 2px; overflow: hidden; color: var(--workspace-muted); font-size: 12px; font-weight: 400; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
 .mailbox-register .mailbox-inbox-empty { margin: 0; padding: 26px 30px; color: var(--workspace-muted); font-size: 14px; }
 .mailbox-unread-dot { width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; background: var(--workspace-accent); }
