@@ -2172,7 +2172,7 @@ html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
 .personal-settings-link > .uk-icon { color: var(--workspace-muted); }
 .personal-settings-avatar { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; display: inline-grid; place-items: center; color: var(--workspace-accent); background: var(--workspace-tint); font-size: 13px; font-weight: 700; }
 .personal-settings-avatar.is-large { width: 54px; height: 54px; flex-basis: 54px; font-size: 21px; }
-@media screen and (min-width: 1200px) { .crm-topnav-tools > .personal-settings-link { margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--workspace-line); border-radius: 0; } }
+@media screen and (min-width: 1200px) { .crm-topnav-tools > .personal-settings-link { margin-bottom: 7px; padding-bottom: 18px; border-bottom: 1px solid var(--workspace-line); border-radius: 0; } }
 .personal-settings-layout { max-width: 960px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 16px; }
 .personal-settings-card { padding: 24px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
 .personal-settings-card h2 { margin: 0; color: var(--workspace-text); font-size: 19px; }

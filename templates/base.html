@@ -156,6 +156,7 @@
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
                 <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}"><span uk-icon="plus"></span> Написать письмо</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
@@ -204,6 +205,7 @@
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
                 <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}"><span uk-icon="plus"></span> Написать письмо</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
