@@ -1109,16 +1109,18 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.uikit-theme.crm-workspace-theme .uk-table tr { border-color: var(--workspace-line) !important; }
     html body.uikit-theme.crm-workspace-theme .uk-table tbody tr:hover td,
     html body.uikit-theme.crm-workspace-theme .uk-table tbody tr.is-selected td { background: var(--workspace-soft) !important; }
-    /* The transportation register inherits both register and workspace table
-       rules. Keep the selected row uniform, including the finance cell. */
-    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td {
-        background: var(--workspace-soft) !important;
+    /* The transportation register paints a row as one surface.  Individual
+       cells remain transparent, so the finance column cannot form a separate
+       coloured rectangle inside the selected row. */
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr {
+        background: var(--workspace-surface) !important;
     }
-    /* The common workspace rule highlights table cells separately. The finance
-       cell must receive exactly the same neutral fill when its row is active. */
-    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td.transportation-register-finance {
-        background: var(--workspace-soft) !important;
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr > td {
+        background: transparent !important;
         background-image: none !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) {
+        background: var(--workspace-soft) !important;
     }
     html body.uikit-theme.crm-workspace-theme .uk-table td small { color: var(--workspace-muted) !important; font-size: 12px; line-height: 1.5; }
     html body.uikit-theme.crm-workspace-theme .uk-table .primary-link { color: var(--workspace-text) !important; font-weight: 600; }
