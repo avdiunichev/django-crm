@@ -1420,8 +1420,8 @@ class TransportOrderStopForm(StyledModelForm):
             )
         self.fields["planned_time_from"].input_formats = ("%H:%M",)
         self.fields["planned_time_to"].input_formats = ("%H:%M",)
-        self.fields["address"].widget = forms.Textarea(
-            attrs={"class": "form-control uk-textarea", "rows": 2}
+        self.fields["address"].widget = forms.TextInput(
+            attrs={"class": "form-control uk-input"}
         )
         self.fields["address"].widget.attrs.update(
             {

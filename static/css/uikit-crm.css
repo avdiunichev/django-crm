@@ -11614,6 +11614,10 @@ html[data-theme="dark"] body.uikit-theme .driver-history-facts div {
     grid-template-columns: minmax(220px, 1fr) minmax(360px, 2fr);
 }
 
+[data-order-form] .route-city-address-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .order-route-stop textarea[data-dadata-address] {
     min-height: 42px;
     height: 42px;
