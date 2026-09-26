@@ -2249,6 +2249,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-message-row:hover td { background: var(--workspace-soft); }
 .mailbox-message-subject { display: block; color: var(--workspace-text) !important; font-size: 16px; font-weight: 650; line-height: 1.25; text-decoration: none; }
 .mailbox-message-preview { display: -webkit-box; margin-top: 4px; overflow: hidden; color: var(--workspace-muted); font-size: 12px; font-weight: 400; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.mailbox-register .mailbox-inbox-empty { margin: 0; padding: 26px 30px; color: var(--workspace-muted); font-size: 14px; }
 .mailbox-unread-dot { width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; background: var(--workspace-accent); }
 .mailbox-register-table :is(th, td):nth-child(2) { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
 .mailbox-select-column { width: 56px; min-width: 56px; padding-left: 0 !important; padding-right: 0 !important; text-align: center; vertical-align: middle !important; }

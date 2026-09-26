@@ -29,7 +29,7 @@
                     {% endfor %}
                 </tbody></table></div>
             {% else %}
-                <p class="mailbox-inbox-empty">Во входящих пока нет писем.</p>
+                <p class="mailbox-inbox-empty">{% if mailbox_folder == 'sent' %}В отправленных пока нет писем.{% elif mailbox_folder == 'drafts' %}Черновиков пока нет.{% elif mailbox_folder == 'trash' %}Удалённых писем нет.{% else %}Во входящих пока нет писем.{% endif %}</p>
             {% endif %}
         </section>
         <div class="mailbox-register-footer"><span class="mailbox-shown-rows">{% if current_per_page == 'all' %}Показаны все строки{% else %}Показано писем: {{ inbox_messages|length }}{% endif %}</span><form class="mailbox-page-size" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="q" value="{{ mailbox_query }}"><label>Строк на странице<select class="uk-select uk-form-small" name="per_page" onchange="this.form.submit()">{% for choice in page_size_choices %}<option value="{{ choice.value }}" {% if current_per_page == choice.value %}selected{% endif %}>{{ choice.label }}</option>{% endfor %}</select></label></form></div>
