@@ -6,17 +6,23 @@
 
 <div class="chat-shell uk-card uk-card-default">
     <aside class="chat-sidebar">
-        <form class="chat-start-form" method="post" action="{% url 'chat-start' %}">
+        <div class="chat-list-toolbar">
+            <div><strong>Сообщения</strong><small>Диалоги с сотрудниками</small></div>
+            <button class="chat-new-dialog-toggle" type="button" aria-expanded="false" aria-controls="chat-start-form" title="Новый диалог"><span uk-icon="plus"></span></button>
+        </div>
+        <form class="chat-start-form" id="chat-start-form" method="post" action="{% url 'chat-start' %}" hidden>
             {% csrf_token %}
-            <label class="uk-form-label" for="chat-user-select">Новый диалог</label>
+            {% if chat_embed %}<input type="hidden" name="embed" value="1">{% endif %}
+            <label class="uk-form-label" for="chat-user-select">С кем начать диалог</label>
             <div class="uk-flex uk-flex-middle uk-grid-small" uk-grid>
                 <div class="uk-width-expand"><select class="uk-select" id="chat-user-select" name="user_id" required><option value="">Выберите сотрудника</option>{% for employee in available_users %}<option value="{{ employee.pk }}">{{ employee.get_full_name|default:employee.username }}</option>{% endfor %}</select></div>
-                <div class="uk-width-auto"><button class="uk-button uk-button-primary" type="submit" title="Начать диалог"><span uk-icon="plus"></span></button></div>
+                <div class="uk-width-auto"><button class="uk-button uk-button-primary" type="submit">Начать</button></div>
             </div>
         </form>
+        <label class="chat-conversation-search"><span uk-icon="search"></span><input type="search" placeholder="Поиск диалогов" autocomplete="off" data-chat-conversation-search></label>
         <div class="chat-conversation-list">
             {% for row in conversation_rows %}
-                <a class="chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}">
+                <a class="chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}{% if chat_embed %}?embed=1{% endif %}">
                     <span class="chat-avatar">{{ row.other_user.get_full_name|default:row.other_user.username|slice:":1"|upper }}</span>
                     <span class="chat-conversation-copy"><strong>{{ row.other_user.get_full_name|default:row.other_user.username }}</strong><small>{% if row.last_message %}{% if row.last_message.sender_id == user.pk %}Вы: {% endif %}{% if row.last_message.text %}{{ row.last_message.text|truncatechars:42 }}{% elif row.last_message.attachment %}Файл: {{ row.last_message.attachment_filename|truncatechars:34 }}{% endif %}{% else %}Диалог создан{% endif %}</small></span>
                     {% if row.unread_count %}<span class="uk-badge">{{ row.unread_count }}</span>{% endif %}
@@ -37,7 +43,7 @@
                     <div class="chat-thread-empty" data-chat-empty><span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p></div>
                 {% endfor %}
             </div>
-            <form class="chat-compose" method="post" action="{% url 'chat-send' current_conversation.pk %}" enctype="multipart/form-data" data-chat-form>
+            <form class="chat-compose" method="post" action="{% url 'chat-send' current_conversation.pk %}{% if chat_embed %}?embed=1{% endif %}" enctype="multipart/form-data" data-chat-form>
                 {% csrf_token %}
                 <label class="chat-file-button" title="Прикрепить файл"><span uk-icon="file-text"></span>{{ message_form.attachment }}<span data-chat-file-name>Файл</span></label>
                 {{ message_form.text }}
@@ -49,6 +55,24 @@
             <div class="chat-placeholder"><span class="uk-icon-button" uk-icon="comments; ratio: 1.5"></span><h2>Выберите диалог</h2><p>Или начните новую переписку с сотрудником CRM.</p></div>
         {% endif %}
     </section>
+    <aside class="chat-context" aria-label="Сотрудники">
+        <header><strong>Сотрудники</strong><small>{{ available_users|length }}</small></header>
+        <div class="chat-people-list">
+            {% for employee in available_users %}
+                <form method="post" action="{% url 'chat-start' %}">
+                    {% csrf_token %}
+                    {% if chat_embed %}<input type="hidden" name="embed" value="1">{% endif %}
+                    <input type="hidden" name="user_id" value="{{ employee.pk }}">
+                    <button type="submit" class="chat-person">
+                        <span class="chat-avatar">{{ employee.get_full_name|default:employee.username|slice:":1"|upper }}</span>
+                        <span><b>{{ employee.get_full_name|default:employee.username }}</b><small>@{{ employee.username }}</small></span>
+                    </button>
+                </form>
+            {% empty %}
+                <p class="chat-people-empty">Сотрудники не найдены.</p>
+            {% endfor %}
+        </div>
+    </aside>
 </div>
 
 {% if current_conversation %}
@@ -206,4 +230,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.querySelector(".chat-new-dialog-toggle");
+    const form = document.querySelector("#chat-start-form");
+    const search = document.querySelector("[data-chat-conversation-search]");
+    if (toggle && form) {
+        toggle.addEventListener("click", () => {
+            const isOpen = !form.hidden;
+            form.hidden = isOpen;
+            toggle.setAttribute("aria-expanded", String(!isOpen));
+            if (!isOpen) form.querySelector("select")?.focus();
+        });
+    }
+    search?.addEventListener("input", () => {
+        const term = search.value.trim().toLocaleLowerCase("ru");
+        document.querySelectorAll(".chat-conversation").forEach((conversation) => {
+            conversation.hidden = Boolean(term) && !conversation.textContent.toLocaleLowerCase("ru").includes(term);
+        });
+    });
+});
+</script>
 {% endblock %}

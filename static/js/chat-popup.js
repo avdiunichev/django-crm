@@ -8,7 +8,7 @@
         popup.innerHTML = `
             <button class="crm-chat-popup-backdrop" type="button" aria-label="Закрыть чат" data-chat-popup-close></button>
             <section class="crm-chat-popup-panel" role="dialog" aria-modal="true" aria-label="Чат сотрудников">
-                <header><strong>Чат сотрудников</strong><span><a href="/chat/" data-chat-popup-full>Открыть отдельно</a><button type="button" aria-label="Закрыть чат" data-chat-popup-close>×</button></span></header>
+                <header><strong class="crm-chat-popup-title"><i aria-hidden="true">●</i>Чат сотрудников</strong><span><a href="/chat/" data-chat-popup-full>Открыть отдельно</a><button type="button" aria-label="Закрыть чат" data-chat-popup-close>×</button></span></header>
                 <iframe title="Чат сотрудников" data-chat-popup-frame></iframe>
             </section>`;
         document.body.append(popup);

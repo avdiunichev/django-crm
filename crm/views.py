@@ -514,6 +514,7 @@ from .models import (
     OrganizationRequisiteChange,
     OrganizationGroup,
     OrganizationRole,
+    MailboxConnection,
     Payment,
     PersonalDataAccessLog,
     PlannerTask,
@@ -1799,6 +1800,7 @@ class ChatView(LoginRequiredMixin, TemplateView):
                     "first_name", "last_name", "username"
                 ),
                 "message_form": ChatMessageForm(),
+                "chat_embed": self.request.GET.get("embed") == "1",
             }
         )
         return context
@@ -1813,7 +1815,10 @@ class ChatStartView(LoginRequiredMixin, View):
         conversation, _ = DirectConversation.get_or_create_between(
             request.user, other_user
         )
-        return redirect(conversation)
+        destination = conversation.get_absolute_url()
+        if request.POST.get("embed") == "1":
+            destination = f"{destination}?embed=1"
+        return redirect(destination)
 
 
 class ChatSendMessageView(LoginRequiredMixin, View):
@@ -1829,7 +1834,10 @@ class ChatSendMessageView(LoginRequiredMixin, View):
                 return JsonResponse(
                     {"message": chat_message_payload(message, request.user)}
                 )
-            return redirect(conversation)
+            destination = conversation.get_absolute_url()
+            if request.GET.get("embed") == "1":
+                destination = f"{destination}?embed=1"
+            return redirect(destination)
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             error = next(
                 (
@@ -1845,7 +1853,10 @@ class ChatSendMessageView(LoginRequiredMixin, View):
             )
         error = next(iter(form.errors.values()))[0]
         messages.error(request, error)
-        return redirect(conversation)
+        destination = conversation.get_absolute_url()
+        if request.GET.get("embed") == "1":
+            destination = f"{destination}?embed=1"
+        return redirect(destination)
 
 
 class ChatMessagesView(LoginRequiredMixin, View):
@@ -1977,6 +1988,27 @@ class DirectoryHubView(LoginRequiredMixin, TemplateView):
     """Entry point for reference directories used by breadcrumb navigation."""
 
     template_name = "crm/directory_hub.html"
+
+
+class MailboxView(LoginRequiredMixin, TemplateView):
+    """Personal mailbox entry point. OAuth activation is configured per deployment."""
+
+    template_name = "crm/mailbox.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        mailbox, _ = MailboxConnection.objects.get_or_create(user=self.request.user)
+        context.update(
+            {
+                "mailbox": mailbox,
+                "mailbox_address": mailbox.email or self.request.user.email,
+                "oauth_ready": bool(
+                    getattr(settings, "VK_WORKSPACE_OAUTH_CLIENT_ID", "")
+                    and getattr(settings, "VK_WORKSPACE_OAUTH_CLIENT_SECRET", "")
+                ),
+            }
+        )
+        return context
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):

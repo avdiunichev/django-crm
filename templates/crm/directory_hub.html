@@ -10,5 +10,6 @@
     <a class="directory-hub-card" href="{% url 'organization-list' %}"><span uk-icon="users"></span><strong>Контрагенты</strong><small>Клиенты, перевозчики и экспедиторы</small></a>
     {% if crm_access.can_view_personal_data %}<a class="directory-hub-card" href="{% url 'driver-list' %}"><span uk-icon="user"></span><strong>Водители</strong><small>Контакты и водительские документы</small></a>{% endif %}
     <a class="directory-hub-card" href="{% url 'vehicle-list' %}"><span uk-icon="nut"></span><strong>Автопарк</strong><small>Транспортные средства и сцепки</small></a>
+    <a class="directory-hub-card" href="{% url 'mailbox' %}"><span uk-icon="mail"></span><strong>Электронная почта</strong><small>Личный ящик VK WorkSpace</small></a>
 </section>
 {% endblock %}

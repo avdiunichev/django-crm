@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Электронная почта — CRM.Экспедитор{% endblock %}
+{% block body_class %}mailbox-page{% endblock %}
+{% block content %}
+<div class="orders-breadcrumb"><span uk-icon="git-fork"></span><a href="{% url 'directory-hub' %}">Справочники</a><span aria-hidden="true">/</span><span aria-current="page">Электронная почта</span></div>
+<header class="orders-page-header mailbox-page-header">
+    <div><h1>Электронная почта</h1><p>Ваш личный ящик VK WorkSpace. Письма доступны только вам.</p></div>
+</header>
+
+<section class="mailbox-workspace" aria-label="Подключение личной почты">
+    <div class="mailbox-connection-card">
+        <span class="mailbox-provider-icon" uk-icon="mail; ratio: 1.2"></span>
+        <div>
+            <span class="mailbox-kicker">VK WorkSpace</span>
+            <h2>{{ mailbox_address|default:"Личный ящик" }}</h2>
+            {% if mailbox.is_connected %}
+                <p><span class="status-dot status-dot-positive"></span>Подключён и доступен только вам</p>
+            {% else %}
+                <p>Ящик ещё не подключён к CRM.</p>
+            {% endif %}
+        </div>
+        {% if mailbox.is_connected %}
+            <span class="mailbox-status">Подключён</span>
+        {% else %}
+            <span class="mailbox-status mailbox-status-pending">Ожидает подключения</span>
+        {% endif %}
+    </div>
+
+    {% if mailbox.is_connected %}
+        <div class="mailbox-empty-state"><span uk-icon="mail; ratio: 1.8"></span><h2>Синхронизация почты готова</h2><p>Входящие, отправленные и черновики появятся здесь после первой синхронизации.</p></div>
+    {% else %}
+        <div class="mailbox-setup-card">
+            <div><span class="mailbox-step">01</span><h2>Подключите личный ящик</h2><p>При подключении вы войдёте через VK WorkSpace. CRM не получает и не хранит пароль от вашей почты.</p></div>
+            {% if oauth_ready %}
+                <button class="uk-button uk-button-primary" type="button" disabled>Подключить VK WorkSpace</button>
+            {% else %}
+                <button class="uk-button uk-button-default" type="button" disabled title="Требуется настройка OAuth на сервере">Подключить VK WorkSpace</button>
+                <small>Подключение будет доступно после настройки OAuth для домена newproject-spb.ru.</small>
+            {% endif %}
+        </div>
+        <div class="mailbox-security-note"><span uk-icon="lock"></span><span><strong>Личная почта</strong> — другие пользователи CRM не смогут видеть ваши письма, адресатов или вложения.</span></div>
+    {% endif %}
+</section>
+{% endblock %}

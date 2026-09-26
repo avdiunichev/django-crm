@@ -773,6 +773,9 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     }
     html body.driver-directory-page .driver-register-filters .driver-search-field { position: relative; display: block; width: auto; max-width: none; flex: 1 1 420px; }
     html body.driver-directory-page .driver-register-filters .driver-search-action { flex: 0 0 auto; min-height: 42px; padding-inline: 16px; }
+    /* Legacy register styles added a left margin to every action.  Keep the
+       toolbar rhythm determined solely by flex gap, like the fleet register. */
+    html body.driver-directory-page .driver-register-filters > .driver-search-action { margin-left: 0 !important; }
     html body.driver-directory-page .driver-register-filters .driver-search-field > .uk-icon { position: absolute; z-index: 1; top: 50%; left: 14px; transform: translateY(-50%); color: var(--workspace-muted); pointer-events: none; }
     html body.driver-directory-page .driver-register-filters .search { width: 100% !important; max-width: none; padding-left: 43px !important; }
     html body.driver-directory-page .driver-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }
@@ -1742,4 +1745,424 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
         right: auto;
         overflow: hidden;
     }
+}
+
+/* Chat: a compact, calm correspondence workspace. */
+html body.crm-workspace-theme .chat-shell {
+    min-height: 680px;
+    overflow: hidden;
+    border: 1px solid var(--workspace-line);
+    border-radius: 14px;
+    grid-template-columns: 300px minmax(0, 1fr);
+    background: var(--workspace-surface);
+    box-shadow: none;
+}
+html body.crm-workspace-theme .chat-sidebar {
+    border-color: var(--workspace-line);
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .chat-start-form {
+    padding: 16px;
+    border-color: var(--workspace-line);
+    background: var(--workspace-surface);
+}
+html body.crm-workspace-theme .chat-start-form .uk-form-label {
+    margin-bottom: 8px;
+    color: var(--workspace-muted);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+html body.crm-workspace-theme .chat-start-form .uk-button {
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 8px;
+}
+html body.crm-workspace-theme .chat-conversation-list { max-height: none; }
+html body.crm-workspace-theme .chat-conversation {
+    padding: 13px 16px;
+    border-bottom-color: var(--workspace-line);
+    box-shadow: inset 3px 0 transparent;
+    color: var(--workspace-text);
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+html body.crm-workspace-theme .chat-conversation:hover {
+    color: var(--workspace-text);
+    background: var(--workspace-surface);
+    text-decoration: none;
+}
+html body.crm-workspace-theme .chat-conversation.is-active {
+    color: var(--workspace-text);
+    background: var(--workspace-surface);
+    box-shadow: inset 3px 0 var(--workspace-accent);
+}
+html body.crm-workspace-theme .chat-avatar {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    border-radius: 10px;
+    color: var(--workspace-accent);
+    background: var(--workspace-tint);
+    font-size: 13px;
+}
+html body.crm-workspace-theme .chat-avatar.large {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 10px;
+}
+html body.crm-workspace-theme :is(.chat-conversation-copy small, .chat-header small, .chat-empty-list, .chat-placeholder, .chat-thread-empty) { color: var(--workspace-muted); }
+html body.crm-workspace-theme .chat-main { background: var(--workspace-surface); }
+html body.crm-workspace-theme .chat-header {
+    min-height: 66px;
+    padding: 12px 18px;
+    border-color: var(--workspace-line);
+    background: var(--workspace-surface);
+}
+html body.crm-workspace-theme .chat-header strong { font-size: 14px; }
+html body.crm-workspace-theme .chat-thread {
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+    padding: 20px;
+    gap: 10px;
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .chat-message > div {
+    max-width: min(620px, 78%);
+    padding: 9px 12px 8px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 10px 10px 10px 2px;
+    color: var(--workspace-text);
+    background: var(--workspace-surface);
+    box-shadow: none;
+}
+html body.crm-workspace-theme .chat-message.is-mine > div {
+    border-color: var(--workspace-accent);
+    border-radius: 10px 10px 2px 10px;
+    color: #fff;
+    background: var(--workspace-accent);
+}
+html body.crm-workspace-theme .chat-message strong { font-size: 10px; font-weight: 650; }
+html body.crm-workspace-theme .chat-compose {
+    padding: 12px 16px;
+    gap: 8px;
+    border-color: var(--workspace-line);
+    background: var(--workspace-surface);
+}
+html body.crm-workspace-theme .chat-compose textarea {
+    min-height: 42px;
+    border-color: var(--workspace-line);
+    border-radius: 8px;
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .chat-compose .uk-button { min-height: 42px; border-radius: 8px; }
+html body.crm-workspace-theme .chat-file-button {
+    min-height: 42px;
+    border-color: var(--workspace-line);
+    border-radius: 8px;
+    color: var(--workspace-muted);
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .chat-file-button:hover { border-color: var(--workspace-accent); color: var(--workspace-accent); }
+html body.crm-workspace-theme .chat-compose .chat-compose-hint { color: var(--workspace-muted); }
+html body.crm-workspace-theme .chat-attachment {
+    border-color: var(--workspace-line);
+    border-radius: 7px;
+    color: var(--workspace-accent);
+    background: var(--workspace-tint);
+}
+html body.crm-workspace-theme .chat-message.is-mine .chat-attachment { border-color: rgba(255,255,255,.32); color: #fff; background: rgba(255,255,255,.12); }
+html body.chat-embed-page .chat-shell { min-height: 100dvh; border: 0; border-radius: 0; }
+
+.crm-chat-popup-panel { width: min(980px, calc(100vw - 40px)); border-radius: 16px; }
+.crm-chat-popup-panel > header { height: 56px; padding: 0 14px 0 18px; }
+.crm-chat-popup-title { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 650; }
+.crm-chat-popup-title i { width: 8px; height: 8px; border-radius: 50%; color: transparent; background: var(--workspace-accent); }
+.crm-chat-popup-panel > header a { padding: 6px 8px; border-radius: 6px; }
+.crm-chat-popup-panel > header a:hover { background: var(--workspace-soft); }
+
+html[data-theme="dark"] body.crm-workspace-theme .chat-thread { background: #1a1a1a; }
+html[data-theme="dark"] body.crm-workspace-theme .chat-message > div { border-color: var(--workspace-line); background: #202020; }
+html[data-theme="dark"] body.crm-workspace-theme .chat-message.is-mine > div { border-color: var(--workspace-accent); background: var(--workspace-accent); }
+
+@media (max-width: 720px) {
+    html body.crm-workspace-theme .chat-shell { min-height: 100dvh; grid-template-columns: 1fr; border: 0; border-radius: 0; }
+    html body.crm-workspace-theme .chat-thread { min-height: 360px; padding: 14px; }
+    html body.crm-workspace-theme .chat-compose { padding: 10px 12px; }
+    html body.crm-workspace-theme .chat-message > div { max-width: 88%; }
+}
+
+/* Messenger layout: familiar direct-message mechanics, without CRM chrome. */
+html body.crm-workspace-theme .chat-shell { grid-template-columns: 320px minmax(0, 1fr); }
+html body.crm-workspace-theme .chat-list-toolbar {
+    min-height: 62px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--workspace-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--workspace-surface);
+}
+html body.crm-workspace-theme .chat-list-toolbar > div { display: grid; gap: 2px; }
+html body.crm-workspace-theme .chat-list-toolbar strong { font-size: 15px; font-weight: 650; }
+html body.crm-workspace-theme .chat-list-toolbar small { color: var(--workspace-muted); font-size: 11px; }
+html body.crm-workspace-theme .chat-new-dialog-toggle {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--workspace-accent);
+    cursor: pointer;
+}
+html body.crm-workspace-theme .chat-new-dialog-toggle:hover { filter: brightness(.94); }
+html body.crm-workspace-theme .chat-start-form { padding: 12px 14px; }
+html body.crm-workspace-theme .chat-start-form[hidden] { display: none !important; }
+html body.crm-workspace-theme .chat-start-form .uk-form-label { margin-bottom: 7px; }
+html body.crm-workspace-theme .chat-start-form .uk-button { min-width: auto; padding: 0 11px; font-size: 12px; }
+html body.crm-workspace-theme .chat-conversation-search {
+    position: relative;
+    margin: 10px 12px;
+    display: block;
+    color: var(--workspace-muted);
+}
+html body.crm-workspace-theme .chat-conversation-search .uk-icon {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 11px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+html body.crm-workspace-theme .chat-conversation-search input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px 0 34px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    outline: none;
+    color: var(--workspace-text);
+    background: var(--workspace-surface);
+    font: inherit;
+    font-size: 12px;
+}
+html body.crm-workspace-theme .chat-conversation-search input:focus { border-color: var(--workspace-accent); }
+html body.crm-workspace-theme .chat-conversation-list { max-height: calc(100dvh - 240px); }
+html body.crm-workspace-theme .chat-conversation {
+    min-height: 64px;
+    padding: 10px 14px;
+    gap: 10px;
+    border-bottom: 0;
+    box-shadow: none;
+}
+html body.crm-workspace-theme .chat-conversation + .chat-conversation { border-top: 1px solid color-mix(in srgb, var(--workspace-line) 70%, transparent); }
+html body.crm-workspace-theme .chat-conversation.is-active { box-shadow: inset 3px 0 var(--workspace-accent); }
+html body.crm-workspace-theme .chat-conversation-copy strong { font-size: 13px; font-weight: 650; }
+html body.crm-workspace-theme .chat-conversation-copy small { margin-top: 2px; font-size: 11px; }
+html body.crm-workspace-theme .chat-header {
+    min-height: 62px;
+    padding: 10px 18px;
+    box-sizing: border-box;
+}
+html body.crm-workspace-theme .chat-header > div { gap: 2px; }
+html body.crm-workspace-theme .chat-header strong { font-size: 14px; font-weight: 650; }
+html body.crm-workspace-theme .chat-thread {
+    padding: 18px 20px;
+    gap: 8px;
+    background-image: radial-gradient(color-mix(in srgb, var(--workspace-line) 72%, transparent) .6px, transparent .6px);
+    background-size: 12px 12px;
+}
+html body.crm-workspace-theme .chat-message > div { border-radius: 12px 12px 12px 3px; }
+html body.crm-workspace-theme .chat-message.is-mine > div { border-radius: 12px 12px 3px 12px; }
+html body.crm-workspace-theme .chat-compose {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 10px 14px;
+    align-items: center;
+}
+html body.crm-workspace-theme .chat-compose textarea { min-height: 40px; max-height: 100px; padding: 9px 11px; }
+html body.crm-workspace-theme .chat-file-button { width: 40px; min-width: 40px; padding: 0; justify-content: center; }
+html body.crm-workspace-theme .chat-file-button > span:last-child { display: none; }
+html body.crm-workspace-theme .chat-compose .uk-button { min-height: 40px; padding: 0 14px; }
+html body.crm-workspace-theme .chat-compose .chat-compose-hint { display: none; }
+
+@media (max-width: 720px) {
+    html body.crm-workspace-theme .chat-list-toolbar { min-height: 56px; }
+    html body.crm-workspace-theme .chat-conversation-list { max-height: 260px; }
+    html body.crm-workspace-theme .chat-thread { background-image: none; }
+    html body.crm-workspace-theme .chat-compose .uk-button span:last-child { display: none; }
+    html body.crm-workspace-theme .chat-compose .uk-button { width: 40px; padding: 0; }
+}
+
+/* Three quiet columns mirror the workbench composition used by the product,
+   rather than turning the dialog into a full CRM page. */
+html body.crm-workspace-theme .chat-shell {
+    min-height: 0;
+    height: min(760px, calc(100dvh - 40px));
+    grid-template-columns: 250px minmax(0, 1fr) 220px;
+    border-radius: 12px;
+}
+html body.crm-workspace-theme .chat-sidebar { background: var(--workspace-surface); }
+html body.crm-workspace-theme .chat-list-toolbar { min-height: 56px; padding: 0 14px; }
+html body.crm-workspace-theme .chat-list-toolbar strong { font-size: 14px; }
+html body.crm-workspace-theme .chat-list-toolbar small { display: none; }
+html body.crm-workspace-theme .chat-new-dialog-toggle { width: 30px; height: 30px; }
+html body.crm-workspace-theme .chat-conversation-search { margin: 8px 10px; }
+html body.crm-workspace-theme .chat-conversation-search input { height: 34px; font-size: 11px; background: var(--workspace-soft); }
+html body.crm-workspace-theme .chat-conversation-list { max-height: none; }
+html body.crm-workspace-theme .chat-conversation { min-height: 56px; padding: 9px 12px; }
+html body.crm-workspace-theme .chat-conversation:hover,
+html body.crm-workspace-theme .chat-conversation.is-active { background: var(--workspace-soft); }
+html body.crm-workspace-theme .chat-conversation.is-active { box-shadow: inset 2px 0 var(--workspace-accent); }
+html body.crm-workspace-theme .chat-avatar { width: 32px; height: 32px; flex-basis: 32px; border-radius: 50%; font-size: 11px; }
+html body.crm-workspace-theme .chat-avatar.large { width: 34px; height: 34px; flex-basis: 34px; border-radius: 50%; }
+html body.crm-workspace-theme .chat-conversation-copy strong { font-size: 12px; }
+html body.crm-workspace-theme .chat-conversation-copy small { font-size: 10px; }
+html body.crm-workspace-theme .chat-header { min-height: 56px; padding: 9px 16px; }
+html body.crm-workspace-theme .chat-header strong { font-size: 13px; }
+html body.crm-workspace-theme .chat-header small { font-size: 10px; }
+html body.crm-workspace-theme .chat-thread {
+    padding: 24px 28px;
+    background: var(--workspace-surface);
+    background-image: none;
+}
+html body.crm-workspace-theme .chat-message > div {
+    max-width: min(560px, 82%);
+    border-radius: 10px;
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .chat-message.is-mine > div { border-radius: 10px; }
+html body.crm-workspace-theme .chat-message strong { color: var(--workspace-muted); }
+html body.crm-workspace-theme .chat-message.is-mine strong { color: rgba(255,255,255,.76); }
+html body.crm-workspace-theme .chat-compose {
+    margin: 0 18px 16px;
+    padding: 8px 10px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(41,41,45,.06);
+}
+html body.crm-workspace-theme .chat-compose textarea { border: 0; background: transparent; }
+html body.crm-workspace-theme .chat-compose textarea:focus { outline: 0; }
+html body.crm-workspace-theme .chat-file-button { border: 0; background: transparent; }
+html body.crm-workspace-theme .chat-context {
+    min-width: 0;
+    border-left: 1px solid var(--workspace-line);
+    display: flex;
+    flex-direction: column;
+    background: var(--workspace-surface);
+}
+html body.crm-workspace-theme .chat-context > header {
+    min-height: 56px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--workspace-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+html body.crm-workspace-theme .chat-context > header strong { font-size: 12px; font-weight: 650; }
+html body.crm-workspace-theme .chat-context > header small {
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--workspace-muted);
+    background: var(--workspace-soft);
+    font-size: 10px;
+}
+html body.crm-workspace-theme .chat-people-list { overflow-y: auto; padding: 6px; }
+html body.crm-workspace-theme .chat-people-list form { margin: 0; }
+html body.crm-workspace-theme .chat-person {
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--workspace-text);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+html body.crm-workspace-theme .chat-person:hover { background: var(--workspace-soft); }
+html body.crm-workspace-theme .chat-person > span:last-child { min-width: 0; display: grid; gap: 2px; }
+html body.crm-workspace-theme .chat-person b,
+html body.crm-workspace-theme .chat-person small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+html body.crm-workspace-theme .chat-person b { font-size: 11px; font-weight: 600; }
+html body.crm-workspace-theme .chat-person small { color: var(--workspace-muted); font-size: 10px; }
+html body.crm-workspace-theme .chat-people-empty { margin: 16px 10px; color: var(--workspace-muted); font-size: 11px; }
+html body.chat-embed-page .chat-shell { height: 100dvh; }
+html[data-theme="dark"] body.crm-workspace-theme .chat-thread { background: #202020; }
+html[data-theme="dark"] body.crm-workspace-theme .chat-compose { box-shadow: none; }
+
+@media (max-width: 960px) {
+    html body.crm-workspace-theme .chat-shell { grid-template-columns: 240px minmax(0, 1fr); }
+    html body.crm-workspace-theme .chat-context { display: none; }
+}
+@media (max-width: 720px) {
+    html body.crm-workspace-theme .chat-shell { height: 100dvh; grid-template-columns: 1fr; }
+    html body.crm-workspace-theme .chat-compose { margin: 0 10px 10px; }
+}
+
+/* Personal VK WorkSpace mailbox setup. */
+html body.mailbox-page .mailbox-page-header { margin-bottom: 26px; }
+.mailbox-workspace { max-width: 920px; display: grid; gap: 14px; }
+.mailbox-connection-card,
+.mailbox-setup-card,
+.mailbox-security-note,
+.mailbox-empty-state {
+    border: 1px solid var(--workspace-line);
+    background: var(--workspace-surface);
+}
+.mailbox-connection-card {
+    min-height: 108px;
+    padding: 20px 22px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.mailbox-provider-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--workspace-accent);
+    background: var(--workspace-tint);
+}
+.mailbox-kicker { color: var(--workspace-muted); font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+.mailbox-connection-card h2 { margin: 4px 0 4px; color: var(--workspace-text); font-size: 18px; font-weight: 650; }
+.mailbox-connection-card p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
+.mailbox-status { margin-left: auto; padding: 5px 9px; border-radius: 6px; color: var(--workspace-accent); background: var(--workspace-tint); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.mailbox-status-pending { color: var(--workspace-muted); background: var(--workspace-soft); }
+.mailbox-setup-card { padding: 24px 22px; border-radius: 12px; display: flex; align-items: center; gap: 20px; }
+.mailbox-setup-card > div { flex: 1; }
+.mailbox-step { color: var(--workspace-accent); font-size: 11px; font-weight: 650; letter-spacing: .08em; }
+.mailbox-setup-card h2 { margin: 7px 0; color: var(--workspace-text); font-size: 18px; }
+.mailbox-setup-card p { max-width: 560px; margin: 0; color: var(--workspace-muted); font-size: 13px; line-height: 1.5; }
+.mailbox-setup-card small { max-width: 210px; color: var(--workspace-muted); font-size: 11px; line-height: 1.4; }
+.mailbox-setup-card .uk-button[disabled] { opacity: .55; cursor: not-allowed; }
+.mailbox-security-note { padding: 13px 15px; border-radius: 10px; display: flex; align-items: flex-start; gap: 10px; color: var(--workspace-muted); font-size: 12px; line-height: 1.45; }
+.mailbox-security-note .uk-icon { flex: 0 0 auto; color: var(--workspace-accent); }
+.mailbox-security-note strong { color: var(--workspace-text); }
+.mailbox-empty-state { min-height: 300px; padding: 40px; border-radius: 12px; display: grid; place-content: center; text-align: center; color: var(--workspace-muted); }
+.mailbox-empty-state .uk-icon { margin: 0 auto 12px; color: var(--workspace-accent); }
+.mailbox-empty-state h2 { margin: 0 0 6px; color: var(--workspace-text); font-size: 17px; }
+.mailbox-empty-state p { max-width: 390px; margin: 0; font-size: 13px; }
+
+@media (max-width: 720px) {
+    .mailbox-connection-card, .mailbox-setup-card { align-items: flex-start; flex-wrap: wrap; }
+    .mailbox-status { margin-left: 62px; }
+    .mailbox-setup-card .uk-button { width: 100%; }
 }

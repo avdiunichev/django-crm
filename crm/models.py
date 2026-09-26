@@ -161,6 +161,37 @@ class UserProfile(TimestampedModel):
         return self.role in {self.Role.ADMIN, self.Role.DIRECTOR}
 
 
+class MailboxConnection(TimestampedModel):
+    """A personal corporate mailbox; credentials are never stored in CRM."""
+
+    class Provider(models.TextChoices):
+        VK_WORKSPACE = "vk_workspace", "VK WorkSpace"
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Пользователь",
+        related_name="mailbox_connection",
+        on_delete=models.CASCADE,
+    )
+    provider = models.CharField(
+        "Почтовый сервис",
+        max_length=32,
+        choices=Provider.choices,
+        default=Provider.VK_WORKSPACE,
+    )
+    email = models.EmailField("Адрес ящика", blank=True)
+    is_connected = models.BooleanField("Подключена", default=False)
+    connected_at = models.DateTimeField("Подключена", null=True, blank=True)
+    last_synced_at = models.DateTimeField("Последняя синхронизация", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "подключение почты"
+        verbose_name_plural = "подключения почты"
+
+    def __str__(self):
+        return self.email or str(self.user)
+
+
 class OrganizationGroup(TimestampedModel):
     name = models.CharField("Наименование", max_length=150)
     parent = models.ForeignKey(

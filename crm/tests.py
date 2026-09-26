@@ -48,6 +48,7 @@ from .models import (
     DriverLicense,
     DriverPassport,
     DirectConversation,
+    MailboxConnection,
     ForwardingOrder,
     Organization,
     OrganizationBankAccount,
@@ -6417,3 +6418,21 @@ class CrmTestCase(TestCase):
         for resource in ("vehicle", "combination"):
             response = self.client.get(reverse("search-select"), {**params, "resource": resource})
             self.assertEqual(response.status_code, 200)
+
+
+class MailboxViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="mail-user",
+            email="user@newproject-spb.ru",
+            password="test-password",
+        )
+
+    def test_mailbox_is_personal_and_created_on_first_visit(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("mailbox"))
+
+        self.assertEqual(response.status_code, 200)
+        connection = MailboxConnection.objects.get(user=self.user)
+        self.assertFalse(connection.is_connected)
+        self.assertContains(response, "user@newproject-spb.ru")
