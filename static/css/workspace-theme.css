@@ -2282,15 +2282,15 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-compose { max-width: 920px; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
 .crm-organization-dialog { display: flex; flex-direction: column; width: min(1180px, calc(100vw - 40px)); max-width: none; height: calc(100vh - 48px); max-height: calc(100vh - 48px); overflow: hidden; border-radius: 8px; background: var(--workspace-surface); color: var(--workspace-text); }
 .crm-organization-dialog .organization-modal-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }
-.crm-organization-dialog .organization-workspace { display: grid; gap: 16px; padding: 0 18px 22px; }
+.crm-organization-dialog .organization-workspace { display: grid; gap: 16px; padding: 0 0 22px; }
 .crm-organization-dialog .organization-command-header { padding-right: 0; }
 .crm-organization-dialog .organization-command-footer { align-items: center; flex-wrap: nowrap; gap: 12px; }
 .crm-organization-dialog .organization-command-inn { flex: 0 1 260px; min-width: 220px; }
 .crm-organization-dialog .organization-command-actions { justify-content: flex-start; flex-wrap: nowrap; align-items: center; gap: 8px; margin: 0; }
 .crm-organization-dialog .organization-command-actions .uk-button { white-space: nowrap; }
 .crm-organization-dialog a[href*="/pdf/"] { display: none !important; }
-.crm-organization-dialog .organization-modal-command-panel { display: block; position: relative; z-index: 85; flex: 0 0 auto; box-sizing: border-box; width: auto; margin: 0 0 22px; padding: 36px 18px 18px; border: 0 !important; border-radius: 0 !important; background: var(--workspace-surface); box-shadow: none !important; }
-.crm-organization-dialog .organization-modal-command-panel::after { content: ""; position: absolute; right: 18px; bottom: 0; left: 18px; height: 1px; background: #e1e8f0; }
+.crm-organization-dialog .organization-modal-command-panel { display: block; position: relative; z-index: 85; flex: 0 0 auto; box-sizing: border-box; width: calc(100% + 72px); margin: 0 -36px 22px; padding: 36px 36px 18px; border: 0 !important; border-radius: 0 !important; background: var(--workspace-surface); box-shadow: inset 0 -1px 0 #e1e8f0 !important; }
+.crm-organization-dialog .organization-modal-command-panel::after { content: ""; position: absolute; right: 36px; bottom: 0; left: 36px; height: 1px; background: #e1e8f0; }
 .crm-organization-dialog .organization-modal-command-panel .organization-command-footer { margin: 0; }
 .crm-organization-dialog .organization-command-panel { display: none; }
 .crm-modal-loading { padding: 40px 10px; color: var(--workspace-muted); text-align: center; }
