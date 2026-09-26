@@ -1339,3 +1339,37 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
     [data-driver-form] [data-license-add],
     [data-driver-form] [data-driver-phone-remove]
 ) { color: #a98cff !important; border-color: #7c4dff !important; }
+
+/* Neutral graphite surfaces replace the older blue-tinted detail cards. */
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .contract-profile, .trip-workspace, #contract-form
+) {
+    --workspace-surface: #202020 !important;
+    --workspace-soft: #292929 !important;
+    --workspace-line: #3b3b3b !important;
+    --workspace-text: #f5f5f5 !important;
+    --workspace-muted: #b7b3be !important;
+}
+html[data-theme="dark"] body.organization-card-page :is(
+    .organization-profile-card, .organization-view-section
+) {
+    border-color: #3b3b3b !important;
+    background: #202020 !important;
+}
+html[data-theme="dark"] body.organization-card-page :is(
+    .organization-view-record, .organization-view-role-box,
+    .organization-view-state-box, .organization-view-empty,
+    .organization-profile-document, .organization-profile-contract-table th
+) {
+    border-color: #3b3b3b !important;
+    background: #292929 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .driver-view-empty, .vehicle-view-empty, .document-register-filters,
+    .document-chip, .transportation-card .transportation-summary,
+    .transportation-card .transport-chain-panel, .transportation-card .panel,
+    .transportation-card .transportation-finance-card, .trip-profile-card
+) {
+    border-color: #3b3b3b !important;
+    background: #202020 !important;
+}
