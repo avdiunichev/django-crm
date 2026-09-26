@@ -1521,6 +1521,19 @@ html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a.is-active:
     background: var(--workspace-accent);
 }
 
+/* The fleet is an operational register, so its table frame stays square on
+   every viewport rather than inheriting the rounded card treatment. */
+html body.uikit-theme.crm-workspace-theme.vehicle-directory-page :is(
+    .vehicle-register-panel, .vehicle-register-panel .table-wrap,
+    .vehicle-directory-table, .vehicle-directory-table :is(thead, tbody, tr, th, td)
+) {
+    border-radius: 0 !important;
+}
+html body.uikit-theme.crm-workspace-theme.vehicle-directory-page .vehicle-register-panel {
+    border: 1px solid var(--workspace-line) !important;
+    box-shadow: none !important;
+}
+
 /* Service dock: chat, notifications and appearance use the same calm
    full-width control treatment at the base of the sidebar. */
 @media screen and (min-width: 1200px) {
