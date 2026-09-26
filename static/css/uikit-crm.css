@@ -9876,6 +9876,11 @@ html[data-theme="dark"] body.uikit-theme .chat-message.is-mine .chat-attachment 
     pointer-events: none;
 }
 
+#transportation-form .field.has-validation-error :is(.uk-input, .uk-select, .uk-textarea, .crm-smart-search) {
+    border-color: #e53935 !important;
+    box-shadow: 0 0 0 1px rgba(229, 57, 53, 0.18) !important;
+}
+
 .crm-smart-select {
     position: relative;
     min-width: 0;

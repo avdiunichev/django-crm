@@ -31,6 +31,26 @@
         if (window.UIkit?.notification) UIkit.notification({message, status, pos: "top-center"});
     };
 
+    const bindTransportationValidation = (form) => {
+        if (!form || form.dataset.validationFeedbackReady === "true") return;
+        form.dataset.validationFeedbackReady = "true";
+        const showValidationFeedback = () => {
+            window.requestAnimationFrame(() => {
+                const invalid = Array.from(form.querySelectorAll(":invalid"));
+                if (!invalid.length) return;
+                const first = invalid[0];
+                const field = first.closest(".field");
+                const label = field?.querySelector("label")?.textContent.replace("*", "").trim();
+                notify(label ? `Заполните поле «${label}».` : "Проверьте обязательные поля формы.", "danger");
+                field?.classList.add("has-validation-error");
+                field?.scrollIntoView({block: "center", behavior: "smooth"});
+            });
+        };
+        form.addEventListener("invalid", showValidationFeedback, true);
+        form.addEventListener("input", (event) => event.target.closest(".field")?.classList.remove("has-validation-error"));
+        form.addEventListener("change", (event) => event.target.closest(".field")?.classList.remove("has-validation-error"));
+    };
+
     const optionAllowedForRole = (option, role) => {
         if (!role || !option.dataset.roles) return true;
         return option.dataset.roles.split(/\s+/).includes(role);
@@ -908,6 +928,7 @@
     const initializeTransportationContent = (container, isModal = false) => {
         container.querySelectorAll(SMART_SELECTOR).forEach(enhanceSmartSelect);
         const form = container.querySelector("#transportation-form");
+        bindTransportationValidation(form);
         if (isModal) initializeModalTransportationForm(form, container);
     };
 
@@ -956,6 +977,12 @@
                     return;
                 }
                 renderTransportationModal(await response.text(), sourceUrl);
+                notify("Рейс не сохранён: проверьте выделенные поля.", "danger");
+                window.requestAnimationFrame(() => {
+                    transportationModalElement
+                        ?.querySelector(".field-error, .uk-alert-danger")
+                        ?.scrollIntoView({block: "center", behavior: "smooth"});
+                });
             } catch (_error) {
                 notify("Не удалось сохранить заявку.", "danger");
                 form.querySelectorAll('button[type="submit"]').forEach((button) => { button.disabled = false; });
