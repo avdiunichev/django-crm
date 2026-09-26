@@ -121,29 +121,48 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
         if status != "OK":
             return []
         message_ids = data[0].split()[-limit:]
+        if not message_ids:
+            return []
+        # One batched IMAP command is substantially faster than a separate
+        # network round trip for every visible row.
+        status, payload = client.uid(
+            "fetch", b",".join(message_ids),
+            "(UID FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
+        )
+        if status != "OK" or not payload:
+            return []
+
+        raw_messages = {}
+        current_uid = None
+        for item in payload:
+            if not isinstance(item, tuple) or not isinstance(item[1], bytes):
+                continue
+            metadata, data = item
+            uid_match = re.search(rb"UID\s+(\d+)", metadata)
+            if uid_match:
+                current_uid = uid_match.group(1).decode("ascii")
+                raw_messages[current_uid] = {"metadata": metadata, "header": data, "preview": b""}
+            elif current_uid and current_uid in raw_messages:
+                raw_messages[current_uid]["preview"] += data
+
         messages = []
         for message_id in reversed(message_ids):
-            status, payload = client.uid(
-                "fetch", message_id,
-                "(FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
-            )
-            if status != "OK" or not payload or not payload[0]:
+            uid = message_id.decode("ascii")
+            raw_message = raw_messages.get(uid)
+            if not raw_message:
                 continue
-            fetched_parts = [item[1] for item in payload if isinstance(item, tuple) and isinstance(item[1], bytes)]
-            if not fetched_parts:
-                continue
-            message = message_from_bytes(fetched_parts[0])
+            message = message_from_bytes(raw_message["header"])
             try:
                 received_at = parsedate_to_datetime(message.get("Date"))
             except (TypeError, ValueError, IndexError):
                 received_at = None
             messages.append({
-                "uid": message_id.decode("ascii"),
+                "uid": uid,
                 "sender": _decode_header(message.get("From")),
                 "subject": _decode_header(message.get("Subject")),
-                "preview": _message_preview(b" ".join(fetched_parts[1:])),
+                "preview": _message_preview(raw_message["preview"]),
                 "received_at": received_at,
-                "is_unread": b"\\Seen" not in payload[0][0],
+                "is_unread": b"\\Seen" not in raw_message["metadata"],
             })
         return sorted(
             messages,

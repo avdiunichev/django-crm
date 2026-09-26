@@ -2042,8 +2042,11 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     folder=mailbox_folder,
                     limit=fetch_limit,
                 )
-                mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
-                cache.set(f"crm-mailbox-navigation-counts:{self.request.user.pk}", mailbox_counts, 60)
+                cache_key = f"crm-mailbox-navigation-counts:{self.request.user.pk}"
+                mailbox_counts = cache.get(cache_key)
+                if mailbox_counts is None:
+                    mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
+                    cache.set(cache_key, mailbox_counts, 60)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
