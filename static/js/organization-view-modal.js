@@ -105,8 +105,14 @@
         const syncOwnCompanyTax = () => ownCompanyTax?.classList.toggle("uk-hidden", !ownCompany?.checked);
         ownCompany?.addEventListener("change", syncOwnCompanyTax);
         syncOwnCompanyTax();
+        dialog.querySelectorAll("[data-organization-modal-submit]").forEach((button) => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                form.requestSubmit(button);
+            });
+        });
         dialog.addEventListener("click", (event) => {
-            const close = event.target.closest('a[href$="/organizations/"]');
+            const close = event.target.closest("[data-organization-modal-close]");
             if (close) {
                 event.preventDefault();
                 modal()?.hide();
@@ -183,7 +189,9 @@
             form.id = "organization-modal-form";
             commandPanel.querySelectorAll('button[type="submit"]').forEach((button) => {
                 button.setAttribute("form", form.id);
+                button.dataset.organizationModalSubmit = "";
             });
+            commandPanel.querySelector('a[href$="/organizations/"]')?.setAttribute("data-organization-modal-close", "");
         }
         const primaryDetails = form.querySelector(".organization-primary-details");
         primaryDetails?.querySelector(".form-section-title > span")?.remove();
