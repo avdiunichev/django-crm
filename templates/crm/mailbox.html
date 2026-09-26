@@ -47,31 +47,4 @@
         <div class="mailbox-security-note"><span uk-icon="lock"></span><span><strong>Личная почта</strong> — другие пользователи CRM не смогут видеть ваши письма, адресатов или вложения.</span></div>
     {% endif %}
 </section>
-{% if mailbox.is_connected %}<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var selectAll = document.querySelector('[data-mailbox-select-all]');
-    var button = document.getElementById('mailbox-delete-selected');
-    var markReadButton = document.getElementById('mailbox-mark-read-selected');
-    var selected = function () { return Array.from(document.querySelectorAll('.mailbox-message-select:checked')); };
-    var update = function () {
-        var count = selected().length;
-        button.disabled = count === 0;
-        markReadButton.disabled = count === 0;
-        button.textContent = count > 1 ? button.dataset.multipleLabel : button.dataset.singleLabel;
-        if (selectAll) selectAll.checked = count > 0 && count === document.querySelectorAll('.mailbox-message-select').length;
-    };
-    if (selectAll) selectAll.addEventListener('change', function () {
-        document.querySelectorAll('.mailbox-message-select').forEach(function (box) { box.checked = selectAll.checked; });
-        update();
-    });
-    document.querySelectorAll('.mailbox-message-select').forEach(function (box) { box.addEventListener('change', update); });
-    document.querySelectorAll('.mailbox-message-row').forEach(function (row) {
-        row.addEventListener('click', function (event) {
-            if (event.target.closest('input, a, button, label')) return;
-            window.location.href = row.dataset.mailboxMessageUrl;
-        });
-    });
-    update();
-});
-</script>{% endif %}
 {% endblock %}

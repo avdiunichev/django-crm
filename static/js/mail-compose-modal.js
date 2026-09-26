@@ -3,11 +3,11 @@
         const modal = document.getElementById("mail-compose-modal");
         if (!modal || !window.UIkit) return;
         const dialog = UIkit.modal(modal);
-        document.querySelectorAll("[data-mail-compose-modal-open]").forEach((trigger) => {
-            trigger.addEventListener("click", (event) => {
-                event.preventDefault();
-                dialog.show();
-            });
+        document.addEventListener("click", (event) => {
+            const trigger = event.target.closest("[data-mail-compose-modal-open]");
+            if (!trigger) return;
+            event.preventDefault();
+            dialog.show();
         });
     });
 })();
