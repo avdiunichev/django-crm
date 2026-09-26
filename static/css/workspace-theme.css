@@ -2359,7 +2359,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 @media screen and (min-width: 1500px) {
     html body.transportations-workspace-page .transportation-register-filters {
         display: grid !important;
-        grid-template-columns: minmax(300px, 1.7fr) repeat(3, minmax(160px, .9fr)) repeat(2, minmax(130px, .72fr)) max-content;
+        grid-template-columns: minmax(300px, 1.7fr) repeat(3, minmax(160px, .9fr)) repeat(2, minmax(130px, .72fr)) repeat(2, max-content);
         align-items: center;
         flex-wrap: nowrap !important;
     }
