@@ -247,6 +247,9 @@ DADATA_FIO_URL = (
 DADATA_FMS_UNIT_URL = (
     "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fms_unit"
 )
+DADATA_EMAIL_URL = (
+    "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/email"
+)
 DADATA_TIMEOUT = float(os.environ.get("DADATA_TIMEOUT", "5"))
 
 # Контур.Диадок: UserDataXml из CRM отправляется в GenerateTitleXml, после

@@ -236,7 +236,7 @@
         <button class="uk-modal-close-default" type="button" uk-close aria-label="Закрыть"></button>
         <div class="uk-modal-header"><span class="mailbox-kicker">Почтовый ящик</span><h2>Новое письмо</h2></div>
         <form method="post" action="{% url 'mailbox-compose' %}" enctype="multipart/form-data" class="mailbox-compose-form">{% csrf_token %}
-            <label>Кому<input class="uk-input" type="email" name="to" list="mail-recipient-suggestions" autocomplete="email" required></label><label>Тема<input class="uk-input" type="text" name="subject"></label><label>Текст письма<textarea class="uk-textarea" name="body" rows="10">{{ user.crm_profile.email_signature }}</textarea></label><label class="mailbox-file-input">Вложения<input type="file" name="attachments" multiple><small>До 10 МБ на каждый файл.</small></label><div class="mailbox-compose-actions"><button class="uk-button uk-button-default uk-modal-close" type="button">Отмена</button><button class="uk-button uk-button-primary" type="submit"><span uk-icon="forward"></span>Отправить</button></div>
+            <label class="mail-recipient-field"><span>Кому <small class="mail-dadata-badge">DaData</small></span><input class="uk-input" type="email" name="to" autocomplete="email" required data-dadata-email-url="{% url 'dadata-email-suggestions' %}" data-recipient-suggestions="mail-recipient-suggestions"></label><label>Тема<input class="uk-input" type="text" name="subject"></label><label>Текст письма<textarea class="uk-textarea" name="body" rows="10">{{ user.crm_profile.email_signature }}</textarea></label><label class="mailbox-file-input">Вложения<input type="file" name="attachments" multiple><small>До 10 МБ на каждый файл.</small></label><div class="mailbox-compose-actions"><button class="uk-button uk-button-default uk-modal-close" type="button">Отмена</button><button class="uk-button uk-button-primary" type="submit"><span uk-icon="forward"></span>Отправить</button></div>
         </form>
     </div>
 </div>
@@ -247,6 +247,7 @@
 <script src="{% static 'js/sidebar-tools.js' %}?v=20260926-profile-dock"></script>
 <script src="{% static 'js/mail-compose-modal.js' %}?v=20260926-mail-register"></script>
 <script src="{% static 'js/mailbox-register.js' %}?v=20260926-partial-navigation"></script>
+<script src="{% static 'js/mail-recipient-suggestions.js' %}?v=20260926-dadata-email"></script>
     <script src="{% static 'js/chat-popup.js' %}?v=20260926-chat-style"></script>
 <script src="{% static 'js/dropdown-layer.js' %}?v=20260924-calendar-width"></script>
 <script src="{% static 'js/date-inputs.js' %}?v=20260924-partial-date"></script>

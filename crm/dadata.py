@@ -207,6 +207,28 @@ def suggest_addresses(query, city="", count=10):
     return suggestions
 
 
+def suggest_emails(query, count=8):
+    """Return DaData email completions without exposing the API token."""
+    query = " ".join(str(query or "").split())
+    digest = hashlib.sha256(query.casefold().encode("utf-8")).hexdigest()
+    cache_key = f"dadata-email:v1:{digest}:{count}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    result = _request_suggestions(
+        settings.DADATA_EMAIL_URL,
+        {"query": query, "count": max(1, min(int(count), 20))},
+    )
+    suggestions = []
+    for suggestion in result.get("suggestions") or []:
+        value = suggestion.get("value") or suggestion.get("unrestricted_value") or ""
+        if value:
+            suggestions.append({"value": value})
+    cache.set(cache_key, suggestions, timeout=60 * 60)
+    return suggestions
+
+
 def _normalize_bank(suggestion):
     data = suggestion.get("data") or {}
     name = data.get("name") or {}

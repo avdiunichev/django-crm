@@ -436,6 +436,7 @@ from .dadata import (
     find_bank_by_bik,
     find_party_by_inn,
     suggest_addresses,
+    suggest_emails,
     suggest_fms_units,
     suggest_person_names,
 )
@@ -1296,6 +1297,23 @@ def dadata_address_suggestions(request):
         )
     try:
         suggestions = suggest_addresses(query, city=city, count=10)
+    except DadataNotConfigured as error:
+        return JsonResponse({"error": str(error)}, status=503)
+    except DadataUnavailable as error:
+        return JsonResponse({"error": str(error)}, status=502)
+    return JsonResponse({"suggestions": suggestions})
+
+
+@login_required
+@require_GET
+def dadata_email_suggestions(request):
+    query = " ".join(request.GET.get("q", "").split())
+    if len(query) < 2:
+        return JsonResponse({"suggestions": []})
+    if len(query) > 300:
+        return JsonResponse({"error": "Запрос слишком длинный."}, status=400)
+    try:
+        suggestions = suggest_emails(query, count=8)
     except DadataNotConfigured as error:
         return JsonResponse({"error": str(error)}, status=503)
     except DadataUnavailable as error:
