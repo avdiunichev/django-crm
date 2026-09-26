@@ -9052,6 +9052,26 @@ class TransportationDocumentEditMixin:
         context["cargo_name_suggestions"] = cargo_name_suggestions()
         return context
 
+    @staticmethod
+    def _form_errors_for_user(form, stop_formset):
+        """Return concise, human-readable validation feedback for a long trip form."""
+        errors = []
+        for field_name, field_errors in form.errors.items():
+            if field_name == "__all__":
+                errors.extend(str(error) for error in field_errors)
+                continue
+            label = form.fields.get(field_name).label if field_name in form.fields else field_name
+            errors.extend(f"{label}: {error}" for error in field_errors)
+        for index, stop_form in enumerate(stop_formset.forms, start=1):
+            for field_name, field_errors in stop_form.errors.items():
+                if field_name in {"__all__", "DELETE", "id", "sequence", "kind"}:
+                    errors.extend(str(error) for error in field_errors)
+                    continue
+                label = stop_form.fields.get(field_name).label if field_name in stop_form.fields else field_name
+                errors.extend(f"Точка {index} — {label}: {error}" for error in field_errors)
+        errors.extend(str(error) for error in stop_formset.non_form_errors())
+        return errors
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object() if kwargs.get("pk") else None
         form = self.get_form()
@@ -9062,6 +9082,14 @@ class TransportationDocumentEditMixin:
         if form.is_valid() and stop_formset.is_valid():
             self._stop_formset = stop_formset
             return self.form_valid(form)
+        error_details = self._form_errors_for_user(form, stop_formset)
+        message = "Рейс не сохранён. " + (
+            " ".join(error_details[:4])
+            if error_details
+            else "Проверьте заполнение формы."
+        )
+        form.add_error(None, message)
+        messages.error(request, message)
         return self.render_to_response(
             self.get_context_data(form=form, stop_formset=stop_formset)
         )
