@@ -67,6 +67,31 @@ html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-regi
     background: transparent;
     font-size: 12px;
 }
+@media screen and (min-width: 721px) {
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .main > .content {
+        height: auto;
+        min-height: calc(100dvh - 150px);
+        display: block;
+    }
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .order-register-panel {
+        display: block;
+        margin-bottom: 0;
+        overflow: visible !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .order-register-panel .table-wrap {
+        overflow: visible;
+        max-height: none;
+    }
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+    html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-table thead th {
+        position: static;
+        background: var(--workspace-soft, #f5f5f5);
+    }
+}
 @media (max-width: 720px) {
     html body.uikit-theme.crm-workspace-theme.contracts-register-page .organization-search-field,
     html body.uikit-theme.crm-workspace-theme.contracts-register-page .contract-register-filters > .uk-select,
