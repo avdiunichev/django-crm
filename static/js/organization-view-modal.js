@@ -180,11 +180,18 @@
         if (commandPanel) {
             commandPanel.classList.add("organization-modal-command-panel");
             commandPanel.querySelector(".form-section-title")?.remove();
-            form.insertBefore(commandPanel, form.firstElementChild);
+            form.id = "organization-modal-form";
+            commandPanel.querySelectorAll('button[type="submit"]').forEach((button) => {
+                button.setAttribute("form", form.id);
+            });
         }
         const dialog = document.createElement("div");
         dialog.className = "uk-modal-dialog uk-modal-body crm-organization-dialog organization-form-page";
-        dialog.append(form);
+        const scroll = document.createElement("div");
+        scroll.className = "organization-modal-scroll";
+        scroll.append(form);
+        if (commandPanel) dialog.append(commandPanel);
+        dialog.append(scroll);
         modalElement.replaceChildren(dialog);
         bindForm(dialog, sourceUrl);
         window.CRMUniversalSelects?.enhanceWithin?.(dialog);
