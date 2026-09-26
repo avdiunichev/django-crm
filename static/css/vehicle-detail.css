@@ -9,6 +9,7 @@ body.vehicle-card-page .vehicle-profile-actions { display: flex; align-items: ce
 body.vehicle-card-page .vehicle-profile-actions .uk-button { min-height: 38px; border-radius: 7px !important; font-size: 12px; text-transform: none; }
 body.vehicle-card-page .vehicle-profile-tabs { margin: 0 0 24px; padding-left: 0; overflow-x: auto; flex-wrap: nowrap; border-bottom-color: var(--workspace-line, #e9e7e7); }
 body.vehicle-card-page .vehicle-profile-tabs > * { flex: 0 0 auto; }
+body.vehicle-card-page .vehicle-profile-tabs > :first-child { padding-left: 0; }
 body.vehicle-card-page .vehicle-profile-tabs > :first-child > a { padding-left: 0; }
 body.vehicle-card-page .vehicle-profile-tabs > * > a { padding: 0 16px 12px; color: var(--workspace-muted, #77767e); font-size: 13px; text-transform: none; white-space: nowrap; }
 body.vehicle-card-page .vehicle-profile-tabs > .uk-active > a { color: var(--workspace-text, #29292d); border-color: #d10000; }
