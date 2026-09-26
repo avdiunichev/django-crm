@@ -58,9 +58,9 @@ body.orders-workspace-page .order-register-panel {
     border-radius: 0 !important; box-shadow: none; background: var(--orders-surface);
 }
 body.orders-workspace-page .order-register-panel .table-wrap { overflow: auto; border-radius: 0 !important; max-height: 68vh; }
-body.orders-workspace-page .order-register-table { margin: 0; min-width: 1060px; width: 100%; font-size: 13px; border-collapse: separate; border-spacing: 0; background: var(--orders-surface) !important; }
+body.orders-workspace-page .order-register-table { margin: 0; min-width: 1060px; width: 100%; font-size: 12px; table-layout: fixed; border-collapse: collapse; border-spacing: 0; background: var(--orders-surface) !important; }
 body.orders-workspace-page .order-register-table th {
-    position: sticky; top: 0; z-index: 2; padding: 16px 14px;
+    position: sticky; top: 0; z-index: 2; padding: 10px 12px;
     background: var(--orders-soft) !important; color: var(--orders-muted) !important;
     border: 0; border-bottom: 1px solid var(--orders-border);
     font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none;
@@ -68,7 +68,7 @@ body.orders-workspace-page .order-register-table th {
 body.orders-workspace-page .order-register-table th a { color: inherit; }
 body.orders-workspace-page .order-register-table th a.is-active { color: var(--orders-ink); }
 body.orders-workspace-page .order-register-table td {
-    padding: 20px 14px; border: 0; border-bottom: 1px solid var(--orders-border) !important;
+    padding: 8px 12px; border: 0; border-bottom: 1px solid var(--orders-border) !important;
     background: transparent !important; color: var(--orders-ink); vertical-align: top;
     overflow-wrap: anywhere;
 }
@@ -94,9 +94,16 @@ body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(6),
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(7),
 body.orders-workspace-page .transportation-register-table :is(th, td):nth-child(8) { display: none; }
-body.orders-workspace-page .order-register-table td :is(strong, .route-compact, .primary-link) { font-size: 13px; font-weight: 550; line-height: 1.55; color: var(--orders-ink); }
+body.orders-workspace-page .order-register-table td :is(strong, .route-compact, .primary-link) { font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--orders-ink); }
 body.orders-workspace-page .order-register-table .primary-link:hover { color: #D10000; }
-body.orders-workspace-page .order-register-table td small { display: block; margin-top: 5px; font-size: 11px; line-height: 1.5; color: var(--orders-muted); }
+body.orders-workspace-page .order-register-table td small { display: block; margin-top: 2px; font-size: 11px; line-height: 1.3; color: var(--orders-muted); }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(1) { width: 46px; padding-left: 16px; padding-right: 8px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(2) { width: 145px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(3) { width: 190px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(4) { width: 260px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(5) { width: 220px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(6) { width: 155px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(7) { width: 160px; }
 body.orders-workspace-page .order-register-table .order-register-status > strong { display: inline-block; padding: 3px 9px; background: var(--orders-soft); border: 1px solid var(--orders-border); border-radius: 6px; font-size: 11px; }
 body.orders-workspace-page .order-register-table input[type="checkbox"] { width: 15px; height: 15px; accent-color: #D10000; cursor: pointer; }
 body.orders-workspace-page .register-pagination { margin: 20px 0 0; padding: 0; border: 0; background: transparent; font-size: 12px; color: var(--orders-muted); }
