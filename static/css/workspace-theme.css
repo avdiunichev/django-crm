@@ -2236,12 +2236,12 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-directory-page .mailbox-register-filters .search { width: 100%; max-width: none; min-height: 42px; padding-left: 43px; border-color: var(--workspace-line); border-radius: 8px; background: var(--workspace-surface); color: var(--workspace-text); }
 .mailbox-directory-page .mailbox-register-filters .uk-button { min-height: 42px; padding-inline: 16px; border-radius: 8px; }
 .mailbox-filter-spacer { flex: 1 1 0; }
-.mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { min-height: calc(100dvh - 246px); grid-template-rows: auto auto minmax(0, 1fr) auto; }
-.mailbox-directory-page .mailbox-register { width: 100%; max-width: none; min-height: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); box-shadow: none; }
-.mailbox-directory-page .mailbox-register .mailbox-message-list { position: relative; flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; border-top: 1px solid var(--workspace-line); }
+.mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { min-height: 0; grid-template-rows: none; }
+.mailbox-directory-page .mailbox-register { width: 100%; max-width: none; padding: 0; overflow: visible; display: block; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); box-shadow: none; }
+.mailbox-directory-page .mailbox-register .mailbox-message-list { position: static; min-height: 0; max-height: none; overflow: visible; border-top: 1px solid var(--workspace-line); }
 .mailbox-register-table { width: 100%; min-width: 860px; margin: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-.mailbox-register-table thead { position: static; }
-.mailbox-register-table th { position: sticky; top: 0; z-index: 3; box-sizing: border-box; height: auto; padding: 11px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
+.mailbox-register-table thead { position: sticky; top: 0; z-index: 3; }
+.mailbox-register-table th { position: static; box-sizing: border-box; height: auto; padding: 11px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
 .mailbox-register-table td { height: auto; padding: 10px; vertical-align: top; border-color: var(--workspace-line); border-bottom: 1px solid var(--workspace-line); font-size: 13px; line-height: 1.2; }
 .mailbox-register-table tr.is-unread td { background: var(--workspace-tint); font-weight: 650; }
 .mailbox-register-table tr:not(.is-unread) td { font-weight: 400; }
@@ -2260,9 +2260,6 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-page-size { display: flex; align-items: center; }
 .mailbox-page-size label { display: inline-flex; align-items: center; gap: 10px; color: var(--workspace-muted); font-size: 12px; }
 .mailbox-page-size .uk-select { width: 250px; height: 40px; border-color: var(--workspace-line); border-radius: 8px; color: var(--workspace-text); background-color: var(--workspace-surface); }
-@media screen and (min-width: 961px) {
-    .mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { height: calc(100dvh - 246px); min-height: 460px; }
-}
 .mailbox-compose-modal { width: min(720px, calc(100vw - 32px)); border-radius: 14px; background: var(--workspace-surface); color: var(--workspace-text); }
 .mailbox-compose-modal .uk-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--workspace-line); background: transparent; }
 .mailbox-compose-modal h2 { margin: 4px 0 0; color: var(--workspace-text); font-size: 21px; }
