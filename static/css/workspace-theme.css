@@ -1373,3 +1373,62 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
     border-color: #3b3b3b !important;
     background: #202020 !important;
 }
+
+/* Compact sidebar accordion: submenu items read as one navigation path,
+   rather than as a separate card beneath every section. */
+html body.crm-workspace-theme .crm-nav-block {
+    margin: 3px 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+html body.crm-workspace-theme .crm-nav-block-title {
+    min-height: 40px;
+    padding: 0 12px !important;
+    border-radius: 8px;
+    font-size: 14px !important;
+}
+html body.crm-workspace-theme .crm-nav-block[open] > .crm-nav-block-title {
+    color: var(--workspace-text);
+    background: var(--workspace-soft);
+}
+html body.crm-workspace-theme .crm-nav-block-title::after {
+    width: 7px;
+    height: 7px;
+    transition: transform .16s ease;
+}
+html body.crm-workspace-theme .crm-nav-block-links {
+    display: grid;
+    gap: 2px;
+    margin: 3px 0 8px 23px;
+    padding: 3px 0 4px 12px !important;
+    border-left: 1px solid var(--workspace-line);
+}
+html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a {
+    position: relative;
+    min-height: 34px;
+    padding: 7px 10px !important;
+    border-radius: 7px;
+    color: var(--workspace-muted);
+    font-size: 13px !important;
+}
+html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -16px;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 50%;
+    background: var(--workspace-surface);
+    transform: translateY(-50%);
+}
+html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a:is(.is-active, :hover) {
+    color: var(--workspace-text);
+    background: var(--workspace-tint) !important;
+}
+html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a.is-active::before {
+    border-color: var(--workspace-accent);
+    background: var(--workspace-accent);
+}

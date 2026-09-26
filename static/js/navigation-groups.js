@@ -17,6 +17,15 @@
             group.append(links);
             group.open = Boolean(links.querySelector('.is-active'));
             links.querySelectorAll('.is-active').forEach((link) => link.setAttribute('aria-current', 'page'));
+
+            // A sidebar should keep its place. When a new section opens,
+            // collapse the others instead of growing into a stack of cards.
+            group.addEventListener('toggle', () => {
+                if (!group.open) return;
+                nav.querySelectorAll(':scope > .crm-nav-block[open]').forEach((otherGroup) => {
+                    if (otherGroup !== group) otherGroup.open = false;
+                });
+            });
         });
     });
 })();
