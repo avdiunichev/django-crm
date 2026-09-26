@@ -1686,15 +1686,9 @@ class TransportationStopForm(StyledModelForm):
             if required_role == OrganizationRole.Role.CONSIGNEE
             else "Город отправления"
         )
-        self.fields["city"].widget = forms.TextInput(
-            attrs={
-                "class": "form-control uk-input",
-                "autocomplete": "off",
-                "data-dadata-city": "",
-                "data-dadata-city-url": reverse("dadata-address-suggestions"),
-                "placeholder": "Начните вводить город",
-            }
-        )
+        # Город определяется из адреса DaData и сохраняется как служебная
+        # часть точки маршрута. Отдельное поле лишь дублировало адрес.
+        self.fields["city"].widget = forms.HiddenInput()
         # StyledModelForm уже задаёт общий CRM-вид даты. Повторно создаём
         # виджет только с тем же классом, чтобы поле рейса не отличалось
         # визуально от даты в маршруте заказа.
