@@ -34,7 +34,7 @@
     <meta name="apple-mobile-web-app-title" content="Моя CRM">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=20260923">
     {% block extra_head %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/workspace-theme.css' %}?v=20260926-mail-registry-header">
+    <link rel="stylesheet" href="{% static 'css/workspace-theme.css' %}?v=20260926-mail-sidebar-counters">
 </head>
 <body class="uk-background-muted uikit-theme crm-workspace-theme {% block body_class %}{% endblock %}">
 <div class="app-shell app-shell-topnav">
@@ -155,12 +155,12 @@
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
-                <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
+                <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта{% if mailbox_unread_count %}<span class="mailbox-nav-dot" title="Есть непрочитанные письма"></span>{% endif %}</span>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' and request.GET.folder != 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=trash">Удалённые</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' and request.GET.folder != 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие <span class="mailbox-nav-count">{{ mailbox_navigation_counts.inbox.total }}</span>{% if mailbox_navigation_counts.inbox.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.inbox.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные <span class="mailbox-nav-count">{{ mailbox_navigation_counts.sent.total }}</span>{% if mailbox_navigation_counts.sent.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.sent.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики <span class="mailbox-nav-count">{{ mailbox_navigation_counts.drafts.total }}</span>{% if mailbox_navigation_counts.drafts.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.drafts.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=trash">Удалённые <span class="mailbox-nav-count">{{ mailbox_navigation_counts.trash.total }}</span>{% if mailbox_navigation_counts.trash.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.trash.unread }}</span>{% endif %}</a>
                 <a class="{% if 'chat' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a>
             </nav>
             <div class="mobile-nav-footer">
@@ -205,12 +205,12 @@
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
-                <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта</span>
+                <span class="mobile-nav-group"><span uk-icon="mail"></span> Электронная почта{% if mailbox_unread_count %}<span class="mailbox-nav-dot" title="Есть непрочитанные письма"></span>{% endif %}</span>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox-compose' %}is-active{% endif %}" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' and request.GET.folder != 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики</a>
-                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=trash">Удалённые</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder != 'sent' and request.GET.folder != 'drafts' and request.GET.folder != 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}">Входящие <span class="mailbox-nav-count">{{ mailbox_navigation_counts.inbox.total }}</span>{% if mailbox_navigation_counts.inbox.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.inbox.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent">Отправленные <span class="mailbox-nav-count">{{ mailbox_navigation_counts.sent.total }}</span>{% if mailbox_navigation_counts.sent.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.sent.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'drafts' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=drafts">Черновики <span class="mailbox-nav-count">{{ mailbox_navigation_counts.drafts.total }}</span>{% if mailbox_navigation_counts.drafts.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.drafts.unread }}</span>{% endif %}</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'mailbox' and request.GET.folder == 'trash' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=trash">Удалённые <span class="mailbox-nav-count">{{ mailbox_navigation_counts.trash.total }}</span>{% if mailbox_navigation_counts.trash.unread %}<span class="mailbox-nav-unread">{{ mailbox_navigation_counts.trash.unread }}</span>{% endif %}</a>
                 <a class="{% if 'chat' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'chat' %}"><span uk-icon="comments"></span> Чат{% if chat_unread_count %}<span class="nav-unread uk-badge">{{ chat_unread_count }}</span>{% endif %}</a>
             </nav>
     </aside>

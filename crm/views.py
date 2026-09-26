@@ -18,6 +18,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import validate_email
@@ -2042,6 +2043,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     limit=fetch_limit,
                 )
                 mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
+                cache.set(f"crm-mailbox-navigation-counts:{self.request.user.pk}", mailbox_counts, 60)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
@@ -2145,6 +2147,7 @@ class MailboxDeleteSelectedView(PersonalMailboxMixin, View):
                     messages.success(request, f"Удалено навсегда: {deleted_count}.")
                 else:
                     messages.success(request, f"Перемещено в удалённые: {deleted_count}.")
+                cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
         return redirect(f"{reverse('mailbox')}?folder={folder}")
 
 
@@ -2159,6 +2162,7 @@ class MailboxMessageView(PersonalMailboxMixin, TemplateView):
             message = fetch_message(mailbox.email, password, folder, self.kwargs["uid"])
         except (OSError, imaplib.IMAP4.error, ValueError):
             raise Http404("Письмо не найдено.")
+        cache.delete(f"crm-mailbox-navigation-counts:{self.request.user.pk}")
         context.update({"message": message, "folder": folder})
         return context
 
@@ -2227,6 +2231,7 @@ class MailboxComposeView(PersonalMailboxMixin, View):
             messages.error(request, "Не удалось отправить письмо. Проверьте доступ к почте и повторите попытку.")
             return render(request, self.template_name, {"initial": request.POST})
         messages.success(request, "Письмо отправлено.")
+        cache.delete(f"crm-mailbox-navigation-counts:{request.user.pk}")
         return redirect("mailbox")
 
 

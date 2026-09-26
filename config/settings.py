@@ -110,6 +110,7 @@ TEMPLATES = [
                 'crm.context_processors.chat_unread',
                 'crm.context_processors.navbar_notifications',
                 'crm.context_processors.mail_recipient_suggestions',
+                'crm.context_processors.mailbox_navigation',
             ],
             'builtins': [
                 'crm.templatetags.crm_format',

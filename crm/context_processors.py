@@ -1,8 +1,13 @@
 from django.db.models import Q
 
-from django.contrib.auth import get_user_model
+import imaplib
 
-from .models import ChatMessage, Organization, OrganizationContact, UserProfile
+from cryptography.fernet import InvalidToken
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+
+from .mailbox_client import decrypt_app_password, fetch_mailbox_counts
+from .models import ChatMessage, MailboxConnection, Organization, OrganizationContact, UserProfile
 from .navbar_notifications import get_navbar_notifications
 
 
@@ -92,3 +97,28 @@ def mail_recipient_suggestions(request):
         seen.add(normalized)
         suggestions.append({"email": email.strip(), "label": label})
     return {"mail_recipient_suggestions": sorted(suggestions, key=lambda item: item["email"].casefold())}
+
+
+def mailbox_navigation(request):
+    """Small, cached counters for the personal mailbox navigation."""
+    empty_counts = {folder: {"total": 0, "unread": 0} for folder in ("inbox", "sent", "drafts", "trash")}
+    if not request.user.is_authenticated:
+        return {"mailbox_navigation_counts": empty_counts, "mailbox_unread_count": 0}
+
+    cache_key = f"crm-mailbox-navigation-counts:{request.user.pk}"
+    counts = cache.get(cache_key)
+    if counts is None:
+        mailbox = MailboxConnection.objects.filter(user=request.user, is_connected=True).only(
+            "email", "encrypted_app_password"
+        ).first()
+        if mailbox and mailbox.encrypted_app_password:
+            try:
+                counts = fetch_mailbox_counts(
+                    mailbox.email, decrypt_app_password(mailbox.encrypted_app_password)
+                )
+            except (OSError, ValueError, imaplib.IMAP4.error, InvalidToken):
+                counts = empty_counts
+        else:
+            counts = empty_counts
+        cache.set(cache_key, counts, 60)
+    return {"mailbox_navigation_counts": counts, "mailbox_unread_count": counts.get("inbox", {}).get("unread", 0)}
