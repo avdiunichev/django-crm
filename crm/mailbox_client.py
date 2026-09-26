@@ -7,6 +7,7 @@ from email.header import decode_header
 from email.utils import parseaddr, parsedate_to_datetime
 import hashlib
 import imaplib
+import re
 import smtplib
 
 from cryptography.fernet import Fernet
@@ -80,6 +81,18 @@ def _decode_part(part):
     return payload.decode(part.get_content_charset() or "utf-8", errors="replace")
 
 
+def _message_preview(value):
+    """Make a short, safe text preview from the first body bytes returned by IMAP."""
+    if not value:
+        return ""
+    text = value.decode("utf-8", errors="replace")
+    text = re.sub(r"=\r?\n", "", text)  # quoted-printable soft line break
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"(?im)^(content-[^\n]*|--[-_A-Za-z0-9=]+)\s*$", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:600]
+
+
 def _open_folder(email, app_password, folder, readonly=True):
     client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
     client.login(email, app_password)
@@ -111,11 +124,15 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
         messages = []
         for message_id in reversed(message_ids):
             status, payload = client.uid(
-                "fetch", message_id, "(FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)])"
+                "fetch", message_id,
+                "(FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
             )
             if status != "OK" or not payload or not payload[0]:
                 continue
-            message = message_from_bytes(payload[0][1])
+            fetched_parts = [item[1] for item in payload if isinstance(item, tuple) and isinstance(item[1], bytes)]
+            if not fetched_parts:
+                continue
+            message = message_from_bytes(fetched_parts[0])
             try:
                 received_at = parsedate_to_datetime(message.get("Date"))
             except (TypeError, ValueError, IndexError):
@@ -124,6 +141,7 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
                 "uid": message_id.decode("ascii"),
                 "sender": _decode_header(message.get("From")),
                 "subject": _decode_header(message.get("Subject")),
+                "preview": _message_preview(b" ".join(fetched_parts[1:])),
                 "received_at": received_at,
                 "is_unread": b"\\Seen" not in payload[0][0],
             })

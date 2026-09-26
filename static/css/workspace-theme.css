@@ -2242,11 +2242,13 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-register-table { width: 100%; min-width: 860px; margin: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .mailbox-register-table thead { position: static; }
 .mailbox-register-table th { position: sticky; top: 0; z-index: 3; box-sizing: border-box; height: auto; padding: 11px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
-.mailbox-register-table td { height: auto; padding: 7px 10px; vertical-align: top; border-color: var(--workspace-line); font-size: 13px; line-height: 1.2; }
+.mailbox-register-table td { height: auto; padding: 10px; vertical-align: top; border-color: var(--workspace-line); border-bottom: 1px solid var(--workspace-line); font-size: 13px; line-height: 1.2; }
 .mailbox-register-table tr.is-unread td { background: var(--workspace-tint); font-weight: 650; }
 .mailbox-register-table tr:not(.is-unread) td { font-weight: 400; }
 .mailbox-message-row { cursor: pointer; }
 .mailbox-message-row:hover td { background: var(--workspace-soft); }
+.mailbox-message-subject { display: block; color: var(--workspace-text) !important; font-size: 16px; font-weight: 650; line-height: 1.25; text-decoration: none; }
+.mailbox-message-preview { display: -webkit-box; margin-top: 4px; overflow: hidden; color: var(--workspace-muted); font-size: 12px; font-weight: 400; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .mailbox-unread-dot { width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; display: inline-block; vertical-align: middle; background: var(--workspace-accent); }
 .mailbox-register-table :is(th, td):nth-child(2) { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
 .mailbox-select-column { width: 56px; min-width: 56px; padding-left: 0 !important; padding-right: 0 !important; text-align: center; vertical-align: middle !important; }
