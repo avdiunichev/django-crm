@@ -2280,6 +2280,10 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-message span, .mailbox-message small, .mailbox-inbox-empty { color: var(--workspace-muted); }
 .mailbox-message-view { width: 100%; max-width: none; box-sizing: border-box; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
 .mailbox-compose { max-width: 920px; padding: 26px; border: 1px solid var(--workspace-line); border-radius: 14px; background: var(--workspace-surface); }
+.crm-organization-dialog { width: min(1180px, calc(100vw - 40px)); max-width: none; max-height: calc(100vh - 48px); overflow: auto; border-radius: 8px; background: var(--workspace-surface); color: var(--workspace-text); }
+.crm-organization-dialog .organization-workspace { gap: 16px; }
+.crm-organization-dialog .organization-command-header { padding-right: 48px; }
+.crm-modal-loading { padding: 40px 10px; color: var(--workspace-muted); text-align: center; }
 .mailbox-message-view > header, .mailbox-compose > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid var(--workspace-line); }
 .mailbox-message-view h1, .mailbox-compose h1 { margin: 5px 0; color: var(--workspace-text); font-size: 26px; }
 .mailbox-message-view header p, .mailbox-compose header p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
