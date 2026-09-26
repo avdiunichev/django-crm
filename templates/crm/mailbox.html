@@ -25,14 +25,14 @@
             {% elif inbox_messages %}
                 <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th class="mailbox-select-column"><input class="uk-checkbox" type="checkbox" aria-label="Выбрать все письма" data-mailbox-select-all></th><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
                     {% for message in inbox_messages %}
-                        <tr class="{% if message.is_unread %}is-unread{% endif %}"><td class="mailbox-select-column"><input form="mailbox-bulk-form" class="uk-checkbox mailbox-message-select" type="checkbox" name="message_uids" value="{{ message.uid }}" aria-label="Выбрать письмо: {{ message.subject|default:'Без темы' }}"></td><td><strong>{% if message.is_unread %}<span class="mailbox-unread-dot" title="Новое письмо"></span>{% endif %}{{ message.sender }}</strong></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
+                        <tr class="{% if message.is_unread %}is-unread{% endif %} mailbox-message-row" data-mailbox-message-url="{% url 'mailbox-message' mailbox_folder message.uid %}"><td class="mailbox-select-column"><input form="mailbox-bulk-form" class="uk-checkbox mailbox-message-select" type="checkbox" name="message_uids" value="{{ message.uid }}" aria-label="Выбрать письмо: {{ message.subject|default:'Без темы' }}"></td><td>{% if message.is_unread %}<span class="mailbox-unread-dot" title="Новое письмо"></span>{% endif %}<span class="mailbox-sender">{{ message.sender }}</span></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
                     {% endfor %}
                 </tbody></table></div>
             {% else %}
                 <p class="mailbox-inbox-empty">Во входящих пока нет писем.</p>
             {% endif %}
-            <div class="mailbox-register-footer"><span class="mailbox-shown-rows">{% if current_per_page == 'all' %}Показаны все строки{% else %}Показано писем: {{ inbox_messages|length }}{% endif %}</span><form class="mailbox-page-size" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="q" value="{{ mailbox_query }}"><label>Строк на странице<select class="uk-select uk-form-small" name="per_page" onchange="this.form.submit()">{% for choice in page_size_choices %}<option value="{{ choice.value }}" {% if current_per_page == choice.value %}selected{% endif %}>{{ choice.label }}</option>{% endfor %}</select></label></form></div>
         </section>
+        <div class="mailbox-register-footer"><span class="mailbox-shown-rows">{% if current_per_page == 'all' %}Показаны все строки{% else %}Показано писем: {{ inbox_messages|length }}{% endif %}</span><form class="mailbox-page-size" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="q" value="{{ mailbox_query }}"><label>Строк на странице<select class="uk-select uk-form-small" name="per_page" onchange="this.form.submit()">{% for choice in page_size_choices %}<option value="{{ choice.value }}" {% if current_per_page == choice.value %}selected{% endif %}>{{ choice.label }}</option>{% endfor %}</select></label></form></div>
     {% else %}
         <form class="mailbox-setup-card mailbox-connect-form" method="post" action="{% url 'mailbox-connect' %}">
             {% csrf_token %}
@@ -63,6 +63,12 @@ document.addEventListener('DOMContentLoaded', function () {
         update();
     });
     document.querySelectorAll('.mailbox-message-select').forEach(function (box) { box.addEventListener('change', update); });
+    document.querySelectorAll('.mailbox-message-row').forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('input, a, button, label')) return;
+            window.location.href = row.dataset.mailboxMessageUrl;
+        });
+    });
     update();
 });
 </script>{% endif %}
