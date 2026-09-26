@@ -2238,7 +2238,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-filter-spacer { flex: 1 1 0; }
 .mailbox-directory-page .mailbox-workspace:has(.mailbox-register) { min-height: 0; grid-template-rows: none; }
 .mailbox-directory-page .mailbox-register { width: 100%; max-width: none; padding: 0; overflow: visible; display: block; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); box-shadow: none; }
-.mailbox-directory-page .mailbox-register .mailbox-message-list { position: static; min-height: 0; max-height: none; overflow: visible; border-top: 1px solid var(--workspace-line); }
+.mailbox-directory-page .mailbox-register .mailbox-message-list { position: static; min-height: 0; max-height: none; overflow: visible; border-top: 0; }
 .mailbox-register-table { width: 100%; min-width: 860px; margin: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .mailbox-register-table thead { position: sticky; top: 0; z-index: 3; }
 .mailbox-register-table th { position: static; box-sizing: border-box; height: auto; padding: 11px 10px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-muted); font-size: 12px; font-weight: 650; line-height: 1.2; }
