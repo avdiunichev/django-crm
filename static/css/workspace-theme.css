@@ -1432,3 +1432,71 @@ html body.crm-workspace-theme .mobile-nav-list .crm-nav-block-links a.is-active:
     border-color: var(--workspace-accent);
     background: var(--workspace-accent);
 }
+
+/* Service dock: chat, notifications and appearance use the same calm
+   full-width control treatment at the base of the sidebar. */
+@media screen and (min-width: 1200px) {
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .crm-dock-chat,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-toggle,
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-logout-button {
+        position: relative;
+        width: 100%;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--workspace-text);
+        background: transparent;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools :is(.crm-dock-chat, .navbar-notification-toggle, .topnav-logout-button):is(:hover, :focus-visible) {
+        color: var(--workspace-text);
+        background: var(--workspace-soft);
+        outline: none;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .crm-dock-chat.is-active {
+        color: var(--workspace-accent);
+        background: var(--workspace-tint);
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .crm-dock-chat .nav-unread {
+        margin-left: auto;
+        min-width: 18px;
+        min-height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        display: inline-grid;
+        place-items: center;
+        color: #fff;
+        background: var(--workspace-accent);
+        font-size: 10px;
+        line-height: 1;
+    }
+    html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .navbar-notification-count {
+        top: 7px;
+        right: 8px;
+        color: #fff;
+        background: var(--workspace-accent);
+    }
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .navbar-notification-menu, .navbar-notification-menu header,
+    .navbar-notification-item
+) {
+    border-color: #3b3b3b !important;
+    color: #f5f5f5 !important;
+    background: #202020 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .navbar-notification-item:hover {
+    background: #292929 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .navbar-notification-item-icon, .navbar-notification-menu header button
+) {
+    color: #a98cff !important;
+    background: #2d214b !important;
+}
