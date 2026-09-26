@@ -2254,7 +2254,7 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-register-table :is(th, td):nth-child(2) { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
 .mailbox-select-column { width: 56px; min-width: 56px; padding-left: 0 !important; padding-right: 0 !important; text-align: center; vertical-align: middle !important; }
 .mailbox-select-column input { display: block; margin-right: auto; margin-left: auto; }
-.mailbox-register-footer { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 0 16px; border-top: 1px solid var(--workspace-line); background: var(--workspace-surface); }
+.mailbox-register-footer { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 0 16px; background: var(--workspace-surface); }
 .mailbox-shown-rows { color: var(--workspace-muted); font-size: 12px; }
 .mailbox-delete-button, .mailbox-mark-read-button { min-height: 42px !important; border-color: var(--workspace-line) !important; color: var(--workspace-muted) !important; }
 .mailbox-delete-button:disabled, .mailbox-mark-read-button:disabled { opacity: .45; cursor: not-allowed; }
