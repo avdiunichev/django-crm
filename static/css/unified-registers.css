@@ -180,7 +180,14 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 .uikit-theme .transportation-register-table th:nth-child(8),
 .uikit-theme .transportation-register-table td:nth-child(6),
 .uikit-theme .transportation-register-table td:nth-child(7),
-.uikit-theme .transportation-register-table td:nth-child(8) { display: none; }
+.uikit-theme .transportation-register-table td:nth-child(8) {
+    border: 0 !important;
+    display: none;
+    min-width: 0 !important;
+    padding: 0 !important;
+    visibility: collapse;
+    width: 0 !important;
+}
 .uikit-theme .transportation-register-table th:nth-child(9),
 .uikit-theme .transportation-register-table td:nth-child(9) { width: 185px; }
 .uikit-theme .transportation-register-table th:nth-child(10),
