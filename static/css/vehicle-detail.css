@@ -8,6 +8,7 @@ body.vehicle-card-page .vehicle-profile-heading p { margin: 6px 0 0; color: var(
 body.vehicle-card-page .vehicle-profile-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 body.vehicle-card-page .vehicle-profile-actions .uk-button { min-height: 38px; border-radius: 7px !important; font-size: 12px; text-transform: none; }
 body.vehicle-card-page .vehicle-profile-tabs { margin: 0 0 24px; padding-left: 0; overflow-x: auto; flex-wrap: nowrap; border-bottom-color: var(--workspace-line, #e9e7e7); }
+body.vehicle-card-page .vehicle-profile-tabs::before { left: 0; margin-left: 0; }
 body.vehicle-card-page .vehicle-profile-tabs > * { flex: 0 0 auto; }
 body.vehicle-card-page .vehicle-profile-tabs > :first-child { padding-left: 0; }
 body.vehicle-card-page .vehicle-profile-tabs > :first-child > a { padding-left: 0; }
