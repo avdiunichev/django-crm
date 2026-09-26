@@ -2244,9 +2244,9 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-register-table :is(th, td):nth-child(2) { width: 30%; }.mailbox-register-table :is(th, td):last-child { width: 150px; white-space: nowrap; }
 .mailbox-select-column { width: 44px; padding-right: 4px !important; text-align: center; }
 .mailbox-register-footer { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 0 16px; border-top: 1px solid var(--workspace-line); background: var(--workspace-surface); }
-.mailbox-footer-start { display: flex; align-items: center; gap: 16px; }
 .mailbox-shown-rows { color: var(--workspace-muted); font-size: 12px; }
-.mailbox-delete-button { min-height: 32px !important; border-color: var(--workspace-line) !important; color: var(--workspace-muted) !important; }
+.mailbox-delete-button { min-height: 42px !important; border-color: var(--workspace-line) !important; color: var(--workspace-muted) !important; }
+.mailbox-delete-button:disabled { opacity: .45; cursor: not-allowed; }
 .mailbox-page-size { display: flex; align-items: center; }
 .mailbox-page-size label { display: inline-flex; align-items: center; gap: 10px; color: var(--workspace-muted); font-size: 12px; }
 .mailbox-page-size .uk-select { width: 250px; height: 40px; border-color: var(--workspace-line); border-radius: 8px; color: var(--workspace-text); background-color: var(--workspace-surface); }

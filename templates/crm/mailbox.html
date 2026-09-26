@@ -11,7 +11,7 @@
 
 <section class="mailbox-workspace" aria-label="Подключение личной почты">
     {% if mailbox.is_connected %}
-        <form class="mailbox-register-filters" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="per_page" value="{{ current_per_page }}"><label class="driver-search-field"><span uk-icon="search"></span><input class="uk-input search" type="search" name="q" value="{{ mailbox_query }}" placeholder="Отправитель или тема письма"></label><button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span>Найти</button>{% if mailbox_query %}<a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}&amp;per_page={{ current_per_page }}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}<span class="mailbox-filter-spacer"></span><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}&amp;per_page={{ current_per_page }}"><span uk-icon="refresh"></span>Обновить</a><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a></form>
+        <form class="mailbox-register-filters" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="per_page" value="{{ current_per_page }}"><label class="driver-search-field"><span uk-icon="search"></span><input class="uk-input search" type="search" name="q" value="{{ mailbox_query }}" placeholder="Отправитель или тема письма"></label><button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span>Найти</button>{% if mailbox_query %}<a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}&amp;per_page={{ current_per_page }}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}<span class="mailbox-filter-spacer"></span><a class="uk-button uk-button-default" href="{% url 'mailbox' %}?folder={{ mailbox_folder }}&amp;per_page={{ current_per_page }}"><span uk-icon="refresh"></span>Обновить</a><button id="mailbox-delete-selected" form="mailbox-bulk-form" class="uk-button uk-button-default mailbox-delete-button" type="submit" disabled data-single-label="Удалить" data-multiple-label="Удалить выбранные" onclick="return confirm('{% if mailbox_folder == 'trash' %}Удалить выбранные письма без возможности восстановления?{% else %}Переместить выбранные письма в удалённые?{% endif %}')">Удалить</button><a class="uk-button uk-button-primary" href="{% url 'mailbox-compose' %}" data-mail-compose-modal-open>Написать письмо</a></form>
         <nav class="mailbox-folder-tabs" aria-label="Папки почты">
             <a class="{% if mailbox_folder == 'inbox' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=inbox&amp;q={{ mailbox_query|urlencode }}&amp;per_page={{ current_per_page }}">Входящие <span class="mailbox-folder-count">{{ mailbox_counts.inbox.total }}</span>{% if mailbox_counts.inbox.unread %}<span class="mailbox-folder-unread" title="Непрочитанные">{{ mailbox_counts.inbox.unread }}</span>{% endif %}</a>
             <a class="{% if mailbox_folder == 'sent' %}is-active{% endif %}" href="{% url 'mailbox' %}?folder=sent&amp;q={{ mailbox_query|urlencode }}&amp;per_page={{ current_per_page }}">Отправленные <span class="mailbox-folder-count">{{ mailbox_counts.sent.total }}</span>{% if mailbox_counts.sent.unread %}<span class="mailbox-folder-unread" title="Непрочитанные">{{ mailbox_counts.sent.unread }}</span>{% endif %}</a>
@@ -23,7 +23,7 @@
             {% if inbox_error %}
                 <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
             {% elif inbox_messages %}
-                <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th class="mailbox-select-column"><input class="uk-checkbox" type="checkbox" aria-label="Выбрать все письма" onchange="document.querySelectorAll('.mailbox-message-select').forEach(function(box) { box.checked = this.checked; }, this)"></th><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
+                <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th class="mailbox-select-column"><input class="uk-checkbox" type="checkbox" aria-label="Выбрать все письма" data-mailbox-select-all></th><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
                     {% for message in inbox_messages %}
                         <tr class="{% if message.is_unread %}is-unread{% endif %}"><td class="mailbox-select-column"><input form="mailbox-bulk-form" class="uk-checkbox mailbox-message-select" type="checkbox" name="message_uids" value="{{ message.uid }}" aria-label="Выбрать письмо: {{ message.subject|default:'Без темы' }}"></td><td><strong>{% if message.is_unread %}<span class="mailbox-unread-dot" title="Новое письмо"></span>{% endif %}{{ message.sender }}</strong></td><td><a class="primary-link" href="{% url 'mailbox-message' mailbox_folder message.uid %}">{{ message.subject|default:"Без темы" }}</a></td><td>{{ message.received_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
                     {% endfor %}
@@ -31,7 +31,7 @@
             {% else %}
                 <p class="mailbox-inbox-empty">Во входящих пока нет писем.</p>
             {% endif %}
-            <div class="mailbox-register-footer"><div class="mailbox-footer-start"><button form="mailbox-bulk-form" class="uk-button uk-button-default mailbox-delete-button" type="submit" onclick="return confirm('{% if mailbox_folder == 'trash' %}Удалить выбранные письма без возможности восстановления?{% else %}Переместить выбранные письма в удалённые?{% endif %}')">{% if mailbox_folder == 'trash' %}Удалить навсегда{% else %}Удалить выбранные{% endif %}</button><span class="mailbox-shown-rows">{% if current_per_page == 'all' %}Показаны все строки{% else %}Показано писем: {{ inbox_messages|length }}{% endif %}</span></div><form class="mailbox-page-size" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="q" value="{{ mailbox_query }}"><label>Строк на странице<select class="uk-select uk-form-small" name="per_page" onchange="this.form.submit()">{% for choice in page_size_choices %}<option value="{{ choice.value }}" {% if current_per_page == choice.value %}selected{% endif %}>{{ choice.label }}</option>{% endfor %}</select></label></form></div>
+            <div class="mailbox-register-footer"><span class="mailbox-shown-rows">{% if current_per_page == 'all' %}Показаны все строки{% else %}Показано писем: {{ inbox_messages|length }}{% endif %}</span><form class="mailbox-page-size" method="get"><input type="hidden" name="folder" value="{{ mailbox_folder }}"><input type="hidden" name="q" value="{{ mailbox_query }}"><label>Строк на странице<select class="uk-select uk-form-small" name="per_page" onchange="this.form.submit()">{% for choice in page_size_choices %}<option value="{{ choice.value }}" {% if current_per_page == choice.value %}selected{% endif %}>{{ choice.label }}</option>{% endfor %}</select></label></form></div>
         </section>
     {% else %}
         <form class="mailbox-setup-card mailbox-connect-form" method="post" action="{% url 'mailbox-connect' %}">
@@ -47,4 +47,23 @@
         <div class="mailbox-security-note"><span uk-icon="lock"></span><span><strong>Личная почта</strong> — другие пользователи CRM не смогут видеть ваши письма, адресатов или вложения.</span></div>
     {% endif %}
 </section>
+{% if mailbox.is_connected %}<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var selectAll = document.querySelector('[data-mailbox-select-all]');
+    var button = document.getElementById('mailbox-delete-selected');
+    var selected = function () { return Array.from(document.querySelectorAll('.mailbox-message-select:checked')); };
+    var update = function () {
+        var count = selected().length;
+        button.disabled = count === 0;
+        button.textContent = count > 1 ? button.dataset.multipleLabel : button.dataset.singleLabel;
+        if (selectAll) selectAll.checked = count > 0 && count === document.querySelectorAll('.mailbox-message-select').length;
+    };
+    if (selectAll) selectAll.addEventListener('change', function () {
+        document.querySelectorAll('.mailbox-message-select').forEach(function (box) { box.checked = selectAll.checked; });
+        update();
+    });
+    document.querySelectorAll('.mailbox-message-select').forEach(function (box) { box.addEventListener('change', update); });
+    update();
+});
+</script>{% endif %}
 {% endblock %}
