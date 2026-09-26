@@ -1543,6 +1543,10 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
         font-size: 10px;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options {
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 3px;
         min-height: 34px;
         padding: 2px;
         border: 1px solid var(--workspace-line);
@@ -1550,14 +1554,17 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
         background: transparent;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button {
+        box-sizing: border-box;
+        width: 100%;
         min-height: 29px;
         height: 29px;
+        margin: 0;
         border-radius: 5px;
         font-size: 10px;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .theme-switcher-options button[aria-pressed="true"] {
-        color: var(--workspace-text);
-        background: var(--workspace-soft);
+        color: var(--workspace-accent);
+        background: var(--workspace-tint);
         box-shadow: none;
     }
     html body.uikit-theme.crm-workspace-theme .crm-topnav-tools .topnav-admin-button {
