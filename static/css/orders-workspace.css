@@ -75,6 +75,12 @@ body.orders-workspace-page .order-register-table td {
 body.orders-workspace-page .order-register-table tr:last-child td { border-bottom: 0 !important; }
 body.orders-workspace-page .order-register-table tbody tr:hover,
 body.orders-workspace-page .order-register-table tbody tr.is-selected { background: var(--orders-soft); }
+/* The common workspace theme also paints individual table cells.  Paint every
+   cell in the active row explicitly so a finance cell cannot retain a blue
+   background while the rest of the row is selected. */
+body.orders-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td {
+    background: var(--orders-soft) !important;
+}
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(1) { width: 42px; padding-left: 16px; padding-right: 8px; }
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(2) { width: 145px; }
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(3) { width: 18%; }
