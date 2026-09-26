@@ -71,19 +71,28 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const header = table.tHead?.rows[0];
     if (header) {
-        const cell = header.insertCell(5);
-        cell.outerHTML = "<th>Документы и оплата</th>";
+        const documentsCell = header.insertCell(5);
+        documentsCell.outerHTML = "<th>Вх. / исх. документы</th>";
+        const receivedCell = header.insertCell(6);
+        receivedCell.outerHTML = "<th>Дата вх.</th>";
+        const dueCell = header.insertCell(7);
+        dueCell.outerHTML = "<th>Сроки оплаты</th>";
     }
     const escapeHtml = (value) => String(value).replace(/[&<>'\"]/g, (symbol) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;"})[symbol]);
-    const documentLine = (label, document, due, dateLabel) => `<div><span>${label}</span><strong>${document ? escapeHtml(document.number || "Без номера") : "Не зарегистрирован"}</strong><small>${document ? `${dateLabel}: ${escapeHtml(document.received)}` : ""} · Оплата до: ${escapeHtml(due)}</small></div>`;
+    const documentLine = (label, document) => `<div><span>${label}</span><strong>${document ? escapeHtml(document.number || "Без номера") : "Не зарегистрирован"}</strong></div>`;
     table.tBodies[0]?.querySelectorAll("tr").forEach((row) => {
         const selector = row.querySelector("[data-transportation-export-select]");
         if (!selector) return;
         const item = documents[selector.value];
-        const cell = row.insertCell(5);
-        cell.className = "transportation-register-documents";
-        cell.innerHTML = documentLine("Вх.", item?.incoming, item?.incomingDue || "—", "Получен")
-            + documentLine("Исх.", item?.outgoing, item?.outgoingDue || "—", "Дата");
+        const documentsCell = row.insertCell(5);
+        documentsCell.className = "transportation-register-documents";
+        documentsCell.innerHTML = documentLine("Вх.", item?.incoming) + documentLine("Исх.", item?.outgoing);
+        const receivedCell = row.insertCell(6);
+        receivedCell.className = "transportation-register-date";
+        receivedCell.textContent = item?.incoming?.received || "—";
+        const dueCell = row.insertCell(7);
+        dueCell.className = "transportation-register-payment-due";
+        dueCell.innerHTML = `<div><span>Исполнителю</span><strong>${escapeHtml(item?.incomingDue || "—")}</strong></div><div><span>Клиенту</span><strong>${escapeHtml(item?.outgoingDue || "—")}</strong></div>`;
     });
 });
 </script>

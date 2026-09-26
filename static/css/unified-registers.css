@@ -146,7 +146,7 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 html[data-theme="dark"] body.uikit-theme .organization-register-table .organization-fns-status-bankrupt { color: #ff9da9; }
 
 /* Реестр рейсов: один ряд показывает операционную и финансовую картину рейса. */
-.uikit-theme .transportation-register-table { min-width: 1740px; table-layout: fixed; }
+.uikit-theme .transportation-register-table { min-width: 1910px; table-layout: fixed; }
 .uikit-theme .transportation-register-table th:nth-child(1),
 .uikit-theme .transportation-register-table td:nth-child(1) { width: 190px; }
 .uikit-theme .transportation-register-table th:nth-child(2),
@@ -158,7 +158,11 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 .uikit-theme .transportation-register-table th:nth-child(5),
 .uikit-theme .transportation-register-table td:nth-child(5) { width: 220px; }
 .uikit-theme .transportation-register-table th:nth-child(6),
-.uikit-theme .transportation-register-table td:nth-child(6) { width: 180px; }
+.uikit-theme .transportation-register-table td:nth-child(6) { width: 170px; }
+.uikit-theme .transportation-register-table th:nth-child(7),
+.uikit-theme .transportation-register-table td:nth-child(7) { width: 110px; }
+.uikit-theme .transportation-register-table th:nth-child(8),
+.uikit-theme .transportation-register-table td:nth-child(8) { width: 155px; }
 
 .uikit-theme .transportation-register-table .transportation-register-driver-vehicle > strong,
 .uikit-theme .transportation-register-table .transportation-register-driver-vehicle > small {
@@ -184,6 +188,10 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
 .uikit-theme .transportation-register-table .transportation-register-documents small {
     grid-column: 1 / -1;
 }
+.uikit-theme .transportation-register-table .transportation-register-date { white-space: nowrap; }
+.uikit-theme .transportation-register-table .transportation-register-payment-due { display: grid; gap: 7px; }
+.uikit-theme .transportation-register-table .transportation-register-payment-due > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.uikit-theme .transportation-register-table .transportation-register-payment-due span { color: #77869a; font-size: 10px; text-transform: uppercase; }
 
 .uikit-theme .transportation-register-table .transportation-register-trip > strong,
 .uikit-theme .transportation-register-table .transportation-register-trip > small,
