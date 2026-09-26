@@ -85,8 +85,8 @@ body.orders-workspace-page .order-register-table :is(th, td):nth-child(1) { widt
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(2) { width: 145px; }
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(3) { width: 18%; }
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(4) { width: 22%; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(5) { width: 18%; }
-body.orders-workspace-page .order-register-table :is(th, td):nth-child(6) { width: 145px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(5) { width: 190px; }
+body.orders-workspace-page .order-register-table :is(th, td):nth-child(6) { width: 18%; }
 body.orders-workspace-page .order-register-table :is(th, td):nth-child(7) { width: 145px; }
 body.orders-workspace-page .order-register-table td :is(strong, .route-compact, .primary-link) { font-size: 13px; font-weight: 550; line-height: 1.55; color: var(--orders-ink); }
 body.orders-workspace-page .order-register-table .primary-link:hover { color: #D10000; }
