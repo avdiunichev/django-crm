@@ -651,6 +651,38 @@ html body.uikit-theme.crm-workspace-theme.organization-directory-page .organizat
         background: var(--workspace-soft, #f5f5f5);
     }
 }
+@media screen and (min-width: 961px) {
+    /* Keep the directory controls visible; only the register itself scrolls. */
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .main > .content {
+        height: calc(100dvh - 48px);
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .content > :not(.organization-register-panel) {
+        flex: 0 0 auto;
+    }
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-panel {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+        overflow: hidden !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-panel .table-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        overflow: auto;
+    }
+    html body.uikit-theme.crm-workspace-theme.organization-directory-page .organization-register-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+}
 @media screen {
     @media (min-width: 961px) and (min-height: 650px) {
         html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .main > .content {
@@ -2270,6 +2302,9 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .mailbox-compose-modal h2 { margin: 4px 0 0; color: var(--workspace-text); font-size: 21px; }
 .mailbox-compose-form { display: grid; gap: 14px; padding: 20px 24px 24px; }
 .mailbox-compose-form label { display: grid; gap: 6px; color: var(--workspace-muted); font-size: 12px; font-weight: 600; }
+.mail-recipient-field > span { display: inline-flex; align-items: center; gap: 7px; }
+.mail-dadata-badge { display: inline-flex; align-items: center; min-height: 18px; padding: 0 6px; border: 1px solid var(--workspace-line); border-radius: 5px; color: var(--workspace-muted); background: var(--workspace-soft); font-size: 10px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.crm-mail-recipient-suggest { width: 100%; }
 .mailbox-compose-form :is(.uk-input, .uk-textarea) { border-color: var(--workspace-line); background: var(--workspace-soft); color: var(--workspace-text); }
 .mailbox-message { display: grid; grid-template-columns: minmax(180px, .9fr) minmax(240px, 2fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--workspace-line); color: var(--workspace-text); font-size: 13px; text-decoration: none; }
 .mailbox-message:hover { color: var(--workspace-text); background: var(--workspace-soft); }
