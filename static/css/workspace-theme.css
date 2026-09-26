@@ -175,6 +175,77 @@ body.crm-workspace-theme {
     html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .crm-desktop-sidebar { background: #202329 !important; }
 }
 
+/* Dark mode uses a separate visual language: Deep Black, Off-white and
+   Vibrant Violet from the approved palette. Red remains the light-theme
+   brand accent only and is never used for interface emphasis in dark mode. */
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme {
+    --workspace-shell: #1a1a1a;
+    --workspace-surface: #202020;
+    --workspace-soft: #292929;
+    --workspace-line: #3b3b3b;
+    --workspace-text: #f5f5f5;
+    --workspace-muted: #b7b3be;
+    --workspace-accent: #7c4dff;
+    --workspace-tint: #2d214b;
+    --workspace-focus: #7c4dff55;
+    --workspace-danger: #7c4dff;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme .brand img {
+    filter: hue-rotate(250deg) saturate(1.35) brightness(1.12);
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .uk-button-primary, .btn-primary, .uk-button-danger,
+    .trip-edit-command, .driver-delete-button
+) {
+    color: #f5f5f5 !important;
+    background: #7c4dff !important;
+    border-color: #7c4dff !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .uk-button-primary, .btn-primary, .uk-button-danger,
+    .trip-edit-command, .driver-delete-button
+):is(:hover, :focus-visible):not(:disabled) {
+    background: #6938e6 !important;
+    border-color: #6938e6 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .primary-link, .row-action, .clear-link, .server-sort-link,
+    .uk-text-danger, .amount-problem, .is-danger, .is-warning, .is-expired,
+    .driver-document-expired, .transportation-register-profit
+) {
+    color: #a98cff !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .uk-label-danger, .uk-alert-danger, .uk-badge-danger,
+    .driver-license-expired-row > td, .driver-profile-document.is-expired
+) {
+    color: #f5f5f5 !important;
+    border-color: #7c4dff !important;
+    background: #2d214b !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .uk-tab > .uk-active > a, .driver-profile-tabs > .uk-active > a,
+    .organization-profile-tabs > .uk-active > a, .trip-profile-tabs > .uk-active > a,
+    .transportation-tabs > .uk-active > a, .trip-work-tabs .uk-active a
+) {
+    color: #a98cff !important;
+    border-color: #7c4dff !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .contract-profile .contract-parties article,
+    .driver-profile-phone-list a,
+    .driver-profile-document.is-current,
+    .trip-workspace .route-stop-list article,
+    .transportation-status-progress
+) {
+    border-left-color: #7c4dff !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    input[type="checkbox"], input[type="radio"]
+) {
+    accent-color: #7c4dff;
+}
+
 /* Breadcrumbs are navigation, not part of the page heading. A quiet rule on
    the next line gives the working section a clear starting point. */
 html body.crm-workspace-theme :is(
@@ -1235,3 +1306,36 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
         padding-bottom: 12px;
     }
 }
+
+/* Final dark-mode overrides: component styles above contain legacy light-theme
+   red literals, therefore these rules deliberately come last. */
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .driver-profile-avatar, .organization-profile-avatar, .trip-profile-avatar,
+    .organization-view-primary,
+    .organization-profile-doc-summary .is-warning,
+    .transportation-role-card .eyebrow, .transportation-finance-card .eyebrow
+) { color: #a98cff !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .organization-view-record, .organization-profile-document.is-current,
+    .driver-profile-document.is-current, .driver-profile-document.is-expired,
+    .driver-profile-phone-list a, .contract-profile .contract-parties article,
+    .trip-workspace .route-stop-list article, .transportation-status-progress
+) { border-left-color: #7c4dff !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    .driver-directory-table tr.driver-license-expired-row > td,
+    .driver-profile-document.is-expired, .trip-profile-status.is-danger
+) {
+    color: #f5f5f5 !important;
+    border-color: #7c4dff !important;
+    background: #2d214b !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    [data-driver-form] :is(input, select, textarea):is([aria-invalid="true"], .is-phone-invalid),
+    [aria-invalid="true"], .uk-form-danger, .is-invalid
+) { border-color: #7c4dff !important; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme :is(
+    [data-driver-form] [data-driver-phone-add],
+    [data-driver-form] [data-passport-add],
+    [data-driver-form] [data-license-add],
+    [data-driver-form] [data-driver-phone-remove]
+) { color: #a98cff !important; border-color: #7c4dff !important; }
