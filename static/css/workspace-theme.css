@@ -1114,6 +1114,16 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td {
         background: var(--workspace-soft) !important;
     }
+    /* The finance column used to retain a legacy blue cell fill when its row
+       was hovered.  Give it the same explicit surface as every other cell. */
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr > td.transportation-register-finance {
+        background-color: var(--workspace-surface) !important;
+        background-image: none !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table tbody tr:is(:hover, .is-selected) > td.transportation-register-finance {
+        background-color: var(--workspace-soft) !important;
+        background-image: none !important;
+    }
     html body.uikit-theme.crm-workspace-theme .uk-table td small { color: var(--workspace-muted) !important; font-size: 12px; line-height: 1.5; }
     html body.uikit-theme.crm-workspace-theme .uk-table .primary-link { color: var(--workspace-text) !important; font-weight: 600; }
     html body.uikit-theme.crm-workspace-theme .uk-table .primary-link:hover { color: var(--workspace-accent) !important; }
