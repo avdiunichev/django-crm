@@ -177,7 +177,7 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
         # network round trip for every visible row.
         status, payload = client.uid(
             "fetch", b",".join(message_ids),
-            "(UID FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
+            "(UID FLAGS BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
         )
         if status != "OK" or not payload:
             return []
