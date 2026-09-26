@@ -2971,7 +2971,9 @@ class CrmTestCase(TestCase):
         self.assertContains(listing, "Транспорт, документы и назначение")
         detail = self.client.get(reverse("vehicle-detail", args=[self.vehicle.pk]))
         self.assertContains(detail, "vehicle-view-workspace")
-        self.assertContains(detail, "01 Основные данные")
+        self.assertContains(detail, "vehicle-profile-overview")
+        self.assertContains(detail, "Основные данные")
+        self.assertNotContains(detail, "01 Основные данные")
         self.assertContains(detail, "Связи тягача с прицепами")
         self.assertContains(detail, "История карточки")
 
