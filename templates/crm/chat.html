@@ -2,18 +2,18 @@
 {% load static %}
 {% block title %}Чат сотрудников — Моя CRM{% endblock %}
 {% block body_class %}chat-messenger-page{% if request.GET.embed %} chat-embed-page{% endif %}{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chat-messenger.css' %}?v=20260927-1">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chat-messenger.css' %}?v=20260928-1">{% endblock %}
 {% block content %}
 <div class="orders-breadcrumb chat-page-breadcrumb"><span uk-icon="comments"></span><span>Команда</span><span aria-hidden="true">/</span><span aria-current="page">Чат</span></div>
 <header class="orders-page-header chat-page-header"><div><div class="orders-title-line"><h1 id="chat-title">Чат команды</h1><span class="orders-count">{{ conversation_rows|length }}</span></div><p>Рабочие диалоги сотрудников в одном месте.</p></div></header>
 
-<div class="chat-shell uk-card uk-card-default">
-    <aside class="chat-sidebar">
-        <div class="chat-list-toolbar">
+<div class="team-chat-shell">
+    <aside class="team-chat-sidebar">
+        <div class="team-chat-list-toolbar">
             <div><strong>Сообщения</strong><small>Диалоги с сотрудниками</small></div>
-            <button class="chat-new-dialog-toggle" type="button" aria-expanded="false" aria-controls="chat-start-form" title="Новый диалог"><span uk-icon="plus"></span></button>
+            <button class="team-chat-new-dialog-toggle" type="button" aria-expanded="false" aria-controls="chat-start-form" title="Новый диалог"><span uk-icon="plus"></span></button>
         </div>
-        <form class="chat-start-form" id="chat-start-form" method="post" action="{% url 'chat-start' %}" hidden>
+        <form class="team-chat-start-form" id="chat-start-form" method="post" action="{% url 'chat-start' %}" hidden>
             {% csrf_token %}
             {% if chat_embed %}<input type="hidden" name="embed" value="1">{% endif %}
             <label class="uk-form-label" for="chat-user-select">С кем начать диалог</label>
@@ -22,41 +22,41 @@
                 <div class="uk-width-auto"><button class="uk-button uk-button-primary" type="submit">Начать</button></div>
             </div>
         </form>
-        <label class="chat-conversation-search"><span uk-icon="search"></span><input type="search" placeholder="Поиск диалогов" autocomplete="off" data-chat-conversation-search></label>
-        <div class="chat-conversation-list">
+        <label class="team-chat-search"><span uk-icon="search"></span><input type="search" placeholder="Поиск диалогов" autocomplete="off" data-chat-conversation-search></label>
+        <div class="team-chat-conversation-list">
             {% for row in conversation_rows %}
-                <a class="chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}{% if chat_embed %}?embed=1{% endif %}">
-                    <span class="chat-avatar">{{ row.other_user.get_full_name|default:row.other_user.username|slice:":1"|upper }}</span>
-                    <span class="chat-conversation-copy"><strong>{{ row.other_user.get_full_name|default:row.other_user.username }}</strong><small>{% if row.last_message %}{% if row.last_message.sender_id == user.pk %}Вы: {% endif %}{% if row.last_message.text %}{{ row.last_message.text|truncatechars:42 }}{% elif row.last_message.attachment %}Файл: {{ row.last_message.attachment_filename|truncatechars:34 }}{% endif %}{% else %}Диалог создан{% endif %}</small></span>
-                    {% if row.last_message %}<time class="chat-conversation-time">{{ row.last_message.created_at|date:"H:i" }}</time>{% endif %}
+                <a class="team-chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}{% if chat_embed %}?embed=1{% endif %}">
+                    <span class="team-chat-avatar">{{ row.other_user.get_full_name|default:row.other_user.username|slice:":1"|upper }}</span>
+                    <span class="team-chat-conversation-copy"><strong>{{ row.other_user.get_full_name|default:row.other_user.username }}</strong><small>{% if row.last_message %}{% if row.last_message.sender_id == user.pk %}Вы: {% endif %}{% if row.last_message.text %}{{ row.last_message.text|truncatechars:42 }}{% elif row.last_message.attachment %}Файл: {{ row.last_message.attachment_filename|truncatechars:34 }}{% endif %}{% else %}Диалог создан{% endif %}</small></span>
+                    {% if row.last_message %}<time class="team-chat-conversation-time">{{ row.last_message.created_at|date:"H:i" }}</time>{% endif %}
                     {% if row.unread_count %}<span class="uk-badge">{{ row.unread_count }}</span>{% endif %}
                 </a>
             {% empty %}
-                <div class="chat-empty-list"><span uk-icon="comments"></span><p>Диалогов пока нет.<br>Выберите сотрудника выше.</p></div>
+                <div class="team-chat-empty-list"><span uk-icon="comments"></span><p>Диалогов пока нет.<br>Выберите сотрудника выше.</p></div>
             {% endfor %}
         </div>
     </aside>
 
-    <section class="chat-main">
+    <section class="team-chat-main">
         {% if current_conversation %}
-            <header class="chat-header"><span class="chat-avatar large">{{ current_other_user.get_full_name|default:current_other_user.username|slice:":1"|upper }}</span><div><strong>{{ current_other_user.get_full_name|default:current_other_user.username }}</strong><small>@{{ current_other_user.username }}</small></div></header>
-            <div class="chat-thread" data-chat-thread data-messages-url="{% url 'chat-messages' current_conversation.pk %}">
+            <header class="team-chat-header"><span class="team-chat-avatar large">{{ current_other_user.get_full_name|default:current_other_user.username|slice:":1"|upper }}</span><div><strong>{{ current_other_user.get_full_name|default:current_other_user.username }}</strong><small>@{{ current_other_user.username }}</small></div></header>
+            <div class="team-chat-thread" data-chat-thread data-messages-url="{% url 'chat-messages' current_conversation.pk %}">
                 {% for message in current_messages %}
-                    <article class="chat-message {% if message.sender_id == user.pk %}is-mine{% endif %}" data-message-id="{{ message.pk }}"><div><strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>{% if message.text %}<p>{{ message.text|linebreaksbr }}</p>{% endif %}{% if message.attachment %}<a class="chat-attachment" href="{{ message.get_attachment_url }}"><span class="chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></a>{% endif %}<footer class="chat-message-meta"><time>{{ message.created_at|date:"H:i" }}{% if message.edited_at %} · изменено{% endif %}</time>{% if message.sender_id == user.pk %}<span class="chat-message-actions"><a href="{{ message.get_absolute_url }}" title="Изменить сообщение" aria-label="Изменить сообщение"><span uk-icon="pencil"></span></a><a href="{{ message.get_delete_url }}" title="Удалить сообщение" aria-label="Удалить сообщение"><span uk-icon="trash"></span></a></span>{% endif %}</footer></div></article>
+                    <article class="team-chat-message {% if message.sender_id == user.pk %}is-mine{% endif %}" data-message-id="{{ message.pk }}"><div><strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>{% if message.text %}<p>{{ message.text|linebreaksbr }}</p>{% endif %}{% if message.attachment %}<a class="team-chat-attachment" href="{{ message.get_attachment_url }}"><span class="team-chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></a>{% endif %}<footer class="team-chat-message-meta"><time>{{ message.created_at|date:"H:i" }}{% if message.edited_at %} · изменено{% endif %}</time>{% if message.sender_id == user.pk %}<span class="team-chat-message-actions"><a href="{{ message.get_absolute_url }}" title="Изменить сообщение" aria-label="Изменить сообщение"><span uk-icon="pencil"></span></a><a href="{{ message.get_delete_url }}" title="Удалить сообщение" aria-label="Удалить сообщение"><span uk-icon="trash"></span></a></span>{% endif %}</footer></div></article>
                 {% empty %}
-                    <div class="chat-thread-empty" data-chat-empty><span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p></div>
+                    <div class="team-chat-thread-empty" data-chat-empty><span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p></div>
                 {% endfor %}
             </div>
-            <form class="chat-compose" method="post" action="{% url 'chat-send' current_conversation.pk %}{% if chat_embed %}?embed=1{% endif %}" enctype="multipart/form-data" data-chat-form>
+            <form class="team-chat-compose" method="post" action="{% url 'chat-send' current_conversation.pk %}{% if chat_embed %}?embed=1{% endif %}" enctype="multipart/form-data" data-chat-form>
                 {% csrf_token %}
-                <label class="chat-file-button" title="Прикрепить файл"><span uk-icon="file-text"></span>{{ message_form.attachment }}<span data-chat-file-name>Файл</span></label>
+                <label class="team-chat-file-button" title="Прикрепить файл"><span uk-icon="file-text"></span>{{ message_form.attachment }}<span data-chat-file-name>Файл</span></label>
                 {{ message_form.text }}
                 <button class="uk-button uk-button-primary" type="submit"><span uk-icon="push"></span><span>Отправить</span></button>
-                <small class="chat-compose-hint">Документы, таблицы, изображения и архивы · до 20 МБ</small>
+                <small class="team-chat-compose-hint">Документы, таблицы, изображения и архивы · до 20 МБ</small>
                 <small class="uk-text-danger" data-chat-error aria-live="polite"></small>
             </form>
         {% else %}
-            <div class="chat-placeholder"><span class="uk-icon-button" uk-icon="comments; ratio: 1.5"></span><h2>Выберите диалог</h2><p>Или начните новую переписку с сотрудником CRM.</p></div>
+            <div class="team-chat-placeholder"><span class="uk-icon-button" uk-icon="comments; ratio: 1.5"></span><h2>Выберите диалог</h2><p>Или начните новую переписку с сотрудником CRM.</p></div>
         {% endif %}
     </section>
 </div>
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const ensureEmptyState = () => {
         if (thread.querySelector("[data-message-id]") || thread.querySelector("[data-chat-empty]")) return;
         const empty = document.createElement("div");
-        empty.className = "chat-thread-empty";
+        empty.className = "team-chat-thread-empty";
         empty.dataset.chatEmpty = "";
         empty.innerHTML = '<span uk-icon="comments"></span><p>Начните переписку с сотрудником.</p>';
         thread.append(empty);
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isNew = !article;
         thread.querySelector("[data-chat-empty]")?.remove();
         if (!article) article = document.createElement("article");
-        article.className = "chat-message" + (message.is_mine ? " is-mine" : "");
+        article.className = "team-chat-message" + (message.is_mine ? " is-mine" : "");
         article.dataset.messageId = message.id;
         let bubble = article.querySelector(":scope > div");
         if (!bubble) {
@@ -106,10 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (message.attachment) {
             const attachment = document.createElement("a");
-            attachment.className = "chat-attachment";
+            attachment.className = "team-chat-attachment";
             attachment.href = message.attachment.url;
             const icon = document.createElement("span");
-            icon.className = "chat-attachment-icon";
+            icon.className = "team-chat-attachment-icon";
             icon.textContent = "📎";
             const copy = document.createElement("span");
             const name = document.createElement("b");
@@ -121,13 +121,13 @@ document.addEventListener("DOMContentLoaded", () => {
             bubble.append(attachment);
         }
         const meta = document.createElement("footer");
-        meta.className = "chat-message-meta";
+        meta.className = "team-chat-message-meta";
         const time = document.createElement("time");
         time.textContent = message.created_at + (message.edited ? " · изменено" : "");
         meta.append(time);
         if (message.is_mine) {
             const actions = document.createElement("span");
-            actions.className = "chat-message-actions";
+            actions.className = "team-chat-message-actions";
             const edit = document.createElement("a");
             edit.href = message.edit_url;
             edit.title = "Изменить сообщение";
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endif %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const toggle = document.querySelector(".chat-new-dialog-toggle");
+    const toggle = document.querySelector(".team-chat-new-dialog-toggle");
     const form = document.querySelector("#chat-start-form");
     const search = document.querySelector("[data-chat-conversation-search]");
     if (toggle && form) {
@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     search?.addEventListener("input", () => {
         const term = search.value.trim().toLocaleLowerCase("ru");
-        document.querySelectorAll(".chat-conversation").forEach((conversation) => {
+        document.querySelectorAll(".team-chat-conversation").forEach((conversation) => {
             conversation.hidden = Boolean(term) && !conversation.textContent.toLocaleLowerCase("ru").includes(term);
         });
     });
