@@ -2037,8 +2037,23 @@ class MailboxView(LoginRequiredMixin, TemplateView):
     list_cache_seconds = 45
 
     @staticmethod
-    def list_cache_key(user_id, folder, limit):
-        return f"crm-mailbox-list:{user_id}:{folder}:{limit}"
+    def list_cache_key(user_id, folder, limit, offset=0):
+        return f"crm-mailbox-list:{user_id}:{folder}:{limit}:{offset}"
+
+    @staticmethod
+    def page_numbers(current_page, total_pages):
+        if total_pages <= 7:
+            return list(range(1, total_pages + 1))
+        visible = {1, total_pages, current_page - 1, current_page, current_page + 1}
+        numbers = sorted(number for number in visible if 1 <= number <= total_pages)
+        result = []
+        previous = 0
+        for number in numbers:
+            if number - previous > 1:
+                result.append(None)
+            result.append(number)
+            previous = number
+        return result
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2048,6 +2063,9 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         mailbox_folder = self.request.GET.get("folder", "inbox")
         mailbox_query = self.request.GET.get("q", "").strip()
         requested_page_size = self.request.GET.get("per_page", "").strip().lower()
+        requested_page = self.request.GET.get("page", "1").strip()
+        current_page = int(requested_page) if requested_page.isdigit() else 1
+        current_page = max(1, current_page)
         if requested_page_size in self.page_size_choices:
             self.request.session[self.page_size_session_key] = requested_page_size
             current_per_page = requested_page_size
@@ -2062,7 +2080,20 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         if mailbox.is_connected and mailbox.encrypted_app_password:
             try:
                 password = decrypt_app_password(mailbox.encrypted_app_password)
-                list_cache_key = self.list_cache_key(self.request.user.pk, mailbox_folder, fetch_limit)
+                cache_key = f"crm-mailbox-navigation-counts:{self.request.user.pk}"
+                mailbox_counts = cache.get(cache_key)
+                if mailbox_counts is None:
+                    mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
+                    cache.set(cache_key, mailbox_counts, 60)
+                message_total = mailbox_counts.get(mailbox_folder, {}).get("total", 0)
+                mailbox_total_pages = (
+                    1 if current_per_page == "all" else max(1, (message_total + fetch_limit - 1) // fetch_limit)
+                )
+                current_page = min(current_page, mailbox_total_pages)
+                page_offset = 0 if current_per_page == "all" else (current_page - 1) * fetch_limit
+                list_cache_key = self.list_cache_key(
+                    self.request.user.pk, mailbox_folder, fetch_limit, page_offset
+                )
                 refresh_requested = self.request.GET.get("refresh") == "1"
                 inbox_messages = None if refresh_requested else cache.get(list_cache_key)
                 if inbox_messages is None:
@@ -2071,13 +2102,9 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                         password,
                         folder=mailbox_folder,
                         limit=fetch_limit,
+                        offset=page_offset,
                     )
                     cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
-                cache_key = f"crm-mailbox-navigation-counts:{self.request.user.pk}"
-                mailbox_counts = cache.get(cache_key)
-                if mailbox_counts is None:
-                    mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
-                    cache.set(cache_key, mailbox_counts, 60)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
@@ -2087,6 +2114,14 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     ]
             except (OSError, imaplib.IMAP4.error, ValueError):
                 inbox_error = True
+        mailbox_counts = mailbox_counts or {
+            folder: {"total": 0, "unread": 0}
+            for folder in ("inbox", "sent", "drafts", "trash")
+        }
+        message_total = mailbox_counts.get(mailbox_folder, {}).get("total", 0)
+        mailbox_total_pages = 1 if current_per_page == "all" else max(
+            1, (message_total + fetch_limit - 1) // fetch_limit
+        )
         context.update(
             {
                 "mailbox": mailbox,
@@ -2103,6 +2138,9 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                     {"value": "all", "label": "Все"},
                 ],
                 "current_per_page": current_per_page,
+                "mailbox_current_page": current_page,
+                "mailbox_total_pages": mailbox_total_pages,
+                "mailbox_page_numbers": self.page_numbers(current_page, mailbox_total_pages),
             }
         )
         return context

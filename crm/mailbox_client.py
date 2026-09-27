@@ -193,18 +193,26 @@ def _close_client(client):
         pass
 
 
-def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
-    """Return a personal folder preview without persisting message contents."""
+def fetch_recent_inbox(email, app_password, folder="inbox", limit=30, offset=0):
+    """Return one recent page from a personal folder without storing its content.
+
+    ``offset`` is counted from the newest message, so page navigation can use
+    IMAP sequence ranges instead of downloading or searching the whole folder.
+    """
     client = _open_folder(email, app_password, folder)
     try:
         message_count = getattr(client, "_crm_selected_message_count", 0)
         if not message_count:
             return []
-        first_sequence = max(1, message_count - limit + 1)
+        offset = max(0, int(offset or 0))
+        last_sequence = message_count - offset
+        if last_sequence < 1:
+            return []
+        first_sequence = max(1, last_sequence - limit + 1)
         # Fetch the tail of the selected folder by sequence number. Searching
         # every UID first becomes slow in mailboxes containing years of mail.
         status, payload = client.fetch(
-            f"{first_sequence}:{message_count}",
+            f"{first_sequence}:{last_sequence}",
             "(UID FLAGS BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
         )
         if status != "OK" or not payload:
