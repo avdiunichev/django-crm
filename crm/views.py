@@ -4378,11 +4378,16 @@ class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
     context_object_name = "document_batches"
     paginate_by = 30
 
+    def get_direction(self):
+        """Use the explicit registry route first, then retain the old filter URL."""
+        direction = self.kwargs.get("direction") or self.request.GET.get("direction", "")
+        return direction if direction in DocumentBatch.Direction.values else ""
+
     def get_queryset(self):
         queryset = DocumentBatch.objects.select_related("owner_company").annotate(
             line_total=Count("lines"), amount_total=Sum("lines__amount")
         )
-        direction = self.request.GET.get("direction", "")
+        direction = self.get_direction()
         status = self.request.GET.get("status", "")
         if direction in DocumentBatch.Direction.values:
             queryset = queryset.filter(direction=direction)
@@ -4396,8 +4401,9 @@ class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
             {
                 "direction_choices": DocumentBatch.Direction.choices,
                 "status_choices": DocumentBatch.Status.choices,
-                "current_direction": self.request.GET.get("direction", ""),
+                "current_direction": self.get_direction(),
                 "current_status": self.request.GET.get("status", ""),
+                "registry_direction": self.get_direction(),
                 "draft_count": DocumentBatch.objects.filter(status=DocumentBatch.Status.DRAFT).count(),
                 "posted_count": DocumentBatch.objects.filter(status=DocumentBatch.Status.POSTED).count(),
             }

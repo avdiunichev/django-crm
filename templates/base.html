@@ -77,7 +77,7 @@
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
                             <li><a href="{% url 'shipment-document-list' %}"><span uk-icon="file-text"></span> Документы</a></li>
-                            {% if crm_access.can_access_finance %}<li><a href="{% url 'primary-document-registry-list' %}"><span uk-icon="folder"></span> Первичка</a></li>{% endif %}
+                            {% if crm_access.can_access_finance %}<li><a href="{% url 'primary-document-registry-incoming' %}"><span uk-icon="download"></span> Входящие документы</a></li><li><a href="{% url 'primary-document-registry-outgoing' %}"><span uk-icon="upload"></span> Исходящие документы</a></li>{% endif %}
                             <li><a href="{% url 'contract-list' %}"><span uk-icon="album"></span> Договоры</a></li>
                         </ul>
                     </div>
@@ -150,7 +150,7 @@
                 {% endif %}
                 <span class="mobile-nav-group"><span uk-icon="file-text"></span> Документы</span>
                 <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Документы</a>
-                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if 'primary-document-registry' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-list' %}">Первичка</a>{% endif %}
+                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'primary-document-registry-incoming' %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a><a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'primary-document-registry-outgoing' %}is-active{% endif %}" href="{% url 'primary-document-registry-outgoing' %}">Исходящие документы</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
@@ -200,7 +200,7 @@
                 {% endif %}
                 <span class="mobile-nav-group"><span uk-icon="file-text"></span> Документы</span>
                 <a class="mobile-nav-subitem {% if 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'shipment-document-list' %}">Документы</a>
-                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if 'primary-document-registry' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-list' %}">Первичка</a>{% endif %}
+                {% if crm_access.can_access_finance %}<a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'primary-document-registry-incoming' %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a><a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'primary-document-registry-outgoing' %}is-active{% endif %}" href="{% url 'primary-document-registry-outgoing' %}">Исходящие документы</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>

@@ -1,24 +1,29 @@
 {% extends "base.html" %}
 {% load humanize static %}
-{% block title %}Реестры первичных документов — Моя CRM{% endblock %}
+{% block title %}{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %} — Моя CRM{% endblock %}
 {% block body_class %}primary-registry-page{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/primary-registry.css' %}?v=20260926-1">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/primary-registry.css' %}?v=20260927-2">{% endblock %}
 {% block content %}
 <section class="primary-registry" aria-labelledby="primary-registry-title">
     <div class="primary-registry-breadcrumb"><span uk-icon="folder"></span> Документы <span aria-hidden="true">/</span> Первичка</div>
     <header class="primary-registry-header">
-        <div><div class="primary-registry-title-line"><h1 id="primary-registry-title">Реестры первичных документов</h1><span class="primary-registry-count">{{ page_obj.paginator.count }}</span></div><p>Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.</p></div>
+        <div><div class="primary-registry-title-line"><h1 id="primary-registry-title">{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %}</h1><span class="primary-registry-count">{{ page_obj.paginator.count }}</span></div><p>{% if registry_direction == 'incoming' %}Поступления от исполнителей: счета, УПД, акты и накладные.{% elif registry_direction == 'outgoing' %}Реализации клиентам: счета, УПД, акты и счета-фактуры.{% else %}Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.{% endif %}</p></div>
         <div class="primary-registry-actions">
         <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
         <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="file-edit"></span> Реестр на реализацию</a>
         </div>
     </header>
 
+    <nav class="primary-registry-switch" aria-label="Направление реестра">
+        <a href="{% url 'primary-document-registry-incoming' %}" class="{% if registry_direction == 'incoming' %}is-active{% endif %}">Входящие</a>
+        <a href="{% url 'primary-document-registry-outgoing' %}" class="{% if registry_direction == 'outgoing' %}is-active{% endif %}">Исходящие</a>
+    </nav>
+
 <form class="filters primary-registry-filters" method="get">
-    <select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    {% if not registry_direction %}<select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% endif %}
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_direction or current_status %}<a class="uk-button uk-button-default" href="{% url 'document-batch-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
+    {% if current_status %}<a class="uk-button uk-button-default" href="{% if registry_direction == 'incoming' %}{% url 'primary-document-registry-incoming' %}{% elif registry_direction == 'outgoing' %}{% url 'primary-document-registry-outgoing' %}{% else %}{% url 'document-batch-list' %}{% endif %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
 </form>
 
 <section class="panel uk-card uk-card-default primary-registry-panel">

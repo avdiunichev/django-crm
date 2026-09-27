@@ -476,6 +476,18 @@ urlpatterns = [
         name="primary-document-registry-list",
     ),
     path(
+        "primary-documents/incoming/",
+        views.DocumentBatchListView.as_view(),
+        {"direction": "incoming"},
+        name="primary-document-registry-incoming",
+    ),
+    path(
+        "primary-documents/outgoing/",
+        views.DocumentBatchListView.as_view(),
+        {"direction": "outgoing"},
+        name="primary-document-registry-outgoing",
+    ),
+    path(
         "documents/batches/new/",
         views.DocumentBatchCreateView.as_view(),
         name="document-batch-create",
