@@ -120,5 +120,5 @@ def mailbox_navigation(request):
                 counts = empty_counts
         else:
             counts = empty_counts
-        cache.set(cache_key, counts, 60)
+        cache.set(cache_key, counts, 180)
     return {"mailbox_navigation_counts": counts, "mailbox_unread_count": counts.get("inbox", {}).get("unread", 0)}

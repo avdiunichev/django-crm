@@ -2032,7 +2032,9 @@ class MailboxView(LoginRequiredMixin, TemplateView):
     template_name = "crm/mailbox.html"
     page_size_choices = ("10", "25", "50", "all")
     page_size_session_key = "crm_mailbox_page_size"
-    list_cache_seconds = 20
+    # Reading a mailbox requires a remote TLS/IMAP session. Keep routine page
+    # visits responsive; the explicit refresh control still bypasses this cache.
+    list_cache_seconds = 90
 
     @staticmethod
     def list_cache_key(user_id, folder, limit):
@@ -2075,7 +2077,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 mailbox_counts = cache.get(cache_key)
                 if mailbox_counts is None:
                     mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
-                    cache.set(cache_key, mailbox_counts, 60)
+                    cache.set(cache_key, mailbox_counts, 180)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [

@@ -78,6 +78,32 @@ def _resolve_folder(client, folder):
     return {"sent": "Sent", "drafts": "Drafts", "trash": "Trash"}[folder]
 
 
+def _resolve_folders(client):
+    """Resolve all CRM folders from one IMAP LIST response.
+
+    The old counter query called LIST separately for Sent, Drafts and Trash.
+    On a remote mailbox those three extra round trips were more noticeable
+    than the actual STATUS commands.
+    """
+    fallbacks = {"inbox": "INBOX", "sent": "Sent", "drafts": "Drafts", "trash": "Trash"}
+    expected_flags = {"sent": "\\\\SENT", "drafts": "\\\\DRAFTS", "trash": "\\\\TRASH"}
+    resolved = {"inbox": "INBOX"}
+    status, folders = client.list()
+    if status != "OK":
+        return fallbacks
+    entries = [
+        entry.decode("utf-8", errors="replace") if isinstance(entry, bytes) else entry
+        for entry in folders
+    ]
+    for folder, expected_flag in expected_flags.items():
+        match = next((entry for entry in entries if expected_flag in entry.upper()), None)
+        resolved[folder] = (
+            match.rsplit('"', 2)[-2] if match and '"' in match else match.rsplit(" ", 1)[-1]
+            if match else fallbacks[folder]
+        )
+    return resolved
+
+
 def _decode_part(part):
     payload = part.get_payload(decode=True) or b""
     return payload.decode(part.get_content_charset() or "utf-8", errors="replace")
@@ -232,7 +258,7 @@ def fetch_mailbox_counts(email, app_password):
     client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
     try:
         client.login(email, app_password)
-        folders = {folder: _resolve_folder(client, folder) for folder in ("inbox", "sent", "drafts", "trash")}
+        folders = _resolve_folders(client)
         counts = {}
         for folder, folder_name in folders.items():
             status, data = client.status(folder_name, "(MESSAGES UNSEEN)")
