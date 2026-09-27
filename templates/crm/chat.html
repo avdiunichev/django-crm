@@ -4,13 +4,10 @@
 {% block body_class %}chat-messenger-page{% if request.GET.embed %} chat-embed-page{% endif %}{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/chat-messenger.css' %}?v=20260928-1">{% endblock %}
 {% block content %}
-<div class="orders-breadcrumb chat-page-breadcrumb"><span uk-icon="comments"></span><span>Команда</span><span aria-hidden="true">/</span><span aria-current="page">Чат</span></div>
-<header class="orders-page-header chat-page-header"><div><div class="orders-title-line"><h1 id="chat-title">Чат команды</h1><span class="orders-count">{{ conversation_rows|length }}</span></div><p>Рабочие диалоги сотрудников в одном месте.</p></div></header>
-
 <div class="team-chat-shell">
     <aside class="team-chat-sidebar">
         <div class="team-chat-list-toolbar">
-            <div><strong>Сообщения</strong><small>Диалоги с сотрудниками</small></div>
+            <div><strong>Чаты</strong><small>{{ conversation_rows|length }} диалог{{ conversation_rows|length|pluralize:"а,ов" }}</small></div>
             <button class="team-chat-new-dialog-toggle" type="button" aria-expanded="false" aria-controls="chat-start-form" title="Новый диалог"><span uk-icon="plus"></span></button>
         </div>
         <form class="team-chat-start-form" id="chat-start-form" method="post" action="{% url 'chat-start' %}" hidden>
@@ -23,6 +20,10 @@
             </div>
         </form>
         <label class="team-chat-search"><span uk-icon="search"></span><input type="search" placeholder="Поиск диалогов" autocomplete="off" data-chat-conversation-search></label>
+        <div class="team-chat-tabs" role="tablist" aria-label="Фильтр диалогов">
+            <button class="is-active" type="button" role="tab" aria-selected="true" data-chat-list-filter="all">Все чаты</button>
+            <button type="button" role="tab" aria-selected="false" data-chat-list-filter="unread">Новые</button>
+        </div>
         <div class="team-chat-conversation-list">
             {% for row in conversation_rows %}
                 <a class="team-chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}{% if chat_embed %}?embed=1{% endif %}">
@@ -39,7 +40,7 @@
 
     <section class="team-chat-main">
         {% if current_conversation %}
-            <header class="team-chat-header"><span class="team-chat-avatar large">{{ current_other_user.get_full_name|default:current_other_user.username|slice:":1"|upper }}</span><div><strong>{{ current_other_user.get_full_name|default:current_other_user.username }}</strong><small>@{{ current_other_user.username }}</small></div></header>
+            <header class="team-chat-header"><span class="team-chat-avatar large">{{ current_other_user.get_full_name|default:current_other_user.username|slice:":1"|upper }}</span><div><strong>{{ current_other_user.get_full_name|default:current_other_user.username }}</strong><small>Личный рабочий диалог · @{{ current_other_user.username }}</small></div></header>
             <div class="team-chat-thread" data-chat-thread data-messages-url="{% url 'chat-messages' current_conversation.pk %}">
                 {% for message in current_messages %}
                     <article class="team-chat-message {% if message.sender_id == user.pk %}is-mine{% endif %}" data-message-id="{{ message.pk }}"><div><strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>{% if message.text %}<p>{{ message.text|linebreaksbr }}</p>{% endif %}{% if message.attachment %}<a class="team-chat-attachment" href="{{ message.get_attachment_url }}"><span class="team-chat-attachment-icon">📎</span><span><b>{{ message.attachment_filename }}</b><small>{{ message.attachment_size|filesizeformat }}</small></span></a>{% endif %}<footer class="team-chat-message-meta"><time>{{ message.created_at|date:"H:i" }}{% if message.edited_at %} · изменено{% endif %}</time>{% if message.sender_id == user.pk %}<span class="team-chat-message-actions"><a href="{{ message.get_absolute_url }}" title="Изменить сообщение" aria-label="Изменить сообщение"><span uk-icon="pencil"></span></a><a href="{{ message.get_delete_url }}" title="Удалить сообщение" aria-label="Удалить сообщение"><span uk-icon="trash"></span></a></span>{% endif %}</footer></div></article>
@@ -221,6 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggle = document.querySelector(".team-chat-new-dialog-toggle");
     const form = document.querySelector("#chat-start-form");
     const search = document.querySelector("[data-chat-conversation-search]");
+    const filters = document.querySelectorAll("[data-chat-list-filter]");
+    let listFilter = "all";
     if (toggle && form) {
         toggle.addEventListener("click", () => {
             const isOpen = !form.hidden;
@@ -229,10 +232,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isOpen) form.querySelector("select")?.focus();
         });
     }
-    search?.addEventListener("input", () => {
-        const term = search.value.trim().toLocaleLowerCase("ru");
+    const applyConversationFilter = () => {
+        const term = search?.value.trim().toLocaleLowerCase("ru") || "";
         document.querySelectorAll(".team-chat-conversation").forEach((conversation) => {
-            conversation.hidden = Boolean(term) && !conversation.textContent.toLocaleLowerCase("ru").includes(term);
+            const matchesText = !term || conversation.textContent.toLocaleLowerCase("ru").includes(term);
+            const hasUnread = Boolean(conversation.querySelector(".uk-badge"));
+            conversation.hidden = !matchesText || (listFilter === "unread" && !hasUnread);
+        });
+    };
+    search?.addEventListener("input", applyConversationFilter);
+    filters.forEach((filter) => {
+        filter.addEventListener("click", () => {
+            listFilter = filter.dataset.chatListFilter;
+            filters.forEach((item) => {
+                const isActive = item === filter;
+                item.classList.toggle("is-active", isActive);
+                item.setAttribute("aria-selected", String(isActive));
+            });
+            applyConversationFilter();
         });
     });
 });
