@@ -86,7 +86,7 @@ def _resolve_folders(client):
     than the actual STATUS commands.
     """
     fallbacks = {"inbox": "INBOX", "sent": "Sent", "drafts": "Drafts", "trash": "Trash"}
-    expected_flags = {"sent": "\\\\SENT", "drafts": "\\\\DRAFTS", "trash": "\\\\TRASH"}
+    expected_flags = {"sent": "\\SENT", "drafts": "\\DRAFTS", "trash": "\\TRASH"}
     resolved = {"inbox": "INBOX"}
     status, folders = client.list()
     if status != "OK":
@@ -172,13 +172,17 @@ def _mailbox_party(raw_value):
 def _open_folder(email, app_password, folder, readonly=True):
     client = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT, timeout=15)
     client.login(email, app_password)
-    status, _ = client.select(_resolve_folder(client, folder), readonly=readonly)
+    status, data = client.select(_resolve_folder(client, folder), readonly=readonly)
     if status != "OK":
         try:
             client.logout()
         except (imaplib.IMAP4.error, OSError):
             pass
         raise imaplib.IMAP4.error("Folder is unavailable")
+    try:
+        client._crm_selected_message_count = int(data[0]) if data else 0
+    except (TypeError, ValueError, IndexError):
+        client._crm_selected_message_count = 0
     return client
 
 
@@ -193,16 +197,14 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
     """Return a personal folder preview without persisting message contents."""
     client = _open_folder(email, app_password, folder)
     try:
-        status, data = client.uid("search", None, "ALL")
-        if status != "OK":
+        message_count = getattr(client, "_crm_selected_message_count", 0)
+        if not message_count:
             return []
-        message_ids = data[0].split()[-limit:]
-        if not message_ids:
-            return []
-        # One batched IMAP command is substantially faster than a separate
-        # network round trip for every visible row.
-        status, payload = client.uid(
-            "fetch", b",".join(message_ids),
+        first_sequence = max(1, message_count - limit + 1)
+        # Fetch the tail of the selected folder by sequence number. Searching
+        # every UID first becomes slow in mailboxes containing years of mail.
+        status, payload = client.fetch(
+            f"{first_sequence}:{message_count}",
             "(UID FLAGS BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE)] BODY.PEEK[TEXT]<0.1024>)",
         )
         if status != "OK" or not payload:
@@ -222,11 +224,7 @@ def fetch_recent_inbox(email, app_password, folder="inbox", limit=30):
                 raw_messages[current_uid]["preview"] += data
 
         messages = []
-        for message_id in reversed(message_ids):
-            uid = message_id.decode("ascii")
-            raw_message = raw_messages.get(uid)
-            if not raw_message:
-                continue
+        for uid, raw_message in raw_messages.items():
             message = message_from_bytes(raw_message["header"])
             try:
                 received_at = parsedate_to_datetime(message.get("Date"))
