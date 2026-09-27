@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load humanize static %}
 {% block title %}{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %} — Моя CRM{% endblock %}
-{% block body_class %}primary-registry-page{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/primary-registry.css' %}?v=20260927-2">{% endblock %}
+{% block body_class %}organization-directory-page primary-registry-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/primary-registry.css' %}?v=20260927-3">{% endblock %}
 {% block content %}
 <section class="primary-registry" aria-labelledby="primary-registry-title">
-    <div class="primary-registry-breadcrumb"><span uk-icon="folder"></span> Документы <span aria-hidden="true">/</span> Первичка</div>
-    <header class="primary-registry-header">
-        <div><div class="primary-registry-title-line"><h1 id="primary-registry-title">{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %}</h1><span class="primary-registry-count">{{ page_obj.paginator.count }}</span></div><p>{% if registry_direction == 'incoming' %}Поступления от исполнителей: счета, УПД, акты и накладные.{% elif registry_direction == 'outgoing' %}Реализации клиентам: счета, УПД, акты и счета-фактуры.{% else %}Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.{% endif %}</p></div>
-        <div class="primary-registry-actions">
+    <div class="orders-breadcrumb"><span uk-icon="folder"></span><span>Документы</span><span aria-hidden="true">/</span><span aria-current="page">Первичка</span></div>
+    <header class="orders-page-header">
+        <div><div class="orders-title-line"><h1 id="organizations-title">{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %}</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>{% if registry_direction == 'incoming' %}Поступления от исполнителей: счета, УПД, акты и накладные.{% elif registry_direction == 'outgoing' %}Реализации клиентам: счета, УПД, акты и счета-фактуры.{% else %}Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.{% endif %}</p></div>
+        <div class="orders-page-actions">
         <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
         <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="file-edit"></span> Реестр на реализацию</a>
         </div>
@@ -19,25 +19,25 @@
         <a href="{% url 'primary-document-registry-outgoing' %}" class="{% if registry_direction == 'outgoing' %}is-active{% endif %}">Исходящие</a>
     </nav>
 
-<form class="filters primary-registry-filters" method="get">
+<form class="filters order-register-filters organization-register-filters primary-registry-filters" method="get">
     {% if not registry_direction %}<select class="form-control uk-select" name="direction"><option value="">Все направления</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if value == current_direction %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% endif %}
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-    <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
-    {% if current_status %}<a class="uk-button uk-button-default" href="{% if registry_direction == 'incoming' %}{% url 'primary-document-registry-incoming' %}{% elif registry_direction == 'outgoing' %}{% url 'primary-document-registry-outgoing' %}{% else %}{% url 'document-batch-list' %}{% endif %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
+    <button class="uk-button uk-button-default organization-search-action" type="submit"><span uk-icon="search"></span> Найти</button>
+    {% if current_status %}<a class="uk-button uk-button-default organization-search-action" href="{% if registry_direction == 'incoming' %}{% url 'primary-document-registry-incoming' %}{% elif registry_direction == 'outgoing' %}{% url 'primary-document-registry-outgoing' %}{% else %}{% url 'document-batch-list' %}{% endif %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default organization-search-action" type="button" disabled>Сбросить</button>{% endif %}
 </form>
 
-<section class="panel uk-card uk-card-default primary-registry-panel">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle primary-registry-table">
+<section class="panel uk-card uk-card-default order-register-panel primary-registry-panel">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table primary-registry-table">
         <thead><tr><th>Документ</th><th>Направление</th><th>Наша компания</th><th>Строк</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
         <tbody>
         {% for batch in document_batches %}
             <tr>
                 <td><a class="primary-link" href="{{ batch.get_absolute_url }}">{{ batch.number }}</a><small>{{ batch.document_date|date:"d.m.Y" }}{% if batch.reference %} · {{ batch.reference }}{% endif %}</small></td>
-                <td><span class="uk-label {% if batch.direction == 'outgoing' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ batch.get_direction_display }}</span></td>
+                <td><span class="driver-registry-status {% if batch.direction == 'outgoing' %}is-active{% else %}is-unknown{% endif %}">{{ batch.get_direction_display }}</span></td>
                 <td>{{ batch.owner_company }}</td>
                 <td>{{ batch.line_total|default:0 }}</td>
                 <td class="uk-text-right"><strong class="{% if batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ batch.amount_total|default:0|floatformat:"2g" }} {{ batch.currency|currency_symbol }}</strong></td>
-                <td>{{ batch.get_status_display }}</td>
+                <td><span class="driver-registry-status {% if batch.status == 'posted' %}is-active{% elif batch.status == 'voided' %}is-inactive{% else %}is-archived{% endif %}">{{ batch.get_status_display }}</span></td>
                 <td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a>{% if batch.status != 'voided' %}<a class="row-action" href="{% url 'document-batch-update' batch.pk %}">Изменить</a>{% endif %}<a class="row-action danger" href="{% url 'document-batch-delete' batch.pk %}">Удалить</a></td>
             </tr>
         {% empty %}
