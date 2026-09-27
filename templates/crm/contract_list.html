@@ -28,7 +28,7 @@
                 <td><a href="{{ contract.counterparty.get_absolute_url }}">{{ contract.counterparty_name }}</a><small>ИНН {{ contract.counterparty.tax_id|default:"не указан" }}</small></td>
                 <td>{{ contract.contract_date|date:"d.m.Y" }}<small>{% if contract.valid_until %}до {{ contract.valid_until|date:"d.m.Y" }}{% else %}срок не указан{% endif %}{% if contract.terminated_on %} · расторгнут {{ contract.terminated_on|date:"d.m.Y" }}{% endif %}</small></td>
                 <td>{{ contract.payment_term_days|days }}<small>лимит {{ contract.debt_limit|floatformat:2 }} ₽</small></td>
-                <td><span class="badge uk-label contract-status-{{ contract.status }}">{{ contract.get_status_display }}</span></td>
+                <td><span class="driver-registry-status contract-status-{% if contract.status == 'signed' %}active{% elif contract.status == 'terminated' %}inactive{% elif contract.status == 'ready' %}pending{% else %}archived{% endif %}">{{ contract.get_status_display }}</span></td>
                 <td><a class="row-action" href="{% url 'contract-download' contract.pk %}"><span uk-icon="download"></span> DOCX</a></td>
             </tr>
         {% empty %}
