@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Чат сотрудников — Моя CRM{% endblock %}
-{% block body_class %}{% if request.GET.embed %}chat-embed-page{% endif %}{% endblock %}
+{% block body_class %}chat-messenger-page{% if request.GET.embed %} chat-embed-page{% endif %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/chat-messenger.css' %}?v=20260927-1">{% endblock %}
 {% block content %}
-<div class="page-heading"><div><span class="eyebrow">Команда</span><h1>Чат сотрудников</h1><p>Внутренняя переписка пользователей CRM.</p></div></div>
+<div class="orders-breadcrumb chat-page-breadcrumb"><span uk-icon="comments"></span><span>Команда</span><span aria-hidden="true">/</span><span aria-current="page">Чат</span></div>
+<header class="orders-page-header chat-page-header"><div><div class="orders-title-line"><h1 id="chat-title">Чат команды</h1><span class="orders-count">{{ conversation_rows|length }}</span></div><p>Рабочие диалоги сотрудников в одном месте.</p></div></header>
 
 <div class="chat-shell uk-card uk-card-default">
     <aside class="chat-sidebar">
@@ -25,6 +28,7 @@
                 <a class="chat-conversation {% if current_conversation.pk == row.conversation.pk %}is-active{% endif %}" href="{{ row.conversation.get_absolute_url }}{% if chat_embed %}?embed=1{% endif %}">
                     <span class="chat-avatar">{{ row.other_user.get_full_name|default:row.other_user.username|slice:":1"|upper }}</span>
                     <span class="chat-conversation-copy"><strong>{{ row.other_user.get_full_name|default:row.other_user.username }}</strong><small>{% if row.last_message %}{% if row.last_message.sender_id == user.pk %}Вы: {% endif %}{% if row.last_message.text %}{{ row.last_message.text|truncatechars:42 }}{% elif row.last_message.attachment %}Файл: {{ row.last_message.attachment_filename|truncatechars:34 }}{% endif %}{% else %}Диалог создан{% endif %}</small></span>
+                    {% if row.last_message %}<time class="chat-conversation-time">{{ row.last_message.created_at|date:"H:i" }}</time>{% endif %}
                     {% if row.unread_count %}<span class="uk-badge">{{ row.unread_count }}</span>{% endif %}
                 </a>
             {% empty %}
@@ -55,24 +59,6 @@
             <div class="chat-placeholder"><span class="uk-icon-button" uk-icon="comments; ratio: 1.5"></span><h2>Выберите диалог</h2><p>Или начните новую переписку с сотрудником CRM.</p></div>
         {% endif %}
     </section>
-    <aside class="chat-context" aria-label="Сотрудники">
-        <header><strong>Сотрудники</strong><small>{{ available_users|length }}</small></header>
-        <div class="chat-people-list">
-            {% for employee in available_users %}
-                <form method="post" action="{% url 'chat-start' %}">
-                    {% csrf_token %}
-                    {% if chat_embed %}<input type="hidden" name="embed" value="1">{% endif %}
-                    <input type="hidden" name="user_id" value="{{ employee.pk }}">
-                    <button type="submit" class="chat-person">
-                        <span class="chat-avatar">{{ employee.get_full_name|default:employee.username|slice:":1"|upper }}</span>
-                        <span><b>{{ employee.get_full_name|default:employee.username }}</b><small>@{{ employee.username }}</small></span>
-                    </button>
-                </form>
-            {% empty %}
-                <p class="chat-people-empty">Сотрудники не найдены.</p>
-            {% endfor %}
-        </div>
-    </aside>
 </div>
 
 {% if current_conversation %}

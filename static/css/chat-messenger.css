@@ -1,0 +1,77 @@
+/* Team chat uses one focused messenger surface instead of several CRM panels. */
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-breadcrumb,
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-header {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-breadcrumb {
+    margin: 0 0 28px; padding-bottom: 14px; border-bottom: 1px solid var(--workspace-line);
+    color: var(--workspace-muted); font-size: 12px;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-header {
+    justify-content: space-between; margin: 0 0 22px;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .orders-title-line { display: flex; align-items: center; gap: 12px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page #chat-title {
+    margin: 0; color: var(--workspace-text); font-size: 28px; font-weight: 650; line-height: 1.3; letter-spacing: -.7px;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .orders-count {
+    display: inline-flex; align-items: center; min-height: 26px; padding: 2px 10px; border-radius: 7px;
+    background: var(--workspace-soft); color: var(--workspace-muted); font-size: 13px; line-height: 1;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-header p { margin: 8px 0 0; color: var(--workspace-muted); font-size: 13px; }
+
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-shell {
+    height: min(720px, calc(100dvh - 240px)); min-height: 560px; grid-template-columns: 300px minmax(0, 1fr);
+    overflow: hidden; border: 1px solid var(--workspace-line); border-radius: 12px; background: var(--workspace-surface); box-shadow: none;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-sidebar { border-right: 1px solid var(--workspace-line); background: var(--workspace-surface); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-list-toolbar {
+    min-height: 62px; padding: 0 16px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-surface);
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-list-toolbar strong { font-size: 15px; font-weight: 650; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-list-toolbar small { display: block; margin-top: 2px; color: var(--workspace-muted); font-size: 11px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-new-dialog-toggle {
+    width: 34px; height: 34px; border-radius: 8px; color: #fff; background: var(--workspace-accent);
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-start-form { padding: 14px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-soft); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-search { margin: 10px 12px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-search input { height: 38px; border-color: var(--workspace-line); border-radius: 8px; background: var(--workspace-soft); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-list { max-height: none; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation { min-height: 66px; padding: 11px 14px; gap: 10px; position: relative; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation:hover { background: var(--workspace-soft); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation.is-active { background: var(--workspace-soft); box-shadow: inset 3px 0 var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-copy { min-width: 0; padding-right: 28px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-copy strong { font-size: 13px; font-weight: 650; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-copy small { font-size: 11px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-time { position: absolute; top: 13px; right: 12px; color: var(--workspace-muted); font-size: 10px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation > .uk-badge { position: absolute; right: 12px; bottom: 12px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font-size: 10px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-avatar { width: 38px; height: 38px; flex-basis: 38px; border-radius: 50%; color: var(--workspace-accent); background: var(--workspace-tint); font-size: 13px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-avatar.large { width: 40px; height: 40px; flex-basis: 40px; }
+
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-main { min-width: 0; background: var(--workspace-surface); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-header { min-height: 62px; padding: 11px 20px; border-bottom: 1px solid var(--workspace-line); background: var(--workspace-surface); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-header strong { font-size: 14px; font-weight: 650; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-thread { padding: 22px 26px; gap: 10px; background: var(--workspace-soft); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message > div {
+    max-width: min(600px, 76%); padding: 10px 12px 8px; border: 1px solid var(--workspace-line); border-radius: 12px 12px 12px 3px;
+    background: var(--workspace-surface); box-shadow: none;
+}
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message.is-mine > div { border-color: var(--workspace-accent); border-radius: 12px 12px 3px 12px; background: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message strong { color: var(--workspace-muted); font-size: 10px; font-weight: 650; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message.is-mine strong { color: rgba(255,255,255,.76); }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message-meta { margin-top: 5px; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-compose { margin: 0 16px 16px; padding: 8px 10px; border: 1px solid var(--workspace-line); border-radius: 10px; box-shadow: none; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-compose textarea { min-height: 42px; border: 0; background: transparent; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-compose textarea:focus { outline: 0; }
+html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-file-button { border: 0; background: transparent; }
+
+@media (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-breadcrumb { margin-bottom: 20px; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-page-header { margin-bottom: 18px; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-shell { height: auto; min-height: 0; grid-template-columns: 1fr; border-radius: 10px; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-sidebar { border-right: 0; border-bottom: 1px solid var(--workspace-line); }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-conversation-list { max-height: 260px; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-thread { min-height: 340px; padding: 16px; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-message > div { max-width: 88%; }
+    html body.uikit-theme.crm-workspace-theme.chat-messenger-page .chat-compose { margin: 0 10px 10px; }
+}
