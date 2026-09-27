@@ -5,17 +5,18 @@ body.primary-registry-page .orders-page-actions .uk-button {
     display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px;
 }
 body.primary-registry-page .primary-registry-switch {
-    display: inline-flex; align-items: center; gap: 4px; margin: -8px 0 20px;
-    padding: 4px; border: 1px solid var(--workspace-line); border-radius: 8px;
-    background: var(--workspace-panel);
+    display: flex; align-items: center; gap: 0; margin: 0 0 24px; padding: 0;
+    overflow-x: auto; border: 0; border-bottom: 1px solid var(--workspace-line); background: transparent;
 }
 body.primary-registry-page .primary-registry-switch a {
-    padding: 8px 14px; border-radius: 5px; color: var(--workspace-muted);
-    font-size: 13px; font-weight: 600; line-height: 1.2; text-decoration: none;
+    display: inline-flex; align-items: center; flex: 0 0 auto; padding: 0 16px 12px;
+    border: 0; border-bottom: 1px solid transparent; border-radius: 0; color: var(--workspace-muted);
+    font-size: 13px; font-weight: 400; line-height: 1.2; text-decoration: none; white-space: nowrap;
 }
+body.primary-registry-page .primary-registry-switch a:first-child { padding-left: 0; }
 body.primary-registry-page .primary-registry-switch a:hover { color: var(--workspace-text); }
 body.primary-registry-page .primary-registry-switch a.is-active {
-    background: var(--workspace-soft); color: var(--workspace-text);
+    border-bottom-color: var(--workspace-accent); background: transparent; color: var(--workspace-text); font-weight: 400;
 }
 body.primary-registry-page .primary-registry-filters .uk-button {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -65,7 +66,6 @@ body.primary-registry-page .register-pagination { margin-top: 20px; padding: 0; 
 @media (max-width: 720px) {
     body.primary-registry-page .orders-page-actions { width: 100%; margin-left: 0; }
     body.primary-registry-page .orders-page-actions .uk-button { flex: 1 1 220px; }
-    body.primary-registry-page .primary-registry-switch { display: flex; width: 100%; margin-top: -4px; }
-    body.primary-registry-page .primary-registry-switch a { flex: 1 1 50%; text-align: center; }
+    body.primary-registry-page .primary-registry-switch { width: 100%; margin-bottom: 20px; }
     body.primary-registry-page .primary-registry-filters .uk-select { flex: 1 1 180px; width: auto; }
 }
