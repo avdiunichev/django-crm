@@ -27,7 +27,16 @@
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel primary-registry-panel">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table primary-registry-table">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle primary-registry-table">
+        <colgroup>
+            <col class="primary-registry-document-column">
+            <col class="primary-registry-counterparty-column">
+            <col class="primary-registry-trips-column">
+            <col class="primary-registry-company-column">
+            <col class="primary-registry-amount-column">
+            <col class="primary-registry-status-column">
+            <col class="primary-registry-actions-column">
+        </colgroup>
         <thead><tr><th>Документ</th><th>Контрагент</th><th>Рейсы</th><th>Наша компания</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
         <tbody>
         {% for document in documents %}

@@ -33,7 +33,7 @@ body.primary-registry-page .primary-registry-panel .table-wrap { border-radius: 
 body.primary-registry-page .primary-registry-panel { margin: 0; padding: 0; }
 body.primary-registry-page .primary-registry-panel .table-wrap { overflow: auto; max-height: 68vh; }
 body.primary-registry-page .primary-registry-table {
-    width: 100%; min-width: 1060px; margin: 0; table-layout: fixed;
+    width: 100%; min-width: 1220px; margin: 0; table-layout: fixed;
     border-collapse: collapse; border-spacing: 0; font-size: 13px;
 }
 body.primary-registry-page .primary-registry-table th {
@@ -43,13 +43,22 @@ body.primary-registry-page .primary-registry-table th {
 body.primary-registry-page .primary-registry-table td {
     height: auto !important; padding: 7px 10px !important; line-height: 1.2; vertical-align: top; overflow-wrap: anywhere;
 }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(1) { width: 170px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(2) { width: 250px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(3) { width: 185px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(4) { width: 70px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(5) { width: 145px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(6) { width: 115px; }
-body.primary-registry-page .primary-registry-table :is(th, td):nth-child(7) { width: 210px; white-space: nowrap; }
+/* The page also shares the directory body class. Define the geometry on
+   colgroup, rather than nth-child rules, so the directory and legacy order
+   register rules cannot resize these columns. */
+body.primary-registry-page .primary-registry-document-column { width: 180px; }
+body.primary-registry-page .primary-registry-counterparty-column { width: 250px; }
+body.primary-registry-page .primary-registry-trips-column { width: 135px; }
+body.primary-registry-page .primary-registry-company-column { width: 180px; }
+body.primary-registry-page .primary-registry-amount-column { width: 135px; }
+body.primary-registry-page .primary-registry-status-column { width: 140px; }
+body.primary-registry-page .primary-registry-actions-column { width: 160px; }
+html body.uikit-theme.crm-workspace-theme.organization-directory-page.primary-registry-page .primary-registry-table :is(th, td) {
+    width: auto !important;
+}
+html body.uikit-theme.crm-workspace-theme.organization-directory-page.primary-registry-page .primary-registry-table :is(th, td):last-child {
+    white-space: nowrap;
+}
 body.primary-registry-page .primary-registry-table small {
     display: block; margin-top: 1px; color: var(--workspace-muted); font-size: 11px; line-height: 1.2;
 }
