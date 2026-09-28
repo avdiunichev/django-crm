@@ -77,18 +77,9 @@ def validate_transportation_for_posting(transportation):
         if not transportation.executor_vat_rate_id:
             errors["executor_vat_rate"] = "Выберите ставку НДС исполнителя."
         if not assignment:
-            errors["actual_carrier"] = "Укажите фактического перевозчика."
+            errors["vehicle"] = "Назначьте транспорт исполнителя."
         else:
             executor = executor_link.contractor_party.organization
-            if (
-                executor_link.contractor_role
-                == TransportationLink.ContractorRole.CARRIER
-                and assignment.actual_carrier_id != executor.pk
-            ):
-                errors["actual_carrier"] = (
-                    "Для прямого перевозчика исполнитель и фактический "
-                    "перевозчик должны совпадать."
-                )
             if not assignment.driver_id:
                 errors["driver"] = "Назначьте водителя."
             if not assignment.vehicle_id:

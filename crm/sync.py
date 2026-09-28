@@ -373,12 +373,6 @@ def set_transportation_chain(
         role=TransportationParty.Role.EXECUTOR,
         defaults={"sequence": 3, "source": "manual", "is_active": True},
     )
-    factual_party, _ = TransportationParty.objects.update_or_create(
-        transportation=transportation,
-        organization=actual_carrier,
-        role=TransportationParty.Role.FACTUAL_CARRIER,
-        defaults={"sequence": 5, "source": "manual", "is_active": True},
-    )
     first_link = TransportationLink.objects.create(
         transportation=transportation,
         principal_party=own_party,
@@ -390,21 +384,10 @@ def set_transportation_chain(
         instruction_status=instruction_status,
         source="manual",
     )
-    final_link = first_link
-    if executor_role == TransportationLink.ContractorRole.FORWARDER:
-        final_link = TransportationLink.objects.create(
-            transportation=transportation,
-            parent=first_link,
-            principal_party=executor_party,
-            contractor_party=factual_party,
-            contractor_role=TransportationLink.ContractorRole.CARRIER,
-            sequence=2,
-            source="manual",
-        )
     VehicleAssignment.objects.create(
         transportation=transportation,
-        execution_link=final_link,
-        actual_carrier=actual_carrier,
+        execution_link=first_link,
+        actual_carrier=executor,
         driver=driver,
         vehicle=vehicle,
         combination=combination,

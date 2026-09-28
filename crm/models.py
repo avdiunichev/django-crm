@@ -440,7 +440,7 @@ class Organization(TimestampedModel):
 class OrganizationRole(TimestampedModel):
     class Role(models.TextChoices):
         CLIENT = "client", "Клиент"
-        FORWARDER = "forwarder", "Экспедитор"
+        FORWARDER = "forwarder", "Экспедитор-партнёр"
         CARRIER = "carrier", "Перевозчик"
         SHIPPER = "shipper", "Грузоотправитель"
         CONSIGNEE = "consignee", "Грузополучатель"
@@ -2637,14 +2637,9 @@ class Transportation(TimestampedModel):
             )
             issues.append(f"Не указан {expected} с исполнителем")
         assignment = self.active_vehicle_assignment()
-        if not assignment or not assignment.actual_carrier_id:
-            issues.append("Не указан фактический перевозчик")
+        if not assignment:
+            issues.append("Не назначены водитель и транспорт исполнителя")
             return issues
-        if (
-            link.contractor_role == TransportationLink.ContractorRole.CARRIER
-            and assignment.actual_carrier_id != link.contractor_party.organization_id
-        ):
-            issues.append("Для прямого перевозчика исполнитель и фактический перевозчик должны совпадать")
         if not assignment.driver_id:
             issues.append("Не назначен водитель")
         if not assignment.vehicle_id:
@@ -3251,7 +3246,7 @@ class TransportationParty(TimestampedModel):
 
 class TransportationLink(TimestampedModel):
     class ContractorRole(models.TextChoices):
-        FORWARDER = "forwarder", "Экспедитор"
+        FORWARDER = "forwarder", "Экспедитор-партнёр"
         CARRIER = "carrier", "Перевозчик"
 
     transportation = models.ForeignKey(

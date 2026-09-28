@@ -64,8 +64,6 @@ def epd_validation_errors(transportation, kind=None):
         if not assignment:
             errors.append("Не назначены водитель и транспорт.")
         else:
-            if not assignment.actual_carrier_id:
-                errors.append("Не указан фактический перевозчик.")
             if not assignment.driver_id:
                 errors.append("Не назначен водитель.")
             if not assignment.vehicle_id:
@@ -89,15 +87,6 @@ def epd_validation_errors(transportation, kind=None):
             errors.append(f"У точки №{stop.sequence} не указан полный адрес.")
         if not stop.planned_from:
             errors.append(f"У точки №{stop.sequence} не указана дата и время.")
-    if (
-        requires_vehicle
-        and link
-        and link.contractor_role == TransportationLink.ContractorRole.FORWARDER
-    ):
-        if not assignment or not assignment.actual_carrier_id:
-            errors.append(
-                "Для исполнителя-экспедитора обязательно укажите фактического перевозчика."
-            )
     return errors
 
 

@@ -68,7 +68,6 @@
             {% include "crm/includes/form_field.html" with field=form.executor_role %}
         </div>
         <div class="form-grid transportation-primary-pair-grid">
-            {% include "crm/includes/form_field.html" with field=form.actual_carrier %}
             {% include "crm/includes/form_field.html" with field=form.manager %}
         </div>
     </section>
@@ -192,7 +191,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>05</span><div><h2>Водитель и транспорт</h2><p>Назначение ресурсов фактического перевозчика</p></div></div>
+        <div class="form-section-title"><span>05</span><div><h2>Водитель и транспорт</h2><p>Ресурсы выбранного исполнителя</p></div></div>
         <div class="form-grid">
             {% include "crm/includes/form_field.html" with field=form.driver wide=True %}
         </div>
@@ -335,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
     client?.addEventListener("change", applyClientDefaults);
     const executor = document.getElementById("id_executor");
     const role = document.getElementById("id_executor_role");
-    const carrier = document.getElementById("id_actual_carrier");
     const executorContract = document.getElementById("id_executor_contract");
     const executorPaymentForm = document.getElementById("id_executor_payment_form");
     const executorPaymentTerm = document.getElementById("id_executor_payment_term_days");
@@ -372,13 +370,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (executorContract && previousRole && previousRole !== role.value) executorContract.value = "";
         previousExecutor = executor?.value || "";
         previousRole = role?.value || "";
-        if (role.value === "carrier" && executor.value) {
-            carrier.value = executor.value;
-            // Фактический перевозчик отображается через умный список,
-            // поэтому после программной подстановки обновляем и его UI.
-            carrier.dispatchEvent(new Event("optionschange", {bubbles: true}));
-            carrier.dispatchEvent(new Event("change", {bubbles: true}));
-        }
     };
     const updateContractAction = () => {
         const missing = Boolean(executor?.value && !executorContract?.value);
@@ -472,8 +463,6 @@ document.addEventListener("DOMContentLoaded", () => {
     role.addEventListener("change", syncDirectCarrier);
     role.addEventListener("change", updateContractAction);
     executorContract?.addEventListener("change", updateContractAction);
-    carrier.addEventListener("change", loadResources);
-    carrier.addEventListener("optionschange", loadResources);
     owner?.addEventListener("change", () => {
         delete form.dataset.clientDefaultsClient;
         delete form.dataset.executorDefaultsExecutor;
@@ -481,8 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
         applyExecutorDefaults();
     });
     updateContractAction();
-    // Populate the resources for a carrier that was preselected from the
-    // order, and for a carrier filled automatically from the executor.
+    // Resources are always selected in the context of the chosen executor.
     syncDirectCarrier();
     loadResources();
     selects.combinations?.addEventListener("change", () => {

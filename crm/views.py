@@ -686,19 +686,6 @@ def automatic_planner_tasks(transportations, today=None):
                     priority=PlannerTask.Priority.URGENT if urgent_start else PlannerTask.Priority.HIGH,
                     url=chain_url,
                 )
-            if (
-                link.contractor_role == TransportationLink.ContractorRole.FORWARDER
-                and (not assignment or not assignment.actual_carrier_id)
-            ):
-                add(
-                    transportation,
-                    title="Указать фактического перевозчика",
-                    description="Для привлечённого экспедитора нужно заполнить конечного перевозчика.",
-                    kind=PlannerTask.Kind.ASSIGNMENT,
-                    due_date=due_date,
-                    priority=PlannerTask.Priority.URGENT if urgent_start else PlannerTask.Priority.HIGH,
-                    url=chain_url,
-                )
             if not assignment:
                 add(
                     transportation,
@@ -10011,14 +9998,6 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 }
             )
             seen.add(organization.pk)
-        if assignment and assignment.actual_carrier_id not in seen:
-            chain_nodes.append(
-                {
-                    "organization": assignment.actual_carrier,
-                    "role": "Фактический перевозчик",
-                    "link": None,
-                }
-            )
         route_chain_nodes = []
         delivery_stop_ids = [stop.pk for stop in stops if stop.kind == TransportationStop.Kind.DELIVERY]
         last_delivery_id = delivery_stop_ids[-1] if delivery_stop_ids else None
@@ -10253,10 +10232,17 @@ class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
             "_",
             transportation.number or f"рейс_{transportation.pk}",
         )
+        link = transportation.active_execution_link()
+        is_forwarder_instruction = bool(
+            link and link.contractor_role == TransportationLink.ContractorRole.FORWARDER
+        )
+        filename_prefix = (
+            "Экспедиторское_поручение" if is_forwarder_instruction else "Заявка_на_перевозку"
+        )
         return FileResponse(
             stream,
             as_attachment=True,
-            filename=f"Заявка_исполнителю_{safe_number}.docx",
+            filename=f"{filename_prefix}_{safe_number}.docx",
             content_type=(
                 "application/vnd.openxmlformats-officedocument."
                 "wordprocessingml.document"

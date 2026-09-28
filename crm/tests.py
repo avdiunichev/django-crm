@@ -426,7 +426,7 @@ class CrmTestCase(TestCase):
         )
         self.assertContains(form_response, 'data-required-role="client"')
         self.assertContains(form_response, 'data-role-source="id_executor_role"')
-        self.assertContains(form_response, 'data-parent-source="id_actual_carrier"')
+        self.assertContains(form_response, 'data-parent-source="id_executor"')
         self.assertContains(form_response, 'data-contract-create-base="/contracts/new/"')
         self.assertContains(form_response, "Создать договор")
         self.assertContains(form_response, f'data-search-url="{reverse("search-select")}"')
@@ -1726,7 +1726,7 @@ class CrmTestCase(TestCase):
                     tax_id=f"{organization.tax_id[:4]}-{organization.tax_id[4:]}",
                 )
 
-    def test_chain_form_separates_forwarder_and_actual_carrier(self):
+    def test_chain_form_uses_selected_forwarder_as_single_executor(self):
         forwarder = Carrier.objects.create(
             name='ООО "Привлечённый экспедитор"',
             tax_id="7722000098",
@@ -1746,7 +1746,6 @@ class CrmTestCase(TestCase):
                 "contract": "",
                 "instruction_number": "ПЭ-001",
                 "instruction_status": "Принято",
-                "actual_carrier": self.carrier.organization.pk,
                 "driver": self.driver.pk,
                 "vehicle": self.vehicle.pk,
                 "trailer": "",
@@ -1757,18 +1756,15 @@ class CrmTestCase(TestCase):
         transportation.refresh_from_db()
         self.assertFalse(transportation.legacy_chain_sync)
         links = list(transportation.execution_links.order_by("sequence"))
-        self.assertEqual(len(links), 2)
+        self.assertEqual(len(links), 1)
         self.assertEqual(
             links[0].contractor_role, TransportationLink.ContractorRole.FORWARDER
         )
-        self.assertEqual(
-            links[1].contractor_party.organization, self.carrier.organization
-        )
         assignment = transportation.vehicle_assignments.get(is_active=True)
-        self.assertEqual(assignment.actual_carrier, self.carrier.organization)
+        self.assertEqual(assignment.actual_carrier, forwarder.organization)
         self.assertEqual(assignment.driver, self.driver)
 
-    def test_direct_carrier_form_rejects_different_actual_carrier(self):
+    def test_chain_form_ignores_legacy_actual_carrier_value(self):
         other = Carrier.objects.create(name="Другой перевозчик", tax_id="7700000097")
         form = TransportationChainForm(
             data={
@@ -1778,8 +1774,8 @@ class CrmTestCase(TestCase):
             },
             transportation=self.shipment.transportation,
         )
-        self.assertFalse(form.is_valid())
-        self.assertIn("actual_carrier", form.errors)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["actual_carrier"], self.carrier.organization)
 
     def test_transportation_posting_requires_executor_contract(self):
         self.client.force_login(self.user)
@@ -3063,7 +3059,7 @@ class CrmTestCase(TestCase):
         )
         form = trip_page.context["form"]
         for field_name in (
-            "client", "executor", "actual_carrier", "pickup_organization",
+            "client", "executor", "pickup_organization",
             "delivery_organization", "driver", "vehicle", "trailer",
         ):
             with self.subTest(field=field_name):
@@ -5928,7 +5924,7 @@ class CrmTestCase(TestCase):
             for cell in row.cells
         )
         text = "\n".join(text_parts)
-        self.assertIn("ДОГОВОР-ЗАЯВКА на перевозку груза", text)
+        self.assertIn("ДОГОВОР-ЗАЯВКА", text)
 
     def test_transportation_route_and_docx_show_every_stop(self):
         transportation = self.shipment.transportation

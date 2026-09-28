@@ -960,6 +960,8 @@ class TransportationChainForm(forms.Form):
     actual_carrier = forms.ModelChoiceField(
         label="Фактический перевозчик",
         queryset=Organization.objects.none(),
+        required=False,
+        widget=forms.HiddenInput(),
     )
     driver = DriverChoiceField(
         label="Водитель", queryset=Driver.objects.none(), required=False
@@ -1039,7 +1041,7 @@ class TransportationChainForm(forms.Form):
             )
         for field_name, organization_id in (
             ("executor", link.contractor_party.organization_id if link else None),
-            ("actual_carrier", assignment.actual_carrier_id if assignment else None),
+            ("actual_carrier", link.contractor_party.organization_id if link else None),
         ):
             if organization_id:
                 active_ids = self.fields[field_name].queryset.values("pk")
@@ -1057,17 +1059,11 @@ class TransportationChainForm(forms.Form):
         executor = cleaned.get("executor")
         role = cleaned.get("executor_role")
         contract = cleaned.get("contract")
-        actual_carrier = cleaned.get("actual_carrier")
-        if (
-            executor
-            and actual_carrier
-            and role == TransportationLink.ContractorRole.CARRIER
-            and executor != actual_carrier
-        ):
-            self.add_error(
-                "actual_carrier",
-                "Если исполнитель — перевозчик, фактический перевозчик должен совпадать с ним.",
-            )
+        # There is one selected executor in the trip.  It is the party for
+        # both the commercial assignment and the resource assignment; the UI
+        # must not ask the manager to maintain a second, conflicting carrier.
+        actual_carrier = executor
+        cleaned["actual_carrier"] = executor
         if contract and executor:
             expected_kind = (
                 Contract.Kind.CARRIER_TRANSPORT
@@ -1964,6 +1960,7 @@ class TransportationDocumentForm(StyledModelForm):
         label="Фактический перевозчик",
         queryset=Organization.objects.none(),
         required=False,
+        widget=forms.HiddenInput(),
     )
     driver = DriverChoiceField(
         label="Водитель", queryset=Driver.objects.none(), required=False
@@ -2275,7 +2272,9 @@ class TransportationDocumentForm(StyledModelForm):
         for field_name, organization_id in (
             ("client", client_party.organization_id if client_party else None),
             ("executor", link.contractor_party.organization_id if link else None),
-            ("actual_carrier", assignment.actual_carrier_id if assignment else None),
+            # The operational carrier is no longer selected independently:
+            # the selected executor owns the vehicle assignment as well.
+            ("actual_carrier", link.contractor_party.organization_id if link else None),
             ("pickup_organization", pickup.organization_id if pickup else None),
             ("delivery_organization", delivery.organization_id if delivery else None),
         ):
@@ -2303,7 +2302,6 @@ class TransportationDocumentForm(StyledModelForm):
         for field_name in (
             "client",
             "executor",
-            "actual_carrier",
             "pickup_organization",
             "delivery_organization",
         ):
@@ -2320,7 +2318,6 @@ class TransportationDocumentForm(StyledModelForm):
         for field_name in (
             "client",
             "executor",
-            "actual_carrier",
             "pickup_organization",
             "delivery_organization",
         ):
@@ -2416,18 +2413,6 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-search-url": directory_search_url,
                 "data-search-resource": "organization",
             },
-            "actual_carrier": {
-                "data-smart-select": "organization",
-                "data-entity-type": "organization",
-                "data-create-url": organization_create_url,
-                "data-edit-url-template": organization_edit_url,
-                "data-required-role": OrganizationRole.Role.CARRIER,
-                "data-full-organization-create": "true",
-                "data-search-placeholder": "Введите название или ИНН перевозчика",
-                "data-create-label": "Создать перевозчика",
-                "data-search-url": directory_search_url,
-                "data-search-resource": "organization",
-            },
             "pickup_organization": {
                 "data-smart-select": "organization",
                 "data-entity-type": "organization",
@@ -2457,7 +2442,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-entity-type": "driver",
                 "data-create-url": driver_create_url,
                 "data-edit-url-template": driver_edit_url,
-                "data-parent-source": "id_actual_carrier",
+                "data-parent-source": "id_executor",
                 "data-search-placeholder": "ФИО или номер удостоверения",
                 "data-create-label": "Создать водителя",
                 "data-search-url": directory_search_url,
@@ -2469,7 +2454,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-entity-type": "vehicle",
                 "data-create-url": vehicle_create_url,
                 "data-edit-url-template": vehicle_edit_url,
-                "data-parent-source": "id_actual_carrier",
+                "data-parent-source": "id_executor",
                 "data-resource-kind": "vehicle",
                 "data-search-placeholder": "Госномер, марка или модель",
                 "data-create-label": "Создать транспорт",
@@ -2479,7 +2464,7 @@ class TransportationDocumentForm(StyledModelForm):
             },
             "combination": {
                 "data-smart-select": "vehicle-combination",
-                "data-parent-source": "id_actual_carrier",
+                "data-parent-source": "id_executor",
                 "data-search-placeholder": "Госномер тягача или прицепа",
                 "data-search-url": directory_search_url,
                 "data-search-resource": "combination",
@@ -2489,7 +2474,7 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-entity-type": "vehicle",
                 "data-create-url": vehicle_create_url,
                 "data-edit-url-template": vehicle_edit_url,
-                "data-parent-source": "id_actual_carrier",
+                "data-parent-source": "id_executor",
                 "data-resource-kind": "trailer",
                 "data-search-placeholder": "Госномер прицепа",
                 "data-create-label": "Создать прицеп",
@@ -2538,7 +2523,7 @@ class TransportationDocumentForm(StyledModelForm):
                     else "Будет присвоен после записи"
                 ),
                 "actual_carrier": (
-                    assignment.actual_carrier_id if assignment else None
+                    link.contractor_party.organization_id if link else None
                 ),
                 "driver": assignment.driver_id if assignment else None,
                 "vehicle": assignment.vehicle_id if assignment else None,
@@ -2660,7 +2645,8 @@ class TransportationDocumentForm(StyledModelForm):
         executor_amount = cleaned.get("executor_amount")
         executor_prepayment = cleaned.get("executor_prepayment")
         role = cleaned.get("executor_role")
-        actual_carrier = cleaned.get("actual_carrier")
+        actual_carrier = executor
+        cleaned["actual_carrier"] = executor
         customer_contract = cleaned.get("customer_contract")
         executor_contract = cleaned.get("executor_contract")
         pickup_date = cleaned.get("pickup_date")
@@ -2694,10 +2680,6 @@ class TransportationDocumentForm(StyledModelForm):
                         "Для этого этапа нужен действующий договор с исполнителем.",
                     )
             if target_index >= vehicle_index:
-                if not actual_carrier:
-                    self.add_error(
-                        "actual_carrier", "Для подтверждения машины укажите фактического перевозчика."
-                    )
                 if not driver:
                     self.add_error("driver", "Для подтверждения машины назначьте водителя.")
                 if not vehicle:
@@ -2743,19 +2725,6 @@ class TransportationDocumentForm(StyledModelForm):
         if pickup_date and delivery_date and delivery_date < pickup_date:
             self.add_error(
                 "delivery_date", "Дата выгрузки не может быть раньше даты погрузки."
-            )
-        if executor and actual_carrier and role == TransportationLink.ContractorRole.CARRIER:
-            if executor != actual_carrier:
-                self.add_error(
-                    "actual_carrier",
-                    "Для прямого перевозчика исполнитель и фактический перевозчик должны совпадать.",
-                )
-        if any(
-            cleaned.get(name)
-            for name in ("driver", "vehicle", "combination", "trailer")
-        ) and not actual_carrier:
-            self.add_error(
-                "actual_carrier", "Сначала выберите фактического перевозчика."
             )
         combination = cleaned.get("combination")
         if combination:
@@ -2831,7 +2800,7 @@ class TransportationDocumentForm(StyledModelForm):
         client = self.cleaned_data["client"]
         executor = self.cleaned_data.get("executor")
         executor_role = self.cleaned_data.get("executor_role")
-        actual_carrier = self.cleaned_data.get("actual_carrier")
+        actual_carrier = executor
 
         own_party, _ = TransportationParty.objects.update_or_create(
             transportation=transportation,
@@ -3002,33 +2971,13 @@ class TransportationDocumentForm(StyledModelForm):
                 source="document",
             )
 
-        final_link = link
-        if actual_carrier:
-            factual_party, _ = TransportationParty.objects.update_or_create(
-                transportation=transportation,
-                organization=actual_carrier,
-                role=TransportationParty.Role.FACTUAL_CARRIER,
-                defaults={"sequence": 5, "source": "document", "is_active": True},
-            )
-            if (
-                link
-                and executor_role == TransportationLink.ContractorRole.FORWARDER
-            ):
-                final_link = TransportationLink.objects.create(
-                    transportation=transportation,
-                    parent=link,
-                    principal_party=link.contractor_party,
-                    contractor_party=factual_party,
-                    contractor_role=TransportationLink.ContractorRole.CARRIER,
-                    sequence=2,
-                    source="document",
-                )
+        if executor:
             driver = self.cleaned_data.get("driver")
             vehicle = self.cleaned_data.get("vehicle")
             new_assignment = VehicleAssignment(
                 transportation=transportation,
-                execution_link=final_link,
-                actual_carrier=actual_carrier,
+                execution_link=link,
+                actual_carrier=executor,
                 driver=driver,
                 vehicle=vehicle,
                 combination=self.cleaned_data.get("combination"),

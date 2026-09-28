@@ -320,6 +320,14 @@ def build_executor_transportation_application_docx(transportation):
     assignment = transportation.active_vehicle_assignment()
     executor = link.contractor_party.organization if link else None
     contract = link.contract if link else None
+    is_forwarder_instruction = bool(
+        link
+        and link.contractor_role == "forwarder"
+    )
+    document_kind = (
+        "Экспедиторское поручение" if is_forwarder_instruction else "Договор-заявка"
+    )
+    executor_label = "Экспедитор-партнёр" if is_forwarder_instruction else "Перевозчик"
     stops = list(transportation.stops.all())
 
     number = (
@@ -327,13 +335,17 @@ def build_executor_transportation_application_docx(transportation):
         if link and link.instruction_number
         else transportation.number or f"рейс-{transportation.pk}"
     )
-    document.core_properties.title = f"Договор-заявка {number}"
-    document.core_properties.subject = "Заявка исполнителю на перевозку груза"
+    document.core_properties.title = f"{document_kind} {number}"
+    document.core_properties.subject = (
+        "Поручение привлечённому экспедитору"
+        if is_forwarder_instruction
+        else "Заявка перевозчику на перевозку груза"
+    )
 
     title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
     _set_run_font(
         title.add_run(
-            f"ДОГОВОР-ЗАЯВКА на перевозку груза №{number} "
+            f"{document_kind.upper()} №{number} "
             f"от {_date_plain(transportation.document_date)} г."
         ),
         size=12,
@@ -358,8 +370,12 @@ def build_executor_transportation_application_docx(transportation):
     parties_table = document.add_table(rows=2, cols=2)
     parties_table.style = "Table Grid"
     parties_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    _set_cell_text(parties_table.cell(0, 0), "Экспедитор", bold=True)
-    _set_cell_text(parties_table.cell(0, 1), "Исполнитель", bold=True)
+    _set_cell_text(
+        parties_table.cell(0, 0),
+        "Клиент" if is_forwarder_instruction else "Экспедитор",
+        bold=True,
+    )
+    _set_cell_text(parties_table.cell(0, 1), executor_label, bold=True)
     _set_cell_text(
         parties_table.cell(1, 0),
         f"{_full_organization_name(transportation.owner_company)}\n"
@@ -467,7 +483,8 @@ def build_executor_transportation_application_docx(transportation):
     finance_table = document.add_table(rows=2, cols=4)
     finance_table.style = "Table Grid"
     finance_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    for index, heading in enumerate(("Стоимость перевозки", "Предоплата", "Форма оплаты", "Срок оплаты")):
+    cost_label = "Вознаграждение экспедитора" if is_forwarder_instruction else "Стоимость перевозки"
+    for index, heading in enumerate((cost_label, "Предоплата", "Форма оплаты", "Срок оплаты")):
         _set_cell_text(finance_table.cell(0, index), heading, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     vat_text = (
         transportation.executor_vat_rate.name

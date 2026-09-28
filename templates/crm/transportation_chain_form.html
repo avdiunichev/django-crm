@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Цепочка {{ transportation.number }} — Моя CRM{% endblock %}
 {% block content %}
-<div class="page-heading"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← Рейс {{ transportation.number }}</a><h1>Исполнитель и фактический перевозчик</h1><p>Эти участники учитываются отдельно. Для исполнителя-экспедитора фактический перевозчик обязателен.</p></div></div>
+<div class="page-heading"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← Рейс {{ transportation.number }}</a><h1>Исполнитель рейса</h1><p>Выберите исполнителя и его роль: перевозчик или экспедитор-партнёр.</p></div></div>
 <form method="post" class="entity-form uk-form-stacked" id="chain-form" data-resource-url="{% url 'organization-resources' %}" data-contract-create-base="{% url 'contract-create' %}?return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}">{% csrf_token %}{% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
     <section class="form-section uk-card uk-card-default"><div class="section-title"><div><span class="eyebrow">Закупка</span><h2>Наш исполнитель</h2></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.executor wide=True %}{% include "crm/includes/form_field.html" with field=form.executor_role %}<div class="chain-contract-field">{% include "crm/includes/form_field.html" with field=form.contract %}<p class="chain-contract-hint uk-text-warning" data-chain-contract-hint hidden>Для выбранного исполнителя нужен договор. Создайте его сейчас — реквизиты сторон будут подставлены автоматически.</p><a class="uk-button uk-button-default uk-button-small" data-chain-contract-create hidden href="{% url 'contract-create' %}?return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}"><span uk-icon="plus"></span> Создать договор</a></div>{% include "crm/includes/form_field.html" with field=form.instruction_number %}{% include "crm/includes/form_field.html" with field=form.instruction_status %}</div></section>
-    <section class="form-section uk-card uk-card-default"><div class="section-title"><div><span class="eyebrow">Фактическое исполнение</span><h2>Кто реально везёт груз</h2></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.actual_carrier wide=True %}{% include "crm/includes/form_field.html" with field=form.driver %}{% include "crm/includes/form_field.html" with field=form.combination wide=True %}{% include "crm/includes/form_field.html" with field=form.vehicle %}{% include "crm/includes/form_field.html" with field=form.trailer %}{% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}</div></section>
+    <section class="form-section uk-card uk-card-default"><div class="section-title"><div><span class="eyebrow">Ресурсы исполнителя</span><h2>Водитель и транспорт</h2></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.driver %}{% include "crm/includes/form_field.html" with field=form.combination wide=True %}{% include "crm/includes/form_field.html" with field=form.vehicle %}{% include "crm/includes/form_field.html" with field=form.trailer %}{% include "crm/includes/form_field.html" with field=form.trailer_registration_number %}</div></section>
     <div class="form-actions"><a class="btn btn-secondary uk-button uk-button-default" href="{{ transportation.get_absolute_url }}">Отмена</a><button class="btn btn-primary uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить цепочку</button></div>
 </form>
 <script>
@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("chain-form");
     const executor = document.getElementById("id_executor");
     const role = document.getElementById("id_executor_role");
-    const carrier = document.getElementById("id_actual_carrier");
-    if (!form || !executor || !role || !carrier) return;
+    const carrier = executor;
+    if (!form || !executor || !role) return;
     const contract = document.getElementById("id_contract");
     const contractCreate = form.querySelector("[data-chain-contract-create]");
     const contractHint = form.querySelector("[data-chain-contract-hint]");
