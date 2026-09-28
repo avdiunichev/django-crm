@@ -37,6 +37,13 @@
         field.dispatchEvent(new Event("change", {bubbles: true}));
     };
 
+    const clearField = (dialog, id) => {
+        const field = dialog.querySelector(`#${id}`);
+        if (!field) return;
+        field.value = "";
+        field.dispatchEvent(new Event("change", {bubbles: true}));
+    };
+
     const bindDadata = (dialog) => {
         const tools = dialog.querySelector("[data-dadata-autofill]");
         const button = tools?.querySelector("[data-dadata-button]");
@@ -79,7 +86,14 @@
                     id_fns_status: ({ACTIVE: "active", LIQUIDATED: "liquidated", LIQUIDATING: "liquidating", REORGANIZING: "reorganizing", BANKRUPT: "bankrupt"})[party.status] || "unknown"
                 };
                 Object.entries(values).forEach(([id, value]) => setField(dialog, id, value));
-                if (party.organization_type === "INDIVIDUAL") setField(dialog, "id_kind", "entrepreneur");
+                if (party.organization_type === "INDIVIDUAL") {
+                    // For an entrepreneur DaData returns a registration address,
+                    // not a legal address of an organization. Keep it empty as
+                    // agreed for counterparty cards.
+                    setField(dialog, "id_kind", "entrepreneur");
+                    clearField(dialog, "id_legal_address");
+                    clearField(dialog, "id_legal_address_meta");
+                }
                 const mirror = form.querySelector("[data-tax-id-mirror]");
                 if (mirror) mirror.value = taxId.value;
                 if (status) status.textContent = "Проверка выполнена: реквизиты заполнены.";
