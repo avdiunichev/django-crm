@@ -1,0 +1,54 @@
+{% load static humanize crm_format %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Акт сверки {{ act.number }}</title>
+    <link rel="stylesheet" href="{% static 'css/reconciliation-print.css' %}?v=20260928-1">
+</head>
+<body>
+<main class="reconciliation-print">
+    <div class="print-actions"><button type="button" onclick="window.print()">Печать / сохранить PDF</button><a href="{{ act.get_absolute_url }}">Вернуться к акту</a></div>
+
+    <header class="print-title">
+        <h1>Акт сверки</h1>
+        <p>взаимных расчётов за период с {{ act.period_from|date:"d.m.Y" }} по {{ act.period_to|date:"d.m.Y" }}</p>
+        <p>между {{ act.owner_company.name }}{% if act.owner_company.tax_id %} (ИНН {{ act.owner_company.tax_id }}){% endif %}</p>
+        <p>и {{ act.counterparty.name }}{% if act.counterparty.tax_id %} (ИНН {{ act.counterparty.tax_id }}){% endif %}</p>
+        <p>{% if act.owner_company.acting_basis or act.counterparty.acting_basis %}по договору и полномочиям сторон{% else %}по данным учёта сторон{% endif %}</p>
+    </header>
+
+    <p class="print-intro">Мы, нижеподписавшиеся, представители {{ act.owner_company.name }} и {{ act.counterparty.name }}, составили настоящий акт сверки в том, что состояние взаимных расчётов по данным учёта за указанный период следующее:</p>
+
+    <table class="reconciliation-print-table">
+        <thead>
+            <tr><th colspan="4">По данным {{ act.owner_company.name }}, {{ act.currency|currency_symbol }}</th><th colspan="4">По данным {{ act.counterparty.name }}, {{ act.currency|currency_symbol }}</th></tr>
+            <tr><th>Дата</th><th>Документ</th><th>Дебет</th><th>Кредит</th><th>Дата</th><th>Документ</th><th>Дебет</th><th>Кредит</th></tr>
+        </thead>
+        <tbody>
+            <tr class="balance-row"><td colspan="2">Сальдо на начало</td><td>{% if our_opening_debit %}{{ our_opening_debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if our_opening_credit %}{{ our_opening_credit|floatformat:2|intcomma }}{% endif %}</td><td colspan="2">Сальдо на начало</td><td>{% if counterparty_opening_debit %}{{ counterparty_opening_debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if counterparty_opening_credit %}{{ counterparty_opening_credit|floatformat:2|intcomma }}{% endif %}</td></tr>
+            {% for line in act.lines.all %}
+                <tr>
+                    <td>{{ line.movement_date|date:"d.m.y" }}</td><td>{{ line.description }}</td><td>{% if line.debit %}{{ line.debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if line.credit %}{{ line.credit|floatformat:2|intcomma }}{% endif %}</td>
+                    <td>{{ line.movement_date|date:"d.m.y" }}</td><td>{{ line.counterparty_description }}</td><td>{% if line.counterparty_debit %}{{ line.counterparty_debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if line.counterparty_credit %}{{ line.counterparty_credit|floatformat:2|intcomma }}{% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="8" class="no-lines">Движения за указанный период отсутствуют.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="balance-row"><td colspan="2">Обороты за период</td><td>{{ act.debit_turnover|floatformat:2|intcomma }}</td><td>{{ act.credit_turnover|floatformat:2|intcomma }}</td><td colspan="2">Обороты за период</td><td>{{ act.credit_turnover|floatformat:2|intcomma }}</td><td>{{ act.debit_turnover|floatformat:2|intcomma }}</td></tr>
+            <tr class="balance-row"><td colspan="2">Сальдо на конец</td><td>{% if our_closing_debit %}{{ our_closing_debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if our_closing_credit %}{{ our_closing_credit|floatformat:2|intcomma }}{% endif %}</td><td colspan="2">Сальдо на конец</td><td>{% if counterparty_closing_debit %}{{ counterparty_closing_debit|floatformat:2|intcomma }}{% endif %}</td><td>{% if counterparty_closing_credit %}{{ counterparty_closing_credit|floatformat:2|intcomma }}{% endif %}</td></tr>
+        </tfoot>
+    </table>
+
+    <p class="print-conclusion">По состоянию на {{ act.period_to|date:"d.m.Y" }} задолженность {% if act.closing_balance > 0 %}{{ act.counterparty.name }} перед {{ act.owner_company.name }} составляет {{ act.closing_balance|floatformat:2|intcomma }} {{ act.currency|currency_symbol }}.{% elif act.closing_balance < 0 %}{{ act.owner_company.name }} перед {{ act.counterparty.name }} составляет {{ act.closing_balance|floatformat:2|intcomma }} {{ act.currency|currency_symbol }}.{% else %}отсутствует.{% endif %}</p>
+
+    <section class="print-signatures">
+        <div><strong>{{ act.owner_company.director_position|default:"Руководитель" }}</strong><span>________________ / {{ act.owner_company.director_name|default:"________________" }} /</span></div>
+        <div><strong>{{ act.counterparty.director_position|default:"Руководитель" }}</strong><span>________________ / {{ act.counterparty.director_name|default:"________________" }} /</span></div>
+    </section>
+</main>
+</body>
+</html>

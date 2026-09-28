@@ -2590,6 +2590,27 @@ class CrmTestCase(TestCase):
             Transportation.PostingStatus.DRAFT,
         )
 
+    def test_reconciliation_act_has_printable_bilateral_form(self):
+        transportation = self.shipment.transportation
+        act = ReconciliationAct.objects.create(
+            owner_company=transportation.owner_company,
+            counterparty=self.customer.organization,
+            period_from=date.today(),
+            period_to=date.today(),
+            currency="RUB",
+            opening_balance=Decimal("1000.00"),
+            closing_balance=Decimal("500.00"),
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("reconciliation-act-print", args=[act.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Акт сверки")
+        self.assertContains(response, "По данным")
+        self.assertContains(response, "Тестовый экспедитор")
+        self.assertContains(response, "Тестовый клиент")
+
     def test_bank_statement_mass_post_creates_payments_for_selected_trips(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation

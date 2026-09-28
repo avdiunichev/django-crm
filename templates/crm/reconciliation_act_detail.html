@@ -9,6 +9,7 @@
             <a class="uk-button uk-button-default" href="{% url 'reconciliation-act-update' act.pk %}"><span uk-icon="pencil"></span> Изменить</a>
             <form class="inline-form" method="post" action="{% url 'reconciliation-act-regenerate' act.pk %}">{% csrf_token %}<button class="uk-button uk-button-default" type="submit"><span uk-icon="refresh"></span> Пересформировать</button></form>
         {% endif %}
+        <a class="uk-button uk-button-default" href="{% url 'reconciliation-act-print' act.pk %}" target="_blank"><span uk-icon="print"></span> Печатная форма</a>
         <a class="uk-button uk-button-primary" href="{% url 'reconciliation-act-export' act.pk %}"><span uk-icon="download"></span> Скачать Excel</a>
         {% if act.status != 'voided' %}<form class="inline-form" method="post" action="{% url 'reconciliation-act-void' act.pk %}">{% csrf_token %}<button class="uk-button uk-button-danger" type="submit"><span uk-icon="ban"></span> Аннулировать</button></form>{% endif %}
     </div>

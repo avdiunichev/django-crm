@@ -1,0 +1,33 @@
+@page { size: A4 landscape; margin: 12mm 10mm; }
+* { box-sizing: border-box; }
+body { margin: 0; color: #111; background: #f2f3f5; font-family: Arial, Helvetica, sans-serif; }
+.reconciliation-print { width: 100%; max-width: 1120px; min-height: 100vh; margin: 0 auto; padding: 24px 28px 38px; background: #fff; }
+.print-actions { margin: 0 0 24px; display: flex; justify-content: flex-end; gap: 10px; }
+.print-actions a, .print-actions button { padding: 8px 12px; border: 1px solid #9da3aa; border-radius: 4px; color: #1b1b1b; background: #fff; font: 13px Arial, sans-serif; text-decoration: none; cursor: pointer; }
+.print-title { margin: 0 auto 30px; max-width: 760px; text-align: center; }
+.print-title h1 { margin: 0 0 5px; font-size: 22px; line-height: 1.2; }
+.print-title p { margin: 1px 0; font-size: 16px; line-height: 1.28; }
+.print-intro, .print-conclusion { margin: 0 0 14px; font-size: 14px; line-height: 1.35; text-align: justify; }
+.reconciliation-print-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+.reconciliation-print-table th, .reconciliation-print-table td { padding: 3px 4px; border: 1px solid #4a4a4a; vertical-align: top; line-height: 1.15; }
+.reconciliation-print-table thead th { font-weight: 400; text-align: center; }
+.reconciliation-print-table thead tr:first-child th { font-size: 12px; text-align: left; }
+.reconciliation-print-table th:nth-child(1), .reconciliation-print-table td:nth-child(1), .reconciliation-print-table th:nth-child(5), .reconciliation-print-table td:nth-child(5) { width: 6%; text-align: center; white-space: nowrap; }
+.reconciliation-print-table th:nth-child(2), .reconciliation-print-table td:nth-child(2), .reconciliation-print-table th:nth-child(6), .reconciliation-print-table td:nth-child(6) { width: 30%; }
+.reconciliation-print-table th:nth-child(3), .reconciliation-print-table td:nth-child(3), .reconciliation-print-table th:nth-child(4), .reconciliation-print-table td:nth-child(4), .reconciliation-print-table th:nth-child(7), .reconciliation-print-table td:nth-child(7), .reconciliation-print-table th:nth-child(8), .reconciliation-print-table td:nth-child(8) { width: 7%; text-align: right; white-space: nowrap; }
+.reconciliation-print-table .balance-row td { font-weight: 700; }
+.reconciliation-print-table .no-lines { padding: 16px; text-align: center; }
+.print-conclusion { margin-top: 16px; }
+.print-signatures { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; font-size: 13px; }
+.print-signatures div { display: grid; gap: 32px; }
+.print-signatures strong { font-weight: 400; }
+.print-signatures span { white-space: nowrap; }
+@media print {
+    body { background: #fff; }
+    .reconciliation-print { max-width: none; min-height: 0; padding: 0; }
+    .print-actions { display: none; }
+    .reconciliation-print-table { font-size: 9px; }
+    .reconciliation-print-table th, .reconciliation-print-table td { padding: 2px 3px; }
+    .reconciliation-print-table thead { display: table-header-group; }
+    .reconciliation-print-table tr { break-inside: avoid; }
+}

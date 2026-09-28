@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .reconciliation_print import ReconciliationActPrintView
 
 urlpatterns = [
     path("api/search-select/", views.search_select, name="search-select"),
@@ -119,6 +120,11 @@ urlpatterns = [
         "reconciliation-acts/<int:pk>/",
         views.ReconciliationActDetailView.as_view(),
         name="reconciliation-act-detail",
+    ),
+    path(
+        "reconciliation-acts/<int:pk>/print/",
+        ReconciliationActPrintView.as_view(),
+        name="reconciliation-act-print",
     ),
     path(
         "reconciliation-acts/<int:pk>/edit/",
