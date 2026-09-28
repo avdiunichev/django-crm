@@ -22,6 +22,10 @@
     <p class="print-intro">Мы, нижеподписавшиеся, представители {{ act.owner_company.name }} и {{ act.counterparty.name }}, составили настоящий акт сверки в том, что состояние взаимных расчётов по данным учёта за указанный период следующее:</p>
 
     <table class="reconciliation-print-table">
+        <colgroup>
+            <col class="print-date"><col class="print-document"><col class="print-amount"><col class="print-amount">
+            <col class="print-date"><col class="print-document"><col class="print-amount"><col class="print-amount">
+        </colgroup>
         <thead>
             <tr><th colspan="4">По данным {{ act.owner_company.name }}, {{ act.currency|currency_symbol }}</th><th colspan="4">По данным {{ act.counterparty.name }}, {{ act.currency|currency_symbol }}</th></tr>
             <tr><th>Дата</th><th>Документ</th><th>Дебет</th><th>Кредит</th><th>Дата</th><th>Документ</th><th>Дебет</th><th>Кредит</th></tr>

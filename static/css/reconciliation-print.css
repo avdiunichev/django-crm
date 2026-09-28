@@ -12,9 +12,11 @@ body { margin: 0; color: #111; background: #f2f3f5; font-family: Arial, Helvetic
 .reconciliation-print-table th, .reconciliation-print-table td { padding: 3px 4px; border: 1px solid #4a4a4a; vertical-align: top; line-height: 1.15; }
 .reconciliation-print-table thead th { font-weight: 400; text-align: center; }
 .reconciliation-print-table thead tr:first-child th { font-size: 12px; text-align: left; }
-.reconciliation-print-table th:nth-child(1), .reconciliation-print-table td:nth-child(1), .reconciliation-print-table th:nth-child(5), .reconciliation-print-table td:nth-child(5) { width: 6%; text-align: center; white-space: nowrap; }
-.reconciliation-print-table th:nth-child(2), .reconciliation-print-table td:nth-child(2), .reconciliation-print-table th:nth-child(6), .reconciliation-print-table td:nth-child(6) { width: 30%; }
-.reconciliation-print-table th:nth-child(3), .reconciliation-print-table td:nth-child(3), .reconciliation-print-table th:nth-child(4), .reconciliation-print-table td:nth-child(4), .reconciliation-print-table th:nth-child(7), .reconciliation-print-table td:nth-child(7), .reconciliation-print-table th:nth-child(8), .reconciliation-print-table td:nth-child(8) { width: 7%; text-align: right; white-space: nowrap; }
+.reconciliation-print-table col.print-date { width: 6%; }
+.reconciliation-print-table col.print-document { width: 30%; }
+.reconciliation-print-table col.print-amount { width: 7%; }
+.reconciliation-print-table tbody td:nth-child(1), .reconciliation-print-table tbody td:nth-child(5) { text-align: center; white-space: nowrap; }
+.reconciliation-print-table tbody td:nth-child(3), .reconciliation-print-table tbody td:nth-child(4), .reconciliation-print-table tbody td:nth-child(7), .reconciliation-print-table tbody td:nth-child(8), .reconciliation-print-table tfoot td:nth-child(3), .reconciliation-print-table tfoot td:nth-child(4), .reconciliation-print-table tfoot td:nth-child(7), .reconciliation-print-table tfoot td:nth-child(8) { text-align: right; white-space: nowrap; }
 .reconciliation-print-table .balance-row td { font-weight: 700; }
 .reconciliation-print-table .no-lines { padding: 16px; text-align: center; }
 .print-conclusion { margin-top: 16px; }
