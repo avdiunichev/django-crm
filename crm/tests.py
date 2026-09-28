@@ -425,7 +425,7 @@ class CrmTestCase(TestCase):
             form_response, f'data-create-url="{reverse("organization-create")}"'
         )
         self.assertContains(form_response, 'data-required-role="client"')
-        self.assertContains(form_response, 'data-role-source="id_executor_role"')
+        self.assertNotContains(form_response, 'data-role-source="id_executor_role"')
         self.assertContains(form_response, 'data-parent-source="id_executor"')
         self.assertContains(form_response, 'data-contract-create-base="/contracts/new/"')
         self.assertContains(form_response, "Создать договор")

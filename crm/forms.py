@@ -2406,7 +2406,6 @@ class TransportationDocumentForm(StyledModelForm):
                 "data-entity-type": "organization",
                 "data-create-url": organization_create_url,
                 "data-edit-url-template": organization_edit_url,
-                "data-role-source": "id_executor_role",
                 "data-full-organization-create": "true",
                 "data-search-placeholder": "Введите название или ИНН исполнителя",
                 "data-create-label": "Создать исполнителя",
