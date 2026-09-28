@@ -33,6 +33,22 @@ def document_contract(transportation, direction):
     return link.contract if link else None
 
 
+def document_currency(transportation, direction):
+    return (
+        transportation.currency
+        if direction == ShipmentDocument.Direction.OUTGOING
+        else transportation.executor_currency
+    )
+
+
+def document_vat_rate_id(transportation, direction):
+    return (
+        transportation.customer_vat_rate_id
+        if direction == ShipmentDocument.Direction.OUTGOING
+        else transportation.executor_vat_rate_id
+    )
+
+
 def last_delivery_date(transportations):
     dates = []
     for transportation in transportations:
@@ -64,6 +80,18 @@ def validate_document_transportations(*, transportations, direction, kind, docum
     owner_ids = {item.owner_company_id for item in transportations}
     if len(owner_ids) != 1:
         raise ValidationError("В один документ можно включить рейсы только одной нашей компании.")
+    contract_ids = {
+        contract.pk if contract else None
+        for contract in (document_contract(item, direction) for item in transportations)
+    }
+    if len(contract_ids) != 1:
+        raise ValidationError("В один документ можно включить рейсы только по одному договору.")
+    currencies = {document_currency(item, direction) for item in transportations}
+    if len(currencies) != 1:
+        raise ValidationError("В один документ можно включить рейсы только в одной валюте.")
+    vat_rate_ids = {document_vat_rate_id(item, direction) for item in transportations}
+    if len(vat_rate_ids) != 1:
+        raise ValidationError("В один документ можно включить рейсы только с одной ставкой НДС.")
     duplicates = ShipmentDocumentLine.objects.filter(
         transportation__in=transportations,
         document__direction=direction,
@@ -167,6 +195,7 @@ def populate_document_lines(document, transportations, *, user=None):
     document.owner_company = first.owner_company
     document.counterparty = document_counterparty(first, document.direction)
     document.contract = document_contract(first, document.direction)
+    document.currency = document_currency(first, document.direction)
     document.transportation = first if len(transportations) == 1 else None
     if not document.crm_number:
         document.crm_number = f"CRM-{timezone.localdate():%y%m}-{ShipmentDocument.objects.count() + 1:05d}"

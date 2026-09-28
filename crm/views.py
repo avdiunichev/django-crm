@@ -4411,25 +4411,28 @@ class DocumentBatchEditorMixin:
 
 
 class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView):
-    model = DocumentBatch
+    """Primary registries list accounting documents, not technical import batches."""
+
+    model = ShipmentDocument
     template_name = "crm/document_batch_list.html"
-    context_object_name = "document_batches"
+    context_object_name = "documents"
     paginate_by = 30
 
     def get_direction(self):
         """Use the explicit registry route first, then retain the old filter URL."""
         direction = self.kwargs.get("direction") or self.request.GET.get("direction", "")
-        return direction if direction in DocumentBatch.Direction.values else ""
+        return direction if direction in ShipmentDocument.Direction.values else ""
 
     def get_queryset(self):
-        queryset = DocumentBatch.objects.select_related("owner_company").annotate(
-            line_total=Count("lines"), amount_total=Sum("lines__amount")
+        queryset = scope_shipment_documents_for_user(
+            ShipmentDocument.objects.select_related("owner_company", "counterparty", "contract").prefetch_related("lines__transportation"),
+            self.request.user,
         )
         direction = self.get_direction()
         status = self.request.GET.get("status", "")
-        if direction in DocumentBatch.Direction.values:
+        if direction in ShipmentDocument.Direction.values:
             queryset = queryset.filter(direction=direction)
-        if status in DocumentBatch.Status.values:
+        if status in ShipmentDocument.Status.values:
             queryset = queryset.filter(status=status)
         return queryset.order_by("-document_date", "-created_at")
 
@@ -4437,13 +4440,13 @@ class DocumentBatchListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         context = super().get_context_data(**kwargs)
         context.update(
             {
-                "direction_choices": DocumentBatch.Direction.choices,
-                "status_choices": DocumentBatch.Status.choices,
+                "direction_choices": ShipmentDocument.Direction.choices,
+                "status_choices": ShipmentDocument.Status.choices,
                 "current_direction": self.get_direction(),
                 "current_status": self.request.GET.get("status", ""),
                 "registry_direction": self.get_direction(),
-                "draft_count": DocumentBatch.objects.filter(status=DocumentBatch.Status.DRAFT).count(),
-                "posted_count": DocumentBatch.objects.filter(status=DocumentBatch.Status.POSTED).count(),
+                "draft_count": ShipmentDocument.objects.filter(status=ShipmentDocument.Status.DRAFT).count(),
+                "posted_count": ShipmentDocument.objects.filter(one_c_status=ShipmentDocument.OneCStatus.POSTED).count(),
             }
         )
         return context

@@ -4646,6 +4646,12 @@ class ShipmentDocument(TimestampedModel):
             return Transportation.objects.filter(pk=self.transportation_id)
         return Transportation.objects.none()
 
+    @property
+    def transportation_count(self):
+        """Number of trips covered by the accounting document, including legacy links."""
+        line_count = self.lines.count()
+        return line_count or int(bool(self.transportation_id))
+
     def refresh_totals(self, *, save=True):
         totals = self.lines.aggregate(amount=Sum("total_amount"), vat=Sum("vat_amount"))
         self.amount = totals["amount"] or Decimal("0.00")

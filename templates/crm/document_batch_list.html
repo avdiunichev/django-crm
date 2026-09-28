@@ -9,8 +9,8 @@
     <header class="orders-page-header">
         <div><div class="orders-title-line"><h1 id="organizations-title">{% if registry_direction == 'incoming' %}Реестр входящих документов{% elif registry_direction == 'outgoing' %}Реестр исходящих документов{% else %}Реестры первичных документов{% endif %}</h1><span class="orders-count">{{ page_obj.paginator.count }}</span></div><p>{% if registry_direction == 'incoming' %}Поступления от исполнителей: счета, УПД, акты и накладные.{% elif registry_direction == 'outgoing' %}Реализации клиентам: счета, УПД, акты и счета-фактуры.{% else %}Счета, акты, УПД, счета-фактуры, ТрН и их привязка к рейсам.{% endif %}</p></div>
         <div class="orders-page-actions">
-        <a class="uk-button uk-button-default" href="{% url 'document-batch-create' %}?direction=incoming"><span uk-icon="arrow-down"></span> Создать поступление</a>
-        <a class="uk-button uk-button-primary" href="{% url 'document-batch-create' %}?direction=outgoing"><span uk-icon="file-edit"></span> Реестр на реализацию</a>
+        <a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?direction=incoming&amp;party=carrier"><span uk-icon="arrow-down"></span> Создать поступление</a>
+        <a class="uk-button uk-button-primary" href="{% url 'customer-document-issue' 'registry' %}"><span uk-icon="file-edit"></span> Реестровый счёт</a>
         </div>
     </header>
 
@@ -28,20 +28,20 @@
 
 <section class="panel uk-card uk-card-default order-register-panel primary-registry-panel">
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table primary-registry-table">
-        <thead><tr><th>Документ</th><th>Направление</th><th>Наша компания</th><th>Строк</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
+        <thead><tr><th>Документ</th><th>Контрагент</th><th>Рейсы</th><th>Наша компания</th><th class="uk-text-right">Сумма</th><th>Статус</th><th></th></tr></thead>
         <tbody>
-        {% for batch in document_batches %}
+        {% for document in documents %}
             <tr>
-                <td><a class="primary-link" href="{{ batch.get_absolute_url }}">{{ batch.number }}</a><small>{{ batch.document_date|date:"d.m.Y" }}{% if batch.reference %} · {{ batch.reference }}{% endif %}</small></td>
-                <td><span class="driver-registry-status {% if batch.direction == 'outgoing' %}is-active{% else %}is-unknown{% endif %}">{{ batch.get_direction_display }}</span></td>
-                <td>{{ batch.owner_company }}</td>
-                <td>{{ batch.line_total|default:0 }}</td>
-                <td class="uk-text-right"><strong class="{% if batch.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ batch.amount_total|default:0|floatformat:"2g" }} {{ batch.currency|currency_symbol }}</strong></td>
-                <td><span class="driver-registry-status {% if batch.status == 'posted' %}is-active{% elif batch.status == 'voided' %}is-inactive{% else %}is-archived{% endif %}">{{ batch.get_status_display }}</span></td>
-                <td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a>{% if batch.status != 'voided' %}<a class="row-action" href="{% url 'document-batch-update' batch.pk %}">Изменить</a>{% endif %}<a class="row-action danger" href="{% url 'document-batch-delete' batch.pk %}">Удалить</a></td>
+                <td><a class="primary-link" href="{{ document.get_absolute_url }}">{{ document.get_kind_display }}{% if document.display_number %} №{{ document.display_number }}{% endif %}</a><small>{{ document.document_date|date:"d.m.Y"|default:"Дата не указана" }} · {{ document.get_direction_display }}</small></td>
+                <td><strong>{{ document.counterparty_name }}</strong>{% if document.contract %}<small>{{ document.contract }}</small>{% endif %}</td>
+                <td><strong>{{ document.source_number }}</strong><small>{{ document.transportation_count }} рейс{{ document.transportation_count|pluralize:"а,ов" }}</small></td>
+                <td>{{ document.source_owner_company|default:"—" }}</td>
+                <td class="uk-text-right"><strong class="{% if document.direction == 'outgoing' %}amount-income{% else %}amount-expense{% endif %}">{{ document.amount|default:0|floatformat:"2g" }} {{ document.currency|currency_symbol }}</strong></td>
+                <td><span class="driver-registry-status {% if document.status == 'cancelled' %}is-inactive{% elif document.status == 'draft' or document.status == 'expected' %}is-archived{% else %}is-active{% endif %}">{{ document.get_status_display }}</span></td>
+                <td class="uk-text-right"><a class="row-action" href="{{ document.get_absolute_url }}">Открыть</a><a class="row-action danger" href="{% url 'shipment-document-delete' document.pk %}">Удалить</a></td>
             </tr>
         {% empty %}
-            <tr><td colspan="7" class="empty-state">Реестров первичных документов пока нет.</td></tr>
+            <tr><td colspan="7" class="empty-state">Документов в этом реестре пока нет.</td></tr>
         {% endfor %}
         </tbody>
     </table></div>
