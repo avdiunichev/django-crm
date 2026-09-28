@@ -61,3 +61,8 @@
   .contact-list a,.contact-list div{gap:3px}
 }
 .company-landing a.solid-action,.company-landing a.solid-action span{color:#fff}.company-landing a.solid-action:hover,.company-landing a.solid-action:focus-visible{background:var(--red-dark);border-color:var(--red-dark);color:#fff}
+/* Labels are placed over a photograph, so they need a stable contrast layer. */
+.hero-slogan{padding:15px 18px 15px 22px;background:rgba(255,255,255,.88);box-shadow:0 10px 28px rgba(25,34,42,.10)}
+.hero-slogan span{top:14px;bottom:14px;width:3px;height:auto}
+.hero-location{padding:13px 18px 13px 76px;background:rgba(255,255,255,.88);box-shadow:0 10px 28px rgba(25,34,42,.10);line-height:1.55}
+.hero-location:before{left:18px;top:50%;width:42px}
