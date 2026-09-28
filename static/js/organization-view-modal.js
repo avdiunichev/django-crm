@@ -43,14 +43,21 @@
         const status = tools?.querySelector("[data-dadata-status]");
         const form = dialog.querySelector("form.organization-workspace");
         const taxId = dialog.querySelector("#id_tax_id");
-        if (!tools || !button || !form || !taxId) return;
+        const taxIdMirror = dialog.querySelector("[data-tax-id-mirror]");
+        if (!tools || !button || !form || !taxId || tools.dataset.dadataBound === "true") return;
+        tools.dataset.dadataBound = "true";
         button.addEventListener("click", async () => {
-            const inn = taxId.value.replace(/\D/g, "");
+            // The editable field in the modal is a visual mirror of the hidden
+            // form field. Read it directly on click so DaData also works after
+            // browser autofill or a pasted INN, when an input event may not fire.
+            const inn = (taxIdMirror?.value || taxId.value).replace(/\D/g, "");
             if (!/^\d{10}$|^\d{12}$/.test(inn)) {
                 if (status) status.textContent = "Укажите ИНН из 10 или 12 цифр.";
                 taxId.focus();
                 return;
             }
+            taxId.value = inn;
+            if (taxIdMirror) taxIdMirror.value = inn;
             button.disabled = true;
             if (status) status.textContent = "Получаем реквизиты…";
             try {
