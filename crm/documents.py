@@ -578,10 +578,11 @@ def build_executor_transportation_application_docx(transportation):
 
 
 def build_transportation_waybill_pdf(transportation, data):
-    """Build a printable PDF copy of a transport waybill from the trip data.
+    """Build a print copy using the structure of the current EТрН form.
 
-    The document is a paper-preview aid.  The legally significant 2026 flow is
-    the electronic transport waybill exchanged through a GISEPD operator.
+    This is deliberately a form-like PDF: values that are only known during
+    loading and delivery remain blank for the parties to complete.  It must
+    not pretend to be an EDO operator's legally-significant EТрН.
     """
     from html import escape
     from reportlab.lib import colors
@@ -590,7 +591,7 @@ def build_transportation_waybill_pdf(transportation, data):
     from reportlab.lib.units import mm
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     regular_font = bold_font = "Helvetica"
     for regular_path, bold_path in (
@@ -604,11 +605,10 @@ def build_transportation_waybill_pdf(transportation, data):
             break
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle("WaybillTitle", parent=styles["Heading1"], fontName=bold_font, fontSize=14, leading=17, alignment=1, spaceAfter=3)
-    notice_style = ParagraphStyle("WaybillNotice", parent=styles["Normal"], fontName=regular_font, fontSize=7, leading=9, alignment=1, textColor=colors.HexColor("#5f6b7a"), spaceAfter=6)
-    section_style = ParagraphStyle("WaybillSection", parent=styles["Heading2"], fontName=bold_font, fontSize=9, leading=11, textColor=colors.HexColor("#172b4d"), spaceBefore=7, spaceAfter=3)
-    value_style = ParagraphStyle("WaybillValue", parent=styles["Normal"], fontName=regular_font, fontSize=7.5, leading=9)
-    label_style = ParagraphStyle("WaybillLabel", parent=value_style, fontName=bold_font, textColor=colors.HexColor("#475569"))
+    title_style = ParagraphStyle("WaybillTitle", parent=styles["Heading1"], fontName=bold_font, fontSize=12, leading=14, alignment=1, spaceAfter=4)
+    value_style = ParagraphStyle("WaybillValue", parent=styles["Normal"], fontName=regular_font, fontSize=7.3, leading=8.6)
+    value_small_style = ParagraphStyle("WaybillValueSmall", parent=value_style, fontSize=6.6, leading=7.8)
+    section_style = ParagraphStyle("WaybillSection", parent=styles["Heading2"], fontName=bold_font, fontSize=9.6, leading=11, alignment=1)
 
     def text(value, empty="—"):
         rendered = str(value).strip() if value is not None else ""
@@ -617,61 +617,100 @@ def build_transportation_waybill_pdf(transportation, data):
     def as_date(value):
         return value.strftime("%d.%m.%Y") if hasattr(value, "strftime") else text(value)
 
-    def section_table(rows):
-        table = Table(
-            [[Paragraph(text(label), label_style), Paragraph(text(value), value_style)] for label, value in rows],
-            colWidths=(52 * mm, 134 * mm), hAlign="LEFT",
-        )
+    page_width = 186 * mm
+    grid = colors.HexColor("#c9c9c9")
+
+    def cell(value="", hint="", *, small=False):
+        value_markup = text(value, "")
+        parts = []
+        if value_markup:
+            parts.append(f'<font color="#111111">{value_markup}</font>')
+        if hint:
+            parts.append(f'<font color="#949494">{text(hint, "")}</font>')
+        return Paragraph("<br/>".join(parts) or "&nbsp;", value_small_style if small else value_style)
+
+    def boxed(rows, widths, heights=None):
+        table = Table(rows, colWidths=widths, rowHeights=heights, hAlign="LEFT")
         table.setStyle(TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#9aa5b1")),
+            ("GRID", (0, 0), (-1, -1), 0.35, grid),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3), ("RIGHTPADDING", (0, 0), (-1, -1), 3),
             ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
         ]))
         return table
 
-    stops = list(transportation.stops.all())
-    pickup = next((item for item in stops if item.kind == item.Kind.PICKUP), None)
-    delivery = next((item for item in stops if item.kind == item.Kind.DELIVERY), None)
-    assignment = transportation.active_vehicle_assignment()
-    route = transportation.route or "—"
+    def numbered_section(number, title, body, *, heights=None):
+        table = boxed(
+            [[Paragraph(f"{number}. {escape(title)}", section_style)] + [""] * (len(body[0]) - 1)] + body,
+            [page_width / len(body[0])] * len(body[0]),
+            heights=[7 * mm] + (heights or []),
+        )
+        table.setStyle(TableStyle([("SPAN", (0, 0), (-1, 0)), ("VALIGN", (0, 0), (-1, 0), "MIDDLE")]))
+        return table
+
     number = data.get("number") or f"ТрН-{transportation.pk}"
     date_value = as_date(data.get("document_date"))
+    cargo_volume = f"{transportation.volume_m3} м³" if transportation.volume_m3 else ""
+    packages = f"{transportation.total_package_count} мест" if transportation.total_package_count else ""
+    vehicle_description = " · ".join(part for part in (data.get("vehicle_registration"), data.get("trailer_registration")) if part) or ""
 
     buffer = BytesIO()
     document = SimpleDocTemplate(
         buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
-        topMargin=10 * mm, bottomMargin=12 * mm,
+        topMargin=9 * mm, bottomMargin=11 * mm,
         title=f"Транспортная накладная {number}", author="CRM.Экспедитор",
     )
-    story = [
-        Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ", title_style),
-        Paragraph(f"№ {text(number)} от {date_value}", ParagraphStyle("WaybillNumber", parent=value_style, alignment=1, fontName=bold_font, fontSize=9, spaceAfter=2)),
-        Paragraph("Печатная копия / проект для предусмотренных законом случаев бумажного оформления. Юридически значимая ТрН оформляется как ЭТрН через оператора ГИС ЭПД.", notice_style),
-    ]
-    blocks = (
-        ("1. Грузоотправитель", (("Наименование", data.get("shipper_name")), ("ИНН", data.get("shipper_inn")), ("Адрес", data.get("shipper_address")))),
-        ("2. Грузополучатель", (("Наименование", data.get("consignee_name")), ("ИНН", data.get("consignee_inn")), ("Адрес места доставки", data.get("consignee_address")))),
-        ("3. Перевозчик", (("Наименование", data.get("carrier_name")), ("ИНН", data.get("carrier_inn")), ("Адрес", data.get("carrier_address")))),
-        ("4. Груз", (("Наименование, состояние и характеристики", data.get("cargo_name")), ("Масса брутто", f"{data.get('gross_weight_kg')} кг"), ("Объём / упаковка", " · ".join(part for part in (f"{transportation.volume_m3} м³" if transportation.volume_m3 else "", str(transportation.package_type or ""), f"{transportation.total_package_count} мест" if transportation.total_package_count else "") if part) or "—"))),
-        ("5. Сопроводительные документы", (("Документы", data.get("accompanying_documents") or "нет"),)),
-        ("6. Указания грузоотправителя и особые условия", (("Маршрут", route), ("Условия", data.get("special_conditions") or "нет"))),
-        ("7. Место и срок подачи транспортного средства", (("Место погрузки", data.get("pickup_address")), ("Плановая дата и время", data.get("pickup_window")), ("Место выгрузки", data.get("delivery_address")), ("Плановая дата и время выгрузки", data.get("delivery_window")))),
-        ("8. Транспортное средство и водитель", (("ТС", data.get("vehicle_registration")), ("Прицеп / полуприцеп", data.get("trailer_registration") or "—"), ("Водитель", data.get("driver_name")), ("Телефон водителя", data.get("driver_phone")), ("Путевой лист", data.get("waybill_number") or "не указан"))),
-        ("9. Приём и выдача груза", (("Приём груза", "Фактические дата/время, масса, количество мест, подпись грузоотправителя и водителя — заполняются при погрузке."), ("Выдача груза", "Фактические дата/время, состояние груза, масса, количество мест, подпись грузополучателя и водителя — заполняются при выгрузке."))),
-        ("10. Стоимость перевозки", (("Установленная плата", _money_text(transportation.executor_amount, transportation.currency)),)),
-    )
-    for title, rows in blocks:
-        story.append(Paragraph(title, section_style))
-        story.append(section_table(rows))
+    story = [Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ (ФОРМА)", title_style)]
+    header = boxed([
+        [cell("Транспортная накладная", small=True), cell("Заказ (заявка)", small=True)],
+        [cell(f"Дата: {date_value}\n№ {number}\nЭкземпляр № ____"), cell(f"Дата: {date_value}\n№ {transportation.number or '—'}")],
+    ], [page_width / 2, page_width / 2], [6 * mm, 14 * mm])
+    story.append(header)
+    story.append(Spacer(1, 2 * mm))
+    story.append(numbered_section("1", "Грузоотправитель", [[
+        cell(f"{data.get('shipper_name') or ''}, ИНН {data.get('shipper_inn') or ''}\n{data.get('shipper_address') or ''}", "реквизиты, позволяющие идентифицировать грузоотправителя"),
+        cell("", "контактные данные грузоотправителя"),
+    ]], heights=[18 * mm]))
+    story.append(boxed([[cell("1а. Заказчик услуг по организации перевозки груза (при наличии)", small=True), cell("является экспедитором: да / нет", small=True)], [cell("", "реквизиты заказчика услуг"), cell("", "реквизиты договора транспортной экспедиции")]], [page_width / 2, page_width / 2], [6 * mm, 13 * mm]))
+    story.append(numbered_section("2", "Грузополучатель", [[
+        cell(f"{data.get('consignee_name') or ''}, ИНН {data.get('consignee_inn') or ''}", "реквизиты, позволяющие идентифицировать грузополучателя"),
+        cell(data.get("consignee_address"), "адрес места выгрузки"),
+    ]], heights=[15 * mm]))
+    story.append(numbered_section("3", "Груз", [[
+        cell(data.get("cargo_name"), "наименование груза"), cell("", "состояние груза"), cell(transportation.package_type or "", "способ упаковки"), cell(f"брутто: {data.get('gross_weight_kg') or ''} кг", "масса нетто / брутто"),
+    ], [cell("", "вид тары"), cell(packages, "количество грузовых мест"), cell("", "маркировка"), cell(cargo_volume, "объем груза")]], heights=[15 * mm, 14 * mm]))
+    story.append(numbered_section("4", "Сопроводительные документы на груз (при наличии)", [[cell(data.get("accompanying_documents") or "", "реквизиты документов, подтверждающих отгрузку товара"), cell("", "реквизиты сопроводительной ведомости")]], heights=[18 * mm]))
 
-    story.extend([Spacer(1, 4 * mm), section_table((("Грузоотправитель", "________________ / __________________"), ("Перевозчик", "________________ / __________________"), ("Грузополучатель", "________________ / __________________")))])
+    story.append(PageBreak())
+    story.append(numbered_section("5", "Указания грузоотправителя по особым условиям перевозки", [[
+        cell(data.get("pickup_window"), "маршрут перевозки, дата и время / сроки доставки груза"), cell("", "контактная информация о лицах для переадресовки"),
+    ], [cell(data.get("special_conditions") or "", "указания для выполнения фитосанитарных, санитарных и иных требований"), cell("", "температурный режим, пломбирование, запрет перегрузки")]], heights=[16 * mm, 17 * mm]))
+    story.append(numbered_section("6", "Перевозчик", [[
+        cell(f"{data.get('carrier_name') or ''}, ИНН {data.get('carrier_inn') or ''}\n{data.get('carrier_address') or ''}", "реквизиты, позволяющие идентифицировать перевозчика"),
+        cell(f"{data.get('driver_name') or ''}, тел.: {data.get('driver_phone') or ''}", "реквизиты водителя"),
+    ]], heights=[18 * mm]))
+    story.append(numbered_section("7", "Транспортное средство", [[
+        cell(vehicle_description, "тип, марка, грузоподъемность, вместимость"), cell(data.get("vehicle_registration"), "регистрационный номер транспортного средства"),
+    ], [cell("", "тип владения и основание владения"), cell(data.get("waybill_number") or "", "номер путевого листа (при наличии)")]], heights=[18 * mm, 14 * mm]))
+    story.append(numbered_section("8", "Прием груза", [[
+        cell(data.get("shipper_name"), "реквизиты лица, осуществившего погрузку"), cell(data.get("pickup_address"), "наименование владельца инфраструктуры пункта погрузки"),
+    ], [cell(data.get("pickup_address"), "адрес места погрузки"), cell(data.get("pickup_window"), "заявленные дата и время подачи транспортного средства"),
+    ], [cell("", "фактические дата и время прибытия под погрузку"), cell("", "фактические дата и время убытия"),
+    ], [cell(f"{data.get('gross_weight_kg') or ''} кг", "масса груза брутто и метод определения"), cell(packages, "количество грузовых мест, тара и упаковка")]], heights=[14 * mm, 14 * mm, 13 * mm, 14 * mm]))
+
+    story.append(PageBreak())
+    story.append(numbered_section("9", "Переадресовка (при наличии)", [[cell("", "дата, вид переадресовки и реквизиты указания"), cell("", "адрес нового пункта выгрузки, новые дата и время")], [cell("", "реквизиты лица, от которого получено указание"), cell("", "реквизиты нового грузополучателя")]], heights=[16 * mm, 14 * mm]))
+    story.append(numbered_section("10", "Выдача груза", [[cell(data.get("delivery_address"), "адрес места выгрузки"), cell(data.get("delivery_window"), "заявленные дата и время подачи транспортного средства")], [cell("", "фактические дата и время прибытия"), cell("", "фактические дата и время убытия")], [cell("", "фактическое состояние груза, тары, упаковки, маркировки"), cell(packages, "количество грузовых мест")], [cell("", "масса груза брутто / нетто, плотность груза"), cell("", "оговорки и замечания перевозчика")], [cell("", "должность, подпись, расшифровка подписи грузополучателя"), cell("", "подпись, расшифровка подписи водителя")]], heights=[13 * mm, 12 * mm, 14 * mm, 14 * mm, 14 * mm]))
+    story.append(numbered_section("11", "Отметки грузоотправителей, грузополучателей, перевозчиков (при необходимости)", [[cell("", "отметки сторон")]], heights=[16 * mm]))
+    story.append(numbered_section("12", "Стоимость перевозки груза (установленная плата) в рублях (при необходимости)", [[cell("", "стоимость перевозки без налога"), cell("", "сумма налога"), cell(_money_text(transportation.executor_amount, transportation.currency), "стоимость перевозки с налогом — всего")], [cell("", "порядок расчета (исчислений) платы") , cell("", "реквизиты составителя первичного учетного документа"), cell("", "реквизиты лица, от которого поступают денежные средства")]], heights=[15 * mm, 18 * mm]))
+    story.append(Spacer(1, 3 * mm))
+    story.append(boxed([[cell("Грузоотправитель: __________________ / __________________"), cell("Перевозчик: __________________ / __________________")], [cell("Дата и основание полномочий: __________________"), cell("Дата и основание полномочий: __________________")]], [page_width / 2, page_width / 2], [10 * mm, 10 * mm]))
 
     def footer(canvas, doc):
         canvas.saveState()
         canvas.setFont(regular_font, 6.5)
         canvas.setFillColor(colors.HexColor("#687385"))
-        canvas.drawString(12 * mm, 7 * mm, "CRM.Экспедитор · печатная копия ТрН")
+        canvas.drawString(12 * mm, 7 * mm, "Печатная форма транспортной накладной · CRM.Экспедитор")
         canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
         canvas.restoreState()
 
