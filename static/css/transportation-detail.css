@@ -66,6 +66,31 @@ body.uikit-theme .transportation-card .transportation-overview-grid {
     gap: 14px !important; align-items: start;
 }
 body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-role-card { padding: 20px; }
+body.uikit-theme .transportation-card .trip-execution-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+}
+body.uikit-theme .transportation-card .trip-execution-grid article,
+body.uikit-theme .transportation-card .driver-documents {
+    border: 1px solid #e2e6eb; border-radius: 7px; background: #fff;
+}
+body.uikit-theme .transportation-card .trip-execution-grid article { padding: 12px; min-width: 0; }
+body.uikit-theme .transportation-card .trip-execution-grid span,
+body.uikit-theme .transportation-card .driver-documents span { display: block; color: #7b8490; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+body.uikit-theme .transportation-card .trip-execution-grid strong,
+body.uikit-theme .transportation-card .driver-documents strong { display: block; margin-top: 5px; color: #293447; font-size: 14px; line-height: 1.35; }
+body.uikit-theme .transportation-card .trip-execution-grid small,
+body.uikit-theme .transportation-card .driver-documents small { display: block; margin-top: 3px; color: #7b8490; line-height: 1.35; }
+body.uikit-theme .transportation-card .driver-documents { margin-top: 12px; padding: 0 14px 14px; }
+body.uikit-theme .transportation-card .driver-documents summary { cursor: pointer; padding: 12px 0; color: #4a5665; font-weight: 600; }
+body.uikit-theme .transportation-card .driver-documents-grid { display: grid; grid-template-columns: .75fr 1.5fr 1fr; gap: 14px; border-top: 1px solid #e8ebef; padding-top: 12px; }
+body.uikit-theme .transportation-card .driver-documents .copy-driver-data { margin-top: 12px; }
+html[data-theme="dark"] body.uikit-theme .transportation-card .trip-execution-grid article,
+html[data-theme="dark"] body.uikit-theme .transportation-card .driver-documents { background: #192333; border-color: #304054; }
+html[data-theme="dark"] body.uikit-theme .transportation-card :is(.trip-execution-grid strong, .driver-documents strong) { color: #edf2f8; }
+@media (max-width: 760px) {
+    body.uikit-theme .transportation-card .trip-execution-grid,
+    body.uikit-theme .transportation-card .driver-documents-grid { grid-template-columns: 1fr; }
+}
 body.uikit-theme .transportation-card .transportation-overview-grid > .transportation-finance-card {
     grid-column: 2 !important; grid-row: 1 / span 3 !important;
 }

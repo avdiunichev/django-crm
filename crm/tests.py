@@ -2002,7 +2002,7 @@ class CrmTestCase(TestCase):
                 self.assertEqual(response.status_code, 200)
         detail = self.client.get(transportation.get_absolute_url())
         self.assertContains(detail, "Цепочка перевозки")
-        self.assertContains(detail, "Фактический перевозчик")
+        self.assertContains(detail, "Перевозчик, транспорт и водитель")
         self.assertContains(detail, "НДС к уплате")
         self.assertContains(detail, "Прибыль без НДС")
         self.assertContains(detail, "История")
