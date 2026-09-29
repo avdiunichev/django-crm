@@ -243,7 +243,12 @@ def populate_document_lines(document, transportations, *, user=None):
 
 
 def _next_customer_document_number(owner_company, kind, document_date):
-    prefix_label = "СЧ" if kind == ShipmentDocument.Kind.INVOICE else "УПД"
+    prefix_label = {
+        ShipmentDocument.Kind.INVOICE: "СЧ",
+        ShipmentDocument.Kind.ACT: "АКТ",
+        ShipmentDocument.Kind.VAT_INVOICE: "СФ",
+        ShipmentDocument.Kind.UPD: "УПД",
+    }.get(kind, "CRM")
     prefix = f"{prefix_label}-{document_date.year}-"
     # Lock the legal entity so two managers cannot issue the same next number
     # for the same company at the same time.
@@ -261,6 +266,44 @@ def _next_customer_document_number(owner_company, kind, document_date):
         default=0,
     )
     return f"{prefix}{last_value + 1:05d}"
+
+
+def validate_customer_closing_document(*, source_document, kind):
+    """Enforce the 1C-style customer closing-document chain."""
+    if source_document.status == ShipmentDocument.Status.CANCELLED:
+        raise ValidationError("Нельзя создавать документ на основании аннулированного документа.")
+    if (
+        source_document.direction != ShipmentDocument.Direction.OUTGOING
+        or source_document.party != ShipmentDocument.Party.CUSTOMER
+    ):
+        raise ValidationError("Закрывающий документ можно создать только по исходящему счёту клиенту.")
+
+    derived = source_document.derived_documents.exclude(
+        status=ShipmentDocument.Status.CANCELLED
+    )
+    if source_document.kind == ShipmentDocument.Kind.INVOICE:
+        if kind not in {ShipmentDocument.Kind.ACT, ShipmentDocument.Kind.UPD}:
+            raise ValidationError(
+                "По счёту создаётся реализация: акт либо УПД. Счёт-фактура создаётся на основании акта."
+            )
+        if kind == ShipmentDocument.Kind.ACT and derived.filter(kind=ShipmentDocument.Kind.UPD).exists():
+            raise ValidationError("По этому счёту уже создан УПД. Нельзя одновременно оформить акт и УПД.")
+        if kind == ShipmentDocument.Kind.UPD and derived.filter(
+            kind__in=[ShipmentDocument.Kind.ACT, ShipmentDocument.Kind.VAT_INVOICE]
+        ).exists():
+            raise ValidationError("По этому счёту уже начато оформление акта и счёта-фактуры. УПД создать нельзя.")
+        return
+
+    if source_document.kind == ShipmentDocument.Kind.ACT:
+        if kind != ShipmentDocument.Kind.VAT_INVOICE:
+            raise ValidationError("На основании акта можно создать только счёт-фактуру.")
+        if not source_document.based_on_id or source_document.based_on.kind != ShipmentDocument.Kind.INVOICE:
+            raise ValidationError("Счёт-фактуру можно создать только по акту, созданному на основании счёта.")
+        if derived.filter(kind=ShipmentDocument.Kind.VAT_INVOICE).exists():
+            raise ValidationError("По этому акту уже создана счёт-фактура.")
+        return
+
+    raise ValidationError("Этот документ не может быть основанием для создания закрывающего документа.")
 
 
 @transaction.atomic

@@ -3436,12 +3436,13 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
                 related_documents.filter(kind=ShipmentDocument.Kind.UPD)
             ),
         )
-        if self.mode == "registry":
-            queryset = queryset.filter(has_customer_invoice=False)
-        else:
-            queryset = queryset.filter(
-                Q(has_customer_invoice=False) | Q(has_customer_upd=False)
-            )
+        # A customer invoice is the starting point of the chain in both modes.
+        # Closing documents are created from that invoice, never at the same
+        # moment or independently from a trip.
+        queryset = queryset.filter(
+            has_customer_invoice=False,
+            has_customer_upd=False,
+        )
         customer_id = (
             self.request.POST.get("customer", "").strip()
             or self.request.GET.get("customer", "").strip()
@@ -3487,11 +3488,10 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
         return initial
 
     def form_valid(self, form):
-        from .accounting_documents import issue_customer_document_pair, issue_customer_invoice, last_delivery_date
+        from .accounting_documents import issue_customer_invoice
 
         selected = list(form.cleaned_data["transportations"])
         document_date = form.cleaned_data.get("document_date") or timezone.localdate()
-        created_pairs = []
         with transaction.atomic():
             if self.mode == "registry":
                 invoice = issue_customer_invoice(
@@ -3504,18 +3504,14 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
                 return redirect(invoice.get_absolute_url())
             else:
                 for transportation in selected:
-                    created_pairs.append(
-                        issue_customer_document_pair(
-                            [transportation],
-                            invoice_date=document_date,
-                            user=self.request.user,
-                        )
+                    issue_customer_invoice(
+                        [transportation],
+                        invoice_date=document_date,
+                        user=self.request.user,
                     )
-        invoice_count = sum(1 for invoice, _ in created_pairs if invoice is not None)
-        upd_count = sum(1 for _, upd in created_pairs if upd is not None)
         messages.success(
             self.request,
-            f"Выставлено счетов: {invoice_count}. УПД создано: {upd_count}.",
+            f"Выставлено счетов: {len(selected)}. Закрывающие документы создаются на основании счёта.",
         )
         return redirect("customer-document-list")
 
@@ -3536,8 +3532,6 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
             missing_documents = []
             if not getattr(transportation, "has_customer_invoice", False):
                 missing_documents.append("счёт")
-            if not getattr(transportation, "has_customer_upd", False):
-                missing_documents.append("УПД")
             candidate_rows.append(
                 {
                     "transportation": transportation,
@@ -3567,7 +3561,12 @@ class CustomerDocumentListView(ShipmentDocumentListView):
         return super().get_queryset().filter(
             direction=ShipmentDocument.Direction.OUTGOING,
             party=ShipmentDocument.Party.CUSTOMER,
-            kind__in=[ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
+            kind__in=[
+                ShipmentDocument.Kind.INVOICE,
+                ShipmentDocument.Kind.ACT,
+                ShipmentDocument.Kind.VAT_INVOICE,
+                ShipmentDocument.Kind.UPD,
+            ],
         )
 
     def get_context_data(self, **kwargs):
@@ -3590,13 +3589,19 @@ class CustomerDocumentListView(ShipmentDocumentListView):
                         "transportation": transportation,
                         "client": document.counterparty,
                         "invoices": [],
+                        "acts": [],
+                        "vat_invoices": [],
                         "upds": [],
                     },
                 )
                 if document.kind == ShipmentDocument.Kind.INVOICE:
                     row["invoices"].append(document)
-                else:
+                elif document.kind == ShipmentDocument.Kind.UPD:
                     row["upds"].append(document)
+                elif document.kind == ShipmentDocument.Kind.ACT:
+                    row["acts"].append(document)
+                else:
+                    row["vat_invoices"].append(document)
         context["trip_document_rows"] = sorted(
             grouped.values(),
             key=lambda row: (
@@ -3789,6 +3794,19 @@ class ShipmentDocumentCreateView(
             kwargs["shipment"] = self.shipment
         return kwargs
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.based_on_document:
+            # In a "create based on" chain commercial details and trip lines
+            # are inherited; only the closing document's own fields are edited.
+            for name in (
+                "shipment", "transportation", "transportations_selected",
+                "direction", "owner_company", "counterparty", "contract",
+                "kind", "party", "amount", "vat_amount", "currency",
+            ):
+                form.fields[name].disabled = True
+        return form
+
     @property
     def based_on_document(self):
         if not hasattr(self, "_based_on_document"):
@@ -3922,6 +3940,16 @@ class ShipmentDocumentCreateView(
             form.instance.shipment = self.shipment
         form.instance.created_by = self.request.user
         if self.based_on_document:
+            from .accounting_documents import validate_customer_closing_document
+
+            try:
+                validate_customer_closing_document(
+                    source_document=self.based_on_document,
+                    kind=form.cleaned_data["kind"],
+                )
+            except ValidationError as error:
+                form.add_error(None, error)
+                return self.form_invalid(form)
             form.instance.based_on = self.based_on_document
         selected = list(form.cleaned_data.get("transportations_selected") or [])
         if selected:

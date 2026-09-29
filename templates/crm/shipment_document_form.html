@@ -8,7 +8,7 @@
         <p>{% if source_object %}{{ source_object.route }}{% elif shipment %}{{ shipment.customer.name }} · {{ shipment.route }}{% else %}Присвойте входящий или исходящий документ конкретной заявке или рейсу{% endif %}</p>
     </div>
 </div>
-{% if based_on_document %}<div class="uk-alert-primary" uk-alert>Документ создаётся на основании: <a href="{{ based_on_document.get_absolute_url }}">{{ based_on_document.get_kind_display }} №{{ based_on_document.display_number }}</a>. Рейсы и реквизиты перенесены автоматически.</div>{% endif %}
+{% if based_on_document %}<div class="uk-alert-primary" uk-alert>Документ создаётся на основании: <a href="{{ based_on_document.get_absolute_url }}">{{ based_on_document.get_kind_display }} №{{ based_on_document.display_number }}</a>. Рейсы и реквизиты перенесены автоматически. {% if based_on_document.kind == 'invoice' %}Выберите один вариант закрытия: акт либо УПД; УПД заменяет акт и счёт-фактуру.{% elif based_on_document.kind == 'act' %}Счёт-фактура создаётся по этому акту и сохраняет его состав рейсов.{% endif %}</div>{% endif %}
 <div class="detail-grid">
     <form method="post" enctype="multipart/form-data" class="entity-form uk-form-stacked">
         {% csrf_token %}
@@ -66,7 +66,8 @@
             {% if object.kind == 'invoice' or object.kind == 'upd' %}<a class="uk-button uk-button-default" href="{% url 'shipment-document-print' object.pk %}">Скачать {{ object.get_kind_display }} (Word)</a>{% endif %}
             <a class="uk-button uk-button-default" href="{% if source_object %}{{ source_object.get_absolute_url }}{% elif shipment %}{{ shipment.get_absolute_url }}{% else %}{% url 'shipment-document-list' %}{% endif %}">Отмена</a>
             {% if object %}<a class="uk-button uk-button-danger" href="{% url 'shipment-document-delete' object.pk %}"><span uk-icon="trash"></span> Удалить</a>{% endif %}
-            {% if object and object.direction == 'outgoing' and object.kind == 'invoice' %}<details class="inline-create-based"><summary class="uk-button uk-button-default">Создать на основании</summary><div><a href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=act">Акт</a><a href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=vat_invoice">Счёт-фактуру</a><a href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=upd">УПД</a></div></details>{% endif %}
+            {% if object and object.direction == 'outgoing' and object.kind == 'invoice' %}<details class="inline-create-based"><summary class="uk-button uk-button-default">Создать реализацию на основании</summary><div><a href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=act">Акт оказанных услуг</a><a href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=upd">УПД (статус 1)</a></div></details>{% endif %}
+            {% if object and object.direction == 'outgoing' and object.kind == 'act' and object.based_on_id %}<a class="uk-button uk-button-default" href="{% url 'shipment-document-create-general' %}?based_on={{ object.pk }}&amp;kind=vat_invoice">Создать счёт-фактуру</a>{% endif %}
             <button class="uk-button uk-button-primary" type="submit"><span uk-icon="check"></span> Сохранить документ</button>
         </div>
     </form>

@@ -29,6 +29,7 @@ from .forms import (
     VehicleForm,
 )
 from .accounting import post_bank_statement, post_transportation
+from .accounting_documents import validate_customer_closing_document
 from .bank_import import parse_client_bank_exchange
 from .contracts import _contract_roles, _intro_text, genitive_full_name
 from .epd import epd_validation_errors, prepare_documents
@@ -590,7 +591,7 @@ class CrmTestCase(TestCase):
         self.assertNotEqual(second.number, first.number)
         self.assertEqual(second.number, f"ЗК-{date.today().year}-00002")
 
-    def test_individual_customer_documents_create_invoice_and_upd(self):
+    def test_individual_customer_documents_create_invoice_only(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation
         transportation.status = Transportation.Status.DELIVERED
@@ -626,27 +627,21 @@ class CrmTestCase(TestCase):
             lines__transportation=transportation,
             direction=ShipmentDocument.Direction.OUTGOING,
         ).distinct()
-        self.assertEqual(documents.count(), 2)
-        self.assertCountEqual(
-            documents.values_list("kind", flat=True),
-            [ShipmentDocument.Kind.INVOICE, ShipmentDocument.Kind.UPD],
-        )
-        self.assertEqual(documents.exclude(number="").count(), 2)
+        self.assertEqual(documents.count(), 1)
+        self.assertCountEqual(documents.values_list("kind", flat=True), [ShipmentDocument.Kind.INVOICE])
+        self.assertEqual(documents.exclude(number="").count(), 1)
         invoice = documents.get(kind=ShipmentDocument.Kind.INVOICE)
-        upd = documents.get(kind=ShipmentDocument.Kind.UPD)
         self.assertEqual(invoice.document_date, date.today())
-        self.assertEqual(upd.document_date, date.today() + timedelta(days=2))
         journal = self.client.get(reverse("customer-document-list"))
         self.assertEqual(journal.status_code, 200)
         self.assertContains(journal, transportation.number)
         self.assertContains(journal, invoice.number)
-        self.assertContains(journal, upd.number)
-        self.assertContains(journal, "Комплект выставлен")
+        self.assertContains(journal, "Ожидается реализация")
         invoice_page = self.client.get(invoice.get_absolute_url())
         self.assertContains(invoice_page, "Услуги по рейсам")
         self.assertContains(invoice_page, transportation.route)
         self.assertContains(invoice_page, "document-trip-lines")
-        for printed_record in (invoice, upd):
+        for printed_record in (invoice,):
             download = self.client.get(reverse("shipment-document-print", args=[printed_record.pk]))
             self.assertEqual(download.status_code, 200)
             printed = Document(BytesIO(b"".join(download.streaming_content)))
@@ -711,7 +706,7 @@ class CrmTestCase(TestCase):
             ).exists()
         )
 
-    def test_customer_document_issue_keeps_trip_with_existing_upd(self):
+    def test_customer_document_issue_excludes_trip_with_existing_upd(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation
         transportation.status = Transportation.Status.DELIVERED
@@ -731,19 +726,47 @@ class CrmTestCase(TestCase):
         page = self.client.get(
             reverse("customer-document-issue", args=["individual"])
         )
-        self.assertContains(page, transportation.number)
-
-        response = self.client.post(
-            reverse("customer-document-issue", args=["individual"]),
-            {"transportations": [transportation.pk]},
-        )
-        self.assertRedirects(response, reverse("customer-document-list"))
+        self.assertNotContains(page, transportation.number)
         documents = ShipmentDocument.objects.filter(
             Q(transportation=transportation) | Q(lines__transportation=transportation),
             direction=ShipmentDocument.Direction.OUTGOING,
         ).distinct()
-        self.assertEqual(documents.filter(kind=ShipmentDocument.Kind.INVOICE).count(), 1)
+        self.assertEqual(documents.filter(kind=ShipmentDocument.Kind.INVOICE).count(), 0)
         self.assertEqual(documents.filter(kind=ShipmentDocument.Kind.UPD).count(), 1)
+
+    def test_customer_closing_chain_requires_act_before_vat_invoice(self):
+        invoice = ShipmentDocument.objects.create(
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.INVOICE,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="СЧ-ТЕСТ",
+            document_date=date.today(),
+        )
+        with self.assertRaises(ValidationError):
+            validate_customer_closing_document(
+                source_document=invoice,
+                kind=ShipmentDocument.Kind.VAT_INVOICE,
+            )
+
+        act = ShipmentDocument.objects.create(
+            direction=ShipmentDocument.Direction.OUTGOING,
+            kind=ShipmentDocument.Kind.ACT,
+            party=ShipmentDocument.Party.CUSTOMER,
+            status=ShipmentDocument.Status.ISSUED,
+            number="АКТ-ТЕСТ",
+            document_date=date.today(),
+            based_on=invoice,
+        )
+        validate_customer_closing_document(
+            source_document=act,
+            kind=ShipmentDocument.Kind.VAT_INVOICE,
+        )
+        with self.assertRaises(ValidationError):
+            validate_customer_closing_document(
+                source_document=invoice,
+                kind=ShipmentDocument.Kind.UPD,
+            )
 
     def test_order_stop_derives_route_city_from_manual_address(self):
         form = TransportOrderStopForm(
