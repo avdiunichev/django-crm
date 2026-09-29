@@ -2347,37 +2347,57 @@ body.orders-workspace-page.bank-statement-directory-page .bank-statement-directo
     overflow-y: visible;
     border-top: 0;
 }
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table thead {
-    position: static;
+/* Банковский реестр повторяет рабочие настройки таблиц «Контрагенты» и
+   «Водители»: таблица растёт по строкам, заголовок закреплён на странице. */
+@media screen and (min-width: 961px) and (min-height: 650px) {
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .main > .content {
+        height: auto;
+        min-height: calc(100dvh - 150px);
+        display: block;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-register {
+        display: block;
+        margin-bottom: 0;
+        overflow: visible !important;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-register .table-wrap {
+        overflow: visible;
+        max-height: none;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table thead th {
+        position: static;
+        background: var(--workspace-soft, #f5f5f5);
+    }
 }
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table th {
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table {
     height: auto;
-    padding: 10px 12px;
-    background: var(--orders-soft);
-    color: var(--orders-muted);
-    font-weight: 500;
+    border-collapse: collapse;
 }
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table td {
-    padding: 10px 12px;
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table :is(th, td) {
+    box-sizing: border-box;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table th {
+    height: auto;
+    padding: 11px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table td {
+    height: auto !important;
+    padding: 7px 10px !important;
+    vertical-align: top;
+    line-height: 1.2;
     border-color: var(--orders-border);
 }
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table {
-    height: auto;
-    border-collapse: collapse !important;
-    border: 1px solid var(--orders-border) !important;
-}
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td) {
-    border-right: 1px solid var(--orders-border) !important;
-    border-bottom: 1px solid var(--orders-border) !important;
-}
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td):last-child {
-    border-right: 0 !important;
-}
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table tbody tr {
-    height: auto;
-}
-body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td) {
-    box-sizing: border-box;
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table td small {
+    margin-top: 1px;
+    font-size: 11px;
+    line-height: 1.2;
 }
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table th {
     white-space: nowrap;
