@@ -4798,8 +4798,15 @@ class CustomerDocumentIssueForm(forms.Form):
         queryset=Transportation.objects.none(),
         widget=forms.CheckboxSelectMultiple(),
     )
+    document_date = forms.DateField(
+        label="Дата счёта", initial=timezone.localdate, widget=CRMDateInput()
+    )
+    contract = forms.ModelChoiceField(
+        label="Договор с клиентом", queryset=Contract.objects.none(), required=False,
+        empty_label="Выберите договор",
+    )
 
-    def __init__(self, *args, mode="individual", candidates=None, **kwargs):
+    def __init__(self, *args, mode="individual", candidates=None, selected_contract=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode = mode
         candidates = candidates if candidates is not None else Transportation.objects.none()
@@ -4816,8 +4823,20 @@ class CustomerDocumentIssueForm(forms.Form):
         ).order_by("name")
         if mode == "registry":
             self.fields["customer"].required = True
+            self.fields["contract"].queryset = Contract.objects.filter(
+                pk__in=candidates.exclude(customer_contract__isnull=True).values_list(
+                    "customer_contract_id", flat=True
+                )
+            ).select_related("customer", "expeditor").order_by("-contract_date")
+            self.fields["contract"].required = True
+            if selected_contract:
+                self.fields["contract"].initial = selected_contract
         else:
             self.fields["customer"].widget = forms.HiddenInput()
+            self.fields["contract"].widget = forms.HiddenInput()
+            self.fields["document_date"].widget = forms.HiddenInput()
+            self.fields["contract"].required = False
+            self.fields["document_date"].required = False
 
     def clean(self):
         cleaned = super().clean()
@@ -4851,6 +4870,10 @@ class CustomerDocumentIssueForm(forms.Form):
             if len({trip.customer_contract_id for trip in trips}) != 1:
                 raise forms.ValidationError(
                     "В выбранных рейсах отличаются договоры с клиентом. Разделите их на разные счета."
+                )
+            if not cleaned.get("contract") or trips[0].customer_contract_id != cleaned["contract"].pk:
+                raise forms.ValidationError(
+                    "Выбранный договор должен совпадать с договором во всех рейсах."
                 )
         return cleaned
 

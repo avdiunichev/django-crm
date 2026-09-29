@@ -3,11 +3,11 @@
 {% block title %}Документы для клиентов — Моя CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><span class="eyebrow">Бухгалтерия</span><h1>Документы для клиентов</h1><p>Выставленные счета и автоматически созданные к ним УПД.</p></div>
-    <div class="heading-actions"><a class="uk-button uk-button-default" href="{% url 'customer-document-issue' 'registry' %}">Создать реестровый счёт</a><a class="uk-button uk-button-primary" href="{% url 'customer-document-issue' 'individual' %}">Создать отдельные счета</a></div>
+    <div><span class="eyebrow">Бухгалтерия</span><h1>Клиентам</h1><p>Счета, акты, счета-фактуры и УПД по рейсам клиентов.</p></div>
+    <div class="heading-actions"><a class="uk-button uk-button-primary" href="{% url 'customer-document-issue' 'registry' %}">Создать счёт</a><a class="uk-button uk-button-default" href="{% url 'customer-document-issue' 'individual' %}">Отдельные счета</a></div>
 </div>
 <section class="panel uk-card uk-card-default order-register-panel">
-    <div class="onec-register-header"><div><span class="eyebrow">Журнал</span><h2>Счета и УПД по рейсам</h2><p>Одна строка — один рейс и все выставленные клиенту документы по нему.</p></div><span class="uk-text-meta">{{ customer_document_count }} документов</span></div>
+    <div class="onec-register-header"><div><span class="eyebrow">Журнал</span><h2>Счета и закрывающие документы</h2><p>Счёт объединяет один или несколько рейсов одного клиента и договора. Закрывающие документы создаются на его основании.</p></div><span class="uk-text-meta">{{ customer_document_count }} документов</span></div>
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table">
         <thead><tr><th>Рейс</th><th>Клиент</th><th>Счета</th><th>УПД</th><th>Состояние</th></tr></thead>
         <tbody>{% for row in trip_document_rows %}<tr>

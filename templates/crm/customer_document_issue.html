@@ -2,7 +2,7 @@
 {% block title %}{{ page_title }} — Моя CRM{% endblock %}
 {% block content %}
 <div class="page-heading with-action">
-    <div><a class="back-link" href="{% url 'customer-document-list' %}">← Документы для клиентов</a><span class="eyebrow">Бухгалтерия</span><h1>{{ page_title }}</h1><p>{% if is_registry %}Выберите клиента и объедините несколько доставленных рейсов в один счёт и УПД.{% else %}По каждому выбранному рейсу будут созданы отдельный счёт и связанный УПД.{% endif %}</p></div>
+    <div><a class="back-link" href="{% url 'customer-document-list' %}">← Документы для клиентов</a><span class="eyebrow">Бухгалтерия</span><h1>{{ page_title }}</h1><p>{% if is_registry %}Выберите клиента и договор, отметьте рейсы — система создаст один счёт. Закрывающие документы создаются позднее на основании счёта.{% else %}По каждому выбранному рейсу будут созданы отдельный счёт и связанный УПД.{% endif %}</p></div>
 </div>
 
 <form method="post" class="entity-form uk-form-stacked customer-document-issue-form">{% csrf_token %}
@@ -10,8 +10,7 @@
     <section class="form-section uk-card uk-card-default">
         <div class="form-section-title"><span>01</span><div><h2>Параметры выставления</h2><p>Дата и состав формируемого комплекта документов</p></div></div>
         <div class="form-grid">
-            {% if is_registry %}<div class="field"><label for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>{{ form.customer }}{{ form.customer.errors }}<small>После выбора клиента список рейсов обновится автоматически.</small></div>{% else %}{{ form.customer }}{% endif %}
-            <div class="field field-wide"><div class="uk-alert-primary" uk-alert>Даты определяются автоматически: УПД — последней датой выгрузки; счёт — датой выгрузки, но не позднее текущей даты.</div></div>
+            {% if is_registry %}<div class="field">{{ form.customer.label_tag }}{{ form.customer }}{{ form.customer.errors }}<small>После выбора клиента список рейсов обновится автоматически.</small></div><div class="field">{{ form.contract.label_tag }}{{ form.contract }}{{ form.contract.errors }}<small>В счёт можно включить рейсы только по одному договору.</small></div><div class="field">{{ form.document_date.label_tag }}{{ form.document_date }}{{ form.document_date.errors }}</div>{% else %}{{ form.customer }}{{ form.contract }}{{ form.document_date }}{% endif %}
         </div>
     </section>
     <section class="form-section uk-card uk-card-default">
@@ -43,9 +42,9 @@
     </section>
     <div class="form-actions">
         <a class="uk-button uk-button-default" href="{% url 'customer-document-list' %}">Закрыть</a>
-        <button class="uk-button uk-button-primary" type="submit">Выставить</button>
+        <button class="uk-button uk-button-primary" type="submit">Создать счёт</button>
     </div>
 </form>
-{% if is_registry %}<script>document.addEventListener("DOMContentLoaded",()=>{const field=document.getElementById("{{ form.customer.id_for_label }}");field?.addEventListener("change",()=>{const url=new URL(window.location.href);if(field.value)url.searchParams.set("customer",field.value);else url.searchParams.delete("customer");window.location.assign(url);});});</script>{% endif %}
+{% if is_registry %}<script>document.addEventListener("DOMContentLoaded",()=>{const customer=document.getElementById("{{ form.customer.id_for_label }}"),contract=document.getElementById("{{ form.contract.id_for_label }}");const reload=()=>{const url=new URL(window.location.href);if(customer?.value)url.searchParams.set("customer",customer.value);else url.searchParams.delete("customer");if(contract?.value)url.searchParams.set("contract",contract.value);else url.searchParams.delete("contract");window.location.assign(url);};customer?.addEventListener("change",()=>{if(contract)contract.value="";reload();});contract?.addEventListener("change",reload);});</script>{% endif %}
 <script>document.addEventListener("DOMContentLoaded",()=>{const toggle=document.querySelector("[data-customer-trip-toggle-all]"),checks=Array.from(document.querySelectorAll("[data-customer-trip-select]")),counter=document.querySelector("[data-customer-trip-count]");if(!toggle)return;const sync=()=>{const selected=checks.filter(item=>item.checked).length;toggle.checked=checks.length>0&&selected===checks.length;toggle.indeterminate=selected>0&&selected<checks.length;if(counter)counter.textContent=`Выбрано: ${selected}`;checks.forEach(item=>item.closest("tr")?.classList.toggle("is-selected",item.checked));};toggle.addEventListener("change",()=>{checks.forEach(item=>item.checked=toggle.checked);sync();});checks.forEach(item=>item.addEventListener("change",sync));document.querySelectorAll("[data-customer-trip-row]").forEach(row=>row.addEventListener("click",event=>{if(event.target.closest("a,input,label,button"))return;const checkbox=row.querySelector("[data-customer-trip-select]");checkbox.checked=!checkbox.checked;sync();}));sync();});</script>
 {% endblock %}

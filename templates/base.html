@@ -62,6 +62,7 @@
                             <li><a href="{% url 'document-batch-list' %}"><span uk-icon="file-text"></span> Реестры документов</a></li>
                             <li><a href="{% url 'primary-document-registry-incoming' %}"><span uk-icon="download"></span> Входящие документы</a></li>
                             <li><a href="{% url 'primary-document-registry-outgoing' %}"><span uk-icon="upload"></span> Исходящие документы</a></li>
+                            <li><a href="{% url 'customer-document-list' %}"><span uk-icon="users"></span> Клиентам</a></li>
                             <li><a href="{% url 'contract-list' %}"><span uk-icon="album"></span> Договоры</a></li>
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Приходы / расходы</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
@@ -132,6 +133,7 @@
                 <a class="mobile-nav-subitem {% if 'document-batch' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'document-batch-list' %}">Реестры документов</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-incoming' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-outgoing' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-outgoing' %}">Исходящие документы</a>
+                <a class="mobile-nav-subitem {% if 'customer-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'customer-document-list' %}">Клиентам</a>
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
@@ -179,6 +181,7 @@
                 <a class="mobile-nav-subitem {% if 'document-batch' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'document-batch-list' %}">Реестры документов</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-incoming' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-outgoing' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-outgoing' %}">Исходящие документы</a>
+                <a class="mobile-nav-subitem {% if 'customer-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'customer-document-list' %}">Клиентам</a>
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Приходы / расходы</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>

@@ -663,6 +663,44 @@ class CrmTestCase(TestCase):
             transportation.status, Transportation.Status.CUSTOMER_INVOICED
         )
 
+    def test_registry_customer_invoice_is_created_without_upd(self):
+        self.client.force_login(self.user)
+        transportation = self.shipment.transportation
+        contract = Contract.objects.create(
+            number="ТЭ-РЕЕСТР-001",
+            contract_date=date.today(),
+            kind=Contract.Kind.CLIENT_FORWARDING,
+            expeditor=self.company_profile,
+            customer=self.customer,
+        )
+        transportation.status = Transportation.Status.DELIVERED
+        transportation.customer_contract = contract
+        transportation.save(update_fields=["status", "customer_contract", "updated_at"])
+
+        response = self.client.post(
+            reverse("customer-document-issue", args=["registry"]),
+            {
+                "customer": self.customer.organization_id,
+                "contract": contract.pk,
+                "document_date": date.today().strftime("%d.%m.%Y"),
+                "transportations": [transportation.pk],
+            },
+        )
+
+        invoice = ShipmentDocument.objects.get(
+            kind=ShipmentDocument.Kind.INVOICE,
+            lines__transportation=transportation,
+        )
+        self.assertRedirects(response, invoice.get_absolute_url())
+        self.assertEqual(invoice.contract, contract)
+        self.assertEqual(invoice.document_date, date.today())
+        self.assertFalse(
+            ShipmentDocument.objects.filter(
+                kind=ShipmentDocument.Kind.UPD,
+                lines__transportation=transportation,
+            ).exists()
+        )
+
     def test_customer_document_issue_keeps_trip_with_existing_upd(self):
         self.client.force_login(self.user)
         transportation = self.shipment.transportation

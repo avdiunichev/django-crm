@@ -197,10 +197,24 @@ def populate_document_lines(document, transportations, *, user=None):
     document.contract = document_contract(first, document.direction)
     document.currency = document_currency(first, document.direction)
     document.transportation = first if len(transportations) == 1 else None
-    if not document.crm_number:
-        document.crm_number = f"CRM-{timezone.localdate():%y%m}-{ShipmentDocument.objects.count() + 1:05d}"
     if not document.number:
-        document.number = document.crm_number
+        if (
+            document.direction == ShipmentDocument.Direction.OUTGOING
+            and document.party == ShipmentDocument.Party.CUSTOMER
+            and document.kind in {
+                ShipmentDocument.Kind.INVOICE,
+                ShipmentDocument.Kind.ACT,
+                ShipmentDocument.Kind.UPD,
+                ShipmentDocument.Kind.VAT_INVOICE,
+            }
+        ):
+            document.number = _next_customer_document_number(
+                first.owner_company, document.kind, document.document_date or timezone.localdate()
+            )
+        else:
+            document.number = f"CRM-{timezone.localdate():%y%m}-{ShipmentDocument.objects.count() + 1:05d}"
+    if not document.crm_number:
+        document.crm_number = document.number
     document.save()
     document.lines.all().delete()
     for position, transportation in enumerate(transportations, 1):
@@ -247,6 +261,54 @@ def _next_customer_document_number(owner_company, kind, document_date):
         default=0,
     )
     return f"{prefix}{last_value + 1:05d}"
+
+
+@transaction.atomic
+def issue_customer_invoice(transportations, *, invoice_date, user=None):
+    """Create one customer invoice for one or more compatible trips.
+
+    The follow-up act, VAT invoice or UPD is intentionally created only by the
+    user from this invoice.  This mirrors the normal 1C "create based on"
+    workflow and prevents an unwanted UPD from appearing before services are
+    actually closed.
+    """
+    transportations = list(transportations)
+    if not transportations:
+        raise ValidationError("Выберите хотя бы один рейс.")
+
+    validate_document_transportations(
+        transportations=transportations,
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.INVOICE,
+        document_date=invoice_date,
+    )
+    first = transportations[0]
+    invoice = ShipmentDocument.objects.create(
+        direction=ShipmentDocument.Direction.OUTGOING,
+        kind=ShipmentDocument.Kind.INVOICE,
+        party=ShipmentDocument.Party.CUSTOMER,
+        status=ShipmentDocument.Status.ISSUED,
+        document_date=invoice_date,
+        currency=first.currency,
+        owner_company=first.owner_company,
+        counterparty=document_counterparty(first, ShipmentDocument.Direction.OUTGOING),
+        contract=document_contract(first, ShipmentDocument.Direction.OUTGOING),
+        created_by=user,
+    )
+    invoice.number = _next_customer_document_number(first.owner_company, invoice.kind, invoice_date)
+    invoice.crm_number = invoice.number
+    invoice.save(update_fields=["number", "crm_number", "updated_at"])
+    populate_document_lines(invoice, transportations, user=user)
+    Transportation.objects.filter(
+        pk__in=[item.pk for item in transportations],
+        status__in=[
+            Transportation.Status.DELIVERED,
+            Transportation.Status.DOCUMENTS_RECEIVED,
+            Transportation.Status.DOCUMENTS_SENT,
+            Transportation.Status.DOCUMENT_FLOW_COMPLETED,
+        ],
+    ).update(status=Transportation.Status.CUSTOMER_INVOICED, updated_at=timezone.now())
+    return invoice
 
 
 @transaction.atomic

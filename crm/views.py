@@ -3451,11 +3451,22 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
                 parties__organization_id=customer_id,
                 parties__is_active=True,
             )
+        contract_id = (
+            self.request.POST.get("contract", "").strip()
+            or self.request.GET.get("contract", "").strip()
+        )
+        if self.mode == "registry" and contract_id.isdigit():
+            queryset = queryset.filter(customer_contract_id=contract_id)
         return queryset.distinct().order_by("planned_end_date", "number")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update(mode=self.mode, candidates=self.candidate_queryset())
+        selected_contract = self.request.GET.get("contract", "").strip()
+        kwargs.update(
+            mode=self.mode,
+            candidates=self.candidate_queryset(),
+            selected_contract=selected_contract if selected_contract.isdigit() else None,
+        )
         return kwargs
 
     def get_initial(self):
@@ -3463,26 +3474,28 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
         customer_id = self.request.GET.get("customer", "").strip()
         if self.mode == "registry" and customer_id.isdigit():
             initial["customer"] = customer_id
+        contract_id = self.request.GET.get("contract", "").strip()
+        if self.mode == "registry" and contract_id.isdigit():
+            initial["contract"] = contract_id
+        initial["document_date"] = timezone.localdate()
         return initial
 
     def form_valid(self, form):
-        from .accounting_documents import (
-            issue_customer_document_pair,
-            last_delivery_date,
-        )
+        from .accounting_documents import issue_customer_document_pair, issue_customer_invoice, last_delivery_date
 
         selected = list(form.cleaned_data["transportations"])
-        delivery_date = last_delivery_date(selected)
-        today = timezone.localdate()
-        document_date = min(delivery_date, today) if delivery_date else today
+        document_date = form.cleaned_data.get("document_date") or timezone.localdate()
         created_pairs = []
         with transaction.atomic():
             if self.mode == "registry":
-                created_pairs.append(
-                    issue_customer_document_pair(
-                        selected, invoice_date=document_date, user=self.request.user
-                    )
+                invoice = issue_customer_invoice(
+                    selected, invoice_date=document_date, user=self.request.user
                 )
+                messages.success(
+                    self.request,
+                    f"Счёт № {invoice.display_number} создан и связан с {len(selected)} рейсами.",
+                )
+                return redirect(invoice.get_absolute_url())
             else:
                 for transportation in selected:
                     created_pairs.append(
