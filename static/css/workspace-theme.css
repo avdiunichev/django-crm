@@ -2335,11 +2335,13 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 /* Банковские документы используют единый компактный шаблон реестров. */
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-register {
     min-height: 0;
+    height: auto;
     margin: 0;
     border-color: var(--orders-border);
     background: var(--orders-surface);
 }
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-register .table-wrap {
+    height: auto !important;
     max-height: none;
     overflow-x: auto;
     overflow-y: visible;
@@ -2359,8 +2361,20 @@ body.orders-workspace-page.bank-statement-directory-page .bank-statement-directo
     padding: 10px 12px;
     border-color: var(--orders-border);
 }
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table {
+    height: auto;
+    border-collapse: collapse !important;
+    border: 1px solid var(--orders-border) !important;
+}
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td) {
+    border-right: 1px solid var(--orders-border) !important;
+    border-bottom: 1px solid var(--orders-border) !important;
+}
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td):last-child {
+    border-right: 0 !important;
+}
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table tbody tr {
-    height: 72px;
+    height: auto;
 }
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table :is(th, td) {
     box-sizing: border-box;
