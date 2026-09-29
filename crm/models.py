@@ -4981,6 +4981,7 @@ class ShipmentDocumentLine(TimestampedModel):
         related_name="accounting_document_lines",
         on_delete=models.PROTECT,
     )
+    cargo_insurance = models.ForeignKey("CargoInsurance", related_name="document_lines", on_delete=models.PROTECT, null=True, blank=True)
     service_name = models.TextField("Наименование услуги")
     quantity = models.DecimalField(
         "Количество", max_digits=12, decimal_places=3, default=Decimal("1.000")
@@ -5007,12 +5008,6 @@ class ShipmentDocumentLine(TimestampedModel):
         verbose_name = "строка бухгалтерского документа"
         verbose_name_plural = "строки бухгалтерского документа"
         ordering = ("position", "pk")
-        constraints = [
-            models.UniqueConstraint(
-                fields=("document", "transportation"),
-                name="unique_accounting_document_transportation",
-            )
-        ]
 
     def __str__(self):
         return f"{self.document} · {self.transportation}"

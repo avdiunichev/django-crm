@@ -172,7 +172,8 @@ def build_service_name(transportation):
 
 def line_amounts(transportation, direction):
     if direction == ShipmentDocument.Direction.OUTGOING:
-        total = Decimal(transportation.customer_amount or 0)
+        insurance_total = sum((item.customer_amount for item in transportation.cargo_insurances.all()), Decimal("0"))
+        total = Decimal(transportation.customer_amount or 0) - insurance_total
         vat = Decimal(transportation.customer_vat_amount or 0)
         vat_rate = transportation.customer_vat_rate.rate if transportation.customer_vat_rate_id else Decimal("0")
     else:
@@ -232,6 +233,15 @@ def populate_document_lines(document, transportations, *, user=None):
             total_amount=total,
             position=position,
         )
+        if document.direction == ShipmentDocument.Direction.OUTGOING:
+            for insurance in transportation.cargo_insurances.all():
+                ShipmentDocumentLine.objects.create(
+                    document=document, transportation=transportation, cargo_insurance=insurance,
+                    service_name=f"Страхование груза по рейсу №{transportation.number or transportation.pk}",
+                    quantity=Decimal("1"), unit="услуга", price=insurance.customer_amount,
+                    amount=insurance.customer_amount, vat_rate=Decimal("0"), vat_amount=Decimal("0"),
+                    total_amount=insurance.customer_amount, position=position + 1000 + insurance.pk,
+                )
     document.refresh_totals()
     ShipmentDocumentAudit.objects.create(
         document=document,
