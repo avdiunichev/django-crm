@@ -24,6 +24,7 @@ from .forms import (
     TransportOrderStopForm,
     TransportationChainForm,
     TransportationDocumentForm,
+    TransportationWaybillPreflightForm,
     VehicleCombinationForm,
     VehicleForm,
 )
@@ -5933,6 +5934,45 @@ class CrmTestCase(TestCase):
         self.assertIn("№ЗП-77 от", text)
         self.assertNotIn("ЗП-77 от 01.01.2026 от", text)
         self.assertEqual(len(document.inline_shapes), 0)
+
+    def test_transportation_waybill_requests_missing_data_then_downloads_pdf(self):
+        transportation = self.shipment.transportation
+        self.client.force_login(self.user)
+        url = reverse("transportation-waybill-pdf", args=[transportation.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Транспортная накладная")
+
+        form = TransportationWaybillPreflightForm(transportation=transportation)
+        values = {
+            "number": "ТрН-ТЕСТ-1", "document_date": "29.09.2026",
+            "shipper_name": "ООО Грузоотправитель", "shipper_inn": "7701000000",
+            "shipper_address": "Москва, ул. Отправителя, 1",
+            "consignee_name": "ООО Грузополучатель", "consignee_inn": "7702000000",
+            "consignee_address": "Тверь, ул. Получателя, 2",
+            "carrier_name": "ООО Перевозчик", "carrier_inn": "7703000000",
+            "carrier_address": "Москва, ул. Перевозчика, 3",
+            "cargo_name": "Тестовый груз", "gross_weight_kg": "1000",
+            "pickup_address": "Москва, склад 1", "pickup_window": "29.09.2026 10:00–12:00",
+            "delivery_address": "Тверь, склад 2", "delivery_window": "30.09.2026 10:00–12:00",
+            "vehicle_registration": "Т001ТЕСТ", "trailer_registration": "",
+            "driver_name": "Иванов Иван", "driver_phone": "+7 900 000-00-01",
+            "accompanying_documents": "нет", "special_conditions": "", "waybill_number": "",
+        }
+        post_data = {name: values[name] for name in form.fields}
+        response = self.client.post(url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+        draft = TransportationElectronicDocument.objects.get(
+            transportation=transportation,
+            kind=TransportationElectronicDocument.Kind.ETRN,
+            stop__isnull=True,
+        )
+        self.assertEqual(
+            draft.payload["paper_waybill"]["number"],
+            f"ТрН-{transportation.number}",
+        )
 
     def test_transportation_route_and_docx_show_every_stop(self):
         transportation = self.shipment.transportation

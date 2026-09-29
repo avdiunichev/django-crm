@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 from io import BytesIO
+from pathlib import Path
 import re
 
 from docx import Document
@@ -574,6 +575,109 @@ def build_executor_transportation_application_docx(transportation):
     document.save(stream)
     stream.seek(0)
     return stream
+
+
+def build_transportation_waybill_pdf(transportation, data):
+    """Build a printable PDF copy of a transport waybill from the trip data.
+
+    The document is a paper-preview aid.  The legally significant 2026 flow is
+    the electronic transport waybill exchanged through a GISEPD operator.
+    """
+    from html import escape
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    regular_font = bold_font = "Helvetica"
+    for regular_path, bold_path in (
+        ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+    ):
+        if Path(regular_path).exists() and Path(bold_path).exists():
+            pdfmetrics.registerFont(TTFont("WaybillRegular", regular_path))
+            pdfmetrics.registerFont(TTFont("WaybillBold", bold_path))
+            regular_font, bold_font = "WaybillRegular", "WaybillBold"
+            break
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle("WaybillTitle", parent=styles["Heading1"], fontName=bold_font, fontSize=14, leading=17, alignment=1, spaceAfter=3)
+    notice_style = ParagraphStyle("WaybillNotice", parent=styles["Normal"], fontName=regular_font, fontSize=7, leading=9, alignment=1, textColor=colors.HexColor("#5f6b7a"), spaceAfter=6)
+    section_style = ParagraphStyle("WaybillSection", parent=styles["Heading2"], fontName=bold_font, fontSize=9, leading=11, textColor=colors.HexColor("#172b4d"), spaceBefore=7, spaceAfter=3)
+    value_style = ParagraphStyle("WaybillValue", parent=styles["Normal"], fontName=regular_font, fontSize=7.5, leading=9)
+    label_style = ParagraphStyle("WaybillLabel", parent=value_style, fontName=bold_font, textColor=colors.HexColor("#475569"))
+
+    def text(value, empty="—"):
+        rendered = str(value).strip() if value is not None else ""
+        return escape(rendered or empty).replace("\n", "<br/>")
+
+    def as_date(value):
+        return value.strftime("%d.%m.%Y") if hasattr(value, "strftime") else text(value)
+
+    def section_table(rows):
+        table = Table(
+            [[Paragraph(text(label), label_style), Paragraph(text(value), value_style)] for label, value in rows],
+            colWidths=(52 * mm, 134 * mm), hAlign="LEFT",
+        )
+        table.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#9aa5b1")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+        return table
+
+    stops = list(transportation.stops.all())
+    pickup = next((item for item in stops if item.kind == item.Kind.PICKUP), None)
+    delivery = next((item for item in stops if item.kind == item.Kind.DELIVERY), None)
+    assignment = transportation.active_vehicle_assignment()
+    route = transportation.route or "—"
+    number = data.get("number") or f"ТрН-{transportation.pk}"
+    date_value = as_date(data.get("document_date"))
+
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer, pagesize=A4, leftMargin=12 * mm, rightMargin=12 * mm,
+        topMargin=10 * mm, bottomMargin=12 * mm,
+        title=f"Транспортная накладная {number}", author="CRM.Экспедитор",
+    )
+    story = [
+        Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ", title_style),
+        Paragraph(f"№ {text(number)} от {date_value}", ParagraphStyle("WaybillNumber", parent=value_style, alignment=1, fontName=bold_font, fontSize=9, spaceAfter=2)),
+        Paragraph("Печатная копия / проект для предусмотренных законом случаев бумажного оформления. Юридически значимая ТрН оформляется как ЭТрН через оператора ГИС ЭПД.", notice_style),
+    ]
+    blocks = (
+        ("1. Грузоотправитель", (("Наименование", data.get("shipper_name")), ("ИНН", data.get("shipper_inn")), ("Адрес", data.get("shipper_address")))),
+        ("2. Грузополучатель", (("Наименование", data.get("consignee_name")), ("ИНН", data.get("consignee_inn")), ("Адрес места доставки", data.get("consignee_address")))),
+        ("3. Перевозчик", (("Наименование", data.get("carrier_name")), ("ИНН", data.get("carrier_inn")), ("Адрес", data.get("carrier_address")))),
+        ("4. Груз", (("Наименование, состояние и характеристики", data.get("cargo_name")), ("Масса брутто", f"{data.get('gross_weight_kg')} кг"), ("Объём / упаковка", " · ".join(part for part in (f"{transportation.volume_m3} м³" if transportation.volume_m3 else "", str(transportation.package_type or ""), f"{transportation.total_package_count} мест" if transportation.total_package_count else "") if part) or "—"))),
+        ("5. Сопроводительные документы", (("Документы", data.get("accompanying_documents") or "нет"),)),
+        ("6. Указания грузоотправителя и особые условия", (("Маршрут", route), ("Условия", data.get("special_conditions") or "нет"))),
+        ("7. Место и срок подачи транспортного средства", (("Место погрузки", data.get("pickup_address")), ("Плановая дата и время", data.get("pickup_window")), ("Место выгрузки", data.get("delivery_address")), ("Плановая дата и время выгрузки", data.get("delivery_window")))),
+        ("8. Транспортное средство и водитель", (("ТС", data.get("vehicle_registration")), ("Прицеп / полуприцеп", data.get("trailer_registration") or "—"), ("Водитель", data.get("driver_name")), ("Телефон водителя", data.get("driver_phone")), ("Путевой лист", data.get("waybill_number") or "не указан"))),
+        ("9. Приём и выдача груза", (("Приём груза", "Фактические дата/время, масса, количество мест, подпись грузоотправителя и водителя — заполняются при погрузке."), ("Выдача груза", "Фактические дата/время, состояние груза, масса, количество мест, подпись грузополучателя и водителя — заполняются при выгрузке."))),
+        ("10. Стоимость перевозки", (("Установленная плата", _money_text(transportation.executor_amount, transportation.currency)),)),
+    )
+    for title, rows in blocks:
+        story.append(Paragraph(title, section_style))
+        story.append(section_table(rows))
+
+    story.extend([Spacer(1, 4 * mm), section_table((("Грузоотправитель", "________________ / __________________"), ("Перевозчик", "________________ / __________________"), ("Грузополучатель", "________________ / __________________")))])
+
+    def footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont(regular_font, 6.5)
+        canvas.setFillColor(colors.HexColor("#687385"))
+        canvas.drawString(12 * mm, 7 * mm, "CRM.Экспедитор · печатная копия ТрН")
+        canvas.drawRightString(A4[0] - 12 * mm, 7 * mm, f"Страница {doc.page}")
+        canvas.restoreState()
+
+    document.build(story, onFirstPage=footer, onLaterPages=footer)
+    buffer.seek(0)
+    return buffer
 
 
 def _insurance_text(value):

@@ -489,6 +489,7 @@ from .forms import (
     TransportationDocumentForm,
     TransportationStopFormSet,
     TransportationIncidentForm,
+    TransportationWaybillPreflightForm,
     VehicleForm,
     VehicleAttachmentForm,
     VehicleCarrierFormSet,
@@ -10248,6 +10249,87 @@ class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
                 "wordprocessingml.document"
             ),
         )
+
+
+class TransportationWaybillPDFView(LoginRequiredMixin, View):
+    """Collect absent waybill data and return a printable PDF copy."""
+
+    template_name = "crm/transportation_waybill_preflight.html"
+
+    def get_transportation(self):
+        return get_object_or_404(
+            scope_transportations_for_user(
+                Transportation.objects.select_related(
+                    "owner_company", "package_type", "executor_vat_rate"
+                ).prefetch_related(
+                    "stops__organization",
+                    "execution_links__contractor_party__organization",
+                    "vehicle_assignments__driver__passports",
+                    "vehicle_assignments__vehicle",
+                    "vehicle_assignments__trailer",
+                ),
+                self.request.user,
+            ),
+            pk=self.kwargs["pk"],
+        )
+
+    def saved_data(self, transportation):
+        draft = TransportationElectronicDocument.objects.filter(
+            transportation=transportation,
+            kind=TransportationElectronicDocument.Kind.ETRN,
+            stop__isnull=True,
+        ).first()
+        payload = draft.payload if draft and isinstance(draft.payload, dict) else {}
+        return payload.get("paper_waybill", {}) if isinstance(payload.get("paper_waybill", {}), dict) else {}
+
+    def get(self, request, *args, **kwargs):
+        transportation = self.get_transportation()
+        if not user_can_view_personal_data(request.user):
+            raise PermissionDenied("У вас нет права на выгрузку документов с персональными данными.")
+        form = TransportationWaybillPreflightForm(
+            transportation=transportation, saved_data=self.saved_data(transportation)
+        )
+        return render(request, self.template_name, {"transportation": transportation, "form": form})
+
+    def post(self, request, *args, **kwargs):
+        transportation = self.get_transportation()
+        if not user_can_view_personal_data(request.user):
+            raise PermissionDenied("У вас нет права на выгрузку документов с персональными данными.")
+        form = TransportationWaybillPreflightForm(
+            request.POST,
+            transportation=transportation,
+            saved_data=self.saved_data(transportation),
+        )
+        if not form.is_valid():
+            return render(request, self.template_name, {"transportation": transportation, "form": form})
+        data = form.merged_data()
+        saved = {
+            key: value.isoformat() if hasattr(value, "isoformat") else str(value or "")
+            for key, value in data.items()
+        }
+        draft, _ = TransportationElectronicDocument.objects.get_or_create(
+            transportation=transportation,
+            kind=TransportationElectronicDocument.Kind.ETRN,
+            stop=None,
+            defaults={
+                "provider": TransportationElectronicDocument.Provider.INTERNAL,
+                "status": TransportationElectronicDocument.Status.DRAFT,
+                "created_by": request.user,
+            },
+        )
+        payload = draft.payload if isinstance(draft.payload, dict) else {}
+        payload["paper_waybill"] = saved
+        draft.payload = payload
+        draft.created_by = draft.created_by or request.user
+        draft.save(update_fields=["payload", "created_by", "updated_at"])
+
+        from .documents import build_transportation_waybill_pdf
+
+        stream = build_transportation_waybill_pdf(transportation, data)
+        safe_number = re.sub(r"[^0-9A-Za-zА-Яа-я_-]+", "_", str(data.get("number") or transportation.pk))
+        response = HttpResponse(stream.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="transportation-waybill-{safe_number}.pdf"'
+        return response
 
 
 class TransportationChainUpdateView(LoginRequiredMixin, OperationsAccessMixin, FormView):

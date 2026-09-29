@@ -59,6 +59,116 @@ CRM_DATE_DISPLAY_FORMAT = "%d.%m.%Y"
 CRM_DATE_INPUT_FORMATS = (CRM_DATE_DISPLAY_FORMAT, "%Y-%m-%d")
 
 
+class TransportationWaybillPreflightForm(forms.Form):
+    """Requests only the information absent from a trip before a PDF copy is made."""
+
+    number = forms.CharField(label="Номер транспортной накладной", max_length=100)
+    document_date = forms.DateField(
+        label="Дата составления", input_formats=CRM_DATE_INPUT_FORMATS,
+        widget=forms.DateInput(format=CRM_DATE_DISPLAY_FORMAT, attrs={"placeholder": "ДД.ММ.ГГГГ"}),
+    )
+    shipper_name = forms.CharField(label="Грузоотправитель", max_length=255)
+    shipper_inn = forms.CharField(label="ИНН грузоотправителя", max_length=12)
+    shipper_address = forms.CharField(label="Адрес грузоотправителя", widget=forms.Textarea(attrs={"rows": 2}))
+    consignee_name = forms.CharField(label="Грузополучатель", max_length=255)
+    consignee_inn = forms.CharField(label="ИНН грузополучателя", max_length=12, required=False)
+    consignee_address = forms.CharField(label="Адрес грузополучателя", widget=forms.Textarea(attrs={"rows": 2}))
+    carrier_name = forms.CharField(label="Перевозчик", max_length=255)
+    carrier_inn = forms.CharField(label="ИНН перевозчика", max_length=12)
+    carrier_address = forms.CharField(label="Адрес перевозчика", widget=forms.Textarea(attrs={"rows": 2}))
+    cargo_name = forms.CharField(label="Наименование и состояние груза", widget=forms.Textarea(attrs={"rows": 2}))
+    gross_weight_kg = forms.DecimalField(label="Масса груза брутто, кг", min_value=Decimal("0.01"), decimal_places=2, max_digits=12)
+    accompanying_documents = forms.CharField(label="Сопроводительные документы", required=False, widget=forms.Textarea(attrs={"rows": 2}), help_text="Укажите номера и даты документов либо «нет».")
+    special_conditions = forms.CharField(label="Особые условия перевозки", required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    pickup_address = forms.CharField(label="Адрес места погрузки", widget=forms.Textarea(attrs={"rows": 2}))
+    pickup_window = forms.CharField(label="Дата и время погрузки", max_length=160)
+    delivery_address = forms.CharField(label="Адрес места выгрузки", widget=forms.Textarea(attrs={"rows": 2}))
+    delivery_window = forms.CharField(label="Дата и время выгрузки", max_length=160)
+    vehicle_registration = forms.CharField(label="Госномер транспортного средства", max_length=30)
+    trailer_registration = forms.CharField(label="Госномер прицепа / полуприцепа", max_length=30, required=False)
+    driver_name = forms.CharField(label="ФИО водителя", max_length=255)
+    driver_phone = forms.CharField(label="Телефон водителя", max_length=30)
+    waybill_number = forms.CharField(label="Номер путевого листа", max_length=100, required=False)
+
+    optional_fields = {"consignee_inn", "accompanying_documents", "special_conditions", "trailer_registration", "waybill_number"}
+
+    @classmethod
+    def defaults_for(cls, transportation):
+        stops = list(transportation.stops.all())
+        pickup = next((item for item in stops if item.kind == TransportationStop.Kind.PICKUP), None)
+        delivery = next((item for item in stops if item.kind == TransportationStop.Kind.DELIVERY), None)
+        link = transportation.active_execution_link()
+        assignment = transportation.active_vehicle_assignment()
+        executor = link.contractor_party.organization if link else None
+        carrier = executor if link and link.contractor_role == TransportationLink.ContractorRole.CARRIER else None
+
+        def stop_details(stop):
+            organization = stop.organization if stop and stop.organization_id else None
+            return {
+                "name": (organization.name if organization else (stop.organization_text if stop else "")) or "",
+                "inn": (organization.tax_id if organization else "") or "",
+                "address": (stop.full_address if stop else "") or "",
+            }
+
+        shipper = stop_details(pickup)
+        consignee = stop_details(delivery)
+        vehicle = assignment.vehicle if assignment and assignment.vehicle_id else None
+        trailer = assignment.trailer if assignment and assignment.trailer_id else None
+        driver = assignment.driver if assignment and assignment.driver_id else None
+        cargo_name = "\n".join(part for part in (transportation.cargo_name, transportation.cargo_description) if part)
+        return {
+            "number": f"ТрН-{transportation.number}" if transportation.number else "",
+            "document_date": transportation.document_date,
+            "shipper_name": shipper["name"],
+            "shipper_inn": shipper["inn"],
+            "shipper_address": shipper["address"],
+            "consignee_name": consignee["name"],
+            "consignee_inn": consignee["inn"],
+            "consignee_address": consignee["address"],
+            "carrier_name": carrier.name if carrier else "",
+            "carrier_inn": carrier.tax_id if carrier else "",
+            "carrier_address": carrier.formatted_legal_address if carrier else "",
+            "cargo_name": cargo_name,
+            "gross_weight_kg": transportation.weight_kg if transportation.weight_kg else "",
+            "accompanying_documents": "",
+            "special_conditions": transportation.special_requirements or "",
+            "pickup_address": (pickup.full_address if pickup else "") or "",
+            "pickup_window": _waybill_window(pickup),
+            "delivery_address": (delivery.full_address if delivery else "") or "",
+            "delivery_window": _waybill_window(delivery),
+            "vehicle_registration": vehicle.registration_number if vehicle else "",
+            "trailer_registration": trailer.registration_number if trailer else (assignment.trailer_registration_number if assignment else ""),
+            "driver_name": driver.full_name if driver else "",
+            "driver_phone": driver.phone if driver else "",
+            "waybill_number": "",
+        }
+
+    def __init__(self, *args, transportation, saved_data=None, **kwargs):
+        defaults = self.defaults_for(transportation)
+        defaults.update(saved_data or {})
+        self.waybill_data = defaults
+        super().__init__(*args, initial=defaults, **kwargs)
+        for name in list(self.fields):
+            if defaults.get(name) not in (None, ""):
+                self.fields.pop(name)
+            elif name in self.optional_fields:
+                self.fields[name].required = False
+
+    def merged_data(self):
+        values = dict(self.waybill_data)
+        values.update(self.cleaned_data)
+        return values
+
+
+def _waybill_window(stop):
+    if not stop or not stop.planned_from:
+        return ""
+    start = timezone.localtime(stop.planned_from)
+    if stop.planned_to and timezone.localtime(stop.planned_to).date() == start.date():
+        return f"{start:%d.%m.%Y} {start:%H:%M}–{timezone.localtime(stop.planned_to):%H:%M}"
+    return f"{start:%d.%m.%Y %H:%M}" + (f" — {timezone.localtime(stop.planned_to):%d.%m.%Y %H:%M}" if stop.planned_to else "")
+
+
 def normalize_russian_phone(value):
     """Convert common Russian phone input variants into ``+7 900 000-00-00``."""
 

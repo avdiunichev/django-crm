@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Транспортная накладная — {{ transportation.number }}{% endblock %}
+{% block content %}
+<div class="entity-form-page">
+  <div class="page-heading">
+    <div>
+      <a class="back-link" href="{{ transportation.get_absolute_url }}">← Рейс {{ transportation.number|default:"Черновик" }}</a>
+      <h1>Транспортная накладная</h1>
+      <p>Проверяем только отсутствующие сведения и формируем PDF-печатную копию.</p>
+    </div>
+  </div>
+  <div class="uk-alert-warning" uk-alert>
+    <p>С 01.09.2026 юридически значимая ТрН оформляется как ЭТрН через оператора ГИС ЭПД. Этот PDF предназначен для печати и случаев, когда допускается бумажное оформление.</p>
+  </div>
+  <form method="post" class="entity-form uk-form-stacked">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}
+    {% if form.fields %}
+      <section class="form-section uk-card uk-card-default">
+        <div class="section-title"><div><span class="eyebrow">Недостающие сведения</span><h2>Заполните для ТрН</h2></div></div>
+        <div class="form-grid">
+          {% for field in form %}{% include "crm/includes/form_field.html" with field=field %}{% endfor %}
+        </div>
+      </section>
+    {% else %}
+      <section class="form-section uk-card uk-card-default"><p class="uk-margin-remove">Все обязательные сведения уже есть в карточке рейса. Можно сформировать PDF.</p></section>
+    {% endif %}
+    <div class="form-actions">
+      <a class="btn btn-secondary uk-button uk-button-default" href="{{ transportation.get_absolute_url }}">Отмена</a>
+      <button class="btn btn-primary uk-button uk-button-primary" type="submit">Сформировать PDF</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
