@@ -2017,6 +2017,23 @@ class CrmTestCase(TestCase):
         self.assertContains(detail, "Проведение документа")
         self.assertContains(detail, "До проведения нужно заполнить")
 
+    def test_transportation_chain_shows_customer_contract(self):
+        self.client.force_login(self.user)
+        contract = Contract.objects.create(
+            number="ТЭ-ЦЕПОЧКА-001",
+            contract_date=date.today(),
+            kind=Contract.Kind.CLIENT_FORWARDING,
+            expeditor=self.company_profile,
+            customer=self.customer,
+        )
+        transportation = self.shipment.transportation
+        transportation.customer_contract = contract
+        transportation.save(update_fields=["customer_contract"])
+
+        response = self.client.get(transportation.get_absolute_url())
+
+        self.assertContains(response, "Договор № ТЭ-ЦЕПОЧКА-001")
+
     def test_transportation_register_has_counterparty_style_scopes(self):
         self.client.force_login(self.user)
         register = self.client.get(reverse("transportation-list"))

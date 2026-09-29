@@ -24,7 +24,7 @@
     <div class="transport-chain-group-title">Коммерческая цепочка</div>
     <div class="transport-chain">
         {% for node in chain_nodes %}
-            <article class="transport-chain-node"><span>{{ node.role }}</span><a href="{{ node.organization.get_absolute_url }}">{{ node.organization }}</a>{% if node.link %}<small>{% if node.link.contract %}Договор № {{ node.link.contract.number }}{% else %}Договор не выбран{% endif %}{% if node.link.instruction_number %}<br>Поручение / заявка № {{ node.link.instruction_number }}{% endif %}</small>{% endif %}</article>
+            <article class="transport-chain-node"><span>{{ node.role }}</span><a href="{{ node.organization.get_absolute_url }}">{{ node.organization }}</a>{% if node.role == "Клиент" or node.contract or node.instruction_number %}<small>{% if node.contract %}Договор № {{ node.contract.number }}{% elif node.role != "Клиент" %}Договор не выбран{% endif %}{% if node.instruction_number %}<br>Поручение / заявка № {{ node.instruction_number }}{% endif %}</small>{% endif %}</article>
             {% if not forloop.last %}<span class="transport-chain-arrow"><span uk-icon="arrow-right"></span></span>{% endif %}
         {% endfor %}
     </div>

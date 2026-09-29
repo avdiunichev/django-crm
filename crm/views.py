@@ -9977,13 +9977,19 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
         chain_nodes = []
         if client_party:
             chain_nodes.append(
-                {"organization": client_party.organization, "role": "Клиент", "link": None}
+                {
+                    "organization": client_party.organization,
+                    "role": "Клиент",
+                    "contract": transportation.customer_contract,
+                    "instruction_number": transportation.client_reference,
+                }
             )
         chain_nodes.append(
             {
                 "organization": transportation.owner_company,
                 "role": "Наша компания / экспедитор",
-                "link": None,
+                "contract": None,
+                "instruction_number": "",
             }
         )
         seen = {transportation.owner_company_id}
@@ -9995,7 +10001,8 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 {
                     "organization": organization,
                     "role": link.get_contractor_role_display(),
-                    "link": link,
+                    "contract": link.contract,
+                    "instruction_number": link.instruction_number,
                 }
             )
             seen.add(organization.pk)
