@@ -2316,16 +2316,9 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .bank-statement-directory-page .bank-statement-directory-table .uk-label { padding: 3px 7px; border-radius: 5px; font-size: 10px; }
 .bank-statement-directory-page .bank-statement-directory-table .row-action { display: inline-flex; margin: 0 0 0 5px; padding: 3px 6px; border: 1px solid var(--workspace-line); border-radius: 5px; font-size: 11px; text-decoration: none; }
 .bank-statement-directory-page .bank-statement-directory-table .bank-statement-actions-column { width: 175px; }
-.bank-statement-directory-page .bank-statement-register-table { min-width: 1690px; table-layout: fixed; }
-.bank-statement-directory-page .bank-register-col-document { width: 150px; }
-.bank-statement-directory-page .bank-register-col-counterparty { width: 210px; }
-.bank-statement-directory-page .bank-register-col-purpose { width: 300px; }
-.bank-statement-directory-page .bank-register-col-operation { width: 155px; }
-.bank-statement-directory-page .bank-register-col-account { width: 230px; }
-.bank-statement-directory-page .bank-register-col-lines { width: 65px; }
-.bank-statement-directory-page .bank-register-col-amount { width: 140px; }
-.bank-statement-directory-page .bank-register-col-balance { width: 155px; }
-.bank-statement-directory-page .bank-register-col-actions { width: 175px; }
+.bank-statement-directory-page .bank-statement-register-table { width: 1720px !important; min-width: 1720px !important; table-layout: fixed !important; }
+.bank-statement-directory-page .bank-statement-register-table th,
+.bank-statement-directory-page .bank-statement-register-table td { min-width: 0 !important; white-space: normal; }
 .bank-statement-directory-page .bank-statement-register-table td { overflow-wrap: anywhere; }
 .bank-statement-directory-page .bank-statement-register-table .bank-statement-purpose {
     display: -webkit-box;
