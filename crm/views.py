@@ -10037,7 +10037,7 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                     "kind": stop.get_kind_display(),
                     "organization": stop.organization,
                     "organization_text": stop.organization_text,
-                    "city": stop.city,
+                    "city": stop.route_point,
                     "address": stop.full_address,
                     "planned_from": stop.planned_from,
                     "planned_to": stop.planned_to,

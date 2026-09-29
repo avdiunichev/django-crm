@@ -928,6 +928,19 @@ class CrmTestCase(TestCase):
             "Ленинградская обл, Киришский р-н, г Кириши",
         )
 
+    def test_route_points_use_region_from_dadata_address(self):
+        regional_stop = TransportOrderStop(
+            city="Фрязино г.",
+            address_raw={"data": {"region": "Московская", "region_type": "область", "city": "Фрязино", "city_type": "город"}},
+        )
+        federal_stop = TransportOrderStop(
+            city="Санкт-Петербург г.",
+            address_raw={"data": {"region": "Санкт-Петербург", "region_type": "город", "city": "Санкт-Петербург", "city_type": "город"}},
+        )
+
+        self.assertEqual(regional_stop.route_point, "Московская обл., Фрязино г.")
+        self.assertEqual(federal_stop.route_point, "Санкт-Петербург г.")
+
     def test_order_assignment_creates_linked_trip_with_full_route(self):
         order = TransportOrder.objects.create(
             owner_company=self.company_profile.organization,

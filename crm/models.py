@@ -35,24 +35,42 @@ ORDER_PAYMENT_FORM_CHOICES = (
 _FEDERAL_ROUTE_CITIES = {"москва", "санкт-петербург", "севастополь"}
 
 
+def _route_locality_key(value):
+    """Compare localities without their optional Russian city prefix/suffix."""
+    value = " ".join((value or "").casefold().split())
+    value = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", value)
+    return re.sub(r"(?:\s*,?\s*г\.?)$", "", value).strip()
+
+
 def route_location_label(stop):
     """Return a concise but unambiguous point for route displays."""
-    if getattr(stop, "address_raw", None):
-        return AddressFormatter.short(stop.address_raw, stop.address)
-    city = " ".join((getattr(stop, "city", "") or "").split())
-    region = " ".join((getattr(stop, "address_region", "") or "").split())
+    raw_address = getattr(stop, "address_raw", None)
+    raw_data = AddressFormatter.data(raw_address)
+    city = " ".join((
+        AddressFormatter.component(raw_data, "city")
+        or AddressFormatter.component(raw_data, "settlement")
+        or getattr(stop, "address_city", "")
+        or getattr(stop, "address_settlement", "")
+        or getattr(stop, "city", "")
+        or ""
+    ).split())
+    region = " ".join((
+        AddressFormatter.component(raw_data, "region")
+        or getattr(stop, "address_region", "")
+        or ""
+    ).split())
     if not city:
-        return getattr(stop, "address", "") or ""
+        return AddressFormatter.short(raw_address, getattr(stop, "address", "")) if raw_address else getattr(stop, "address", "") or ""
 
-    city_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", city.casefold()).strip()
+    city_key = _route_locality_key(city)
     if city_key in _FEDERAL_ROUTE_CITIES:
         return city
-    if region and city_key not in _FEDERAL_ROUTE_CITIES:
+    if region:
         # Legacy records can contain the region in the old ``city`` field too.
         # The structured region is authoritative, so keep it only once.
         if city.casefold().startswith(region.casefold()):
             city = city[len(region) :].lstrip(", ")
-        region_key = re.sub(r"^(?:г(?:ород)?\.?\s*)", "", region.casefold()).strip()
+        region_key = _route_locality_key(region)
         if region_key != city_key:
             return f"{region}, {city}" if city else region
     return city
@@ -2778,6 +2796,10 @@ class TransportationStop(TimestampedModel):
     @property
     def short_address(self):
         return AddressFormatter.short(self.address_raw, self.city or self.address)
+
+    @property
+    def route_point(self):
+        return route_location_label(self)
 
     def __str__(self):
         return f"{self.sequence}. {self.get_kind_display()} · {self.city}"
