@@ -3611,6 +3611,53 @@ class BankStatementNumberSequence(TimestampedModel):
         return f"{self.owner_company} · {self.year}: {self.last_value}"
 
 
+class BankStatementImport(TimestampedModel):
+    """Одна загруженная банковская выписка с набором операций."""
+
+    owner_company = models.ForeignKey(
+        Organization,
+        verbose_name="Наша компания",
+        related_name="bank_statement_imports",
+        on_delete=models.PROTECT,
+    )
+    bank_account = models.ForeignKey(
+        OrganizationBankAccount,
+        verbose_name="Банковский счёт",
+        related_name="statement_imports",
+        on_delete=models.PROTECT,
+    )
+    source_name = models.CharField("Имя файла", max_length=255)
+    period_start = models.DateField("Начало периода", null=True, blank=True)
+    period_end = models.DateField("Конец периода", null=True, blank=True)
+    imported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Загрузил",
+        related_name="imported_bank_statements",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "банковская выписка"
+        verbose_name_plural = "банковские выписки"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Выписка {self.source_name} от {self.created_at:%d.%m.%Y}"
+
+    @property
+    def operation_count(self):
+        return self.operations.count()
+
+    @property
+    def total_amount(self):
+        return self.operations.aggregate(total=Sum("operation_amount"))["total"] or Decimal("0")
+
+    def get_absolute_url(self):
+        return reverse("bank-statement-import-detail", kwargs={"pk": self.pk})
+
+
 class BankStatement(TimestampedModel):
     """Групповой банковский документ для проведения платежей по рейсам."""
 
@@ -3643,6 +3690,14 @@ class BankStatement(TimestampedModel):
         OrganizationBankAccount,
         verbose_name="Банковский счёт",
         related_name="bank_statements",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    import_batch = models.ForeignKey(
+        BankStatementImport,
+        verbose_name="Банковская выписка",
+        related_name="operations",
         on_delete=models.PROTECT,
         null=True,
         blank=True,

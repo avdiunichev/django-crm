@@ -172,6 +172,11 @@ urlpatterns = [
         name="bank-statement-import",
     ),
     path(
+        "bank-statements/imports/<int:pk>/",
+        views.BankStatementImportDetailView.as_view(),
+        name="bank-statement-import-detail",
+    ),
+    path(
         "bank-statements/new/",
         views.BankStatementCreateView.as_view(),
         name="bank-statement-create",

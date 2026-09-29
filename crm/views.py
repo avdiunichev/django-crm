@@ -512,6 +512,7 @@ from .mailbox_client import (
 )
 from .models import (
     BankStatement,
+    BankStatementImport,
     BankStatementLine,
     Carrier,
     ChatMessage,
@@ -8764,6 +8765,16 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
         skipped = list(parse_errors)
         created = []
         with transaction.atomic():
+            period_start = parse_crm_date(header.get("ДатаНачала", ""))
+            period_end = parse_crm_date(header.get("ДатаКонца", ""))
+            batch = BankStatementImport.objects.create(
+                owner_company=owner,
+                bank_account=account,
+                source_name=Path(uploaded.name).name[:255],
+                period_start=period_start,
+                period_end=period_end,
+                imported_by=self.request.user,
+            )
             for payment in payments:
                 direction = self._payment_direction(payment, account_number)
                 if not direction:
@@ -8778,6 +8789,7 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                     direction=direction,
                     owner_company=owner,
                     bank_account=account,
+                    import_batch=batch,
                     currency=account.currency,
                     reference=payment.number[:100],
                     operation_amount=payment.amount,
@@ -8790,6 +8802,7 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                 created.append(statement)
 
         if not created:
+            batch.delete()
             form.add_error(
                 "statement_file",
                 "В файле нет операций по выбранному расчётному счёту.",
@@ -8802,8 +8815,31 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
         return render(
             self.request,
             "crm/bank_statement_import_result.html",
-            {"created_statements": created, "skipped_rows": skipped},
+            {"created_statements": created, "batch": batch, "skipped_rows": skipped},
         )
+
+
+class BankStatementImportDetailView(LoginRequiredMixin, FinanceAccessMixin, DetailView):
+    model = BankStatementImport
+    template_name = "crm/bank_statement_import_detail.html"
+    context_object_name = "batch"
+
+    def get_queryset(self):
+        queryset = BankStatementImport.objects.select_related(
+            "owner_company", "bank_account", "imported_by"
+        ).prefetch_related("operations")
+        if user_can_see_all_records(self.request.user):
+            return queryset
+        return queryset.filter(imported_by=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["operations"] = self.object.operations.select_related(
+            "owner_company", "bank_account"
+        ).annotate(total_sum=Sum("lines__amount"), line_total=Count("lines")).order_by(
+            "-statement_date", "-created_at"
+        )
+        return context
 
 
 class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPageSizeMixin, ListView):
@@ -8861,6 +8897,16 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 "posted_count": scoped_statements.filter(
                     status=BankStatement.Status.POSTED
                 ).count(),
+                "recent_imports": (
+                    BankStatementImport.objects.select_related("owner_company", "bank_account")
+                    .prefetch_related("operations")
+                    .order_by("-created_at")[:8]
+                    if user_can_see_all_records(self.request.user)
+                    else BankStatementImport.objects.filter(imported_by=self.request.user)
+                    .select_related("owner_company", "bank_account")
+                    .prefetch_related("operations")
+                    .order_by("-created_at")[:8]
+                ),
             }
         )
         return context

@@ -22,6 +22,11 @@
     <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Проведено</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ posted_count }}</strong><small>платежи отражены в рейсах</small></article>
 </section>
 
+{% if recent_imports %}<section class="panel uk-card uk-card-default bank-statement-register bank-statement-directory-register">
+    <div class="onec-register-header"><div><span class="eyebrow">Загруженные выписки</span><h2>Выписки из 1С‑Банка</h2><p>Каждая выписка хранит все операции из загруженного файла.</p></div></div>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle"><thead><tr><th>Файл</th><th>Компания / счёт</th><th>Период</th><th class="uk-text-center">Операции</th><th class="uk-text-right">Сумма</th><th></th></tr></thead><tbody>{% for batch in recent_imports %}<tr><td><a class="primary-link" href="{{ batch.get_absolute_url }}">{{ batch.source_name }}</a><small>загружена {{ batch.created_at|date:"d.m.Y H:i" }}</small></td><td>{{ batch.owner_company }}<small>{{ batch.bank_account.account_number }}</small></td><td>{{ batch.period_start|date:"d.m.Y"|default:"—" }} — {{ batch.period_end|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-center">{{ batch.operation_count }}</td><td class="uk-text-right"><strong>{{ batch.total_amount|floatformat:"2g" }} {{ batch.bank_account.currency }}</strong></td><td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a></td></tr>{% endfor %}</tbody></table></div>
+</section>{% endif %}
+
 <form class="filters bank-statement-filters bank-statement-directory-filters" method="get">
     <label class="driver-search-field"><span uk-icon="search"></span><input class="form-control uk-input search" type="search" name="q" value="{{ current_query }}" placeholder="Документ, выписка, компания или счёт"></label>
     <select class="form-control uk-select" name="direction"><option value="">Все операции</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if current_direction == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
