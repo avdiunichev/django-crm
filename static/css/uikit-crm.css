@@ -844,12 +844,20 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
 .document-trip-lines th:nth-last-child(-n+3),
 .document-trip-lines td:nth-last-child(-n+3) { width: 13%; }
 
+.invoice-payment-state { font-weight: 700; }
+.invoice-payment-state--paid { color: #16845b !important; }
+.invoice-payment-state--partial { color: #a66a16 !important; }
+.invoice-payment-state--unpaid { color: #c15b60 !important; }
+
 html[data-theme="dark"] body.uikit-theme .document-trip-summary {
     border-color: #344257;
     background: #141e2f;
     color: #9aa8ba;
 }
 html[data-theme="dark"] body.uikit-theme .document-trip-summary strong { color: #eef3fa; }
+html[data-theme="dark"] body.uikit-theme .invoice-payment-state--paid { color: #41d59a !important; }
+html[data-theme="dark"] body.uikit-theme .invoice-payment-state--partial { color: #f5bb6a !important; }
+html[data-theme="dark"] body.uikit-theme .invoice-payment-state--unpaid { color: #ff9da1 !important; }
 
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-toolbar,
 html[data-theme="dark"] body.uikit-theme .customer-trip-table-wrap {

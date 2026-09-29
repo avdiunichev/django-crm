@@ -3599,6 +3599,33 @@ class CustomerDocumentListView(ShipmentDocumentListView):
                     },
                 )
                 if document.kind == ShipmentDocument.Kind.INVOICE:
+                    transportation_ids = list(
+                        document.lines.values_list("transportation_id", flat=True).distinct()
+                    )
+                    if not transportation_ids and document.transportation_id:
+                        transportation_ids = [document.transportation_id]
+                    paid_amount = -(
+                        SettlementMovement.objects.filter(
+                            transportation_id__in=transportation_ids,
+                            side=SettlementMovement.Side.RECEIVABLE,
+                            kind=SettlementMovement.Kind.PAYMENT,
+                        ).aggregate(total=Sum("amount"))["total"]
+                        or Decimal("0.00")
+                    )
+                    document.payment_amount = max(paid_amount, Decimal("0.00"))
+                    document.payment_balance = max(
+                        (document.amount or Decimal("0.00")) - document.payment_amount,
+                        Decimal("0.00"),
+                    )
+                    if document.payment_balance <= 0:
+                        document.payment_state = "paid"
+                        document.payment_state_label = "Оплачен"
+                    elif document.payment_amount > 0:
+                        document.payment_state = "partial"
+                        document.payment_state_label = "Частично оплачен"
+                    else:
+                        document.payment_state = "unpaid"
+                        document.payment_state_label = "Не оплачен"
                     row["invoices"].append(document)
                 elif document.kind == ShipmentDocument.Kind.UPD:
                     row["upds"].append(document)
