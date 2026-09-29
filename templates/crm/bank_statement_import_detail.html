@@ -19,11 +19,11 @@
 
 <section class="panel uk-card uk-card-default bank-statement-register">
     <div class="onec-register-header"><div><span class="eyebrow">Операции выписки</span><h2>Все строки файла</h2><p>Откройте строку, чтобы распределить платёж по рейсам.</p></div></div>
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-import-operations-table">
-        <colgroup><col class="bank-operation-date-column"><col><col><col><col><col></colgroup>
-        <thead><tr><th class="bank-operation-date-column">Дата / №</th><th>Контрагент</th><th>Назначение</th><th>Операция</th><th class="uk-text-right">Сумма</th><th></th></tr></thead>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-import-operations-table" style="min-width:1200px; table-layout:fixed;">
+        <colgroup><col style="width:170px"><col style="width:25%"><col><col style="width:190px"><col style="width:170px"><col style="width:130px"></colgroup>
+        <thead><tr><th class="bank-operation-date-column" style="width:170px; min-width:170px; white-space:nowrap">Дата / №</th><th>Контрагент</th><th>Назначение</th><th>Операция</th><th class="uk-text-right">Сумма</th><th></th></tr></thead>
         <tbody>{% for statement in operations %}<tr>
-            <td class="bank-operation-date-column"><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.statement_date|date:"d.m.Y" }}</a><small>№ {{ statement.reference|default:"—" }}</small></td>
+            <td class="bank-operation-date-column" style="width:170px; min-width:170px; white-space:nowrap"><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.statement_date|date:"d.m.Y" }}</a><small>№ {{ statement.reference|default:"—" }}</small></td>
             <td><strong>{{ statement.counterparty_name|default:"Не указан" }}</strong><small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small></td>
             <td>{{ statement.payment_purpose|default:"—" }}</td>
             <td><span class="uk-label {% if statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small>{{ statement.get_status_display }}</small></td>
