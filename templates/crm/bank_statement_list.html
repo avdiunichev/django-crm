@@ -19,9 +19,18 @@
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel bank-statement-register bank-statement-directory-register">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-register-table">
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-register-table" data-server-sort="true">
         <colgroup><col style="width:150px"><col style="width:220px"><col style="width:330px"><col style="width:160px"><col style="width:240px"><col style="width:140px"><col style="width:140px"><col style="width:160px"><col style="width:180px"></colgroup>
-        <thead><tr><th>Документ</th><th>Контрагент</th><th>Назначение платежа</th><th>Операция</th><th>Компания / счёт</th><th class="uk-text-right">Поступление</th><th class="uk-text-right">Списание</th><th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th></tr></thead>
+        <thead><tr>
+            <th><a class="server-sort-link{% if sort_columns.document.active %} is-active{% endif %}" href="{{ sort_columns.document.url }}">Документ {% if sort_columns.document.active %}<span>{{ sort_columns.document.label }}</span>{% endif %}</a></th>
+            <th><a class="server-sort-link{% if sort_columns.counterparty.active %} is-active{% endif %}" href="{{ sort_columns.counterparty.url }}">Контрагент {% if sort_columns.counterparty.active %}<span>{{ sort_columns.counterparty.label }}</span>{% endif %}</a></th>
+            <th><a class="server-sort-link{% if sort_columns.purpose.active %} is-active{% endif %}" href="{{ sort_columns.purpose.url }}">Назначение платежа {% if sort_columns.purpose.active %}<span>{{ sort_columns.purpose.label }}</span>{% endif %}</a></th>
+            <th><a class="server-sort-link{% if sort_columns.operation.active %} is-active{% endif %}" href="{{ sort_columns.operation.url }}">Операция {% if sort_columns.operation.active %}<span>{{ sort_columns.operation.label }}</span>{% endif %}</a></th>
+            <th><a class="server-sort-link{% if sort_columns.account.active %} is-active{% endif %}" href="{{ sort_columns.account.url }}">Компания / счёт {% if sort_columns.account.active %}<span>{{ sort_columns.account.label }}</span>{% endif %}</a></th>
+            <th class="uk-text-right"><a class="server-sort-link{% if sort_columns.amount.active %} is-active{% endif %}" href="{{ sort_columns.amount.url }}">Поступление {% if sort_columns.amount.active %}<span>{{ sort_columns.amount.label }}</span>{% endif %}</a></th>
+            <th class="uk-text-right"><a class="server-sort-link{% if sort_columns.amount.active %} is-active{% endif %}" href="{{ sort_columns.amount.url }}">Списание {% if sort_columns.amount.active %}<span>{{ sort_columns.amount.label }}</span>{% endif %}</a></th>
+            <th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th>
+        </tr></thead>
         <tbody>
         {% for statement in bank_statements %}
             <tr>

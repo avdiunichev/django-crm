@@ -8914,6 +8914,30 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
     template_name = "crm/bank_statement_list.html"
     context_object_name = "bank_statements"
     paginate_by = 30
+    page_size_session_key = "crm_bank_statement_page_size"
+    # Sorting is deliberately performed by the database before pagination.  It
+    # keeps the order consistent across the whole register, not just the rows
+    # currently rendered on screen.
+    sort_options = {
+        "document": ("statement_date", "number", "pk"),
+        "counterparty": ("counterparty_name", "counterparty_tax_id", "pk"),
+        "purpose": ("payment_purpose", "pk"),
+        "operation": ("direction", "status", "pk"),
+        "account": ("owner_company__name", "bank_account__account_number", "pk"),
+        "amount": ("operation_amount", "total_sum", "pk"),
+    }
+
+    def get_sorting(self):
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options:
+            sort_key = "document"
+            descending = True
+        fields = self.sort_options[sort_key]
+        if descending:
+            fields = tuple(f"-{field}" for field in fields)
+        return sort_key, descending, fields
 
     def get_queryset(self):
         queryset = (
@@ -8945,7 +8969,8 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 | Q(counterparty_tax_id__icontains=query)
                 | Q(payment_purpose__icontains=query)
             )
-        return queryset
+        _, _, ordering = self.get_sorting()
+        return queryset.order_by(*ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -8955,6 +8980,19 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         for statement in statements:
             statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
         context["bank_statements"] = statements
+        current_sort_key, current_sort_desc, _ = self.get_sorting()
+        sort_columns = {}
+        for key in self.sort_options:
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if current_sort_key != key or current_sort_desc else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": current_sort_key == key,
+                "direction": "desc" if current_sort_desc else "asc",
+                "label": "↓" if current_sort_desc else "↑",
+            }
+        context["sort_columns"] = sort_columns
         scoped_statements = scope_bank_statements_for_user(
             BankStatement.objects.all(), self.request.user
         )
