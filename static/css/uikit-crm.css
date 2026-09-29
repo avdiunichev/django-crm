@@ -845,6 +845,9 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
 .document-trip-lines td:nth-last-child(-n+3) { width: 13%; }
 
 .invoice-payment-state { font-weight: 700; }
+.invoice-payment-list { display: grid; gap: 8px; }
+.invoice-payment-list > div { display: grid; gap: 3px; }
+.invoice-payment-list small { color: #8a95a3; }
 .invoice-payment-state--paid { color: #16845b !important; }
 .invoice-payment-state--partial { color: #a66a16 !important; }
 .invoice-payment-state--unpaid { color: #c15b60 !important; }
