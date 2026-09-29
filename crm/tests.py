@@ -677,6 +677,11 @@ class CrmTestCase(TestCase):
         transportation.customer_contract = contract
         transportation.save(update_fields=["status", "customer_contract", "updated_at"])
 
+        page = self.client.get(reverse("customer-document-issue", args=["registry"]))
+        self.assertContains(page, "Найдите клиента по названию или ИНН")
+        self.assertContains(page, f"{self.customer.organization.tax_id}")
+        self.assertContains(page, date.today().strftime("%d.%m.%Y"))
+
         response = self.client.post(
             reverse("customer-document-issue", args=["registry"]),
             {

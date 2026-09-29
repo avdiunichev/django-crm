@@ -3461,10 +3461,15 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        selected_customer = (
+            self.request.POST.get("customer", "").strip()
+            or self.request.GET.get("customer", "").strip()
+        )
         selected_contract = self.request.GET.get("contract", "").strip()
         kwargs.update(
             mode=self.mode,
             candidates=self.candidate_queryset(),
+            selected_customer=selected_customer if selected_customer.isdigit() else None,
             selected_contract=selected_contract if selected_contract.isdigit() else None,
         )
         return kwargs

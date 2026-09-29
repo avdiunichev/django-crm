@@ -4806,7 +4806,15 @@ class CustomerDocumentIssueForm(forms.Form):
         empty_label="Выберите договор",
     )
 
-    def __init__(self, *args, mode="individual", candidates=None, selected_contract=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        mode="individual",
+        candidates=None,
+        selected_customer=None,
+        selected_contract=None,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.mode = mode
         candidates = candidates if candidates is not None else Transportation.objects.none()
@@ -4815,19 +4823,47 @@ class CustomerDocumentIssueForm(forms.Form):
             f"{item.number or 'Черновик'} · {item.route} · "
             f"{item.customer_amount} {item.currency}"
         )
-        customer_ids = candidates.values_list(
-            "parties__organization_id", flat=True
-        ).distinct()
+        # A client is selected before the eligible trips are narrowed down.
+        # Do not derive this list from the current candidate trips: otherwise a
+        # client with no unfinished delivery temporarily disappears from search.
         self.fields["customer"].queryset = Organization.objects.filter(
-            pk__in=customer_ids
-        ).order_by("name")
+            Q(roles__role=OrganizationRole.Role.CLIENT, roles__is_active=True)
+            | Q(
+                transportation_participations__role=TransportationParty.Role.CLIENT,
+                transportation_participations__is_active=True,
+            ),
+            is_active=True,
+        ).distinct().order_by("name")
+        self.fields["customer"].label_from_instance = lambda organization: (
+            f"{organization} · ИНН {organization.tax_id}"
+            if organization.tax_id
+            else str(organization)
+        )
+        self.fields["customer"].widget.attrs.update(
+            {
+                "class": "form-control uk-select",
+                "data-search-placeholder": "Найдите клиента по названию или ИНН",
+            }
+        )
+        self.fields["contract"].widget.attrs.update(
+            {
+                "class": "form-control uk-select",
+                "data-search-placeholder": "Найдите договор по номеру или клиенту",
+            }
+        )
+        self.fields["document_date"].widget.attrs["class"] = "form-control uk-input"
         if mode == "registry":
             self.fields["customer"].required = True
-            self.fields["contract"].queryset = Contract.objects.filter(
-                pk__in=candidates.exclude(customer_contract__isnull=True).values_list(
-                    "customer_contract_id", flat=True
+            contracts = Contract.objects.select_related("customer", "expeditor")
+            if selected_customer:
+                contracts = contracts.filter(customer__organization_id=selected_customer)
+            else:
+                contracts = contracts.filter(
+                    pk__in=candidates.exclude(customer_contract__isnull=True).values_list(
+                        "customer_contract_id", flat=True
+                    )
                 )
-            ).select_related("customer", "expeditor").order_by("-contract_date")
+            self.fields["contract"].queryset = contracts.order_by("-contract_date")
             self.fields["contract"].required = True
             if selected_contract:
                 self.fields["contract"].initial = selected_contract
