@@ -4192,6 +4192,7 @@ class CargoInsurance(TimestampedModel):
     currency = models.CharField("Валюта", max_length=3, default="RUB")
     status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.DRAFT)
     bank_statement_line = models.OneToOneField("BankStatementLine", related_name="cargo_insurance", on_delete=models.PROTECT, null=True, blank=True)
+    included_in_customer_rate = models.BooleanField(default=False)
     notes = models.TextField("Комментарий", blank=True)
 
     class Meta:
@@ -4207,11 +4208,13 @@ class CargoInsurance(TimestampedModel):
         previous = type(self).objects.filter(pk=self.pk).values("customer_amount").first()
         old_amount = previous["customer_amount"] if previous else Decimal("0")
         result = super().save(*args, **kwargs)
-        delta = self.customer_amount - old_amount
+        delta = self.customer_amount - old_amount if self.included_in_customer_rate else self.customer_amount
         if delta:
             Transportation.objects.filter(pk=self.transportation_id).update(
                 customer_amount=models.F("customer_amount") + delta
             )
+            type(self).objects.filter(pk=self.pk).update(included_in_customer_rate=True)
+            self.included_in_customer_rate = True
         return result
 
 
