@@ -2308,6 +2308,11 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .bank-statement-directory-page .bank-statement-directory-register { min-height: min(620px, calc(100dvh - 410px)); padding: 0; overflow: hidden; border: 1px solid var(--workspace-line); border-radius: 0; box-shadow: none; background: var(--workspace-surface); }
 .bank-statement-directory-page .bank-statement-directory-register .onec-register-header { padding: 18px 20px; border-radius: 0; background: var(--workspace-surface); }
 .bank-statement-directory-page .bank-statement-directory-register .table-wrap { max-height: min(670px, calc(100dvh - 465px)); overflow: auto; border-top: 1px solid var(--workspace-line); border-radius: 0; }
+.bank-statement-directory-page .bank-statement-imports-register { min-height: 0; margin-bottom: 18px; }
+.bank-statement-directory-page .bank-statement-imports-register .onec-register-header { padding: 16px 20px; }
+.bank-statement-directory-page .bank-statement-imports-register .onec-register-header h2 { font-size: 17px; }
+.bank-statement-directory-page .bank-statement-imports-register .table-wrap { max-height: none; }
+.bank-statement-directory-page .bank-statement-imports-register .uk-table td { padding-top: 9px; padding-bottom: 9px; }
 .bank-statement-directory-page .bank-statement-directory-table { width: 100%; min-width: 860px; margin: 0; border-radius: 0; font-size: 13px; }
 .bank-statement-directory-page .bank-statement-directory-table thead { position: sticky; top: 0; z-index: 3; }
 .bank-statement-directory-page .bank-statement-directory-table th { height: 44px; padding: 0 14px; border-radius: 0; background: var(--workspace-soft); color: var(--workspace-muted); font-size: 11px; font-weight: 650; white-space: nowrap; }

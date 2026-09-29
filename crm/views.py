@@ -8967,6 +8967,7 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 "current_direction": self.request.GET.get("direction", ""),
                 "current_owner": self.request.GET.get("owner", ""),
                 "current_query": self.request.GET.get("q", "").strip(),
+                "document_count": scoped_statements.count(),
                 "draft_count": scoped_statements.filter(
                     status=BankStatement.Status.DRAFT
                 ).count(),
