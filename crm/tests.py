@@ -1689,7 +1689,7 @@ class CrmTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Плательщик")
-        self.assertContains(response, 'name="roles"', count=5)
+        self.assertContains(response, 'name="roles"', count=6)
         self.assertEqual(
             response.context["form"]["roles"].value(),
             [OrganizationRole.Role.CLIENT],
@@ -1698,7 +1698,7 @@ class CrmTestCase(TestCase):
         self.assertContains(response, 'class="checkbox uk-checkbox"')
         self.assertEqual(
             [value for value, _label in OrganizationRole.Role.choices],
-            ["client", "forwarder", "carrier", "shipper", "consignee"],
+            ["client", "forwarder", "carrier", "shipper", "consignee", "insurer"],
         )
 
     def test_counterparty_roles_remain_checked_after_update(self):

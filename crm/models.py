@@ -462,6 +462,7 @@ class OrganizationRole(TimestampedModel):
         CARRIER = "carrier", "Перевозчик"
         SHIPPER = "shipper", "Грузоотправитель"
         CONSIGNEE = "consignee", "Грузополучатель"
+        INSURER = "insurer", "Страховая компания"
 
     organization = models.ForeignKey(
         Organization,
