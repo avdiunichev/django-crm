@@ -216,6 +216,7 @@ urlpatterns = [
         views.BankStatementPostView.as_view(),
         name="bank-statement-post",
     ),
+    path("transportations/<int:transportation_pk>/insurance/new/", views.CargoInsuranceCreateView.as_view(), name="cargo-insurance-create"),
     path("planner/", views.PlannerView.as_view(), name="planner"),
     path(
         "planner/tasks/new/",

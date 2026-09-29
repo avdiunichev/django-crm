@@ -4177,6 +4177,33 @@ class TransportationIncident(TimestampedModel):
         )
 
 
+class CargoInsurance(TimestampedModel):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Ожидает счёт"
+        INVOICED = "invoiced", "Счёт страховой получен"
+        PAID = "paid", "Оплачено"
+
+    transportation = models.ForeignKey(Transportation, related_name="cargo_insurances", on_delete=models.CASCADE)
+    insurer = models.ForeignKey(Organization, related_name="cargo_insurances", on_delete=models.PROTECT)
+    invoice_number = models.CharField("Номер счёта страховой", max_length=100, blank=True)
+    invoice_date = models.DateField("Дата счёта", null=True, blank=True)
+    insurer_amount = models.DecimalField("Сумма страховой", max_digits=14, decimal_places=2)
+    customer_amount = models.DecimalField("К перевыставлению клиенту", max_digits=14, decimal_places=2)
+    currency = models.CharField("Валюта", max_length=3, default="RUB")
+    status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    bank_statement_line = models.OneToOneField("BankStatementLine", related_name="cargo_insurance", on_delete=models.PROTECT, null=True, blank=True)
+    notes = models.TextField("Комментарий", blank=True)
+
+    class Meta:
+        verbose_name = "страхование груза"
+        verbose_name_plural = "страхование грузов"
+        ordering = ("-invoice_date", "-created_at")
+
+    @property
+    def is_paid(self):
+        return self.bank_statement_line_id is not None or self.status == self.Status.PAID
+
+
 class TransportationStatusEvent(TimestampedModel):
     class Source(models.TextChoices):
         DOCUMENT = "document", "Карточка рейса"

@@ -490,6 +490,7 @@ from .forms import (
     TransportationDocumentForm,
     TransportationStopFormSet,
     TransportationIncidentForm,
+    CargoInsuranceForm,
     TransportationWaybillPreflightForm,
     VehicleForm,
     VehicleAttachmentForm,
@@ -551,6 +552,7 @@ from .models import (
     Transportation,
     TransportationInstruction,
     TransportationIncident,
+    CargoInsurance,
     TransportationElectronicDocument,
     TransportationStatusEvent,
     TransportationLink,
@@ -10016,6 +10018,28 @@ class TransportationIncidentDeleteView(LoginRequiredMixin, OperationsAccessMixin
         return redirect("transportation-detail", pk=transportation_pk)
 
 
+class CargoInsuranceCreateView(LoginRequiredMixin, OperationsAccessMixin, CreateView):
+    model = CargoInsurance
+    form_class = CargoInsuranceForm
+    template_name = "crm/cargo_insurance_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.transportation = get_object_or_404(scope_transportations_for_user(Transportation.objects.all(), request.user), pk=kwargs["transportation_pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs(); kwargs["transportation"] = self.transportation; return kwargs
+
+    def form_valid(self, form):
+        form.instance.transportation = self.transportation
+        if form.instance.bank_statement_line_id:
+            form.instance.status = CargoInsurance.Status.PAID
+        messages.success(self.request, "Страхование груза добавлено.")
+        return super().form_valid(form)
+
+    def get_success_url(self): return reverse("transportation-detail", kwargs={"pk": self.transportation.pk})
+
+
 class TransportationDetailView(LoginRequiredMixin, DetailView):
     model = Transportation
     template_name = "crm/transportation_detail.html"
@@ -10103,6 +10127,7 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
         links = list(transportation.execution_links.all())
         assignment = transportation.active_vehicle_assignment()
         incidents = list(transportation.incidents.all())
+        cargo_insurances = list(transportation.cargo_insurances.select_related("insurer", "bank_statement_line__statement"))
         incident_income = sum(
             (item.amount for item in incidents if item.financial_impact == TransportationIncident.FinancialImpact.INCOME),
             Decimal("0"),
@@ -10339,6 +10364,9 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                 "instructions": list(transportation.instructions.all()),
                 "epd_documents": list(transportation.electronic_documents.all()),
                 "incidents": incidents,
+                "cargo_insurances": cargo_insurances,
+                "insurance_customer_total": sum((item.customer_amount for item in cargo_insurances), Decimal("0")),
+                "insurance_cost_total": sum((item.insurer_amount for item in cargo_insurances), Decimal("0")),
                 "incident_income": incident_income,
                 "incident_expense": incident_expense,
                 "adjusted_margin": transportation.margin + incident_income - incident_expense,

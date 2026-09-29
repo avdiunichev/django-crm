@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Страхование груза — {{ transportation.number }}{% endblock %}
+{% block content %}
+<form method="post" class="entity-form uk-form-stacked">{% csrf_token %}
+<div class="page-heading with-action"><div><a class="back-link" href="{{ transportation.get_absolute_url }}">← К рейсу</a><span class="eyebrow">Финансы рейса</span><h1>Страхование груза</h1><p>Укажите счёт страховой и сумму, которую нужно включить в счёт клиенту.</p></div><div class="heading-actions"><button class="uk-button uk-button-primary" type="submit">Сохранить страховку</button></div></div>
+<section class="form-section uk-card uk-card-default"><div class="form-section-title"><span>01</span><div><h2>Счёт страховой</h2><p>Расход страховой и перевыставление клиенту ведутся раздельно.</p></div></div><div class="form-grid">{% include "crm/includes/form_field.html" with field=form.insurer %}{% include "crm/includes/form_field.html" with field=form.invoice_number %}{% include "crm/includes/form_field.html" with field=form.invoice_date %}{% include "crm/includes/form_field.html" with field=form.insurer_amount %}{% include "crm/includes/form_field.html" with field=form.customer_amount %}{% include "crm/includes/form_field.html" with field=form.currency %}{% include "crm/includes/form_field.html" with field=form.status %}{% include "crm/includes/form_field.html" with field=form.bank_statement_line %}{% include "crm/includes/form_field.html" with field=form.notes wide=True %}</div></section>
+</form>
+{% endblock %}

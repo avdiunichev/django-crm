@@ -42,6 +42,9 @@ from .models import (
     ShipmentDocument,
     TransportOrder,
     TransportOrderStop,
+    CargoInsurance,
+    BankStatement,
+    BankStatementLine,
     TransportationIncident,
     VehicleCombination,
     Transportation,
@@ -3322,6 +3325,24 @@ class TransportationIncidentForm(StyledModelForm):
         if cleaned.get("financial_impact") == TransportationIncident.FinancialImpact.NONE:
             cleaned["amount"] = Decimal("0")
         return cleaned
+
+
+class CargoInsuranceForm(StyledModelForm):
+    class Meta:
+        model = CargoInsurance
+        fields = ["insurer", "invoice_number", "invoice_date", "insurer_amount", "customer_amount", "currency", "status", "bank_statement_line", "notes"]
+        widgets = {"invoice_date": forms.DateInput(attrs={"type": "date"}), "notes": forms.Textarea(attrs={"rows": 3})}
+
+    def __init__(self, *args, transportation=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.transportation = transportation
+        self.fields["insurer"].queryset = Organization.objects.filter(is_active=True).order_by("name")
+        if transportation:
+            self.fields["currency"].initial = transportation.currency
+            self.fields["bank_statement_line"].queryset = BankStatementLine.objects.filter(
+                transportation=transportation,
+                statement__direction=BankStatement.Direction.EXPENSE,
+            ).select_related("statement")
 
 
 class PlannerTaskForm(StyledModelForm):
