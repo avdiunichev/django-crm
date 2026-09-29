@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% block title %}Приходы и расходы — Моя CRM{% endblock %}
+{% block title %}Банковские выписки — Моя CRM{% endblock %}
 {% block body_class %}bank-statement-directory-page{% endblock %}
 {% block content %}
 <div class="page-heading with-action bank-statement-directory-heading">
     <div>
         <span class="eyebrow">Банк и взаиморасчёты</span>
-        <h1>Приходы и расходы</h1>
-        <p>Массово регистрируйте оплаты из банковской выписки и проводите их по рейсам.</p>
+        <h1>Банковские выписки</h1>
+        <p>Загружайте операции из 1С‑Банка, распределяйте их по рейсам и проводите оплаты.</p>
     </div>
     <div class="heading-actions">
         <a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a>
