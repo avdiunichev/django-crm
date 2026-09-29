@@ -836,6 +836,13 @@ html[data-theme="dark"] body.uikit-theme .accounting-feed > a {
 .document-trip-lines td:first-child { width: 42px; text-align: center; }
 .document-trip-lines td { cursor: default; }
 .document-trip-lines td:nth-last-child(-n+3) { white-space: nowrap; }
+.document-trip-lines { table-layout: fixed; }
+.document-trip-lines th:nth-child(2),
+.document-trip-lines td:nth-child(2) { width: 17%; }
+.document-trip-lines th:nth-child(3),
+.document-trip-lines td:nth-child(3) { width: auto; }
+.document-trip-lines th:nth-last-child(-n+3),
+.document-trip-lines td:nth-last-child(-n+3) { width: 13%; }
 
 html[data-theme="dark"] body.uikit-theme .document-trip-summary {
     border-color: #344257;
