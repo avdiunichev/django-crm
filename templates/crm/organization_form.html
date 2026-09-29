@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}{{ object }}{% else %}Новый контрагент{% endif %} — Моя CRM{% endblock %}
 {% block content %}
-<form method="post" class="onec-workspace organization-workspace" novalidate>
+<form method="post" class="onec-workspace organization-workspace" novalidate data-organization-inn-check-url="{% url 'organization-check-inn' %}" data-organization-id="{{ object.pk|default:'' }}">
     {% csrf_token %}
     {{ form.contact_name }}{{ form.phone }}{{ form.email }}{{ form.fns_status }}{{ form.verification_status }}{{ form.default_vat_rate.as_hidden }}
     {{ form.bank_name }}{{ form.bik }}{{ form.settlement_account }}{{ form.correspondent_account }}

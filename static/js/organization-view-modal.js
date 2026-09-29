@@ -44,7 +44,57 @@
         field.dispatchEvent(new Event("change", {bubbles: true}));
     };
 
-    const bindDadata = (dialog) => {
+    const bindInnCheck = (dialog, form) => {
+        const taxId = dialog.querySelector("#id_tax_id");
+        const warning = dialog.querySelector("#inn-duplicate-warning");
+        const text = warning?.querySelector("[data-inn-duplicate-text]");
+        const link = warning?.querySelector("[data-inn-duplicate-link]");
+        const submitButtons = [...dialog.querySelectorAll(".organization-command-actions button[type='submit']")];
+        const endpoint = form.dataset.organizationInnCheckUrl;
+        let controller;
+        let timer;
+        const hide = () => {
+            if (warning) warning.hidden = true;
+            submitButtons.forEach((button) => { button.disabled = false; });
+        };
+        const show = (organization) => {
+            if (text) text.textContent = "Контрагент с таким ИНН уже существует.";
+            if (link) {
+                link.href = organization.url;
+                link.textContent = `Открыть: ${organization.name}`;
+            }
+            if (warning) warning.hidden = false;
+            submitButtons.forEach((button) => { button.disabled = true; });
+        };
+        const check = async () => {
+            const inn = (taxId?.value || "").replace(/\D/g, "");
+            controller?.abort();
+            if (![10, 12].includes(inn.length) || !endpoint) {
+                hide();
+                return;
+            }
+            controller = new AbortController();
+            const params = new URLSearchParams({inn});
+            if (form.dataset.organizationId) params.set("exclude", form.dataset.organizationId);
+            try {
+                const response = await fetch(`${endpoint}?${params}`, {
+                    headers: {Accept: "application/json"}, signal: controller.signal,
+                });
+                const result = await response.json();
+                if (response.ok && result.exists) show(result.organization);
+                else hide();
+            } catch (error) {
+                if (error.name !== "AbortError") hide();
+            }
+        };
+        ["input", "change"].forEach((eventName) => taxId?.addEventListener(eventName, () => {
+            clearTimeout(timer);
+            timer = setTimeout(check, 250);
+        }));
+        return check;
+    };
+
+    const bindDadata = (dialog, afterAutofill) => {
         const tools = dialog.querySelector("[data-dadata-autofill]");
         const button = tools?.querySelector("[data-dadata-button]");
         const status = tools?.querySelector("[data-dadata-status]");
@@ -96,6 +146,13 @@
                 }
                 const mirror = form.querySelector("[data-tax-id-mirror]");
                 if (mirror) mirror.value = taxId.value;
+                const fnsStatus = tools.closest(".crm-organization-dialog")?.querySelector("[data-fns-status]");
+                if (fnsStatus) {
+                    fnsStatus.textContent = `ФНС: ${party.is_invalid ? "Недействует" : (party.status_label || "Проверен")}`;
+                    fnsStatus.classList.toggle("uk-text-success", !party.is_invalid && party.status === "ACTIVE");
+                    fnsStatus.classList.toggle("uk-text-danger", party.is_invalid || (party.status && party.status !== "ACTIVE"));
+                }
+                await afterAutofill?.();
                 if (status) status.textContent = "Проверка выполнена: реквизиты заполнены.";
                 notify("Проверка выполнена: реквизиты заполнены.", "success");
             } catch (error) {
@@ -171,7 +228,8 @@
                 if (field) field.value = item === card ? "True" : "False";
             });
         });
-        bindDadata(dialog);
+        const checkInn = bindInnCheck(dialog, form);
+        bindDadata(dialog, checkInn);
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const submit = event.submitter || form.querySelector('[type="submit"]');
