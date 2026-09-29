@@ -2399,6 +2399,27 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-st
     font-size: 11px;
     line-height: 1.2;
 }
+/* Финальная геометрия реестра банковских выписок. Это тот же режим, что у
+   водителей: таблица является частью страницы, а не самостоятельным скролл
+   контейнером. Важно не задавать overflow-x отдельно: тогда браузер превращает
+   overflow-y в auto и снова появляется прокрутка внутри рамки. */
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page :is(.bank-statement-directory-register, .bank-statement-directory-register .table-wrap, .bank-statement-directory-table) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page :is(.bank-statement-directory-register, .bank-statement-directory-register .table-wrap) {
+    overflow: visible !important;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table thead {
+    position: sticky !important;
+    top: 0;
+    z-index: 20;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table thead th {
+    position: static;
+}
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table th {
     white-space: nowrap;
 }
