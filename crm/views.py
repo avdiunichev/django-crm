@@ -8777,6 +8777,11 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
             return self.form_invalid(form)
 
         account_number = "".join(character for character in account.account_number if character.isdigit())
+        def parsed_balance(value):
+            try:
+                return Decimal((value or "").replace(" ", "").replace(",", "."))
+            except (InvalidOperation, AttributeError):
+                return None
         skipped = list(parse_errors)
         created = []
         with transaction.atomic():
@@ -8789,6 +8794,8 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                 source_fingerprint=fingerprint,
                 period_start=period_start,
                 period_end=period_end,
+                opening_balance=parsed_balance(header.get("НачальныйОстаток")),
+                closing_balance=parsed_balance(header.get("КонечныйОстаток")),
                 imported_by=self.request.user,
             )
             for payment in payments:
@@ -8850,11 +8857,15 @@ class BankStatementImportDetailView(LoginRequiredMixin, FinanceAccessMixin, Deta
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["operations"] = self.object.operations.select_related(
+        operations = list(self.object.operations.select_related(
             "owner_company", "bank_account"
         ).annotate(total_sum=Sum("lines__amount"), line_total=Count("lines")).order_by(
             "-statement_date", "-created_at"
-        )
+        ))
+        balances = self.object.operation_balance_map()
+        for operation in operations:
+            operation.bank_balance = balances.get(operation.pk)
+        context["operations"] = operations
         return context
 
 
@@ -8867,7 +8878,7 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
     def get_queryset(self):
         queryset = (
             scope_bank_statements_for_user(
-                BankStatement.objects.select_related("owner_company", "bank_account"),
+                BankStatement.objects.select_related("owner_company", "bank_account", "import_batch"),
                 self.request.user,
             )
             .annotate(total_sum=Sum("lines__amount"), line_total=Count("lines"))
@@ -8895,6 +8906,12 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        statements = list(context["bank_statements"])
+        batches = {statement.import_batch_id: statement.import_batch for statement in statements if statement.import_batch_id}
+        balance_maps = {batch_id: batch.operation_balance_map() for batch_id, batch in batches.items()}
+        for statement in statements:
+            statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
+        context["bank_statements"] = statements
         scoped_statements = scope_bank_statements_for_user(
             BankStatement.objects.all(), self.request.user
         )

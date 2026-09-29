@@ -3632,6 +3632,12 @@ class BankStatementImport(TimestampedModel):
     )
     period_start = models.DateField("Начало периода", null=True, blank=True)
     period_end = models.DateField("Конец периода", null=True, blank=True)
+    opening_balance = models.DecimalField(
+        "Остаток на начало", max_digits=14, decimal_places=2, null=True, blank=True
+    )
+    closing_balance = models.DecimalField(
+        "Остаток на конец", max_digits=14, decimal_places=2, null=True, blank=True
+    )
     imported_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="Загрузил",
@@ -3674,6 +3680,32 @@ class BankStatementImport(TimestampedModel):
         return self.operations.filter(direction=BankStatement.Direction.EXPENSE).aggregate(
             total=Sum("operation_amount")
         )["total"] or Decimal("0")
+
+    def operation_balance_map(self):
+        """Return the bank balance after each operation in the imported file."""
+        operations = list(self.operations.order_by("statement_date", "created_at", "pk"))
+        balance = self.opening_balance
+        if balance is None and self.closing_balance is not None:
+            balance = self.closing_balance - sum(
+                (
+                    operation.operation_amount
+                    if operation.direction == BankStatement.Direction.INCOME
+                    else -operation.operation_amount
+                    for operation in operations
+                ),
+                Decimal("0"),
+            )
+        if balance is None:
+            return {}
+        result = {}
+        for operation in operations:
+            balance += (
+                operation.operation_amount
+                if operation.direction == BankStatement.Direction.INCOME
+                else -operation.operation_amount
+            )
+            result[operation.pk] = balance
+        return result
 
     def get_absolute_url(self):
         return reverse("bank-statement-import-detail", kwargs={"pk": self.pk})
