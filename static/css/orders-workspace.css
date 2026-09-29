@@ -126,13 +126,21 @@ body.orders-workspace-page .order-register-table .order-register-status > strong
 
 /* Реестр документов для клиентов следует той же строгой геометрии, что
    контрагенты, водители и рейсы: без вложенных карточек в ячейках. */
-body.orders-workspace-page .customer-document-register-table { min-width: 1120px; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(1) { width: 18%; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(2) { width: 14%; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(3) { width: 18%; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(4) { width: 20%; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(5) { width: 14%; }
-body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(6) { width: 16%; }
+body.orders-workspace-page .customer-document-register-table { min-width: 1350px; table-layout: fixed; }
+body.orders-workspace-page .customer-document-col-trip { width: 250px; }
+body.orders-workspace-page .customer-document-col-client { width: 220px; }
+body.orders-workspace-page .customer-document-col-invoice { width: 230px; }
+body.orders-workspace-page .customer-document-col-closing { width: 280px; }
+body.orders-workspace-page .customer-document-col-payment { width: 180px; }
+body.orders-workspace-page .customer-document-col-state { width: 190px; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(1) { width: 250px !important; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(2) { width: 220px !important; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(3) { width: 230px !important; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(4) { width: 280px !important; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(5) { width: 180px !important; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(6) { width: 190px !important; }
+body.orders-workspace-page .customer-document-register-table td { padding-top: 12px; padding-bottom: 12px; }
+body.orders-workspace-page .customer-document-register-table .customer-document-route { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 body.orders-workspace-page .customer-document-register-table .customer-register-documents,
 body.orders-workspace-page .customer-document-register-table .invoice-payment-list { display: grid; gap: 8px; }
 body.orders-workspace-page .customer-document-register-table .customer-register-documents > div,
