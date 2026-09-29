@@ -2316,6 +2316,10 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .bank-statement-directory-page .bank-statement-directory-table .uk-label { padding: 3px 7px; border-radius: 5px; font-size: 10px; }
 .bank-statement-directory-page .bank-statement-directory-table .row-action { display: inline-flex; margin: 0 0 0 5px; padding: 3px 6px; border: 1px solid var(--workspace-line); border-radius: 5px; font-size: 11px; text-decoration: none; }
 .bank-statement-directory-page .bank-statement-directory-table .bank-statement-actions-column { width: 175px; }
+.bank-statement-import-operations-table { table-layout: fixed; }
+.bank-statement-import-operations-table .bank-operation-date-column { width: 140px; min-width: 140px; white-space: nowrap; }
+.bank-statement-import-operations-table td.bank-operation-date-column a,
+.bank-statement-import-operations-table td.bank-operation-date-column small { white-space: nowrap; }
 @media (max-width: 900px) { .bank-statement-directory-page .bank-statement-directory-filters .driver-search-field { flex-basis: 100%; } .bank-statement-directory-page .bank-statement-directory-filters .uk-select { flex: 1 1 180px; } }
 @media (max-width: 720px) { .personal-settings-layout { grid-template-columns: 1fr; } }
 .mailbox-inbox { border: 1px solid var(--workspace-line); border-radius: 12px; padding: 22px; background: var(--workspace-surface); }
