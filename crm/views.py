@@ -4431,6 +4431,18 @@ class DocumentBatchEditorMixin:
         form = self.get_form()
         valid = form.is_valid()
         lines, errors = (self._parse_selected_lines(form) if valid else ([], []))
+        if (
+            valid
+            and not errors
+            and request.POST.get("action") == "post"
+            and getattr(self.object, "operation_amount", Decimal("0"))
+            and sum((amount for _, amount, _ in lines), Decimal("0"))
+            != self.object.operation_amount
+        ):
+            errors.append(
+                "Перед проведением распределите всю сумму банковской операции. "
+                "Не распределённый остаток можно сохранить черновиком."
+            )
         for error in errors:
             form.add_error(None, error)
         if valid and not errors:
@@ -8542,6 +8554,12 @@ class BankStatementEditorMixin:
                 user=self.request.user,
             )
             for candidate in candidates:
+                if (
+                    getattr(self, "object", None)
+                    and self.object.counterparty_tax_id
+                    and candidate["counterparty"].tax_id != self.object.counterparty_tax_id
+                ):
+                    continue
                 transportation_id = str(candidate["transportation"].pk)
                 candidate["selected"] = transportation_id in selected
                 candidate["entered_amount"] = amounts.get(
@@ -8592,13 +8610,19 @@ class BankStatementEditorMixin:
             if amount <= 0:
                 errors.append(f"{candidate['transportation']}: укажите сумму больше нуля.")
                 continue
-            if amount > candidate["balance"]:
+            if not (getattr(self, "object", None) and self.object.operation_amount) and amount > candidate["balance"]:
                 errors.append(
                     f"{candidate['transportation']}: сумма не может быть больше остатка "
                     f"{candidate['balance']}."
                 )
                 continue
             lines.append((candidate["transportation"], amount, payment_reference))
+        if (
+            getattr(self, "object", None)
+            and self.object.operation_amount
+            and sum((amount for _, amount, _ in lines), Decimal("0")) > self.object.operation_amount
+        ):
+            errors.append("Сумма распределения не может превышать сумму банковской операции.")
         return lines, errors
 
     def _save_statement(self, form, lines):
@@ -8737,79 +8761,38 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
             return self.form_invalid(form)
 
         account_number = "".join(character for character in account.account_number if character.isdigit())
-        candidates = {
-            direction: _bank_statement_candidates(
-                direction,
-                owner_id=owner.pk,
-                currency=account.currency,
-                user=self.request.user,
-            )
-            for direction in BankStatement.Direction.values
-        }
-        matched = {direction: {} for direction in BankStatement.Direction.values}
         skipped = list(parse_errors)
-        for payment in payments:
-            direction = self._payment_direction(payment, account_number)
-            if not direction:
-                skipped.append(
-                    f"Платёж № {payment.number or 'без номера'}: расчётный счёт компании не найден в операции."
-                )
-                continue
-            candidate = self._match_candidate(payment, candidates[direction], direction)
-            if not candidate:
-                skipped.append(
-                    f"Платёж № {payment.number or 'без номера'} на {payment.amount}: рейс не определён автоматически."
-                )
-                continue
-            transportation = candidate["transportation"]
-            row = matched[direction].setdefault(
-                transportation.pk,
-                {"transportation": transportation, "amount": Decimal("0"), "references": []},
-            )
-            row["amount"] += payment.amount
-            if payment.number:
-                row["references"].append(payment.number)
-
         created = []
         with transaction.atomic():
-            for direction, rows in matched.items():
-                if not rows:
+            for payment in payments:
+                direction = self._payment_direction(payment, account_number)
+                if not direction:
+                    skipped.append(
+                        f"Платёж № {payment.number or 'без номера'}: расчётный счёт компании не найден в операции."
+                    )
                     continue
-                relevant_dates = [
-                    payment.payment_date
-                    for payment in payments
-                    if self._payment_direction(payment, account_number) == direction
-                ]
+                counterparty_name = payment.payer_name if direction == BankStatement.Direction.INCOME else payment.recipient_name
+                counterparty_tax_id = payment.payer_tax_id if direction == BankStatement.Direction.INCOME else payment.recipient_tax_id
                 statement = BankStatement.objects.create(
-                    statement_date=max(relevant_dates) if relevant_dates else timezone.localdate(),
+                    statement_date=payment.payment_date,
                     direction=direction,
                     owner_company=owner,
                     bank_account=account,
                     currency=account.currency,
-                    reference=Path(uploaded.name).name[:100],
-                    notes=(
-                        "Импортировано из 1CClientBankExchange. "
-                        f"Период: {header.get('ДатаНачала', '—')}–{header.get('ДатаКонца', '—')}."
-                    ),
+                    reference=payment.number[:100],
+                    operation_amount=payment.amount,
+                    counterparty_name=counterparty_name[:500],
+                    counterparty_tax_id=re.sub(r"\D", "", counterparty_tax_id)[:20],
+                    payment_purpose=payment.purpose,
+                    notes=f"Импортировано из {Path(uploaded.name).name[:70]}. Период: {header.get('ДатаНачала', '—')}–{header.get('ДатаКонца', '—')}.",
                     created_by=self.request.user,
-                )
-                BankStatementLine.objects.bulk_create(
-                    [
-                        BankStatementLine(
-                            statement=statement,
-                            transportation=row["transportation"],
-                            amount=row["amount"],
-                            payment_reference=", ".join(row["references"])[:100],
-                        )
-                        for row in rows.values()
-                    ]
                 )
                 created.append(statement)
 
         if not created:
             form.add_error(
                 "statement_file",
-                "Ни один платёж не удалось сопоставить с рейсом. Проверьте расчётный счёт, ИНН и назначение платежа.",
+                "В файле нет операций по выбранному расчётному счёту.",
             )
             return self.form_invalid(form)
         messages.success(

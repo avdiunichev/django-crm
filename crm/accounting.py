@@ -694,7 +694,7 @@ def post_bank_statement(statement, user=None):
         )
         if line.amount <= 0:
             errors.append(f"{transportation}: сумма должна быть больше нуля.")
-        elif line.amount > balance:
+        elif not statement.operation_amount and line.amount > balance:
             errors.append(
                 f"{transportation}: сумма {line.amount} превышает остаток {balance}."
             )

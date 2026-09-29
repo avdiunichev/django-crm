@@ -3656,6 +3656,13 @@ class BankStatement(TimestampedModel):
     reference = models.CharField(
         "Номер банковской выписки", max_length=100, blank=True
     )
+    operation_amount = models.DecimalField(
+        "Сумма банковской операции", max_digits=14, decimal_places=2,
+        default=Decimal("0"),
+    )
+    counterparty_name = models.CharField("Контрагент из выписки", max_length=500, blank=True)
+    counterparty_tax_id = models.CharField("ИНН контрагента из выписки", max_length=20, blank=True)
+    payment_purpose = models.TextField("Назначение платежа", blank=True)
     notes = models.TextField("Комментарий", blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -3717,6 +3724,10 @@ class BankStatement(TimestampedModel):
     @property
     def total_amount(self):
         return self.lines.aggregate(total=Sum("amount"))["total"] or Decimal("0")
+
+    @property
+    def unallocated_amount(self):
+        return (self.operation_amount or Decimal("0")) - self.total_amount
 
     @property
     def line_count(self):
