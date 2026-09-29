@@ -14,7 +14,7 @@
         </div>
     </section>
     <section class="form-section uk-card uk-card-default">
-        <div class="form-section-title"><span>02</span><div><h2>Доставленные рейсы</h2><p>Показываются только рейсы, по которым ещё не выставлены счёт и УПД</p></div></div>
+        <div class="form-section-title"><span>02</span><div><h2>{% if is_registry %}Рейсы без счёта{% else %}Рейсы для выставления{% endif %}</h2><p>{% if is_registry %}Все неотменённые рейсы выбранного клиента и договора, по которым ещё не выставлен счёт{% else %}Показываются рейсы, по которым ещё не выставлены счёт и УПД{% endif %}</p></div></div>
         {{ form.transportations.errors }}
         {% if candidate_rows %}
         <div class="customer-trip-table-toolbar">
@@ -38,7 +38,7 @@
                 </tbody>
             </table>
         </div>
-        {% else %}<div class="empty-state">Подходящих доставленных рейсов нет.</div>{% endif %}
+        {% else %}<div class="empty-state">Рейсов без счёта по выбранному клиенту и договору нет.</div>{% endif %}
     </section>
     <div class="form-actions">
         <a class="uk-button uk-button-default" href="{% url 'customer-document-list' %}">Закрыть</a>

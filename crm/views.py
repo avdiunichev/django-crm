@@ -3413,20 +3413,15 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
         return "registry" if self.kwargs.get("mode") == "registry" else "individual"
 
     def candidate_queryset(self):
-        delivered_statuses = [
-            Transportation.Status.DELIVERED,
-            Transportation.Status.DOCUMENTS_RECEIVED,
-            Transportation.Status.DOCUMENTS_SENT,
-            Transportation.Status.DOCUMENT_FLOW_COMPLETED,
-            Transportation.Status.CUSTOMER_INVOICED,
-            Transportation.Status.CLOSED,
-        ]
+        # A customer invoice may be issued before delivery.  The registry is
+        # therefore driven by the absence of an invoice, not by the current
+        # operational stage of the trip.
         queryset = scope_transportations_for_user(
             Transportation.objects.select_related(
                 "owner_company", "customer_vat_rate"
             ).prefetch_related("stops", "parties__organization"),
             self.request.user,
-        ).filter(status__in=delivered_statuses)
+        ).exclude(status=Transportation.Status.CANCELLED)
         related_documents = ShipmentDocument.objects.filter(
             direction=ShipmentDocument.Direction.OUTGOING,
         ).filter(
@@ -3440,7 +3435,13 @@ class CustomerDocumentIssueView(LoginRequiredMixin, FinanceAccessMixin, FormView
             has_customer_upd=Exists(
                 related_documents.filter(kind=ShipmentDocument.Kind.UPD)
             ),
-        ).filter(Q(has_customer_invoice=False) | Q(has_customer_upd=False))
+        )
+        if self.mode == "registry":
+            queryset = queryset.filter(has_customer_invoice=False)
+        else:
+            queryset = queryset.filter(
+                Q(has_customer_invoice=False) | Q(has_customer_upd=False)
+            )
         customer_id = (
             self.request.POST.get("customer", "").strip()
             or self.request.GET.get("customer", "").strip()
