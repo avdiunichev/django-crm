@@ -5927,10 +5927,12 @@ class CrmTestCase(TestCase):
             for cell in row.cells
         )
         text = "\n".join(text_parts)
-        self.assertIn("ДОГОВОР-ЗАЯВКА", text)
+        self.assertIn("ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА", text)
+        self.assertIn("Заказчик", text)
+        self.assertIn("Перевозчик", text)
         self.assertIn("№ЗП-77 от", text)
         self.assertNotIn("ЗП-77 от 01.01.2026 от", text)
-        self.assertEqual(len(document.inline_shapes), 2)
+        self.assertEqual(len(document.inline_shapes), 0)
 
     def test_transportation_route_and_docx_show_every_stop(self):
         transportation = self.shipment.transportation

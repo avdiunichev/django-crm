@@ -1,6 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
 from io import BytesIO
-from pathlib import Path
 import re
 
 from docx import Document
@@ -78,22 +77,6 @@ def _document_number_for_title(number):
         str(number or ""),
         flags=re.IGNORECASE,
     ).strip()
-
-
-def _add_owner_signature_and_stamp(cell):
-    """Add the approved facsimile assets to the owner's signature area when present."""
-    assets_dir = Path(__file__).resolve().parent.parent / "static" / "img"
-    signature_path = assets_dir / "newproject-signature.png"
-    stamp_path = assets_dir / "newproject-stamp.png"
-    if not signature_path.exists() and not stamp_path.exists():
-        return
-    paragraph = cell.add_paragraph()
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    paragraph.paragraph_format.space_after = Pt(0)
-    if signature_path.exists():
-        paragraph.add_run().add_picture(str(signature_path), width=Cm(2.1))
-    if stamp_path.exists():
-        paragraph.add_run("  ").add_picture(str(stamp_path), width=Cm(1.8))
 
 
 def _datetime_window(start, end):
@@ -353,8 +336,11 @@ def build_executor_transportation_application_docx(transportation):
         and link.contractor_role == "forwarder"
     )
     document_kind = (
-        "Экспедиторское поручение" if is_forwarder_instruction else "Договор-заявка"
+        "Поручение экспедитору"
+        if is_forwarder_instruction
+        else "Заявка на перевозку груза"
     )
+    owner_label = "Клиент" if is_forwarder_instruction else "Заказчик"
     executor_label = "Экспедитор-партнёр" if is_forwarder_instruction else "Перевозчик"
     stops = list(transportation.stops.all())
 
@@ -367,7 +353,7 @@ def build_executor_transportation_application_docx(transportation):
     document.core_properties.subject = (
         "Поручение привлечённому экспедитору"
         if is_forwarder_instruction
-        else "Заявка перевозчику на перевозку груза"
+        else "Заявка заказчика перевозчику на перевозку груза"
     )
 
     title_number = _document_number_for_title(number)
@@ -380,18 +366,10 @@ def build_executor_transportation_application_docx(transportation):
         size=12,
         bold=True,
     )
-    subtitle = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
-    _set_run_font(
-        subtitle.add_run(
-            f"между {_full_organization_name(transportation.owner_company)} "
-            f"и {_full_organization_name(executor)}"
-        ),
-        size=10,
-    )
     contract_text = (
-        f"согласно договору {contract.number} от {_date_plain(contract.contract_date)} г."
+        f"Основание: договор № {contract.number}"
         if contract
-        else "договор с исполнителем не указан"
+        else "Основание: договор с исполнителем не указан"
     )
     contract_paragraph = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
     _set_run_font(contract_paragraph.add_run(contract_text), size=10)
@@ -401,7 +379,7 @@ def build_executor_transportation_application_docx(transportation):
     parties_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     _set_cell_text(
         parties_table.cell(0, 0),
-        "Клиент" if is_forwarder_instruction else "Экспедитор",
+        owner_label,
         bold=True,
     )
     _set_cell_text(parties_table.cell(0, 1), executor_label, bold=True)
@@ -556,18 +534,20 @@ def build_executor_transportation_application_docx(transportation):
     )
     _set_cell_text(finance_table.cell(1, 3), payment_terms)
 
-    clauses = (
-        "Стороны несут ответственность за неисполнение либо ненадлежащее исполнение взятых на себя обязательств по настоящему договору-заявке в соответствии с условиями договора и законодательства РФ.",
-        "Для исполнения договора-заявки Исполнитель вправе привлекать к перевозке третьих лиц, если иное не предусмотрено договором сторон. В этом случае Исполнитель несёт ответственность за действия и бездействие привлечённых лиц как за свои собственные.",
-        "Возложение исполнения обязательств на третье лицо не освобождает Исполнителя от ответственности перед Экспедитором за надлежащее исполнение настоящей договор-заявки.",
-        "В случае задержки подачи транспортного средства к месту погрузки, указанному в договоре-заявке Экспедитора более чем на 8 часов, Исполнитель выплачивает штраф Экспедитору в размере 1500 руб. в сутки (24 часа).",
-        "Информировать Экспедитора заблаговременно о невозможности прихода транспорта в назначенное время и место погрузки, о задержке в пути следования к месту погрузки.",
-        "В случае нарушения согласованных Сторонами сроков перевозки (доставки) Исполнитель выплачивает Экспедитору штраф в размере 1500 руб. за каждые сутки задержки при междугородней доставке.",
-        "Исполнитель несёт ответственность за несохранность груза в процессе перевозки с момента получения и подписания товарно-транспортных сопроводительных документов водителем до момента передачи груза грузополучателю либо уполномоченному им лицу.",
-        "Экспедитор обязуется принимать все меры для предотвращения простоя транспортного средства при погрузке/выгрузке груза.",
-        "До момента заключения долгосрочного договора настоящая договор-заявка на перевозку имеет силу разового заказа.",
-        "Стороны договорились, что факсовые и электронные копии настоящей договор-заявки имеют силу оригинала.",
-    )
+    if is_forwarder_instruction:
+        clauses = (
+            "Клиент поручает, а Экспедитор-партнёр принимает к исполнению организацию перевозки по условиям настоящего поручения.",
+            "Экспедитор-партнёр отвечает за действия привлечённых им лиц и своевременно информирует Клиента о рисках нарушения согласованных сроков.",
+            "Стороны несут ответственность в соответствии с договором и законодательством Российской Федерации.",
+            "Электронные копии настоящего поручения имеют силу оригинала до обмена оригиналами, если иной порядок не установлен договором.",
+        )
+    else:
+        clauses = (
+            "Заказчик поручает, а Перевозчик принимает к исполнению перевозку груза по условиям настоящей заявки.",
+            "Перевозчик обеспечивает подачу исправного транспортного средства, сохранность груза и соблюдение согласованных сроков перевозки.",
+            "При невозможности подачи транспорта или возникновении задержки Перевозчик незамедлительно уведомляет Заказчика.",
+            "Стороны несут ответственность в соответствии с договором и законодательством Российской Федерации. Электронные копии заявки имеют силу оригинала до обмена оригиналами, если иной порядок не установлен договором.",
+        )
     for clause in clauses:
         _paragraph(document, clause, size=8, space_after=2)
 
@@ -575,8 +555,8 @@ def build_executor_transportation_application_docx(transportation):
     signatures.style = "Table Grid"
     signatures.alignment = WD_TABLE_ALIGNMENT.CENTER
     _remove_table_borders(signatures)
-    _set_cell_text(signatures.cell(0, 0), "Экспедитор", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _set_cell_text(signatures.cell(0, 1), "Исполнитель", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(signatures.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(signatures.cell(0, 1), executor_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(signatures.cell(1, 0), _full_organization_name(transportation.owner_company))
     _set_cell_text(signatures.cell(1, 1), _full_organization_name(executor))
     _set_cell_text(
@@ -584,7 +564,6 @@ def build_executor_transportation_application_docx(transportation):
         f"{_contract_signatory_text(contract, 'expeditor', transportation.owner_company)}\n"
         "________________ / __________________",
     )
-    _add_owner_signature_and_stamp(signatures.cell(2, 0))
     _set_cell_text(
         signatures.cell(2, 1),
         f"{_contract_signatory_text(contract, 'counterparty', executor)}\n"
