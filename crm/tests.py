@@ -5905,6 +5905,9 @@ class CrmTestCase(TestCase):
 
     def test_transportation_executor_application_download_creates_docx(self):
         transportation = self.shipment.transportation
+        execution_link = transportation.active_execution_link()
+        execution_link.instruction_number = "ЗП-77 от 01.01.2026"
+        execution_link.save(update_fields=["instruction_number"])
         self.client.force_login(self.user)
         response = self.client.get(
             reverse("transportation-executor-application", args=[transportation.pk])
@@ -5925,6 +5928,9 @@ class CrmTestCase(TestCase):
         )
         text = "\n".join(text_parts)
         self.assertIn("ДОГОВОР-ЗАЯВКА", text)
+        self.assertIn("№ЗП-77 от", text)
+        self.assertNotIn("ЗП-77 от 01.01.2026 от", text)
+        self.assertEqual(len(document.inline_shapes), 2)
 
     def test_transportation_route_and_docx_show_every_stop(self):
         transportation = self.shipment.transportation

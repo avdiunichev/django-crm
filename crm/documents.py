@@ -1,5 +1,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 from io import BytesIO
+from pathlib import Path
+import re
 
 from docx import Document
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
@@ -66,6 +68,32 @@ def _money_text(value, currency="RUB"):
 
 def _date_plain(value):
     return value.strftime("%d.%m.%Y") if value else "не указана"
+
+
+def _document_number_for_title(number):
+    """Keep an embedded date in a user-entered number from duplicating the title date."""
+    return re.sub(
+        r"\s+от\s+\d{1,2}[./-]\d{1,2}[./-]\d{2,4}(?:\s*г\.)?",
+        "",
+        str(number or ""),
+        flags=re.IGNORECASE,
+    ).strip()
+
+
+def _add_owner_signature_and_stamp(cell):
+    """Add the approved facsimile assets to the owner's signature area when present."""
+    assets_dir = Path(__file__).resolve().parent.parent / "static" / "img"
+    signature_path = assets_dir / "newproject-signature.png"
+    stamp_path = assets_dir / "newproject-stamp.png"
+    if not signature_path.exists() and not stamp_path.exists():
+        return
+    paragraph = cell.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    paragraph.paragraph_format.space_after = Pt(0)
+    if signature_path.exists():
+        paragraph.add_run().add_picture(str(signature_path), width=Cm(2.1))
+    if stamp_path.exists():
+        paragraph.add_run("  ").add_picture(str(stamp_path), width=Cm(1.8))
 
 
 def _datetime_window(start, end):
@@ -342,10 +370,11 @@ def build_executor_transportation_application_docx(transportation):
         else "Заявка перевозчику на перевозку груза"
     )
 
+    title_number = _document_number_for_title(number)
     title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
     _set_run_font(
         title.add_run(
-            f"{document_kind.upper()} №{number} "
+            f"{document_kind.upper()} №{title_number} "
             f"от {_date_plain(transportation.document_date)} г."
         ),
         size=12,
@@ -398,14 +427,27 @@ def build_executor_transportation_application_docx(transportation):
     quantity = []
     if transportation.total_package_count:
         quantity.append(f"{transportation.total_package_count} мест / паллет")
-    _set_cell_text(cargo_table.cell(1, 0), transportation.cargo_name)
+    cargo_characteristics = "\n".join(
+        part for part in (transportation.cargo_name, transportation.cargo_description) if part
+    )
+    _set_cell_text(cargo_table.cell(1, 0), cargo_characteristics or "не указано")
     _set_cell_text(
         cargo_table.cell(1, 1),
-        f"{_decimal_text((transportation.weight_kg or Decimal('0')) / Decimal('1000'))} т.",
+        " · ".join(
+            part for part in (
+                f"{_decimal_text((transportation.weight_kg or Decimal('0')) / Decimal('1000'))} т.",
+                f"{_decimal_text(transportation.volume_m3)} м³" if transportation.volume_m3 else "",
+            ) if part
+        ),
     )
     _set_cell_text(cargo_table.cell(1, 2), package_type or "не указано")
     _set_cell_text(cargo_table.cell(1, 3), ", ".join(quantity) or "не указано")
-    _set_cell_text(cargo_table.cell(1, 4), "согласно ТТН")
+    _set_cell_text(
+        cargo_table.cell(1, 4),
+        _money_text(transportation.cargo_value, transportation.currency)
+        if transportation.cargo_value is not None
+        else "не указана",
+    )
 
     _paragraph(document, space_after=4)
     route_table = document.add_table(rows=0, cols=3)
@@ -495,14 +537,23 @@ def build_executor_transportation_application_docx(transportation):
         contract.payment_terms
         if contract and contract.payment_terms
         else (
-            f"{transportation.executor_payment_term_days} банковских дней, по оригиналам ТТН"
+            f"{transportation.executor_payment_term_days} банковских дней "
+            f"от {transportation.get_executor_payment_due_basis_display().lower()}"
             if transportation.executor_payment_term_days
             else "по согласованию сторон"
         )
     )
     _set_cell_text(finance_table.cell(1, 0), _money_text(transportation.executor_amount, transportation.currency))
-    _set_cell_text(finance_table.cell(1, 1), _money_text(0, transportation.currency))
-    _set_cell_text(finance_table.cell(1, 2), f"Безналичный расчёт, {vat_text}")
+    _set_cell_text(
+        finance_table.cell(1, 1),
+        _money_text(transportation.executor_prepayment, transportation.currency)
+        if transportation.executor_prepayment is not None
+        else "не предусмотрена",
+    )
+    _set_cell_text(
+        finance_table.cell(1, 2),
+        f"{transportation.get_executor_payment_form_display()}, {vat_text}",
+    )
     _set_cell_text(finance_table.cell(1, 3), payment_terms)
 
     clauses = (
@@ -533,6 +584,7 @@ def build_executor_transportation_application_docx(transportation):
         f"{_contract_signatory_text(contract, 'expeditor', transportation.owner_company)}\n"
         "________________ / __________________",
     )
+    _add_owner_signature_and_stamp(signatures.cell(2, 0))
     _set_cell_text(
         signatures.cell(2, 1),
         f"{_contract_signatory_text(contract, 'counterparty', executor)}\n"
