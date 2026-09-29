@@ -14,22 +14,24 @@
 
 <section class="metrics-grid bank-statement-metrics">
     <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Операции</span><i class="metric-icon uk-icon-button" uk-icon="list"></i></span><strong>{{ batch.operation_count }}</strong><small>строк в этой выписке</small></article>
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Сумма операций</span><i class="metric-icon uk-icon-button" uk-icon="credit-card"></i></span><strong>{{ batch.total_amount|floatformat:"2g" }}</strong><small>{{ batch.bank_account.currency }}</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Поступления</span><i class="metric-icon uk-icon-button" uk-icon="arrow-up"></i></span><strong class="amount-income">{{ batch.income_amount|floatformat:"2g" }}</strong><small>{{ batch.bank_account.currency }}</small></article>
+    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Списания</span><i class="metric-icon uk-icon-button" uk-icon="arrow-down"></i></span><strong class="amount-expense">{{ batch.expense_amount|floatformat:"2g" }}</strong><small>{{ batch.bank_account.currency }}</small></article>
 </section>
 
 <section class="panel uk-card uk-card-default bank-statement-register">
     <div class="onec-register-header"><div><span class="eyebrow">Операции выписки</span><h2>Все строки файла</h2><p>Откройте строку, чтобы распределить платёж по рейсам.</p></div></div>
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-import-operations-table" style="min-width:1200px; table-layout:fixed;">
-        <colgroup><col style="width:170px"><col style="width:25%"><col><col style="width:190px"><col style="width:170px"><col style="width:130px"></colgroup>
-        <thead><tr><th class="bank-operation-date-column" style="width:170px; min-width:170px; white-space:nowrap">Дата / №</th><th>Контрагент</th><th>Назначение</th><th>Операция</th><th class="uk-text-right">Сумма</th><th></th></tr></thead>
+        <colgroup><col style="width:170px"><col style="width:25%"><col><col style="width:115px"><col style="width:150px"><col style="width:150px"><col style="width:130px"></colgroup>
+        <thead><tr><th class="bank-operation-date-column" style="width:170px; min-width:170px; white-space:nowrap">Дата / №</th><th>Контрагент</th><th>Назначение</th><th>Статус</th><th class="uk-text-right">Поступление</th><th class="uk-text-right">Списание</th><th></th></tr></thead>
         <tbody>{% for statement in operations %}<tr>
             <td class="bank-operation-date-column" style="width:170px; min-width:170px; white-space:nowrap"><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.statement_date|date:"d.m.Y" }}</a><small>№ {{ statement.reference|default:"—" }}</small></td>
             <td><strong>{{ statement.counterparty_name|default:"Не указан" }}</strong><small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small></td>
             <td>{{ statement.payment_purpose|default:"—" }}</td>
             <td><span class="uk-label {% if statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small>{{ statement.get_status_display }}</small></td>
-            <td class="uk-text-right"><strong>{{ statement.operation_amount|floatformat:"2g" }} {{ statement.currency }}</strong><small>распределено: {{ statement.total_sum|default:0|floatformat:"2g" }}</small></td>
+            <td class="uk-text-right">{% if statement.direction == 'income' %}<strong class="amount-income">{{ statement.operation_amount|floatformat:"2g" }} {{ statement.currency }}</strong>{% else %}—{% endif %}</td>
+            <td class="uk-text-right">{% if statement.direction == 'expense' %}<strong class="amount-expense">{{ statement.operation_amount|floatformat:"2g" }} {{ statement.currency }}</strong>{% else %}—{% endif %}<small>распределено: {{ statement.total_sum|default:0|floatformat:"2g" }}</small></td>
             <td class="uk-text-right"><a class="row-action" href="{% url 'bank-statement-update' statement.pk %}">{% if statement.status == 'draft' %}Распределить{% else %}Открыть{% endif %}</a></td>
-        </tr>{% empty %}<tr><td colspan="6" class="empty-state">В выписке нет операций.</td></tr>{% endfor %}</tbody>
+        </tr>{% empty %}<tr><td colspan="7" class="empty-state">В выписке нет операций.</td></tr>{% endfor %}</tbody>
     </table></div>
 </section>
 {% endblock %}

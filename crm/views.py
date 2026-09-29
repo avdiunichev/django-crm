@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from hashlib import sha256
 from io import BytesIO
 import imaplib
 import json
@@ -8755,6 +8756,20 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
         uploaded = form.cleaned_data["statement_file"]
         owner = form.cleaned_data["owner_company"]
         account = form.cleaned_data["bank_account"]
+        raw_file = uploaded.read()
+        uploaded.seek(0)
+        fingerprint = sha256(raw_file).hexdigest()
+        duplicate = BankStatementImport.objects.filter(
+            bank_account=account,
+            source_fingerprint=fingerprint,
+        ).first()
+        if duplicate:
+            form.add_error(
+                "statement_file",
+                f"Эта выписка уже загружена: «{duplicate.source_name}» от "
+                f"{duplicate.created_at:%d.%m.%Y %H:%M}. Повторный импорт заблокирован.",
+            )
+            return self.form_invalid(form)
         try:
             header, payments, parse_errors = parse_client_bank_exchange(uploaded)
         except ValidationError as error:
@@ -8771,6 +8786,7 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                 owner_company=owner,
                 bank_account=account,
                 source_name=Path(uploaded.name).name[:255],
+                source_fingerprint=fingerprint,
                 period_start=period_start,
                 period_end=period_end,
                 imported_by=self.request.user,

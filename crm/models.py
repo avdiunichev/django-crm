@@ -14,7 +14,7 @@ from django.core.validators import (
     RegexValidator,
 )
 from django.db import IntegrityError, models, transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 
@@ -3627,6 +3627,9 @@ class BankStatementImport(TimestampedModel):
         on_delete=models.PROTECT,
     )
     source_name = models.CharField("Имя файла", max_length=255)
+    source_fingerprint = models.CharField(
+        "Контрольная сумма файла", max_length=64, null=True, blank=True
+    )
     period_start = models.DateField("Начало периода", null=True, blank=True)
     period_end = models.DateField("Конец периода", null=True, blank=True)
     imported_by = models.ForeignKey(
@@ -3642,6 +3645,12 @@ class BankStatementImport(TimestampedModel):
         verbose_name = "банковская выписка"
         verbose_name_plural = "банковские выписки"
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("bank_account", "source_fingerprint"),
+                name="unique_bank_statement_import_file_per_account",
+            )
+        ]
 
     def __str__(self):
         return f"Выписка {self.source_name} от {self.created_at:%d.%m.%Y}"
@@ -3653,6 +3662,18 @@ class BankStatementImport(TimestampedModel):
     @property
     def total_amount(self):
         return self.operations.aggregate(total=Sum("operation_amount"))["total"] or Decimal("0")
+
+    @property
+    def income_amount(self):
+        return self.operations.filter(direction=BankStatement.Direction.INCOME).aggregate(
+            total=Sum("operation_amount")
+        )["total"] or Decimal("0")
+
+    @property
+    def expense_amount(self):
+        return self.operations.filter(direction=BankStatement.Direction.EXPENSE).aggregate(
+            total=Sum("operation_amount")
+        )["total"] or Decimal("0")
 
     def get_absolute_url(self):
         return reverse("bank-statement-import-detail", kwargs={"pk": self.pk})
