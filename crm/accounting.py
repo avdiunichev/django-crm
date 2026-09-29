@@ -9,6 +9,7 @@ from django.utils import timezone
 from .models import (
     BankStatement,
     BankStatementLine,
+    CargoInsurance,
     Payment,
     SettlementMovement,
     ShipmentDocument,
@@ -732,6 +733,17 @@ def post_bank_statement(statement, user=None):
         payment.save()
         line.payment = payment
         line.save(update_fields=["payment", "updated_at"])
+        if statement.direction == BankStatement.Direction.EXPENSE:
+            insurance = CargoInsurance.objects.filter(
+                transportation=transportation,
+                bank_statement_line__isnull=True,
+                insurer_amount=line.amount,
+                currency=statement.currency,
+            ).first()
+            if insurance:
+                insurance.bank_statement_line = line
+                insurance.status = CargoInsurance.Status.PAID
+                insurance.save(update_fields=["bank_statement_line", "status", "updated_at"])
         TransportationStatusEvent.objects.create(
             transportation=transportation,
             old_status=transportation.status,

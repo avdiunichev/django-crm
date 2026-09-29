@@ -8469,6 +8469,17 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=No
                 "counterparty": counterparty,
             }
         )
+    if direction == BankStatement.Direction.EXPENSE:
+        insurances = CargoInsurance.objects.filter(
+            transportation__posting_status=Transportation.PostingStatus.POSTED,
+            currency=currency,
+            bank_statement_line__isnull=True,
+        )
+        if str(owner_id or "").isdigit():
+            insurances = insurances.filter(transportation__owner_company_id=owner_id)
+        insurances = insurances.select_related("transportation", "insurer")
+        for insurance in insurances:
+            candidates.append({"transportation": insurance.transportation, "balance": insurance.insurer_amount, "counterparty": insurance.insurer, "cargo_insurance": insurance})
     return candidates
 
 

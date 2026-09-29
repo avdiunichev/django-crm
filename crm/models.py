@@ -4203,6 +4203,17 @@ class CargoInsurance(TimestampedModel):
     def is_paid(self):
         return self.bank_statement_line_id is not None or self.status == self.Status.PAID
 
+    def save(self, *args, **kwargs):
+        previous = type(self).objects.filter(pk=self.pk).values("customer_amount").first()
+        old_amount = previous["customer_amount"] if previous else Decimal("0")
+        result = super().save(*args, **kwargs)
+        delta = self.customer_amount - old_amount
+        if delta:
+            Transportation.objects.filter(pk=self.transportation_id).update(
+                customer_amount=models.F("customer_amount") + delta
+            )
+        return result
+
 
 class TransportationStatusEvent(TimestampedModel):
     class Source(models.TextChoices):
