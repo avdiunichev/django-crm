@@ -6754,6 +6754,22 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
     template_name = "crm/organization_list.html"
     context_object_name = "organizations"
     paginate_by = 30
+    sort_options = {
+        "name": ("name", "short_name", "pk"),
+        "requisites": ("tax_id", "name", "pk"),
+        "roles": ("is_active", "name", "pk"),
+        "contact": ("contact_name", "name", "pk"),
+        "verification": ("fns_status", "name", "pk"),
+    }
+
+    def get_sorting(self):
+        """Return a safe ordering applied before pagination."""
+        raw_sort = self.request.GET.get("sort", "").strip()
+        descending = raw_sort.startswith("-")
+        sort_key = raw_sort[1:] if descending else raw_sort
+        if sort_key not in self.sort_options:
+            return "name", False
+        return sort_key, descending
 
     def get_queryset(self):
         queryset = Organization.objects.select_related("group").prefetch_related(
@@ -6777,7 +6793,11 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
             queryset = queryset.filter(roles__role=role, roles__is_active=True)
         if self.request.GET.get("own") == "1":
             queryset = queryset.filter(is_own_company=True)
-        return queryset.distinct()
+        sort_key, descending = self.get_sorting()
+        ordering = self.sort_options[sort_key]
+        if descending:
+            ordering = tuple(f"-{field}" for field in ordering)
+        return queryset.distinct().order_by(*ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -6811,6 +6831,18 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
                 ),
             }
         )
+        sort_key, descending = self.get_sorting()
+        sort_columns = {}
+        for key in self.sort_options:
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["sort"] = key if key != sort_key or descending else f"-{key}"
+            sort_columns[key] = {
+                "url": f"?{params.urlencode()}",
+                "active": key == sort_key,
+                "label": "↓" if key == sort_key and descending else "↑",
+            }
+        context["sort_columns"] = sort_columns
         return context
 
 
