@@ -123,6 +123,26 @@ body.orders-workspace-page .order-register-table .order-register-status > strong
     content: "";
     flex: 0 0 auto;
 }
+
+/* Реестр документов для клиентов следует той же строгой геометрии, что
+   контрагенты, водители и рейсы: без вложенных карточек в ячейках. */
+body.orders-workspace-page .customer-document-register-table { min-width: 1120px; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(1) { width: 18%; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(2) { width: 14%; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(3) { width: 18%; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(4) { width: 20%; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(5) { width: 14%; }
+body.orders-workspace-page .customer-document-register-table :is(th, td):nth-child(6) { width: 16%; }
+body.orders-workspace-page .customer-document-register-table .customer-register-documents,
+body.orders-workspace-page .customer-document-register-table .invoice-payment-list { display: grid; gap: 8px; }
+body.orders-workspace-page .customer-document-register-table .customer-register-documents > div,
+body.orders-workspace-page .customer-document-register-table .invoice-payment-list > div { display: grid; gap: 2px; }
+body.orders-workspace-page .customer-document-register-table .customer-document-state,
+body.orders-workspace-page .customer-document-register-table .invoice-payment-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+body.orders-workspace-page .customer-document-register-table .customer-document-state::before,
+body.orders-workspace-page .customer-document-register-table .invoice-payment-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+body.orders-workspace-page .customer-document-register-table .customer-document-state.is-ready { color: #16845b; }
+body.orders-workspace-page .customer-document-register-table .customer-document-state.is-pending { color: #a66a16; }
 body.orders-workspace-page .order-register-table input[type="checkbox"] { width: 15px; height: 15px; accent-color: #D10000; cursor: pointer; }
 body.orders-workspace-page .register-pagination { margin: 20px 0 0; padding: 0; border: 0; background: transparent; font-size: 12px; color: var(--orders-muted); }
 @media (min-width: 1200px) {

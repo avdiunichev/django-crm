@@ -4193,6 +4193,7 @@ class CargoInsurance(TimestampedModel):
     status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.DRAFT)
     bank_statement_line = models.OneToOneField("BankStatementLine", related_name="cargo_insurance", on_delete=models.PROTECT, null=True, blank=True)
     included_in_customer_rate = models.BooleanField(default=False)
+    included_in_customer_settlement = models.BooleanField(default=False)
     notes = models.TextField("Комментарий", blank=True)
 
     class Meta:
@@ -4205,14 +4206,35 @@ class CargoInsurance(TimestampedModel):
         return self.bank_statement_line_id is not None or self.status == self.Status.PAID
 
     def save(self, *args, **kwargs):
-        previous = type(self).objects.filter(pk=self.pk).values("customer_amount").first()
+        previous = type(self).objects.filter(pk=self.pk).values(
+            "customer_amount", "included_in_customer_rate"
+        ).first()
         old_amount = previous["customer_amount"] if previous else Decimal("0")
         result = super().save(*args, **kwargs)
-        delta = self.customer_amount - old_amount if self.included_in_customer_rate else self.customer_amount
+        rate_was_included = previous and previous["included_in_customer_rate"]
+        delta = self.customer_amount - old_amount if rate_was_included else self.customer_amount
         if delta:
+            transportation = Transportation.objects.get(pk=self.transportation_id)
             Transportation.objects.filter(pk=self.transportation_id).update(
                 customer_amount=models.F("customer_amount") + delta
             )
+            if transportation.posting_status == Transportation.PostingStatus.POSTED:
+                SettlementMovement.objects.filter(
+                    transportation_id=self.transportation_id,
+                    side=SettlementMovement.Side.RECEIVABLE,
+                    kind=SettlementMovement.Kind.ACCRUAL,
+                ).update(amount=models.F("amount") + delta)
+                TripCharge.objects.filter(
+                    transportation_id=self.transportation_id,
+                    direction=TripCharge.Direction.REVENUE,
+                ).update(
+                    amount=models.F("amount") + delta,
+                    amount_without_vat=models.F("amount_without_vat") + delta,
+                )
+                type(self).objects.filter(pk=self.pk).update(
+                    included_in_customer_settlement=True
+                )
+                self.included_in_customer_settlement = True
             type(self).objects.filter(pk=self.pk).update(included_in_customer_rate=True)
             self.included_in_customer_rate = True
         return result
