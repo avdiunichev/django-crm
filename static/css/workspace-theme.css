@@ -2332,6 +2332,28 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
     -webkit-line-clamp: 3;
     line-height: 1.35;
 }
+/* Банковские документы используют единый компактный шаблон реестров. */
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-register {
+    min-height: 0;
+    margin: 0;
+    border-color: var(--orders-border);
+    background: var(--orders-surface);
+}
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-register .table-wrap {
+    max-height: 68vh;
+    border-top: 0;
+}
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table th {
+    height: auto;
+    padding: 10px 12px;
+    background: var(--orders-soft);
+    color: var(--orders-muted);
+    font-weight: 500;
+}
+body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table td {
+    padding: 10px 12px;
+    border-color: var(--orders-border);
+}
 .bank-statement-import-operations-table { table-layout: fixed; }
 .bank-statement-import-operations-table .bank-operation-date-column { width: 140px; min-width: 140px; white-space: nowrap; }
 .bank-statement-import-operations-table td.bank-operation-date-column a,

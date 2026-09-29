@@ -1,33 +1,15 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 {% block title %}Банковские выписки — Моя CRM{% endblock %}
-{% block body_class %}bank-statement-directory-page{% endblock %}
+{% block body_class %}orders-workspace-page bank-statement-directory-page{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260930-bank-register">{% endblock %}
 {% block content %}
-<div class="page-heading with-action bank-statement-directory-heading">
-    <div>
-        <span class="eyebrow">Банк и взаиморасчёты</span>
-        <h1>Банковские выписки</h1>
-        <p>Загружайте операции из 1С‑Банка, распределяйте их по рейсам и проводите оплаты.</p>
-    </div>
-    <div class="heading-actions">
-        <a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a>
-        <a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense"><span uk-icon="arrow-down"></span> Создать расход</a>
-        <a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income"><span uk-icon="arrow-up"></span> Создать приход</a>
-    </div>
-</div>
+<div class="orders-workspace bank-statement-workspace">
+<div class="orders-breadcrumb"><span uk-icon="credit-card"></span><a href="{% url 'accounting-dashboard' %}">Бухгалтерия</a><span aria-hidden="true">/</span><span aria-current="page">Банковские выписки</span></div>
+<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="orders-title">Банковские выписки</h1><span class="orders-count">{{ document_count }}</span></div><p>Банковские поступления и списания, распределённые по рейсам.</p></div><div class="orders-page-actions"><a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a><a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense">Создать расход</a><a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income">Создать приход</a></div></header>
 
-<section class="metrics-grid bank-statement-metrics">
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Документы</span><i class="metric-icon uk-icon-button" uk-icon="file-text"></i></span><strong>{{ document_count }}</strong><small>банковских приходов и расходов</small></article>
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Черновики</span><i class="metric-icon uk-icon-button" uk-icon="pencil"></i></span><strong>{{ draft_count }}</strong><small>готовы к проверке и проведению</small></article>
-    <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Проведено</span><i class="metric-icon uk-icon-button" uk-icon="check"></i></span><strong>{{ posted_count }}</strong><small>платежи отражены в рейсах</small></article>
-</section>
-
-{% if recent_imports %}<section class="panel uk-card uk-card-default bank-statement-register bank-statement-directory-register bank-statement-imports-register" style="min-height:0">
-    <div class="onec-register-header"><div><span class="eyebrow">Загруженные выписки</span><h2>Выписки из 1С‑Банка</h2><p>Каждая выписка хранит все операции из загруженного файла.</p></div></div>
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle"><thead><tr><th>Файл</th><th>Компания / счёт</th><th>Период</th><th class="uk-text-center">Операции</th><th class="uk-text-right">Поступления</th><th class="uk-text-right">Списания</th><th></th></tr></thead><tbody>{% for batch in recent_imports %}<tr><td><a class="primary-link" href="{{ batch.get_absolute_url }}">{{ batch.source_name }}</a><small>загружена {{ batch.created_at|date:"d.m.Y H:i" }}</small></td><td>{{ batch.owner_company }}<small>{{ batch.bank_account.account_number }}</small></td><td>{{ batch.period_start|date:"d.m.Y"|default:"—" }} — {{ batch.period_end|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-center">{{ batch.operation_count }}</td><td class="uk-text-right"><strong class="amount-income">{{ batch.income_amount|floatformat:"2g" }} {{ batch.bank_account.currency }}</strong></td><td class="uk-text-right"><strong class="amount-expense">{{ batch.expense_amount|floatformat:"2g" }} {{ batch.bank_account.currency }}</strong></td><td class="uk-text-right"><a class="row-action" href="{{ batch.get_absolute_url }}">Открыть</a></td></tr>{% endfor %}</tbody></table></div>
-</section>{% endif %}
-
-<form class="filters bank-statement-filters bank-statement-directory-filters" method="get">
+<form class="filters order-register-filters bank-statement-directory-filters" method="get" data-filter-text-submit="enter">
     <label class="driver-search-field"><span uk-icon="search"></span><input class="form-control uk-input search" type="search" name="q" value="{{ current_query }}" placeholder="Документ, выписка, компания или счёт"></label>
     <select class="form-control uk-select" name="direction"><option value="">Все операции</option>{% for value,label in direction_choices %}<option value="{{ value }}" {% if current_direction == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="form-control uk-select" name="status"><option value="">Все статусы</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
@@ -36,8 +18,7 @@
     {% if current_query or current_direction or current_status or current_owner %}<a class="uk-button uk-button-default" href="{% url 'bank-statement-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
 </form>
 
-<section class="panel uk-card uk-card-default bank-statement-register bank-statement-directory-register">
-    <div class="onec-register-header"><div><span class="eyebrow">Регистр</span><h2>Банковские документы</h2><p>Проведённые операции уже участвуют в дебиторской и кредиторской задолженности.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} записей</span></div>
+<section class="panel uk-card uk-card-default order-register-panel bank-statement-register bank-statement-directory-register">
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-register-table">
         <colgroup><col style="width:150px"><col style="width:220px"><col style="width:330px"><col style="width:160px"><col style="width:240px"><col style="width:140px"><col style="width:140px"><col style="width:160px"><col style="width:180px"></colgroup>
         <thead><tr><th>Документ</th><th>Контрагент</th><th>Назначение платежа</th><th>Операция</th><th>Компания / счёт</th><th class="uk-text-right">Поступление</th><th class="uk-text-right">Списание</th><th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th></tr></thead>
@@ -59,4 +40,5 @@
     </table></div>
 </section>
 {% include "crm/includes/pagination.html" %}
+</div>
 {% endblock %}
