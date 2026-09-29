@@ -8941,6 +8941,9 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 | Q(owner_company__name__icontains=query)
                 | Q(bank_account__bank_name__icontains=query)
                 | Q(bank_account__account_number__icontains=query)
+                | Q(counterparty_name__icontains=query)
+                | Q(counterparty_tax_id__icontains=query)
+                | Q(payment_purpose__icontains=query)
             )
         return queryset
 

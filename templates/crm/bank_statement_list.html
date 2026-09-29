@@ -38,12 +38,15 @@
 
 <section class="panel uk-card uk-card-default bank-statement-register bank-statement-directory-register">
     <div class="onec-register-header"><div><span class="eyebrow">Регистр</span><h2>Банковские документы</h2><p>Проведённые операции уже участвуют в дебиторской и кредиторской задолженности.</p></div><span class="uk-text-meta">{{ page_obj.paginator.count }} записей</span></div>
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table">
-        <thead><tr><th>Документ</th><th>Операция</th><th>Компания / счёт</th><th class="uk-text-center">Строки</th><th class="uk-text-right">Поступление</th><th class="uk-text-right">Списание</th><th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th></tr></thead>
+    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle bank-statement-directory-table bank-statement-register-table">
+        <colgroup><col class="bank-register-col-document"><col class="bank-register-col-counterparty"><col class="bank-register-col-purpose"><col class="bank-register-col-operation"><col class="bank-register-col-account"><col class="bank-register-col-lines"><col class="bank-register-col-amount"><col class="bank-register-col-amount"><col class="bank-register-col-balance"><col class="bank-register-col-actions"></colgroup>
+        <thead><tr><th>Документ</th><th>Контрагент</th><th>Назначение платежа</th><th>Операция</th><th>Компания / счёт</th><th class="uk-text-center">Строки</th><th class="uk-text-right">Поступление</th><th class="uk-text-right">Списание</th><th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th></tr></thead>
         <tbody>
         {% for statement in bank_statements %}
             <tr>
                 <td><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.number }}</a><small>{{ statement.statement_date|date:"d.m.Y" }}{% if statement.reference %} · выписка {{ statement.reference }}{% endif %}</small></td>
+                <td><strong>{{ statement.counterparty_name|default:"Не указан" }}</strong><small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small></td>
+                <td class="bank-statement-purpose" title="{{ statement.payment_purpose }}">{{ statement.payment_purpose|default:"Назначение не указано" }}</td>
                 <td><span class="uk-label {% if statement.status == 'voided' %}uk-label-danger{% elif statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small class="{% if statement.status == 'voided' %}amount-problem{% endif %}">{{ statement.get_status_display }}</small></td>
                 <td>{{ statement.owner_company }}{% if statement.bank_account %}<small>{{ statement.bank_account.account_number }} · {{ statement.bank_account.bank_name }}</small>{% endif %}</td>
                 <td class="uk-text-center">{{ statement.line_total|default:0 }}</td>
@@ -52,7 +55,7 @@
                 <td class="uk-text-right">{% if statement.bank_balance is not None %}<strong>{{ statement.bank_balance|floatformat:"2g" }} {{ statement.currency|currency_symbol }}</strong>{% else %}—{% endif %}{% if statement.operation_amount %}<small>распределено: {{ statement.total_sum|default:0|floatformat:"2g" }}</small>{% endif %}</td>
                 <td class="uk-text-right"><a class="row-action" href="{{ statement.get_absolute_url }}">Открыть</a>{% if statement.status == 'draft' %}<a class="row-action" href="{% url 'bank-statement-update' statement.pk %}">Распределить</a>{% endif %}<a class="row-action uk-text-danger" href="{% url 'bank-statement-delete' statement.pk %}">Удалить</a></td>
             </tr>
-        {% empty %}<tr><td colspan="8" class="empty-state">Банковских документов пока нет. Создайте приход или расход.</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="10" class="empty-state">Банковских документов пока нет. Создайте приход или расход.</td></tr>{% endfor %}
         </tbody>
     </table></div>
 </section>
