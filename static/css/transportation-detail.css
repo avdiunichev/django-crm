@@ -268,6 +268,60 @@ html[data-theme="dark"] body.transportation-card-page .driver-documents summary 
     body.transportation-card-page .trip-execution-grid,
     body.transportation-card-page .driver-documents-grid { grid-template-columns: 1fr; }
 }
+
+/* Commercial chain: a visual sequence, not a loose two-column list. */
+body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 14px 0 0;
+    overflow: visible;
+}
+body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-node {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--workspace-line, #e9e7e7) !important;
+    border-radius: 8px !important;
+    background: var(--workspace-soft, #f6f5f5) !important;
+}
+body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow {
+    position: relative;
+    display: grid !important;
+    flex: 0 0 50px;
+    place-items: center;
+    color: var(--workspace-muted, #77767e);
+}
+body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow::before {
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 1px;
+    content: "";
+    background: var(--workspace-line, #e9e7e7);
+}
+body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow > span {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border: 1px solid var(--workspace-line, #e9e7e7);
+    border-radius: 50%;
+    background: var(--workspace-surface, #fff);
+}
+html[data-theme="dark"] body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-node { border-color: #304054 !important; background: #192333 !important; }
+html[data-theme="dark"] body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow::before { background: #304054; }
+html[data-theme="dark"] body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow > span { border-color: #304054; background: #151f2e; }
+@media (max-width: 760px) {
+    body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    body.transportation-card-page .trip-workspace .trip-profile-chain .transport-chain-arrow { display: none !important; }
+}
 /* Operational workspace: one overview, separate documents and accounting. */
 body.uikit-theme .trip-workspace { color: var(--workspace-text,#29292d); gap: 24px; }
 .trip-workspace nav, .trip-work-header p { color: var(--workspace-muted,#77767e); font-size:13px; }
