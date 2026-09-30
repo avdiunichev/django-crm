@@ -11437,6 +11437,11 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         today = timezone.localdate()
         all_drivers = Driver.objects.all()
         active_drivers = all_drivers.filter(is_active=True)
+        letter_counts = {letter: 0 for letter in self.alphabet}
+        for last_name in all_drivers.values_list("last_name", flat=True):
+            letter = (last_name or "").strip()[:1].upper()
+            if letter in letter_counts:
+                letter_counts[letter] += 1
         current_letter = self.request.GET.get("letter", "").strip().upper()
         tab_params = self.request.GET.copy()
         tab_params.pop("page", None)
@@ -11451,16 +11456,18 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
 
         driver_letter_tabs = [{
             "label": "Все",
+            "count": all_drivers.count(),
             "url": letter_tab_url(),
             "active": current_letter not in self.alphabet,
         }]
         driver_letter_tabs.extend(
             {
                 "label": letter,
+                "count": letter_counts[letter],
                 "url": letter_tab_url(letter),
                 "active": current_letter == letter,
             }
-            for letter in self.alphabet
+            for letter in self.alphabet if letter_counts[letter]
         )
         context.update(
             {

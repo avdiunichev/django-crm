@@ -25,7 +25,7 @@
 </form>
 <nav class="mailbox-folder-tabs driver-letter-tabs" aria-label="Фамилия водителя">
     {% for tab in driver_letter_tabs %}
-        <a href="{{ tab.url }}"{% if tab.active %} class="is-active" aria-current="page"{% endif %}>{{ tab.label }}</a>
+        <a href="{{ tab.url }}"{% if tab.active %} class="is-active" aria-current="page"{% endif %}>{{ tab.label }} <span class="mailbox-folder-count">{{ tab.count }}</span></a>
     {% endfor %}
 </nav>
 <div class="driver-letter-tabs-spacer" style="height: 28px" aria-hidden="true"></div>
