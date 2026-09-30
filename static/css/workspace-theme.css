@@ -2617,23 +2617,38 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-re
     font-weight: 650;
 }
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs {
-    width: fit-content;
-    margin: 0 0 14px;
+    display: flex;
+    width: 100%;
+    margin: 0;
     padding: 0;
     gap: 0;
+    overflow-x: auto;
+    border: 0;
+    border-bottom: 1px solid var(--workspace-line);
     border-radius: 0;
     background: transparent;
 }
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a {
-    min-height: 40px;
-    padding: 0 14px;
+    min-height: 0;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid transparent;
     border-radius: 0;
+    color: var(--workspace-muted);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: .02em;
 }
-html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a + a {
-    border-left: 1px solid var(--orders-border);
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a:first-child {
+    padding-left: 0;
 }
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a.is-active {
-    box-shadow: inset 0 -2px 0 var(--orders-accent);
+    border-bottom-color: var(--workspace-accent);
+    box-shadow: none;
+    color: var(--workspace-text);
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs-spacer {
+    display: block;
+    height: 28px;
 }
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
     background: #3a2529 !important;
