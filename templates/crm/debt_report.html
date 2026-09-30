@@ -28,19 +28,26 @@
     <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Открытые строки</span><i class="metric-icon uk-icon-button" uk-icon="list"></i></span><strong>{{ debt_rows|length }}</strong><small><span>по выбранной выборке</span></small></article>
 </section>
 
+<nav class="register-tabs uk-margin-medium-top" aria-label="Тип задолженности">
+    <a href="{% url 'debt-report' %}?{% if current_q %}q={{ current_q|urlencode }}&{% endif %}{% if current_owner %}owner={{ current_owner }}&{% endif %}currency={{ current_currency }}" class="{% if not current_side and current_state != 'overdue' %}active{% endif %}">Все <span>{{ state_counts.all }}</span></a>
+    <a href="{% url 'debt-report' %}?side=receivable{% if current_q %}&q={{ current_q|urlencode }}{% endif %}{% if current_owner %}&owner={{ current_owner }}{% endif %}&currency={{ current_currency }}" class="{% if current_side == 'receivable' %}active{% endif %}">Нам должны <span>{{ state_counts.receivable }}</span></a>
+    <a href="{% url 'debt-report' %}?side=payable{% if current_q %}&q={{ current_q|urlencode }}{% endif %}{% if current_owner %}&owner={{ current_owner }}{% endif %}&currency={{ current_currency }}" class="{% if current_side == 'payable' %}active{% endif %}">Мы должны <span>{{ state_counts.payable }}</span></a>
+    <a href="{% url 'debt-report' %}?state=overdue{% if current_q %}&q={{ current_q|urlencode }}{% endif %}{% if current_owner %}&owner={{ current_owner }}{% endif %}&currency={{ current_currency }}" class="{% if current_state == 'overdue' %}active{% endif %}">Просрочено <span>{{ state_counts.overdue }}</span></a>
+</nav>
+
 <section class="panel uk-card uk-card-default uk-margin-medium-top">
-    <div class="panel-header"><div><span class="eyebrow">Расшифровка</span><h2>Задолженность по рейсам</h2><p>Просрочки поднимаются наверх, дальше сортировка по сроку оплаты.</p></div></div>
+    <div class="panel-header"><div><span class="eyebrow">Расшифровка</span><h2>Задолженность по рейсам</h2><p>Просрочки поднимаются наверх, дальше — по сроку оплаты. Оплата создаётся прямо из строки.</p></div></div>
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle">
-        <thead><tr><th>Рейс</th><th>Наша компания</th><th>Контрагент</th><th>Сторона</th><th>Срок</th><th>Состояние</th><th class="uk-text-right">Остаток</th><th></th></tr></thead>
+        <thead><tr><th>Рейс</th><th>Контрагент</th><th>Счёт</th><th>Сторона</th><th>Срок</th><th class="uk-text-right">Оплачено</th><th class="uk-text-right">Остаток</th><th></th></tr></thead>
         <tbody>
         {% for row in debt_rows %}
             <tr>
                 <td><a class="primary-link" href="{{ row.transportation.get_absolute_url }}">{{ row.transportation.number|default:"Черновик" }}</a><small class="route-compact" title="{{ row.transportation.route }}">{{ row.transportation.route }}</small></td>
-                <td>{{ row.owner_company.short_name|default:row.owner_company.name }}</td>
                 <td>{% if row.counterparty %}<a href="{{ row.counterparty.get_absolute_url }}">{{ row.counterparty.short_name|default:row.counterparty.name }}</a><small>ИНН {{ row.counterparty.tax_id|default:"не указан" }}</small>{% else %}<span class="uk-text-danger">Не указан</span>{% endif %}</td>
+                <td>{% if row.invoice %}<a class="primary-link" href="{{ row.invoice.get_absolute_url }}">{{ row.invoice.number|default:row.invoice.crm_number|default:"Счёт" }}</a><small>{{ row.invoice.document_date|date:"d.m.Y" }} · {{ row.accrued|floatformat:"2g" }} {{ current_currency|currency_symbol }}</small>{% else %}<span class="uk-text-muted">Не создан</span><small>Начислено {{ row.accrued|floatformat:"2g" }} {{ current_currency|currency_symbol }}</small>{% endif %}</td>
                 <td><span class="uk-label {% if row.side == 'receivable' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ row.side_label }}</span></td>
-                <td>{{ row.due_date|date:"d.m.Y"|default:"—" }}{% if row.days_overdue %}<small class="amount-problem">{{ row.days_overdue }} дн.</small>{% endif %}</td>
-                <td><span class="uk-label {% if row.state == 'overdue' %}uk-label-danger{% elif row.state == 'no_due_date' %}uk-label-warning{% endif %}">{{ row.state_label }}</span></td>
+                <td>{{ row.due_date|date:"d.m.Y"|default:"—" }}<small class="{% if row.days_overdue %}amount-problem{% endif %}">{{ row.state_label }}{% if row.days_overdue %} · {{ row.days_overdue }} дн.{% endif %}</small></td>
+                <td class="uk-text-right">{{ row.paid|floatformat:"2g" }} {{ current_currency|currency_symbol }}</td>
                 <td class="uk-text-right"><strong class="{% if row.state == 'overdue' %}amount-problem{% elif row.side == 'receivable' %}amount-income{% else %}amount-expense{% endif %}">{{ row.balance|floatformat:"2g" }} {{ current_currency|currency_symbol }}</strong></td>
                 <td class="uk-text-right"><a class="uk-icon-button" uk-icon="plus" title="{% if row.side == 'receivable' %}Создать поступление{% else %}Создать оплату исполнителю{% endif %}" href="{% url 'transportation-payment-create' row.transportation.pk %}?direction={% if row.side == 'receivable' %}income{% else %}expense{% endif %}"></a></td>
             </tr>

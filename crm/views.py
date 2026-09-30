@@ -5731,6 +5731,16 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                     .order_by("sequence"),
                     to_attr="debt_execution_links",
                 ),
+                Prefetch(
+                    "documents",
+                    queryset=ShipmentDocument.objects.filter(
+                        kind=ShipmentDocument.Kind.INVOICE
+                    ).only(
+                        "pk", "transportation_id", "party", "number", "crm_number",
+                        "document_date", "amount", "currency",
+                    ),
+                    to_attr="debt_invoices",
+                ),
                 Prefetch("settlement_movements", to_attr="debt_movements"),
             )
             .order_by("-planned_start_date", "-document_date", "-pk")
@@ -5822,6 +5832,7 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
             "net_position": Decimal("0.00"),
         }
         by_counterparty = {}
+        state_counts = {"all": 0, "receivable": 0, "payable": 0, "overdue": 0}
 
         for transportation in queryset:
             receivable, payable = self._balances(transportation, currency)
@@ -5839,6 +5850,36 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                     continue
                 overdue = bool(due_date and due_date < today)
                 state = "overdue" if overdue else "no_due_date" if not due_date else "due"
+                movements = [
+                    movement
+                    for movement in getattr(transportation, "debt_movements", ())
+                    if movement.side == side and movement.currency == currency
+                ]
+                accrued = sum(
+                    (movement.amount for movement in movements if movement.kind == SettlementMovement.Kind.ACCRUAL),
+                    Decimal("0.00"),
+                )
+                paid = sum(
+                    (-movement.amount for movement in movements if movement.kind == SettlementMovement.Kind.PAYMENT and movement.amount < 0),
+                    Decimal("0.00"),
+                )
+                invoice_party = (
+                    ShipmentDocument.Party.CUSTOMER
+                    if side == SettlementMovement.Side.RECEIVABLE
+                    else ShipmentDocument.Party.CARRIER
+                )
+                invoice = next(
+                    (
+                        document
+                        for document in getattr(transportation, "debt_invoices", ())
+                        if document.party == invoice_party
+                    ),
+                    None,
+                )
+                state_counts["all"] += 1
+                state_counts[side] += 1
+                if overdue:
+                    state_counts["overdue"] += 1
                 if side_filter and side != side_filter:
                     continue
                 if state_filter and state != state_filter:
@@ -5873,6 +5914,9 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                         "side": side,
                         "side_label": side_label,
                         "balance": balance,
+                        "accrued": accrued,
+                        "paid": paid,
+                        "invoice": invoice,
                         "due_date": due_date,
                         "days_overdue": (today - due_date).days if overdue else 0,
                         "state": state,
@@ -5904,6 +5948,7 @@ class DebtReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
                     ("due", "К оплате"),
                     ("no_due_date", "Без срока"),
                 ),
+                "state_counts": state_counts,
             }
         )
         return context
@@ -5915,7 +5960,7 @@ class DebtReportExportView(DebtReportView):
         debt_rows = [
             [
                 "Рейс", "Маршрут", "Наша компания", "Контрагент", "ИНН",
-                "Сторона", "Срок", "Состояние", "Дней просрочки", "Остаток",
+                "Сторона", "Счёт", "Начислено", "Оплачено", "Срок", "Состояние", "Дней просрочки", "Остаток",
                 "Валюта",
             ]
         ]
@@ -5929,6 +5974,9 @@ class DebtReportExportView(DebtReportView):
                     counterparty.short_name or counterparty.name if counterparty else "Не указан",
                     counterparty.tax_id if counterparty else "",
                     row["side_label"],
+                    row["invoice"].number if row["invoice"] else "",
+                    row["accrued"],
+                    row["paid"],
                     row["due_date"],
                     row["state_label"],
                     row["days_overdue"],
