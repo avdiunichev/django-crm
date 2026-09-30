@@ -860,6 +860,10 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     html body.driver-directory-page .driver-register-filters .search { width: 100% !important; max-width: none; padding-left: 43px !important; }
     html body.driver-directory-page .driver-register-filters select { width: 230px !important; max-width: 100%; flex: 0 1 230px !important; margin: 0 !important; }
     html body.driver-directory-page .driver-register-filters :is(input, select, button) { min-height: 42px; }
+    html body.driver-directory-page .driver-letter-tabs { margin: 0; }
+    html body.driver-directory-page .driver-letter-tabs a { min-width: 31px; justify-content: center; padding-right: 9px; padding-left: 9px; }
+    html body.driver-directory-page .driver-letter-tabs a:first-child { min-width: auto; padding-right: 16px; }
+    html body.driver-directory-page .driver-letter-tabs-spacer { display: block; height: 28px; }
     body.vehicle-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.vehicle-directory-page #vehicles-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.vehicle-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }

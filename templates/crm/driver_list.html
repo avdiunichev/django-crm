@@ -9,6 +9,7 @@
     <div><div class="orders-title-line"><h1 id="drivers-title">Водители</h1><span class="orders-count">{{ driver_total }}</span></div><p>Карточки водителей, документы и контактные данные в одном месте.</p></div>
 </header>
 <form class="filters order-register-filters driver-register-filters" method="get" data-filter-text-submit="enter">
+    {% if current_letter %}<input type="hidden" name="letter" value="{{ current_letter }}">{% endif %}
     <label class="driver-search-field">
         <span uk-icon="search" aria-hidden="true"></span>
         <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="ФИО, ИНН, телефон или удостоверение · уточнение через запятую" autocomplete="off" aria-label="Поиск водителя">
@@ -22,6 +23,12 @@
     <a class="uk-button uk-button-default driver-search-action" href="{{ driver_export_url }}" data-driver-export data-export-url="{{ driver_export_url }}"><span uk-icon="download" aria-hidden="true"></span> Экспорт XLSX</a>
     <a class="uk-button uk-button-primary driver-search-action" href="{% url 'driver-create' %}" data-driver-modal>Создать водителя</a>
 </form>
+<nav class="mailbox-folder-tabs driver-letter-tabs" aria-label="Фамилия водителя">
+    {% for tab in driver_letter_tabs %}
+        <a href="{{ tab.url }}"{% if tab.active %} class="is-active" aria-current="page"{% endif %}>{{ tab.label }}</a>
+    {% endfor %}
+</nav>
+<div class="driver-letter-tabs-spacer" style="height: 28px" aria-hidden="true"></div>
 
 <section class="panel uk-card uk-card-default order-register-panel driver-register-panel">
     <div class="table-wrap">

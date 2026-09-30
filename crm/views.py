@@ -11295,6 +11295,7 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         "phone": ("phone", "pk"),
         "status": ("is_active", "last_name", "first_name", "pk"),
     }
+    alphabet = tuple("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
 
     def get_sorting(self):
         """Return a safe ordering key and direction for the complete registry."""
@@ -11388,6 +11389,9 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
             queryset = queryset.filter(is_active=True)
         elif active == "0":
             queryset = queryset.filter(is_active=False)
+        letter = self.request.GET.get("letter", "").strip().upper()
+        if letter in self.alphabet:
+            queryset = queryset.filter(last_name__istartswith=letter)
         sort_key, descending = self.get_sorting()
         ordering = self.sort_options[sort_key]
         if descending:
@@ -11399,6 +11403,31 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
         today = timezone.localdate()
         all_drivers = Driver.objects.all()
         active_drivers = all_drivers.filter(is_active=True)
+        current_letter = self.request.GET.get("letter", "").strip().upper()
+        tab_params = self.request.GET.copy()
+        tab_params.pop("page", None)
+        tab_params.pop("letter", None)
+
+        def letter_tab_url(letter=""):
+            params = tab_params.copy()
+            if letter:
+                params["letter"] = letter
+            query = params.urlencode()
+            return reverse("driver-list") + (f"?{query}" if query else "")
+
+        driver_letter_tabs = [{
+            "label": "Все",
+            "url": letter_tab_url(),
+            "active": current_letter not in self.alphabet,
+        }]
+        driver_letter_tabs.extend(
+            {
+                "label": letter,
+                "url": letter_tab_url(letter),
+                "active": current_letter == letter,
+            }
+            for letter in self.alphabet
+        )
         context.update(
             {
                 "driver_total": all_drivers.count(),
@@ -11411,6 +11440,8 @@ class DriverListView(PersonalDataViewMixin, SearchableDirectoryListView):
                     employments__is_active=True
                 ).values("employments__carrier_id").distinct().count(),
                 "current_active": self.request.GET.get("active", ""),
+                "current_letter": current_letter,
+                "driver_letter_tabs": driver_letter_tabs,
                 "search_terms": search_terms(self.request) or [""],
             }
         )
