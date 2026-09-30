@@ -2037,6 +2037,7 @@ class DirectoryHubView(LoginRequiredMixin, TemplateView):
                     "vehicles_active": vehicles.filter(is_active=True).count(),
                 },
                 "directory_attention": {
+                    "deadline": soon,
                     "organizations": organizations.exclude(
                         fns_status=Organization.FNSStatus.ACTIVE
                     ).count(),

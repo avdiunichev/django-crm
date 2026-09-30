@@ -654,11 +654,17 @@ html body.uikit-theme.crm-workspace-theme .directory-attention-heading { display
 html body.uikit-theme.crm-workspace-theme .directory-attention-heading > span { color: var(--workspace-accent); }
 html body.uikit-theme.crm-workspace-theme .directory-eyebrow { color: var(--workspace-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
 html body.uikit-theme.crm-workspace-theme .directory-attention h2 { margin: 4px 0 0; font-size: 18px; color: var(--workspace-text); }
-html body.uikit-theme.crm-workspace-theme .directory-attention-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-html body.uikit-theme.crm-workspace-theme .directory-attention-item { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; min-height: 104px; padding: 18px 22px; border-right: 1px solid var(--workspace-line); color: var(--workspace-muted); font-size: 13px; text-decoration: none; }
-html body.uikit-theme.crm-workspace-theme .directory-attention-item:last-child { border-right: 0; }
-html body.uikit-theme.crm-workspace-theme .directory-attention-item:hover { background: var(--workspace-soft); color: var(--workspace-text); }
-html body.uikit-theme.crm-workspace-theme .directory-attention-item strong { color: var(--workspace-text); font-size: 24px; font-variant-numeric: tabular-nums; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-heading p { margin: 5px 0 0; color: var(--workspace-muted); font-size: 13px; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-table { display: block; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row { display: grid; grid-template-columns: 160px minmax(260px, 1fr) 84px 104px; align-items: center; gap: 16px; min-height: 58px; padding: 0 22px; border-bottom: 1px solid var(--workspace-line); color: var(--workspace-muted); font-size: 13px; text-decoration: none; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row:last-child { border-bottom: 0; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row:not(.directory-attention-labels):hover { color: var(--workspace-text); background: var(--workspace-soft); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-labels { min-height: 36px; color: var(--workspace-muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-area { color: var(--workspace-text); font-weight: 650; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row strong { color: #17815d; font-size: 16px; font-variant-numeric: tabular-nums; text-align: right; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row strong.is-warning { color: #b26b00; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-row strong.is-alert { color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-action { color: var(--workspace-accent); font-size: 12px; font-weight: 650; text-align: right; }
 html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-profile-breadcrumb) > a {
     color: var(--workspace-muted);
     text-decoration: none;
@@ -669,9 +675,11 @@ html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-
 }
 @media screen and (max-width: 720px) {
     html body.uikit-theme.crm-workspace-theme .directory-hub-grid { grid-template-columns: 1fr; }
-    html body.uikit-theme.crm-workspace-theme .directory-attention-grid { grid-template-columns: 1fr; }
-    html body.uikit-theme.crm-workspace-theme .directory-attention-item { min-height: 76px; border-right: 0; border-bottom: 1px solid var(--workspace-line); }
-    html body.uikit-theme.crm-workspace-theme .directory-attention-item:last-child { border-bottom: 0; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-labels { display: none; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-row { grid-template-columns: 1fr auto; gap: 5px 12px; min-height: 0; padding: 14px 16px; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-row > span:nth-child(2) { grid-column: 1; color: var(--workspace-muted); }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-row strong { grid-column: 2; grid-row: 1 / span 2; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-action { display: none; }
 }
 /* Контрагенты используют ту же рабочую таблицу, что и водители: строгая
    геометрия, компактные строки и закреплённые названия столбцов. */
