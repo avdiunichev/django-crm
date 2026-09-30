@@ -2643,6 +2643,7 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-al
 }
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a.is-active {
     border-bottom-color: var(--workspace-accent);
+    background: transparent !important;
     box-shadow: none;
     color: var(--workspace-text);
 }
