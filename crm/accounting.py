@@ -118,7 +118,7 @@ def _assign_number(transportation):
     sequence.save(update_fields=["last_value", "updated_at"])
     transportation.number_year = year
     transportation.number = (
-        f"{transportation.document_date:%d/%m}-{sequence.last_value:04d}"
+        f"РС-{year}-{sequence.last_value:05d}"
     )
 
 
