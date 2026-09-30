@@ -7,13 +7,6 @@
 <header class="orders-page-header">
     <div><div class="orders-title-line"><h1 id="vehicles-title">Автопарк</h1><span class="orders-count">{{ vehicle_total }}</span></div><p>Транспорт и назначение на рейсы в одном месте.</p></div>
 </header>
-<nav class="vehicle-kind-tabs" aria-label="Тип транспорта">
-    {% for tab in vehicle_kind_tabs %}
-        <a href="{{ tab.url }}" class="vehicle-kind-tab{% if tab.active %} is-active{% endif %}"{% if tab.active %} aria-current="page"{% endif %}>
-            <span>{{ tab.label }}</span><small>{{ tab.count }}</small>
-        </a>
-    {% endfor %}
-</nav>
 <form class="filters order-register-filters vehicle-register-filters" method="get" data-filter-text-submit="enter">
     {% if current_kind %}<input type="hidden" name="kind" value="{{ current_kind }}">{% endif %}
     <label class="vehicle-search-field">
@@ -25,6 +18,13 @@
     <a class="uk-button uk-button-default vehicle-search-action" href="{{ vehicle_export_url }}" data-vehicle-export data-export-url="{{ vehicle_export_url }}"><span uk-icon="download" aria-hidden="true"></span> Экспорт XLSX</a>
     <a class="uk-button uk-button-primary vehicle-search-action" href="{% url 'vehicle-create' %}" data-vehicle-modal>Добавить транспорт</a>
 </form>
+<nav class="mailbox-folder-tabs vehicle-kind-tabs" aria-label="Тип транспорта">
+    {% for tab in vehicle_kind_tabs %}
+        <a href="{{ tab.url }}"{% if tab.active %} class="is-active" aria-current="page"{% endif %}>
+            {{ tab.label }} <span class="mailbox-folder-count">{{ tab.count }}</span>
+        </a>
+    {% endfor %}
+</nav>
 
 <section class="panel uk-card uk-card-default order-register-panel vehicle-register-panel">
     <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table vehicle-directory-table" data-server-sort="true">

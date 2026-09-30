@@ -863,29 +863,7 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     body.vehicle-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.vehicle-directory-page #vehicles-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.vehicle-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
-    /* Primary fleet filters mirror the mailbox: a single quiet tab row with
-       an underline rather than separate filter chips. */
-    html body.vehicle-directory-page .vehicle-kind-tabs {
-        display: flex; align-items: stretch; gap: 0; max-width: 100%; overflow-x: auto;
-        margin: -10px 0 18px; border-bottom: 1px solid var(--workspace-line);
-        scrollbar-width: thin;
-    }
-    html body.vehicle-directory-page .vehicle-kind-tab {
-        display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
-        min-height: 40px; padding: 0 14px 1px; border-bottom: 2px solid transparent;
-        color: var(--workspace-muted); font-size: 13px; font-weight: 600;
-        text-decoration: none; white-space: nowrap;
-    }
-    html body.vehicle-directory-page .vehicle-kind-tab:hover {
-        color: var(--workspace-text); text-decoration: none; background: var(--workspace-soft);
-    }
-    html body.vehicle-directory-page .vehicle-kind-tab.is-active {
-        color: var(--workspace-accent); border-bottom-color: var(--workspace-accent);
-    }
-    html body.vehicle-directory-page .vehicle-kind-tab small {
-        min-width: 18px; color: inherit; font-size: 11px; font-weight: 700; text-align: center;
-        opacity: .72;
-    }
+    html body.vehicle-directory-page .vehicle-kind-tabs { margin: 0 0 18px; }
     html body.vehicle-directory-page .vehicle-register-filters {
         display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
         padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
