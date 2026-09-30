@@ -8540,7 +8540,10 @@ class BankStatementEditorMixin:
         owner = self.request.GET.get("owner", "").strip()
         if owner.isdigit():
             initial["owner_company"] = owner
-        initial.setdefault("statement_date", timezone.localdate())
+        # A bank operation imported from a statement already has its document
+        # date.  Only a newly created manual document may default to today.
+        if not getattr(self, "object", None):
+            initial.setdefault("statement_date", timezone.localdate())
         return initial
 
     def _selected_state(self):
