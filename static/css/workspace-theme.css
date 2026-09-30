@@ -2374,11 +2374,10 @@ html body.mailbox-directory-page .mailbox-title-line h1 { margin: 0; color: var(
 .bank-statement-directory-page .bank-statement-register-table td { min-width: 0 !important; white-space: normal; }
 .bank-statement-directory-page .bank-statement-register-table td { overflow-wrap: anywhere; }
 .bank-statement-directory-page .bank-statement-register-table .bank-statement-purpose {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    display: table-cell;
+    overflow: visible;
     line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 /* Банковские документы используют единый компактный шаблон реестров. */
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-register {
