@@ -11987,6 +11987,41 @@ class VehicleListView(SearchableDirectoryListView):
         all_vehicles = Vehicle.objects.all()
         active_vehicles = all_vehicles.filter(is_active=True)
         today = timezone.localdate()
+        current_kind = self.request.GET.get("kind", "").strip()
+        kind_counts = {
+            row["kind"]: row["total"]
+            for row in all_vehicles.values("kind").annotate(total=Count("pk"))
+        }
+
+        # The type tabs work as a primary register filter: they retain the
+        # current search, status and sort settings, but always return to the
+        # first page of the selected vehicle type.
+        tab_params = self.request.GET.copy()
+        tab_params.pop("page", None)
+        tab_params.pop("kind", None)
+
+        def tab_url(kind=""):
+            params = tab_params.copy()
+            if kind:
+                params["kind"] = kind
+            query = params.urlencode()
+            return reverse("vehicle-list") + (f"?{query}" if query else "")
+
+        vehicle_kind_tabs = [{
+            "label": "Все ТС",
+            "count": all_vehicles.count(),
+            "url": tab_url(),
+            "active": current_kind not in Vehicle.Kind.values,
+        }]
+        vehicle_kind_tabs.extend(
+            {
+                "label": label,
+                "count": kind_counts.get(kind, 0),
+                "url": tab_url(kind),
+                "active": current_kind == kind,
+            }
+            for kind, label in Vehicle.Kind.choices
+        )
         context.update(
             {
                 "vehicle_total": all_vehicles.count(),
@@ -12001,8 +12036,9 @@ class VehicleListView(SearchableDirectoryListView):
                     is_active=True
                 ).count(),
                 "current_active": self.request.GET.get("active", ""),
-                "current_kind": self.request.GET.get("kind", ""),
+                "current_kind": current_kind,
                 "vehicle_kinds": Vehicle.Kind.choices,
+                "vehicle_kind_tabs": vehicle_kind_tabs,
             }
         )
         export_params = self.request.GET.copy()

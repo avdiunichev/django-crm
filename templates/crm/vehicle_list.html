@@ -7,7 +7,15 @@
 <header class="orders-page-header">
     <div><div class="orders-title-line"><h1 id="vehicles-title">Автопарк</h1><span class="orders-count">{{ vehicle_total }}</span></div><p>Транспорт и назначение на рейсы в одном месте.</p></div>
 </header>
+<nav class="vehicle-kind-tabs" aria-label="Тип транспорта">
+    {% for tab in vehicle_kind_tabs %}
+        <a href="{{ tab.url }}" class="vehicle-kind-tab{% if tab.active %} is-active{% endif %}"{% if tab.active %} aria-current="page"{% endif %}>
+            <span>{{ tab.label }}</span><small>{{ tab.count }}</small>
+        </a>
+    {% endfor %}
+</nav>
 <form class="filters order-register-filters vehicle-register-filters" method="get" data-filter-text-submit="enter">
+    {% if current_kind %}<input type="hidden" name="kind" value="{{ current_kind }}">{% endif %}
     <label class="vehicle-search-field">
         <span uk-icon="search" aria-hidden="true"></span>
         <input class="search uk-input" type="search" name="q" value="{{ current_q }}" placeholder="Госномер, VIN или марка" autocomplete="off" aria-label="Поиск транспорта">
