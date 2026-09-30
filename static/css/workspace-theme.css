@@ -255,18 +255,6 @@ html body.chat-embed-page .main > .content {
     border-radius: 0 !important;
     box-shadow: none !important;
 }
-.crm-calculator-icon {
-    width: 20px;
-    height: 20px;
-    flex: 0 0 20px;
-    vertical-align: middle;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.65;
-}
-.crm-calculator-icon path:last-child { stroke-width: 2.6; }
 html body.chat-embed-page .page-heading { display: none; }
 html body.chat-embed-page .chat-shell {
     min-height: 100dvh;
