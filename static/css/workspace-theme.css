@@ -2441,6 +2441,36 @@ html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-dire
     color: #ffafb6 !important;
     background: #3a2529 !important;
 }
+/* В рабочем реестре рейсов показываем короткий статус комплекта документов.
+   Дата входящего и сроки оплаты остаются в карточке, чтобы не перегружать
+   таблицу. */
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-table :is(th, td):nth-child(6) {
+    display: table-cell !important;
+    visibility: visible !important;
+    width: 172px !important;
+    min-width: 172px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--orders-border) !important;
+}
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents {
+    display: grid !important;
+    gap: 5px;
+}
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents > div {
+    display: grid;
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 5px;
+    align-items: baseline;
+}
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents span {
+    color: var(--workspace-muted);
+    font-size: 11px;
+}
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-present strong { color: #17835c; }
+html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-missing strong { color: #b00000; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-present strong { color: #55d7a0; }
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-missing strong { color: #ff9da9; }
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
     background: #3a2529 !important;
     border-bottom-color: #76434a !important;
