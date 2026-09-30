@@ -8591,6 +8591,7 @@ class BankStatementEditorMixin:
             "current_bank_direction": direction,
             "current_bank_owner": str(owner_id or ""),
             "current_bank_currency": currency,
+            "bank_counterparty_filter": "",
             "bank_income_candidates": [],
             "bank_expense_candidates": [],
             "bank_selected_ids": selected,
@@ -8607,20 +8608,39 @@ class BankStatementEditorMixin:
                 currency=currency,
                 user=self.request.user,
             )
+            filtered_candidates = []
+            statement_tax_id = "".join(
+                character
+                for character in getattr(self.object, "counterparty_tax_id", "") or ""
+                if character.isdigit()
+            )
+            if statement_tax_id:
+                result["bank_counterparty_filter"] = (
+                    getattr(self.object, "counterparty_name", "")
+                    or f"ИНН {statement_tax_id}"
+                )
             for candidate in candidates:
-                if (
-                    getattr(self, "object", None)
-                    and self.object.counterparty_tax_id
-                    and candidate["counterparty"].tax_id != self.object.counterparty_tax_id
-                ):
-                    continue
                 transportation_id = str(candidate["transportation"].pk)
                 candidate["selected"] = transportation_id in selected
+                candidate_tax_id = "".join(
+                    character for character in (candidate["counterparty"].tax_id or "")
+                    if character.isdigit()
+                )
+                # Imported bank operations are allocated only to the matching
+                # payer/recipient.  Existing selections stay visible so an
+                # accountant can correct a draft without losing its rows.
+                if (
+                    statement_tax_id
+                    and candidate_tax_id != statement_tax_id
+                    and not candidate["selected"]
+                ):
+                    continue
                 candidate["entered_amount"] = amounts.get(
                     transportation_id, candidate["balance"]
                 )
                 candidate["entered_reference"] = references.get(transportation_id, "")
-            result[key] = candidates
+                filtered_candidates.append(candidate)
+            result[key] = filtered_candidates
         return result
 
     def get_context_data(self, **kwargs):

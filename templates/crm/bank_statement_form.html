@@ -20,7 +20,7 @@
     </section>
 
     <section class="form-section uk-card uk-card-default bank-payment-picker">
-        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Рейсы для оплаты</h2><p>Показываются только проведённые рейсы с остатком задолженности. Сумму можно изменить для частичной оплаты.</p></div></div>
+        <div class="form-section-title"><span uk-icon="list"></span><div><h2>Рейсы для оплаты</h2><p>Показываются только проведённые рейсы с остатком задолженности. Сумму можно изменить для частичной оплаты.</p>{% if bank_counterparty_filter %}<p class="uk-text-primary">Отфильтровано по контрагенту из выписки: <strong>{{ bank_counterparty_filter }}</strong>.</p>{% endif %}</div></div>
         {% for error in form.non_field_errors %}{% endfor %}
         <div class="bank-picker-summary"><span>Отмечено рейсов: <strong data-bank-selected-count>0</strong></span><span>Сумма операции: <strong class="amount-income" data-bank-selected-total>0,00</strong> {{ form.currency.value|default:"RUB"|currency_symbol }}</span></div>
         <div class="bank-candidate-group" data-bank-direction="income">
