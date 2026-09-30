@@ -648,7 +648,9 @@ html body.uikit-theme.crm-workspace-theme .directory-card-top a:hover { color: v
 html body.uikit-theme.crm-workspace-theme .directory-hub-card strong { display: block; font-size: 18px; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card p { margin: 5px 0 0; color: var(--workspace-muted); font-size: 14px; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card small { color: var(--workspace-muted); font-size: 13px; }
-html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button { margin-top: auto; border-radius: 0; text-align: center; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button { margin-top: auto; border-radius: 0; background: transparent; text-align: center; transition: color .16s ease, border-color .16s ease; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button:hover,
+html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button:focus-visible { border-color: var(--workspace-accent); background: transparent; color: var(--workspace-accent); }
 html body.uikit-theme.crm-workspace-theme .directory-attention { max-width: 1160px; margin-top: 30px; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); }
 html body.uikit-theme.crm-workspace-theme .directory-attention-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--workspace-line); }
 html body.uikit-theme.crm-workspace-theme .directory-attention-heading > span { color: var(--workspace-accent); }
