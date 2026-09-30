@@ -9022,9 +9022,33 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         duplicate_ids = self.get_duplicate_statement_ids()
         batches = {statement.import_batch_id: statement.import_batch for statement in statements if statement.import_batch_id}
         balance_maps = {batch_id: batch.operation_balance_map() for batch_id, batch in batches.items()}
+        # The name supplied by the bank is useful as a fallback, but the
+        # register must preferentially show the verified name from our own
+        # directory.  Imported INNs are already normalized to digits; the
+        # directory data is normalized once more here for old records.
+        statement_tax_ids = {
+            "".join(character for character in (statement.counterparty_tax_id or "") if character.isdigit())
+            for statement in statements
+            if statement.counterparty_tax_id
+        }
+        organizations_by_tax_id = {}
+        if statement_tax_ids:
+            for organization in Organization.objects.exclude(tax_id="").only(
+                "pk", "name", "short_name", "tax_id"
+            ):
+                normalized_tax_id = "".join(
+                    character for character in organization.tax_id if character.isdigit()
+                )
+                if normalized_tax_id in statement_tax_ids:
+                    organizations_by_tax_id.setdefault(normalized_tax_id, organization)
         for statement in statements:
             statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
             statement.is_duplicate_candidate = statement.pk in duplicate_ids
+            normalized_tax_id = "".join(
+                character for character in (statement.counterparty_tax_id or "") if character.isdigit()
+            )
+            statement.directory_counterparty = organizations_by_tax_id.get(normalized_tax_id)
+            statement.counterparty_in_directory = statement.directory_counterparty is not None
         context["bank_statements"] = statements
         context["unallocated_statements"] = [
             statement for statement in statements if not statement.line_total

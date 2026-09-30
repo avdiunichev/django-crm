@@ -2431,6 +2431,10 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-st
     color: #b00000 !important;
     font-weight: 650;
 }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-counterparty-missing {
+    color: #a66500 !important;
+    font-weight: 650;
+}
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-duplicates-action {
     border-color: #d10000 !important;
     color: #b00000 !important;

@@ -16,7 +16,16 @@
         {% for statement in statements %}
             <tr{% if statement.is_duplicate_candidate %} class="bank-statement-duplicate-row"{% endif %}>
                 <td><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.number }}</a><small>{{ statement.statement_date|date:"d.m.Y" }}{% if statement.reference %} · выписка {{ statement.reference }}{% endif %}</small>{% if statement.is_duplicate_candidate %}<small class="bank-statement-duplicate-note">Возможный дубль — проверьте перед удалением</small>{% endif %}</td>
-                <td><strong>{{ statement.counterparty_name|default:"Не указан" }}</strong><small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small></td>
+                <td>
+                    {% if statement.directory_counterparty %}
+                        <a class="primary-link" href="{{ statement.directory_counterparty.get_absolute_url }}">{{ statement.directory_counterparty.short_name|default:statement.directory_counterparty.name }}</a>
+                        <small>ИНН {{ statement.counterparty_tax_id|default:"—" }} · в справочнике</small>
+                    {% else %}
+                        <strong>{{ statement.counterparty_name|default:"Не указан" }}</strong>
+                        <small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small>
+                        <small class="bank-statement-counterparty-missing">Нет в справочнике</small>
+                    {% endif %}
+                </td>
                 <td class="bank-statement-purpose" title="{{ statement.payment_purpose }}">{{ statement.payment_purpose|default:"Назначение не указано" }}</td>
                 <td><span class="uk-label {% if statement.status == 'voided' %}uk-label-danger{% elif statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small class="{% if statement.status == 'voided' %}amount-problem{% endif %}">{{ statement.get_status_display }}</small></td>
                 <td>{{ statement.owner_company }}{% if statement.bank_account %}<small>{{ statement.bank_account.account_number }} · {{ statement.bank_account.bank_name }}</small>{% endif %}</td>
