@@ -863,7 +863,8 @@ html body.driver-directory-page .driver-directory-table :is(th, td):nth-child(1)
     body.vehicle-directory-page { --orders-muted: var(--workspace-muted); --orders-soft: var(--workspace-soft); }
     html body.vehicle-directory-page #vehicles-title { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -.7px; color: var(--workspace-text); }
     html body.vehicle-directory-page .orders-page-actions .uk-button { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; min-height: 42px; }
-    html body.vehicle-directory-page .vehicle-kind-tabs { margin: 0 0 28px; }
+    html body.vehicle-directory-page .vehicle-kind-tabs { margin: 0; }
+    html body.vehicle-directory-page .vehicle-kind-tabs-spacer { display: block; height: 28px; }
     html body.vehicle-directory-page .vehicle-register-filters {
         display: flex !important; flex-wrap: wrap; justify-content: flex-start; gap: 12px !important;
         padding: 0 !important; margin: 0 0 24px; border: 0 !important; background: transparent !important;
