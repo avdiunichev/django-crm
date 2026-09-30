@@ -75,7 +75,7 @@
                 </li>
                 {% endif %}
                 <li class="{% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name or 'driver' in request.resolver_match.url_name or 'vehicle' in request.resolver_match.url_name %}uk-active{% endif %}">
-                    <a href="#"><span uk-icon="users"></span> Справочники <span uk-navbar-parent-icon></span></a>
+                    <a href="#"><span uk-icon="album"></span> Справочники <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
                             <li><a href="{% url 'organization-list' %}"><span uk-icon="users"></span> Контрагенты</a></li>
@@ -142,7 +142,7 @@
                 <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
                 {% endif %}
-                <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
+                <span class="mobile-nav-group"><span uk-icon="album"></span> Справочники</span>
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
@@ -190,7 +190,7 @@
                 <a class="mobile-nav-subitem {% if 'reconciliation-act' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'reconciliation-act-list' %}">Акты сверки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}">Отчёты</a>
                 {% endif %}
-                <span class="mobile-nav-group"><span uk-icon="users"></span> Справочники</span>
+                <span class="mobile-nav-group"><span uk-icon="album"></span> Справочники</span>
                 <a class="mobile-nav-subitem {% if 'organization' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name or 'carrier' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'organization-list' %}">Контрагенты</a>
                 {% if crm_access.can_view_personal_data %}<a class="mobile-nav-subitem {% if 'driver' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'driver-list' %}">Водители</a>{% endif %}
                 <a class="mobile-nav-subitem {% if 'vehicle' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'vehicle-list' %}">Автопарк</a>
