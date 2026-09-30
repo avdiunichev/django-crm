@@ -637,20 +637,23 @@ html body.uikit-theme.crm-workspace-theme .directory-hub-card {
     background: var(--workspace-surface);
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card:hover {
-    border-color: var(--workspace-accent);
+    border-color: var(--workspace-accent) !important;
     color: var(--workspace-text);
-    box-shadow: 0 8px 20px rgba(41, 41, 45, .06);
+    background: transparent !important;
+    box-shadow: none !important;
 }
 html body.uikit-theme.crm-workspace-theme .directory-card-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 html body.uikit-theme.crm-workspace-theme .directory-card-top > span { color: var(--workspace-accent); }
 html body.uikit-theme.crm-workspace-theme .directory-card-top a { color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
 html body.uikit-theme.crm-workspace-theme .directory-card-top a:hover { color: var(--workspace-accent); }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card strong { display: block; font-size: 18px; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card:hover strong,
+html body.uikit-theme.crm-workspace-theme .directory-hub-card:hover .directory-card-top a { color: var(--workspace-accent) !important; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card p { margin: 5px 0 0; color: var(--workspace-muted); font-size: 14px; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card small { color: var(--workspace-muted); font-size: 13px; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button { margin-top: auto; border-radius: 0; background: transparent; text-align: center; transition: color .16s ease, border-color .16s ease; }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button:hover,
-html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button:focus-visible { border-color: var(--workspace-accent); background: transparent; color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button:focus-visible { border-color: var(--workspace-accent) !important; background: transparent !important; color: var(--workspace-accent) !important; }
 html body.uikit-theme.crm-workspace-theme .directory-attention { max-width: 1160px; margin-top: 30px; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); }
 html body.uikit-theme.crm-workspace-theme .directory-attention-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--workspace-line); }
 html body.uikit-theme.crm-workspace-theme .directory-attention-heading > span { color: var(--workspace-accent); }
