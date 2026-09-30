@@ -634,6 +634,28 @@ def update_transportation_payment_status(transportation, user=None):
     return transportation
 
 
+def _matching_cargo_insurance(statement, line, transportation):
+    """Find the insurance invoice paid by a bank expense line.
+
+    An insurance payment is not a payment to the trip executor and therefore
+    must never create a normal ``Payment``/payable-settlement movement.
+    """
+
+    insurances = CargoInsurance.objects.filter(
+        transportation=transportation,
+        bank_statement_line__isnull=True,
+        insurer_amount=line.amount,
+        currency=statement.currency,
+    )
+    tax_id = (statement.counterparty_tax_id or "").strip()
+    if tax_id:
+        return insurances.filter(insurer__tax_id=tax_id).first()
+    counterparty_name = (statement.counterparty_name or "").strip()
+    if counterparty_name:
+        return insurances.filter(insurer__name__iexact=counterparty_name).first()
+    return None
+
+
 @transaction.atomic
 def post_bank_statement(statement, user=None):
     """Провести групповую банковскую выписку по выбранным рейсам.
@@ -660,6 +682,7 @@ def post_bank_statement(statement, user=None):
     statement.full_clean()
 
     locked_transportations = {}
+    line_insurances = {}
     errors = []
     for line in lines:
         if line.payment_id:
@@ -677,10 +700,17 @@ def post_bank_statement(statement, user=None):
         if transportation.owner_company_id != statement.owner_company_id:
             errors.append(f"{transportation}: другая наша компания.")
             continue
+        insurance = (
+            _matching_cargo_insurance(statement, line, transportation)
+            if statement.direction == BankStatement.Direction.EXPENSE
+            else None
+        )
+        if insurance:
+            line_insurances[line.pk] = insurance
         transportation_currency = (
             transportation.currency
             if statement.direction == BankStatement.Direction.INCOME
-            else transportation.executor_currency
+            else insurance.currency if insurance else transportation.executor_currency
         )
         if transportation_currency != statement.currency:
             errors.append(
@@ -691,7 +721,7 @@ def post_bank_statement(statement, user=None):
         balance = (
             transportation.receivable_balance
             if statement.direction == BankStatement.Direction.INCOME
-            else transportation.payable_balance
+            else insurance.insurer_amount if insurance else transportation.payable_balance
         )
         if line.amount <= 0:
             errors.append(f"{transportation}: сумма должна быть больше нуля.")
@@ -704,7 +734,7 @@ def post_bank_statement(statement, user=None):
                 role=TransportationParty.Role.CLIENT, is_active=True
             ).exists():
                 errors.append(f"{transportation}: не указан клиент.")
-        elif not transportation.active_execution_link():
+        elif not insurance and not transportation.active_execution_link():
             errors.append(f"{transportation}: не указан исполнитель для расхода.")
 
     if errors:
@@ -712,6 +742,21 @@ def post_bank_statement(statement, user=None):
 
     for line in lines:
         transportation = locked_transportations[line.pk]
+        insurance = line_insurances.get(line.pk)
+        if insurance:
+            insurance.bank_statement_line = line
+            insurance.status = CargoInsurance.Status.PAID
+            insurance.save(update_fields=["bank_statement_line", "status", "updated_at"])
+            TransportationStatusEvent.objects.create(
+                transportation=transportation,
+                old_status=transportation.status,
+                new_status=transportation.status,
+                changed_by=user,
+                comment=f"Оплачено страхование по банковскому документу {statement.number}",
+                source=TransportationStatusEvent.Source.PAYMENT,
+                changes={"Страхование": {"old": "Не оплачено", "new": f"{line.amount} {statement.currency}"}},
+            )
+            continue
         payment = Payment(
             transportation=transportation,
             direction=(
@@ -733,17 +778,6 @@ def post_bank_statement(statement, user=None):
         payment.save()
         line.payment = payment
         line.save(update_fields=["payment", "updated_at"])
-        if statement.direction == BankStatement.Direction.EXPENSE:
-            insurance = CargoInsurance.objects.filter(
-                transportation=transportation,
-                bank_statement_line__isnull=True,
-                insurer_amount=line.amount,
-                currency=statement.currency,
-            ).first()
-            if insurance:
-                insurance.bank_statement_line = line
-                insurance.status = CargoInsurance.Status.PAID
-                insurance.save(update_fields=["bank_statement_line", "status", "updated_at"])
         TransportationStatusEvent.objects.create(
             transportation=transportation,
             old_status=transportation.status,
@@ -780,6 +814,11 @@ def unpost_bank_statement(statement, user=None):
         .select_related("transportation")
     )
     for line in lines:
+        insurance = CargoInsurance.objects.filter(bank_statement_line=line).first()
+        if insurance:
+            insurance.bank_statement_line = None
+            insurance.status = CargoInsurance.Status.INVOICED
+            insurance.save(update_fields=["bank_statement_line", "status", "updated_at"])
         if line.payment_id:
             payment = line.payment
             TransportationStatusEvent.objects.create(
