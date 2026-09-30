@@ -6845,6 +6845,39 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_organizations = Organization.objects.all()
+        current_role = self.request.GET.get("role", "").strip()
+        role_counts = {
+            row["role"]: row["total"]
+            for row in OrganizationRole.objects.filter(is_active=True)
+            .values("role")
+            .annotate(total=Count("organization_id", distinct=True))
+        }
+        tab_params = self.request.GET.copy()
+        tab_params.pop("page", None)
+        tab_params.pop("role", None)
+
+        def role_tab_url(role=""):
+            params = tab_params.copy()
+            if role:
+                params["role"] = role
+            query = params.urlencode()
+            return reverse("organization-list") + (f"?{query}" if query else "")
+
+        organization_role_tabs = [{
+            "label": "Все",
+            "count": all_organizations.count(),
+            "url": role_tab_url(),
+            "active": current_role not in OrganizationRole.Role.values,
+        }]
+        organization_role_tabs.extend(
+            {
+                "label": label,
+                "count": role_counts.get(role, 0),
+                "url": role_tab_url(role),
+                "active": current_role == role,
+            }
+            for role, label in OrganizationRole.Role.choices
+        )
         export_params = self.request.GET.copy()
         export_params.pop("page", None)
         export_params.pop("per_page", None)
@@ -6853,9 +6886,10 @@ class OrganizationListView(LoginRequiredMixin, PersistentPageSizeMixin, ListView
             {
                 "current_q": self.request.GET.get("q", ""),
                 "search_terms": search_terms(self.request) or [""],
-                "current_role": self.request.GET.get("role", ""),
+                "current_role": current_role,
                 "current_own": self.request.GET.get("own", ""),
                 "role_choices": OrganizationRole.Role.choices,
+                "organization_role_tabs": organization_role_tabs,
                 "organization_count": all_organizations.count(),
                 "client_count": all_organizations.filter(
                     roles__role=OrganizationRole.Role.CLIENT,
