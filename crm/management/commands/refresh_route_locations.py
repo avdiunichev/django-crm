@@ -33,17 +33,41 @@ class Command(BaseCommand):
             action="store_true",
             help="Показать объём обновления без сохранения изменений.",
         )
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help="Перепроверить все точки, включая уже заполненные.",
+        )
+        parser.add_argument(
+            "--transportations-only",
+            action="store_true",
+            help="Обработать только точки маршрутов рейсов, без заказов.",
+        )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
+        force = options["force"]
         updated = 0
         skipped = 0
+        suggestions_cache = {}
 
-        for model in (TransportOrderStop, TransportationStop):
-            stops = model.objects.exclude(city="").filter(address_region="")
+        models = (TransportationStop,) if options["transportations_only"] else (
+            TransportOrderStop,
+            TransportationStop,
+        )
+        for model in models:
+            stops = model.objects.exclude(city="")
+            if not force:
+                stops = stops.filter(address_region="")
             for stop in stops.iterator():
+                lookup_address = stop.address or stop.city
+                cache_key = (lookup_address, stop.city)
                 try:
-                    suggestions = suggest_addresses(stop.address, city=stop.city, count=1)
+                    if cache_key not in suggestions_cache:
+                        suggestions_cache[cache_key] = suggest_addresses(
+                            lookup_address, city=stop.city, count=1
+                        )
+                    suggestions = suggestions_cache[cache_key]
                 except DadataError as exc:
                     self.stderr.write(self.style.ERROR(str(exc)))
                     return
@@ -55,20 +79,22 @@ class Command(BaseCommand):
                     skipped += 1
                     continue
 
-                stop.city = locality[:120]
+                changed_fields = []
+                city = locality[:120]
+                if stop.city != city:
+                    stop.city = city
+                    changed_fields.append("city")
                 for source, target in ADDRESS_FIELDS.items():
                     value = str(suggestion.get(source) or "")
                     field = stop._meta.get_field(target)
-                    setattr(stop, target, value[: field.max_length])
-                updated += 1
-                if not dry_run:
-                    stop.save(
-                        update_fields=[
-                            "city",
-                            *ADDRESS_FIELDS.values(),
-                            "updated_at",
-                        ]
-                    )
+                    value = value[: field.max_length]
+                    if getattr(stop, target) != value:
+                        setattr(stop, target, value)
+                        changed_fields.append(target)
+                if changed_fields:
+                    updated += 1
+                    if not dry_run:
+                        stop.save(update_fields=[*changed_fields, "updated_at"])
 
         action = "Будет обновлено" if dry_run else "Обновлено"
         self.stdout.write(f"{action}: {updated}; пропущено: {skipped}.")
