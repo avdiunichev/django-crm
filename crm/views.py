@@ -9035,6 +9035,17 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         filtered_statements = self.get_queryset()
         context["unallocated_count"] = filtered_statements.filter(line_total=0).count()
         context["allocated_count"] = filtered_statements.filter(line_total__gt=0).count()
+        allocation_tab = self.request.GET.get("allocation", "unallocated")
+        if allocation_tab not in {"unallocated", "allocated"}:
+            allocation_tab = "unallocated"
+        tab_urls = {}
+        for tab in ("unallocated", "allocated"):
+            params = self.request.GET.copy()
+            params.pop("page", None)
+            params["allocation"] = tab
+            tab_urls[tab] = f"?{params.urlencode()}"
+        context["allocation_tab"] = allocation_tab
+        context["allocation_tab_urls"] = tab_urls
         current_sort_key, current_sort_desc, _ = self.get_sorting()
         sort_columns = {}
         for key in self.sort_options:

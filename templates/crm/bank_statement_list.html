@@ -18,7 +18,14 @@
     {% if showing_duplicates %}<a class="uk-button bank-duplicates-action" href="{% url 'bank-statement-list' %}">Показаны только дубли ×</a>{% endif %}
 </form>
 
-{% include "crm/includes/bank_statement_register_table.html" with title="Не распределены" count=unallocated_count statements=unallocated_statements empty_message="Все операции текущей страницы распределены." %}
-{% include "crm/includes/bank_statement_register_table.html" with title="Распределены по рейсам" count=allocated_count statements=allocated_statements empty_message="Распределённых операций на текущей странице нет." %}
+<nav class="bank-allocation-tabs" aria-label="Статус распределения банковских операций">
+    <a href="{{ allocation_tab_urls.unallocated }}"{% if allocation_tab == "unallocated" %} class="is-active" aria-current="page"{% endif %}>Не распределены <span>{{ unallocated_count }}</span></a>
+    <a href="{{ allocation_tab_urls.allocated }}"{% if allocation_tab == "allocated" %} class="is-active" aria-current="page"{% endif %}>Распределены по рейсам <span>{{ allocated_count }}</span></a>
+</nav>
+{% if allocation_tab == "allocated" %}
+    {% include "crm/includes/bank_statement_register_table.html" with title="Распределены по рейсам" count=allocated_count statements=allocated_statements empty_message="Распределённых операций на текущей странице нет." %}
+{% else %}
+    {% include "crm/includes/bank_statement_register_table.html" with title="Не распределены" count=unallocated_count statements=unallocated_statements empty_message="Все операции текущей страницы распределены." %}
+{% endif %}
 {% include "crm/includes/pagination.html" %}
 {% endblock %}

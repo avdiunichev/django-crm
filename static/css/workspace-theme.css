@@ -2491,6 +2491,37 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-re
     color: var(--orders-muted);
     font-size: 12px;
 }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin: 0 0 12px;
+    padding: 4px;
+    border: 1px solid var(--orders-border);
+    border-radius: 8px;
+    background: var(--orders-surface);
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 5px;
+    color: var(--orders-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a:hover { color: var(--orders-ink); }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs a.is-active {
+    color: var(--orders-ink);
+    background: var(--orders-soft);
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs span {
+    color: inherit;
+    font-size: 12px;
+    opacity: .75;
+}
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
     background: #3a2529 !important;
     border-bottom-color: #76434a !important;
