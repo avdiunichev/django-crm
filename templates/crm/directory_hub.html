@@ -11,17 +11,4 @@
     {% if can_view_personal_data %}<article class="directory-hub-card"><div class="directory-card-top"><span uk-icon="user"></span><a href="{% url 'driver-list' %}">Открыть реестр →</a></div><div><strong>Водители</strong><p>{{ directory_metrics.drivers_total }} карточек</p></div><small>Активны: {{ directory_metrics.drivers_active }}</small><a class="uk-button uk-button-default" href="{% url 'driver-create' %}" data-driver-modal>Добавить водителя</a></article>{% endif %}
     <article class="directory-hub-card"><div class="directory-card-top"><span uk-icon="thumbnails"></span><a href="{% url 'vehicle-list' %}">Открыть реестр →</a></div><div><strong>Автопарк</strong><p>{{ directory_metrics.vehicles_total }} единиц</p></div><small>В эксплуатации: {{ directory_metrics.vehicles_active }}</small><a class="uk-button uk-button-default" href="{% url 'vehicle-create' %}" data-vehicle-modal>Добавить транспорт</a></article>
 </section>
-<section class="directory-status-strip" aria-label="Статус справочников">
-    <span class="directory-status-title">Статус справочников</span>
-    {% if directory_attention.organizations or directory_attention.licenses_expired or directory_attention.licenses_expiring or directory_attention.vehicles %}
-        <div class="directory-status-items">
-            {% if directory_attention.organizations %}<a href="{% url 'organization-list' %}" class="is-alert"><strong>{{ directory_attention.organizations }}</strong> без проверки ФНС</a>{% endif %}
-            {% if can_view_personal_data and directory_attention.licenses_expired %}<a href="{% url 'driver-list' %}" class="is-alert"><strong>{{ directory_attention.licenses_expired }}</strong> просроченных прав</a>{% endif %}
-            {% if can_view_personal_data and directory_attention.licenses_expiring %}<a href="{% url 'driver-list' %}" class="is-warning"><strong>{{ directory_attention.licenses_expiring }}</strong> прав истекают до {{ directory_attention.deadline|date:"d.m" }}</a>{% endif %}
-            {% if directory_attention.vehicles %}<a href="{% url 'vehicle-list' %}" class="is-warning"><strong>{{ directory_attention.vehicles }}</strong> ТС требуют проверки документов</a>{% endif %}
-        </div>
-    {% else %}
-        <span class="directory-status-ok"><span uk-icon="check" aria-hidden="true"></span> Всё в порядке: срочных проверок нет</span>
-    {% endif %}
-</section>
 {% endblock %}
