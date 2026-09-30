@@ -6,7 +6,7 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260930-customer-documents">{% endblock %}
 {% block content %}
 <div class="orders-workspace customer-documents-workspace">
-    <div class="orders-breadcrumb"><span uk-icon="calculator"></span><a href="{% url 'accounting-dashboard' %}">Бухгалтерия</a><span aria-hidden="true">/</span><span aria-current="page">Клиентам</span></div>
+    <div class="orders-breadcrumb"><svg class="crm-calculator-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"></rect><path d="M7.5 6.5h9v4h-9z"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg><a href="{% url 'accounting-dashboard' %}">Бухгалтерия</a><span aria-hidden="true">/</span><span aria-current="page">Клиентам</span></div>
     <header class="orders-page-header">
         <div><div class="orders-title-line"><h1 id="orders-title">Клиентам</h1><span class="orders-count">{{ customer_document_count }}</span></div><p>Счета и закрывающие документы по рейсам клиентов.</p></div>
         <div class="orders-page-actions"><a class="uk-button uk-button-default" href="{% url 'customer-document-issue' 'individual' %}">Отдельные счета</a><a class="uk-button uk-button-primary" href="{% url 'customer-document-issue' 'registry' %}">Создать счёт</a></div>

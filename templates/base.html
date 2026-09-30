@@ -55,7 +55,7 @@
                 </li>
                 {% if crm_access.can_access_finance %}
                 <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'customer-document' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'accounting-document-create' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or request.resolver_match.url_name == 'quarterly-tax-report' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
-                    <a href="#"><span uk-icon="calculator"></span> Бухгалтерия <span uk-navbar-parent-icon></span></a>
+                    <a href="#"><svg class="crm-calculator-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"></rect><path d="M7.5 6.5h9v4h-9z"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg> Бухгалтерия <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
                             <li><a href="{% url 'accounting-dashboard' %}"><span uk-icon="grid"></span> Рабочий стол</a></li>
@@ -67,7 +67,7 @@
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Банковские выписки</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
                             <li><a href="{% url 'profitability-report' %}"><span uk-icon="triangle-up"></span> Прибыльность</a></li>
-                            <li><a href="{% url 'quarterly-tax-report' %}"><span uk-icon="calculator"></span> Налоги</a></li>
+                            <li><a href="{% url 'quarterly-tax-report' %}"><svg class="crm-calculator-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"></rect><path d="M7.5 6.5h9v4h-9z"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg> Налоги</a></li>
                             <li><a href="{% url 'reconciliation-act-list' %}"><span uk-icon="future"></span> Акты сверки</a></li>
                             <li><a href="{% url 'reports' %}"><span uk-icon="table"></span> Отчёты</a></li>
                         </ul>
@@ -128,7 +128,7 @@
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' %}is-active{% endif %}" href="{% url 'transportation-list' %}">Рейсы</a>
                 <a class="mobile-nav-subitem {% if 'planner' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'planner' %}">Планировщик</a>
                 {% if crm_access.can_access_finance %}
-                <span class="mobile-nav-group"><span uk-icon="calculator"></span> Бухгалтерия</span>
+                <span class="mobile-nav-group"><svg class="crm-calculator-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"></rect><path d="M7.5 6.5h9v4h-9z"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg> Бухгалтерия</span>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'accounting-dashboard' %}is-active{% endif %}" href="{% url 'accounting-dashboard' %}">Рабочий стол</a>
                 <a class="mobile-nav-subitem {% if 'document-batch' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'document-batch-list' %}">Реестры документов</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-incoming' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a>
@@ -176,7 +176,7 @@
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'transportation-list' or request.resolver_match.url_name == 'transportation-create' or request.resolver_match.url_name == 'transportation-detail' or request.resolver_match.url_name == 'transportation-update' %}is-active{% endif %}" href="{% url 'transportation-list' %}">Рейсы</a>
                 <a class="mobile-nav-subitem {% if 'planner' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'planner' %}">Планировщик</a>
                 {% if crm_access.can_access_finance %}
-                <span class="mobile-nav-group"><span uk-icon="calculator"></span> Бухгалтерия</span>
+                <span class="mobile-nav-group"><svg class="crm-calculator-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2"></rect><path d="M7.5 6.5h9v4h-9z"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg> Бухгалтерия</span>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'accounting-dashboard' %}is-active{% endif %}" href="{% url 'accounting-dashboard' %}">Рабочий стол</a>
                 <a class="mobile-nav-subitem {% if 'document-batch' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'document-batch-list' %}">Реестры документов</a>
                 <a class="mobile-nav-subitem {% if 'primary-document-registry-incoming' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'primary-document-registry-incoming' %}">Входящие документы</a>
