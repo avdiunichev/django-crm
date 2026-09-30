@@ -2677,6 +2677,45 @@ body.orders-workspace-page.bank-statement-directory-page .bank-statement-directo
 .bank-statement-import-operations-table td.bank-operation-date-column a,
 .bank-statement-import-operations-table td.bank-operation-date-column small { white-space: nowrap; }
 @media (max-width: 900px) { .bank-statement-directory-page .bank-statement-directory-filters .driver-search-field { flex-basis: 100%; } .bank-statement-directory-page .bank-statement-directory-filters .uk-select { flex: 1 1 180px; } }
+/* На телефоне широкая финансовая таблица остаётся внутри собственного
+   контейнера: листать можно пальцем по горизонтали, но она не расширяет
+   страницу и не ломает остальную навигацию. */
+@media (max-width: 720px) {
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .orders-page-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .orders-page-actions .uk-button {
+        width: 100%;
+        min-width: 0;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-filters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-filters .driver-search-field,
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-filters > .uk-select:first-of-type {
+        grid-column: 1 / -1;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-filters :is(.driver-search-field, .uk-select, .uk-button) {
+        width: 100%;
+        min-width: 0;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-allocation-tabs-spacer {
+        height: 16px;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-register .table-wrap {
+        width: 100%;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-register-table {
+        min-width: 1455px !important;
+    }
+}
 @media (max-width: 720px) { .personal-settings-layout { grid-template-columns: 1fr; } }
 .mailbox-inbox { border: 1px solid var(--workspace-line); border-radius: 12px; padding: 22px; background: var(--workspace-surface); }
 .mailbox-inbox-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--workspace-line); }
