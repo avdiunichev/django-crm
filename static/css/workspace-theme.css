@@ -622,28 +622,43 @@ html body.uikit-theme.crm-workspace-theme.organization-directory-page .organizat
 html body.uikit-theme.crm-workspace-theme .directory-hub-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    max-width: 980px;
+    gap: 14px;
+    max-width: 1160px;
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card {
-    display: grid;
-    gap: 10px;
-    min-height: 150px;
-    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 220px;
+    padding: 22px;
     border: 1px solid var(--workspace-line);
-    border-radius: 12px;
+    border-radius: 0;
     color: var(--workspace-text);
     background: var(--workspace-surface);
-    text-decoration: none;
 }
 html body.uikit-theme.crm-workspace-theme .directory-hub-card:hover {
     border-color: var(--workspace-accent);
     color: var(--workspace-text);
     box-shadow: 0 8px 20px rgba(41, 41, 45, .06);
 }
-html body.uikit-theme.crm-workspace-theme .directory-hub-card > span { color: var(--workspace-accent); }
-html body.uikit-theme.crm-workspace-theme .directory-hub-card strong { font-size: 17px; }
-html body.uikit-theme.crm-workspace-theme .directory-hub-card small { color: var(--workspace-muted); }
+html body.uikit-theme.crm-workspace-theme .directory-card-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+html body.uikit-theme.crm-workspace-theme .directory-card-top > span { color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-card-top a { color: var(--workspace-muted); font-size: 12px; text-decoration: none; }
+html body.uikit-theme.crm-workspace-theme .directory-card-top a:hover { color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card strong { display: block; font-size: 18px; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card p { margin: 5px 0 0; color: var(--workspace-muted); font-size: 14px; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card small { color: var(--workspace-muted); font-size: 13px; }
+html body.uikit-theme.crm-workspace-theme .directory-hub-card .uk-button { margin-top: auto; border-radius: 0; text-align: center; }
+html body.uikit-theme.crm-workspace-theme .directory-attention { max-width: 1160px; margin-top: 30px; border: 1px solid var(--workspace-line); border-radius: 0; background: var(--workspace-surface); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--workspace-line); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-heading > span { color: var(--workspace-accent); }
+html body.uikit-theme.crm-workspace-theme .directory-eyebrow { color: var(--workspace-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+html body.uikit-theme.crm-workspace-theme .directory-attention h2 { margin: 4px 0 0; font-size: 18px; color: var(--workspace-text); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-item { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; min-height: 104px; padding: 18px 22px; border-right: 1px solid var(--workspace-line); color: var(--workspace-muted); font-size: 13px; text-decoration: none; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-item:last-child { border-right: 0; }
+html body.uikit-theme.crm-workspace-theme .directory-attention-item:hover { background: var(--workspace-soft); color: var(--workspace-text); }
+html body.uikit-theme.crm-workspace-theme .directory-attention-item strong { color: var(--workspace-text); font-size: 24px; font-variant-numeric: tabular-nums; }
 html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-profile-breadcrumb) > a {
     color: var(--workspace-muted);
     text-decoration: none;
@@ -654,6 +669,9 @@ html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-
 }
 @media screen and (max-width: 720px) {
     html body.uikit-theme.crm-workspace-theme .directory-hub-grid { grid-template-columns: 1fr; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-grid { grid-template-columns: 1fr; }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-item { min-height: 76px; border-right: 0; border-bottom: 1px solid var(--workspace-line); }
+    html body.uikit-theme.crm-workspace-theme .directory-attention-item:last-child { border-bottom: 0; }
 }
 /* Контрагенты используют ту же рабочую таблицу, что и водители: строгая
    геометрия, компактные строки и закреплённые названия столбцов. */

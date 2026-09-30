@@ -2017,6 +2017,51 @@ class DirectoryHubView(LoginRequiredMixin, TemplateView):
 
     template_name = "crm/directory_hub.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        soon = today + timedelta(days=30)
+        organizations = Organization.objects.all()
+        drivers = Driver.objects.all()
+        vehicles = Vehicle.objects.all()
+        context.update(
+            {
+                "directory_metrics": {
+                    "organizations_total": organizations.count(),
+                    "organizations_verified": organizations.filter(
+                        fns_status=Organization.FNSStatus.ACTIVE
+                    ).count(),
+                    "drivers_total": drivers.count(),
+                    "drivers_active": drivers.filter(is_active=True).count(),
+                    "vehicles_total": vehicles.count(),
+                    "vehicles_active": vehicles.filter(is_active=True).count(),
+                },
+                "directory_attention": {
+                    "organizations": organizations.exclude(
+                        fns_status=Organization.FNSStatus.ACTIVE
+                    ).count(),
+                    "licenses_expired": drivers.filter(
+                        license_expiry_date__isnull=False,
+                        license_expiry_date__lt=today,
+                    ).count(),
+                    "licenses_expiring": drivers.filter(
+                        license_expiry_date__gte=today,
+                        license_expiry_date__lte=soon,
+                    ).count(),
+                    "vehicles": vehicles.filter(
+                        Q(insurance_expiry_date__isnull=True)
+                        | Q(inspection_expiry_date__isnull=True)
+                        | Q(insurance_expiry_date__lte=soon)
+                        | Q(inspection_expiry_date__lte=soon)
+                    ).count(),
+                },
+                "can_view_personal_data": user_can_view_personal_data(
+                    self.request.user
+                ),
+            }
+        )
+        return context
+
 
 class MailboxView(LoginRequiredMixin, TemplateView):
     """Personal mailbox entry point for the current CRM user."""
