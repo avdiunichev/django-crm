@@ -8975,10 +8975,32 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         statements = list(context["bank_statements"])
+        # Do not alter financial documents automatically.  We only flag rows
+        # whose bank attributes completely coincide with another operation, so
+        # an accountant can review them before any manual action is taken.
+        duplicate_fields = (
+            "bank_account_id", "direction", "statement_date", "reference",
+            "counterparty_tax_id", "counterparty_name", "operation_amount",
+            "payment_purpose",
+        )
+        duplicate_groups = (
+            scope_bank_statements_for_user(BankStatement.objects.all(), self.request.user)
+            .values(*duplicate_fields)
+            .annotate(matches=Count("id"))
+            .filter(matches__gt=1)
+        )
+        duplicate_keys = {
+            tuple(group[field] for field in duplicate_fields)
+            for group in duplicate_groups
+        }
         batches = {statement.import_batch_id: statement.import_batch for statement in statements if statement.import_batch_id}
         balance_maps = {batch_id: batch.operation_balance_map() for batch_id, batch in batches.items()}
         for statement in statements:
             statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
+            statement.is_duplicate_candidate = (
+                tuple(getattr(statement, field) for field in duplicate_fields)
+                in duplicate_keys
+            )
         context["bank_statements"] = statements
         current_sort_key, current_sort_desc, _ = self.get_sorting()
         sort_columns = {}

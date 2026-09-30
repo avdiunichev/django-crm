@@ -2420,6 +2420,21 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-st
 html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table thead th {
     position: static;
 }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
+    background: #fff0f0 !important;
+    border-bottom-color: #f1b9b9 !important;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td:first-child {
+    box-shadow: inset 3px 0 0 #d10000;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-duplicate-note {
+    color: #b00000 !important;
+    font-weight: 650;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
+    background: #3a2529 !important;
+    border-bottom-color: #76434a !important;
+}
 body.orders-workspace-page.bank-statement-directory-page .bank-statement-directory-table th {
     white-space: nowrap;
 }
