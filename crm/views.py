@@ -9026,6 +9026,15 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
             statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
             statement.is_duplicate_candidate = statement.pk in duplicate_ids
         context["bank_statements"] = statements
+        context["unallocated_statements"] = [
+            statement for statement in statements if not statement.line_total
+        ]
+        context["allocated_statements"] = [
+            statement for statement in statements if statement.line_total
+        ]
+        filtered_statements = self.get_queryset()
+        context["unallocated_count"] = filtered_statements.filter(line_total=0).count()
+        context["allocated_count"] = filtered_statements.filter(line_total__gt=0).count()
         current_sort_key, current_sort_desc, _ = self.get_sorting()
         sort_columns = {}
         for key in self.sort_options:

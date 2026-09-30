@@ -2471,6 +2471,26 @@ html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transp
 html body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-missing strong { color: #b00000; }
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-present strong { color: #55d7a0; }
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.transportations-workspace-page .transportation-register-documents .is-missing strong { color: #ff9da9; }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-register + .bank-statement-register {
+    margin-top: 22px;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-register-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--orders-border);
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-register-section-heading h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+}
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-register-section-heading span {
+    color: var(--orders-muted);
+    font-size: 12px;
+}
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
     background: #3a2529 !important;
     border-bottom-color: #76434a !important;

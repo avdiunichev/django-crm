@@ -18,35 +18,7 @@
     {% if showing_duplicates %}<a class="uk-button bank-duplicates-action" href="{% url 'bank-statement-list' %}">Показаны только дубли ×</a>{% endif %}
 </form>
 
-<section class="panel uk-card uk-card-default order-register-panel bank-statement-register bank-statement-directory-register">
-    <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider uk-table-hover uk-table-middle order-register-table bank-statement-directory-table bank-statement-register-table" data-server-sort="true">
-        <colgroup><col style="width:150px"><col style="width:220px"><col style="width:330px"><col style="width:160px"><col style="width:240px"><col style="width:140px"><col style="width:140px"><col style="width:160px"><col style="width:180px"></colgroup>
-        <thead><tr>
-            <th><a class="server-sort-link{% if sort_columns.document.active %} is-active{% endif %}" href="{{ sort_columns.document.url }}">Документ {% if sort_columns.document.active %}<span>{{ sort_columns.document.label }}</span>{% endif %}</a></th>
-            <th><a class="server-sort-link{% if sort_columns.counterparty.active %} is-active{% endif %}" href="{{ sort_columns.counterparty.url }}">Контрагент {% if sort_columns.counterparty.active %}<span>{{ sort_columns.counterparty.label }}</span>{% endif %}</a></th>
-            <th><a class="server-sort-link{% if sort_columns.purpose.active %} is-active{% endif %}" href="{{ sort_columns.purpose.url }}">Назначение платежа {% if sort_columns.purpose.active %}<span>{{ sort_columns.purpose.label }}</span>{% endif %}</a></th>
-            <th><a class="server-sort-link{% if sort_columns.operation.active %} is-active{% endif %}" href="{{ sort_columns.operation.url }}">Операция {% if sort_columns.operation.active %}<span>{{ sort_columns.operation.label }}</span>{% endif %}</a></th>
-            <th><a class="server-sort-link{% if sort_columns.account.active %} is-active{% endif %}" href="{{ sort_columns.account.url }}">Компания / счёт {% if sort_columns.account.active %}<span>{{ sort_columns.account.label }}</span>{% endif %}</a></th>
-            <th class="uk-text-right"><a class="server-sort-link{% if sort_columns.amount.active %} is-active{% endif %}" href="{{ sort_columns.amount.url }}">Поступление {% if sort_columns.amount.active %}<span>{{ sort_columns.amount.label }}</span>{% endif %}</a></th>
-            <th class="uk-text-right"><a class="server-sort-link{% if sort_columns.amount.active %} is-active{% endif %}" href="{{ sort_columns.amount.url }}">Списание {% if sort_columns.amount.active %}<span>{{ sort_columns.amount.label }}</span>{% endif %}</a></th>
-            <th class="uk-text-right">Сальдо</th><th class="bank-statement-actions-column"><span class="uk-hidden">Действия</span></th>
-        </tr></thead>
-        <tbody>
-        {% for statement in bank_statements %}
-            <tr{% if statement.is_duplicate_candidate %} class="bank-statement-duplicate-row"{% endif %}>
-                <td><a class="primary-link" href="{{ statement.get_absolute_url }}">{{ statement.number }}</a><small>{{ statement.statement_date|date:"d.m.Y" }}{% if statement.reference %} · выписка {{ statement.reference }}{% endif %}</small>{% if statement.is_duplicate_candidate %}<small class="bank-statement-duplicate-note">Возможный дубль — проверьте перед удалением</small>{% endif %}</td>
-                <td><strong>{{ statement.counterparty_name|default:"Не указан" }}</strong><small>ИНН {{ statement.counterparty_tax_id|default:"—" }}</small></td>
-                <td class="bank-statement-purpose" title="{{ statement.payment_purpose }}">{{ statement.payment_purpose|default:"Назначение не указано" }}</td>
-                <td><span class="uk-label {% if statement.status == 'voided' %}uk-label-danger{% elif statement.direction == 'income' %}uk-label-success{% else %}uk-label-warning{% endif %}">{{ statement.get_direction_display }}</span><small class="{% if statement.status == 'voided' %}amount-problem{% endif %}">{{ statement.get_status_display }}</small></td>
-                <td>{{ statement.owner_company }}{% if statement.bank_account %}<small>{{ statement.bank_account.account_number }} · {{ statement.bank_account.bank_name }}</small>{% endif %}</td>
-                <td class="uk-text-right">{% if statement.direction == 'income' %}<strong class="amount-income">{% if statement.operation_amount %}{{ statement.operation_amount|floatformat:"2g" }}{% else %}{{ statement.total_sum|default:0|floatformat:"2g" }}{% endif %} {{ statement.currency|currency_symbol }}</strong>{% else %}—{% endif %}</td>
-                <td class="uk-text-right">{% if statement.direction == 'expense' %}<strong class="amount-expense">{% if statement.operation_amount %}{{ statement.operation_amount|floatformat:"2g" }}{% else %}{{ statement.total_sum|default:0|floatformat:"2g" }}{% endif %} {{ statement.currency|currency_symbol }}</strong>{% else %}—{% endif %}</td>
-                <td class="uk-text-right">{% if statement.bank_balance is not None %}<strong>{{ statement.bank_balance|floatformat:"2g" }} {{ statement.currency|currency_symbol }}</strong>{% else %}—{% endif %}{% if statement.operation_amount %}<small>распределено: {{ statement.total_sum|default:0|floatformat:"2g" }}</small>{% endif %}</td>
-                <td class="uk-text-right"><a class="row-action" href="{{ statement.get_absolute_url }}">Открыть</a>{% if statement.status == 'draft' %}<a class="row-action" href="{% url 'bank-statement-update' statement.pk %}">Распределить</a>{% endif %}<a class="row-action uk-text-danger" href="{% url 'bank-statement-delete' statement.pk %}">Удалить</a></td>
-            </tr>
-        {% empty %}<tr><td colspan="9" class="empty-state">Банковских документов пока нет. Создайте приход или расход.</td></tr>{% endfor %}
-        </tbody>
-    </table></div>
-</section>
+{% include "crm/includes/bank_statement_register_table.html" with title="Не распределены" count=unallocated_count statements=unallocated_statements empty_message="Все операции текущей страницы распределены." %}
+{% include "crm/includes/bank_statement_register_table.html" with title="Распределены по рейсам" count=allocated_count statements=allocated_statements empty_message="Распределённых операций на текущей странице нет." %}
 {% include "crm/includes/pagination.html" %}
 {% endblock %}
