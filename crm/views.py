@@ -8519,6 +8519,13 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=No
         .prefetch_related(
             "stops",
             Prefetch(
+                "documents",
+                queryset=ShipmentDocument.objects.only(
+                    "pk", "transportation_id", "number", "crm_number", "one_c_number"
+                ),
+                to_attr="bank_statement_documents",
+            ),
+            Prefetch(
                 "parties",
                 queryset=TransportationParty.objects.filter(
                     role=TransportationParty.Role.CLIENT, is_active=True
@@ -8577,6 +8584,16 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=No
                 "balance": balance,
                 "counterparty": counterparty,
                 "counterparty_role": counterparty_role,
+                "document_numbers": tuple(
+                    number
+                    for document in getattr(transportation, "bank_statement_documents", ())
+                    for number in (
+                        document.number,
+                        document.crm_number,
+                        document.one_c_number,
+                    )
+                    if number
+                ),
             }
         )
     if direction == BankStatement.Direction.EXPENSE:
@@ -8885,24 +8902,66 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
 
     @staticmethod
     def _match_candidate(payment, candidates, direction):
-        purpose = payment.purpose.casefold()
-        tax_id = (
+        """Return an unambiguous draft allocation suggestion, if one exists.
+
+        Import must never post a payment.  We only prefill a draft line when
+        its score is clearly higher than every alternative: a trip/invoice
+        number, counterparty INN and exact outstanding amount all reinforce
+        each other.
+        """
+
+        purpose = (payment.purpose or "").casefold()
+        source_tax_id = (
             payment.payer_tax_id
             if direction == BankStatement.Direction.INCOME
             else payment.recipient_tax_id
-        )
-        by_number = [
-            item for item in candidates
-            if item["transportation"].number
-            and item["transportation"].number.casefold() in purpose
-        ]
-        if len(by_number) == 1:
-            return by_number[0]
-        by_tax_id = [
-            item for item in candidates
-            if tax_id and getattr(item.get("counterparty"), "tax_id", "") == tax_id
-        ]
-        return by_tax_id[0] if len(by_tax_id) == 1 else None
+        ) or ""
+        tax_id = "".join(character for character in source_tax_id if character.isdigit())
+
+        def number_in_purpose(number):
+            number = (number or "").strip().casefold()
+            if not number:
+                return False
+            return bool(re.search(rf"(?<![\w-]){re.escape(number)}(?![\w-])", purpose))
+
+        scored = []
+        for item in candidates:
+            if item["balance"] <= 0:
+                continue
+            transportation = item["transportation"]
+            score = 0
+            reasons = []
+            identifiers = (transportation.number, *item.get("document_numbers", ()))
+            if any(number_in_purpose(identifier) for identifier in identifiers):
+                score += 5
+                reasons.append("номер рейса или счёта")
+
+            candidate_tax_id = "".join(
+                character
+                for character in (getattr(item.get("counterparty"), "tax_id", "") or "")
+                if character.isdigit()
+            )
+            if tax_id and candidate_tax_id == tax_id:
+                score += 3
+                reasons.append("ИНН контрагента")
+
+            if abs(item["balance"] - payment.amount) <= Decimal("0.01"):
+                score += 2
+                reasons.append("сумма")
+
+            if score:
+                scored.append((score, item, reasons))
+
+        if not scored:
+            return None
+        scored.sort(key=lambda item: item[0], reverse=True)
+        best_score, best_candidate, reasons = scored[0]
+        runner_up_score = scored[1][0] if len(scored) > 1 else 0
+        # An INN plus exact amount, or an explicit document/trip number,
+        # is enough only when it identifies one candidate unambiguously.
+        if best_score >= 5 and best_score > runner_up_score:
+            return best_candidate, reasons
+        return None
 
     def form_valid(self, form):
         uploaded = form.cleaned_data["statement_file"]
@@ -8936,6 +8995,8 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                 return None
         skipped = list(parse_errors)
         created = []
+        auto_matched_count = 0
+        candidate_cache = {}
         with transaction.atomic():
             period_start = parse_crm_date(header.get("ДатаНачала", ""))
             period_end = parse_crm_date(header.get("ДатаКонца", ""))
@@ -8974,6 +9035,33 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
                     notes=f"Импортировано из {Path(uploaded.name).name[:70]}. Период: {header.get('ДатаНачала', '—')}–{header.get('ДатаКонца', '—')}.",
                     created_by=self.request.user,
                 )
+                if direction not in candidate_cache:
+                    candidate_cache[direction] = _bank_statement_candidates(
+                        direction,
+                        owner_id=owner.pk,
+                        currency=account.currency,
+                        user=self.request.user,
+                    )
+                candidates = candidate_cache[direction]
+                suggestion = self._match_candidate(payment, candidates, direction)
+                if suggestion:
+                    candidate, reasons = suggestion
+                    suggested_amount = min(payment.amount, candidate["balance"])
+                    BankStatementLine.objects.create(
+                        statement=statement,
+                        transportation=candidate["transportation"],
+                        amount=suggested_amount,
+                        payment_reference=payment.number[:100],
+                    )
+                    statement.auto_match = {
+                        "transportation": candidate["transportation"],
+                        "amount": suggested_amount,
+                        "reasons": ", ".join(reasons),
+                    }
+                    # Do not offer the same outstanding balance twice while
+                    # importing a multi-payment statement file.
+                    candidate["balance"] -= suggested_amount
+                    auto_matched_count += 1
                 created.append(statement)
 
         if not created:
@@ -8985,7 +9073,9 @@ class BankStatementImportView(LoginRequiredMixin, FinanceAccessMixin, FormView):
             return self.form_invalid(form)
         messages.success(
             self.request,
-            f"Создано банковских документов: {len(created)}. Перед проведением проверьте строки.",
+            f"Создано банковских документов: {len(created)}. "
+            f"Автоматически предложено распределений: {auto_matched_count}. "
+            "Перед проведением проверьте строки.",
         )
         return render(
             self.request,
