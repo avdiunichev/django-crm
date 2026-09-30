@@ -32,7 +32,7 @@
         <div class="bank-candidate-group" data-bank-direction="expense">
             <h3>Оплаты перевозчикам</h3>
             <div class="table-wrap"><table class="uk-table uk-table-small uk-table-divider bank-candidate-table"><thead><tr><th><input class="uk-checkbox" type="checkbox" data-bank-select-all aria-label="Выбрать все расходы"></th><th>Рейс / маршрут</th><th>Исполнитель</th><th>Срок оплаты</th><th class="uk-text-right">Остаток</th><th>Платёжное поручение</th><th class="uk-text-right">Оплата</th></tr></thead><tbody>
-            {% for item in bank_expense_candidates %}<tr><td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-bank-select {% if item.selected %}checked{% endif %}></td><td><a href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number }}</a><small class="route-compact" title="{{ item.transportation.route }}">{{ item.transportation.route }}</small></td><td>{{ item.counterparty }}</td><td>{{ item.transportation.executor_payment_due_date|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-right amount-expense">{{ item.balance|floatformat:"2g" }}</td><td><input class="uk-input uk-form-small bank-reference-input" type="text" maxlength="100" name="reference_{{ item.transportation.pk }}" value="{{ item.entered_reference|default:object.reference }}" placeholder="№ платёжки" data-bank-reference></td><td><input class="uk-input uk-form-small bank-amount-input" type="number" min="0.01" {% if not object.operation_amount %}max="{{ item.balance }}"{% endif %} step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-bank-amount></td></tr>{% empty %}<tr><td colspan="7" class="empty-state">Нет рейсов с кредиторской задолженностью и назначенным исполнителем.</td></tr>{% endfor %}
+            {% for item in bank_expense_candidates %}<tr><td><input class="uk-checkbox" type="checkbox" name="transportation_ids" value="{{ item.transportation.pk }}" data-bank-select {% if item.selected %}checked{% endif %}></td><td><a href="{{ item.transportation.get_absolute_url }}" target="_blank">{{ item.transportation.number }}</a><small class="route-compact" title="{{ item.transportation.route }}">{{ item.transportation.route }}</small></td><td><strong>{{ item.counterparty }}</strong><small>{{ item.counterparty_role }}</small></td><td>{{ item.transportation.executor_payment_due_date|date:"d.m.Y"|default:"—" }}</td><td class="uk-text-right amount-expense">{{ item.balance|floatformat:"2g" }}</td><td><input class="uk-input uk-form-small bank-reference-input" type="text" maxlength="100" name="reference_{{ item.transportation.pk }}" value="{{ item.entered_reference|default:object.reference }}" placeholder="№ платёжки" data-bank-reference></td><td><input class="uk-input uk-form-small bank-amount-input" type="number" min="0.01" {% if not object.operation_amount %}max="{{ item.balance }}"{% endif %} step="0.01" name="amount_{{ item.transportation.pk }}" value="{{ item.entered_amount }}" data-bank-amount></td></tr>{% empty %}<tr><td colspan="7" class="empty-state">Нет рейсов с кредиторской задолженностью и назначенным исполнителем.</td></tr>{% endfor %}
             </tbody></table></div>
         </div>
     </section>
@@ -42,7 +42,9 @@
 (() => {
     const form = document.querySelector("[data-bank-statement-form]");
     if (!form) return;
-    const direction = form.querySelector("#id_direction");
+    // For imported operations direction is a hidden field; for manual ones it
+    // is a select.  Both cases must activate the correct candidate table.
+    const direction = form.querySelector("[name='direction']");
     const groups = [...form.querySelectorAll("[data-bank-direction]")];
     const count = form.querySelector("[data-bank-selected-count]");
     const total = form.querySelector("[data-bank-selected-total]");

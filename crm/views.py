@@ -8484,16 +8484,19 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=No
             if not party:
                 continue
             counterparty = party.organization
+            counterparty_role = "Клиент"
         else:
             link = getattr(transportation, "bank_statement_execution_links", [None])[0]
             if not link:
                 continue
             counterparty = link.contractor_party.organization
+            counterparty_role = link.get_contractor_role_display()
         candidates.append(
             {
                 "transportation": transportation,
                 "balance": balance,
                 "counterparty": counterparty,
+                "counterparty_role": counterparty_role,
             }
         )
     if direction == BankStatement.Direction.EXPENSE:
@@ -8506,7 +8509,13 @@ def _bank_statement_candidates(direction, owner_id=None, currency="RUB", user=No
             insurances = insurances.filter(transportation__owner_company_id=owner_id)
         insurances = insurances.select_related("transportation", "insurer")
         for insurance in insurances:
-            candidates.append({"transportation": insurance.transportation, "balance": insurance.insurer_amount, "counterparty": insurance.insurer, "cargo_insurance": insurance})
+            candidates.append({
+                "transportation": insurance.transportation,
+                "balance": insurance.insurer_amount,
+                "counterparty": insurance.insurer,
+                "counterparty_role": "Страховая компания",
+                "cargo_insurance": insurance,
+            })
     return candidates
 
 
