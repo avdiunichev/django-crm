@@ -2431,6 +2431,16 @@ html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-st
     color: #b00000 !important;
     font-weight: 650;
 }
+html body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-duplicates-action {
+    border-color: #d10000 !important;
+    color: #b00000 !important;
+    background: #fff0f0 !important;
+}
+html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-duplicates-action {
+    border-color: #a64852 !important;
+    color: #ffafb6 !important;
+    background: #3a2529 !important;
+}
 html[data-theme="dark"] body.uikit-theme.crm-workspace-theme.bank-statement-directory-page .bank-statement-directory-table tr.bank-statement-duplicate-row > td {
     background: #3a2529 !important;
     border-bottom-color: #76434a !important;

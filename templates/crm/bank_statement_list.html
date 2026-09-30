@@ -6,7 +6,7 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/orders-workspace.css' %}?v=20260930-bank-register">{% endblock %}
 {% block content %}
 <div class="orders-breadcrumb"><span uk-icon="credit-card"></span><a href="{% url 'accounting-dashboard' %}">Бухгалтерия</a><span aria-hidden="true">/</span><span aria-current="page">Банковские выписки</span></div>
-<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="orders-title">Банковские выписки</h1><span class="orders-count">{{ document_count }}</span></div><p>Банковские поступления и списания, распределённые по рейсам.</p></div><div class="orders-page-actions"><a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a><a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense">Создать расход</a><a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income">Создать приход</a></div></header>
+<header class="orders-page-header"><div><div class="orders-title-line"><h1 id="orders-title">Банковские выписки</h1><span class="orders-count">{{ document_count }}</span></div><p>Банковские поступления и списания, распределённые по рейсам.</p></div><div class="orders-page-actions">{% if duplicate_count %}<a class="uk-button bank-duplicates-action" href="{{ duplicate_filter_url }}">Возможные дубли: {{ duplicate_count }}</a>{% endif %}<a class="uk-button uk-button-default" href="{% url 'bank-statement-import' %}">Загрузить из 1С</a><a class="uk-button uk-button-default" href="{% url 'bank-statement-create' %}?direction=expense">Создать расход</a><a class="uk-button uk-button-primary" href="{% url 'bank-statement-create' %}?direction=income">Создать приход</a></div></header>
 
 <form class="filters order-register-filters bank-statement-directory-filters" method="get" data-filter-text-submit="enter">
     <label class="driver-search-field"><span uk-icon="search"></span><input class="form-control uk-input search" type="search" name="q" value="{{ current_query }}" placeholder="Документ, выписка, компания или счёт"></label>
@@ -15,6 +15,7 @@
     <select class="form-control uk-select" name="owner"><option value="">Все наши компании</option>{% for owner in owners %}<option value="{{ owner.pk }}" {% if current_owner == owner.pk|stringformat:'s' %}selected{% endif %}>{{ owner }}</option>{% endfor %}</select>
     <button class="uk-button uk-button-default" type="submit"><span uk-icon="search"></span> Найти</button>
     {% if current_query or current_direction or current_status or current_owner %}<a class="uk-button uk-button-default" href="{% url 'bank-statement-list' %}">Сбросить</a>{% else %}<button class="uk-button uk-button-default" type="button" disabled>Сбросить</button>{% endif %}
+    {% if showing_duplicates %}<a class="uk-button bank-duplicates-action" href="{% url 'bank-statement-list' %}">Показаны только дубли ×</a>{% endif %}
 </form>
 
 <section class="panel uk-card uk-card-default order-register-panel bank-statement-register bank-statement-directory-register">

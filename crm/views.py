@@ -8939,6 +8939,33 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
             fields = tuple(f"-{field}" for field in fields)
         return sort_key, descending, fields
 
+    duplicate_fields = (
+        "bank_account_id", "direction", "statement_date", "reference",
+        "counterparty_tax_id", "counterparty_name", "operation_amount",
+        "payment_purpose",
+    )
+
+    def get_duplicate_statement_ids(self):
+        """IDs of review candidates; this never changes bank documents."""
+        if hasattr(self, "_duplicate_statement_ids"):
+            return self._duplicate_statement_ids
+        duplicate_groups = (
+            scope_bank_statements_for_user(BankStatement.objects.all(), self.request.user)
+            .values(*self.duplicate_fields)
+            .annotate(matches=Count("id"))
+            .filter(matches__gt=1)
+        )
+        candidate_ids = set()
+        for group in duplicate_groups:
+            criteria = {field: group[field] for field in self.duplicate_fields}
+            candidate_ids.update(
+                scope_bank_statements_for_user(BankStatement.objects.all(), self.request.user)
+                .filter(**criteria)
+                .values_list("pk", flat=True)
+            )
+        self._duplicate_statement_ids = candidate_ids
+        return candidate_ids
+
     def get_queryset(self):
         queryset = (
             scope_bank_statements_for_user(
@@ -8969,6 +8996,8 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 | Q(counterparty_tax_id__icontains=query)
                 | Q(payment_purpose__icontains=query)
             )
+        if self.request.GET.get("duplicates") == "1":
+            queryset = queryset.filter(pk__in=self.get_duplicate_statement_ids())
         _, _, ordering = self.get_sorting()
         return queryset.order_by(*ordering)
 
@@ -8978,29 +9007,12 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         # Do not alter financial documents automatically.  We only flag rows
         # whose bank attributes completely coincide with another operation, so
         # an accountant can review them before any manual action is taken.
-        duplicate_fields = (
-            "bank_account_id", "direction", "statement_date", "reference",
-            "counterparty_tax_id", "counterparty_name", "operation_amount",
-            "payment_purpose",
-        )
-        duplicate_groups = (
-            scope_bank_statements_for_user(BankStatement.objects.all(), self.request.user)
-            .values(*duplicate_fields)
-            .annotate(matches=Count("id"))
-            .filter(matches__gt=1)
-        )
-        duplicate_keys = {
-            tuple(group[field] for field in duplicate_fields)
-            for group in duplicate_groups
-        }
+        duplicate_ids = self.get_duplicate_statement_ids()
         batches = {statement.import_batch_id: statement.import_batch for statement in statements if statement.import_batch_id}
         balance_maps = {batch_id: batch.operation_balance_map() for batch_id, batch in batches.items()}
         for statement in statements:
             statement.bank_balance = balance_maps.get(statement.import_batch_id, {}).get(statement.pk)
-            statement.is_duplicate_candidate = (
-                tuple(getattr(statement, field) for field in duplicate_fields)
-                in duplicate_keys
-            )
+            statement.is_duplicate_candidate = statement.pk in duplicate_ids
         context["bank_statements"] = statements
         current_sort_key, current_sort_desc, _ = self.get_sorting()
         sort_columns = {}
@@ -9015,6 +9027,12 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
                 "label": "↓" if current_sort_desc else "↑",
             }
         context["sort_columns"] = sort_columns
+        duplicate_params = self.request.GET.copy()
+        duplicate_params.pop("page", None)
+        duplicate_params["duplicates"] = "1"
+        context["duplicate_filter_url"] = f"?{duplicate_params.urlencode()}"
+        context["duplicate_count"] = len(duplicate_ids)
+        context["showing_duplicates"] = self.request.GET.get("duplicates") == "1"
         scoped_statements = scope_bank_statements_for_user(
             BankStatement.objects.all(), self.request.user
         )
