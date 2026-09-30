@@ -11,16 +11,17 @@
     {% if can_view_personal_data %}<article class="directory-hub-card"><div class="directory-card-top"><span uk-icon="user"></span><a href="{% url 'driver-list' %}">Открыть реестр →</a></div><div><strong>Водители</strong><p>{{ directory_metrics.drivers_total }} карточек</p></div><small>Активны: {{ directory_metrics.drivers_active }}</small><a class="uk-button uk-button-default" href="{% url 'driver-create' %}" data-driver-modal>Добавить водителя</a></article>{% endif %}
     <article class="directory-hub-card"><div class="directory-card-top"><span uk-icon="thumbnails"></span><a href="{% url 'vehicle-list' %}">Открыть реестр →</a></div><div><strong>Автопарк</strong><p>{{ directory_metrics.vehicles_total }} единиц</p></div><small>В эксплуатации: {{ directory_metrics.vehicles_active }}</small><a class="uk-button uk-button-default" href="{% url 'vehicle-create' %}" data-vehicle-modal>Добавить транспорт</a></article>
 </section>
-<section class="directory-attention" aria-labelledby="directory-attention-title">
-    <div class="directory-attention-heading"><div><span class="directory-eyebrow">КОНТРОЛЬ СПРАВОЧНИКОВ</span><h2 id="directory-attention-title">Что проверить</h2><p>Сроки и реквизиты, которые могут помешать назначить рейс или оформить документы.</p></div><span uk-icon="warning" aria-hidden="true"></span></div>
-    <div class="directory-attention-table" role="table" aria-label="Проверки справочников">
-        <div class="directory-attention-row directory-attention-labels" role="row"><span>Раздел</span><span>Проверка</span><span>Результат</span><span></span></div>
-        <a href="{% url 'organization-list' %}" class="directory-attention-row" role="row"><span class="directory-attention-area">Контрагенты</span><span>Нет подтверждения ФНС</span><strong{% if directory_attention.organizations %} class="is-alert"{% endif %}>{{ directory_attention.organizations }}</strong><span class="directory-attention-action">Проверить →</span></a>
-        {% if can_view_personal_data %}
-        <a href="{% url 'driver-list' %}" class="directory-attention-row" role="row"><span class="directory-attention-area">Водители</span><span>Права уже просрочены</span><strong{% if directory_attention.licenses_expired %} class="is-alert"{% endif %}>{{ directory_attention.licenses_expired }}</strong><span class="directory-attention-action">Открыть →</span></a>
-        <a href="{% url 'driver-list' %}" class="directory-attention-row" role="row"><span class="directory-attention-area">Водители</span><span>Права истекают до {{ directory_attention.deadline|date:"d.m.Y" }}</span><strong{% if directory_attention.licenses_expiring %} class="is-warning"{% endif %}>{{ directory_attention.licenses_expiring }}</strong><span class="directory-attention-action">Открыть →</span></a>
-        {% endif %}
-        <a href="{% url 'vehicle-list' %}" class="directory-attention-row" role="row"><span class="directory-attention-area">Автопарк</span><span>Страховка или техосмотр требуют проверки</span><strong{% if directory_attention.vehicles %} class="is-warning"{% endif %}>{{ directory_attention.vehicles }}</strong><span class="directory-attention-action">Открыть →</span></a>
-    </div>
+<section class="directory-status-strip" aria-label="Статус справочников">
+    <span class="directory-status-title">Статус справочников</span>
+    {% if directory_attention.organizations or directory_attention.licenses_expired or directory_attention.licenses_expiring or directory_attention.vehicles %}
+        <div class="directory-status-items">
+            {% if directory_attention.organizations %}<a href="{% url 'organization-list' %}" class="is-alert"><strong>{{ directory_attention.organizations }}</strong> без проверки ФНС</a>{% endif %}
+            {% if can_view_personal_data and directory_attention.licenses_expired %}<a href="{% url 'driver-list' %}" class="is-alert"><strong>{{ directory_attention.licenses_expired }}</strong> просроченных прав</a>{% endif %}
+            {% if can_view_personal_data and directory_attention.licenses_expiring %}<a href="{% url 'driver-list' %}" class="is-warning"><strong>{{ directory_attention.licenses_expiring }}</strong> прав истекают до {{ directory_attention.deadline|date:"d.m" }}</a>{% endif %}
+            {% if directory_attention.vehicles %}<a href="{% url 'vehicle-list' %}" class="is-warning"><strong>{{ directory_attention.vehicles }}</strong> ТС требуют проверки документов</a>{% endif %}
+        </div>
+    {% else %}
+        <span class="directory-status-ok"><span uk-icon="check" aria-hidden="true"></span> Всё в порядке: срочных проверок нет</span>
+    {% endif %}
 </section>
 {% endblock %}

@@ -665,6 +665,14 @@ html body.uikit-theme.crm-workspace-theme .directory-attention-row strong { colo
 html body.uikit-theme.crm-workspace-theme .directory-attention-row strong.is-warning { color: #b26b00; }
 html body.uikit-theme.crm-workspace-theme .directory-attention-row strong.is-alert { color: var(--workspace-accent); }
 html body.uikit-theme.crm-workspace-theme .directory-attention-action { color: var(--workspace-accent); font-size: 12px; font-weight: 650; text-align: right; }
+html body.uikit-theme.crm-workspace-theme .directory-status-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; max-width: 1160px; margin-top: 24px; padding: 14px 18px; border: 1px solid var(--workspace-line); border-left: 3px solid var(--workspace-line); background: var(--workspace-surface); }
+html body.uikit-theme.crm-workspace-theme .directory-status-title { color: var(--workspace-text); font-size: 13px; font-weight: 700; white-space: nowrap; }
+html body.uikit-theme.crm-workspace-theme .directory-status-items { display: flex; align-items: center; flex: 1 1 auto; flex-wrap: wrap; gap: 8px 18px; }
+html body.uikit-theme.crm-workspace-theme .directory-status-items a { color: var(--workspace-muted); font-size: 13px; text-decoration: none; white-space: nowrap; }
+html body.uikit-theme.crm-workspace-theme .directory-status-items a:hover { text-decoration: underline; }
+html body.uikit-theme.crm-workspace-theme .directory-status-items a strong { margin-right: 3px; color: var(--workspace-accent); font-variant-numeric: tabular-nums; }
+html body.uikit-theme.crm-workspace-theme .directory-status-items a.is-warning strong { color: #b26b00; }
+html body.uikit-theme.crm-workspace-theme .directory-status-ok { display: inline-flex; align-items: center; gap: 7px; color: #17815d; font-size: 13px; }
 html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-profile-breadcrumb) > a {
     color: var(--workspace-muted);
     text-decoration: none;
@@ -680,6 +688,7 @@ html body.uikit-theme.crm-workspace-theme :is(.orders-breadcrumb, .organization-
     html body.uikit-theme.crm-workspace-theme .directory-attention-row > span:nth-child(2) { grid-column: 1; color: var(--workspace-muted); }
     html body.uikit-theme.crm-workspace-theme .directory-attention-row strong { grid-column: 2; grid-row: 1 / span 2; }
     html body.uikit-theme.crm-workspace-theme .directory-attention-action { display: none; }
+    html body.uikit-theme.crm-workspace-theme .directory-status-strip { align-items: flex-start; }
 }
 /* Контрагенты используют ту же рабочую таблицу, что и водители: строгая
    геометрия, компактные строки и закреплённые названия столбцов. */
