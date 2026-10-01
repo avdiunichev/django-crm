@@ -313,6 +313,11 @@ urlpatterns = [
         name="transportation-waybill-pdf",
     ),
     path(
+        "transportations/<int:pk>/customer-invoice/",
+        views.TransportationCustomerInvoicePDFView.as_view(),
+        name="transportation-customer-invoice-pdf",
+    ),
+    path(
         "transportations/<int:pk>/post/",
         views.TransportationPostView.as_view(),
         name="transportation-post",

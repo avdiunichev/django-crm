@@ -577,6 +577,117 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     return stream
 
 
+def build_customer_invoice_pdf(record):
+    """Build a one-page 1C-style customer invoice from a saved document."""
+    from html import escape
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    regular, bold = "Helvetica", "Helvetica-Bold"
+    for regular_path, bold_path in (
+        ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+    ):
+        if Path(regular_path).exists() and Path(bold_path).exists():
+            pdfmetrics.registerFont(TTFont("InvoiceRegular", regular_path))
+            pdfmetrics.registerFont(TTFont("InvoiceBold", bold_path))
+            regular, bold = "InvoiceRegular", "InvoiceBold"
+            break
+
+    styles = getSampleStyleSheet()
+    body = ParagraphStyle("InvoiceBody", parent=styles["Normal"], fontName=regular, fontSize=8, leading=9.5)
+    small = ParagraphStyle("InvoiceSmall", parent=body, fontSize=7, leading=8)
+    heading = ParagraphStyle("InvoiceHeading", parent=body, fontName=bold, fontSize=14, leading=17, alignment=1)
+    label = ParagraphStyle("InvoiceLabel", parent=small, fontName=bold)
+
+    def p(value, style=body):
+        value = "—" if value is None or str(value).strip() == "" else str(value)
+        return Paragraph(escape(value).replace("\n", "<br/>"), style)
+
+    def money(value):
+        amount = Decimal(value or 0).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return f"{amount:,.2f}".replace(",", " ").replace(".", ",")
+
+    def org_line(org):
+        if not org:
+            return "—"
+        bits = [str(org), f"ИНН {org.tax_id}" if org.tax_id else "", f"КПП {org.kpp}" if org.kpp else ""]
+        return ", ".join(bit for bit in bits if bit)
+
+    def bank_rows(org):
+        account = org.bank_accounts.filter(is_active=True).order_by("-is_primary", "pk").first() if org else None
+        return [
+            [p("Банк получателя", label), p(account.bank_name if account else getattr(org, "bank_name", "")), p("БИК", label), p(account.bik if account else getattr(org, "bik", ""))],
+            [p("Счёт получателя", label), p(account.account_number if account else getattr(org, "settlement_account", "")), p("Корр. счёт", label), p(account.correspondent_account if account else getattr(org, "correspondent_account", ""))],
+        ]
+
+    seller, buyer = record.owner_company, record.counterparty
+    lines = list(record.lines.select_related("transportation").all())
+    if not lines and record.transportation_id:
+        lines = list(record.lines.all())
+    total = record.amount or sum((line.total_amount for line in lines), Decimal("0"))
+    vat = record.vat_amount or sum((line.vat_amount for line in lines), Decimal("0"))
+    contract = record.contract
+    contract_text = ""
+    if contract:
+        contract_text = f"Договор № {contract.number or '—'} от {_date_plain(getattr(contract, 'contract_date', None))}"
+
+    stream = BytesIO()
+    doc = SimpleDocTemplate(stream, pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm, topMargin=12 * mm, bottomMargin=12 * mm)
+    story = []
+    story.append(Table(bank_rows(seller), colWidths=[30*mm, 75*mm, 32*mm, 48*mm], style=TableStyle([
+        ("GRID", (0, 0), (-1, -1), .35, colors.black), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 3), ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+    ])))
+    story.append(Spacer(1, 6 * mm))
+    date_text = record.document_date.strftime("%-d %B %Y") if record.document_date else ""
+    months = ("", "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря")
+    if record.document_date:
+        date_text = f"{record.document_date.day} {months[record.document_date.month]} {record.document_date.year} г."
+    story.append(Paragraph(f"Счет на оплату № {escape(record.display_number or '—')} от {escape(date_text)}", heading))
+    story.append(Spacer(1, 4 * mm))
+    party_data = [
+        [p("Поставщик", label), p(org_line(seller))],
+        [p("Адрес поставщика", label), p(getattr(seller, "formatted_legal_address", "") if seller else "")],
+        [p("Покупатель", label), p(org_line(buyer))],
+        [p("Адрес покупателя", label), p(getattr(buyer, "formatted_legal_address", "") if buyer else "")],
+        [p("Основание", label), p(contract_text or "По рейсу")],
+    ]
+    story.append(Table(party_data, colWidths=[42*mm, 143*mm], style=TableStyle([
+        ("GRID", (0, 0), (-1, -1), .35, colors.black), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 3), ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+    ])))
+    story.append(Spacer(1, 4 * mm))
+    rows = [[p("№", label), p("Товары (работы, услуги)", label), p("Кол-во", label), p("Ед.", label), p("Цена", label), p("Сумма", label)]]
+    for index, line in enumerate(lines, 1):
+        rows.append([p(str(index)), p(line.service_name), p(money(line.quantity)), p(line.unit), p(money(line.price)), p(money(line.total_amount))])
+    if len(rows) == 1:
+        rows.append([p("1"), p("Организация транспортной перевозки"), p("1"), p("услуга"), p(money(total)), p(money(total))])
+    table = Table(rows, colWidths=[10*mm, 83*mm, 20*mm, 20*mm, 25*mm, 27*mm], repeatRows=1)
+    table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), .35, colors.black), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (2, 1), (-1, -1), "RIGHT"), ("LEFTPADDING", (0, 0), (-1, -1), 3), ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+    ]))
+    story.append(table)
+    totals = [["", p("Итого", label), p(money(total))], ["", p("Без налога (НДС)", label), p(money(total - vat))], ["", p("Всего к оплате", label), p(money(total))]]
+    story.append(Table(totals, colWidths=[105*mm, 45*mm, 35*mm], style=TableStyle([
+        ("ALIGN", (1, 0), (-1, -1), "RIGHT"), ("LINEABOVE", (1, 2), (-1, 2), .7, colors.black),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2), ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+    ])))
+    story.append(Spacer(1, 3 * mm))
+    story.append(p(f"Всего к оплате: {money(total)} {record.currency or 'RUB'}"))
+    story.append(Spacer(1, 9 * mm))
+    story.append(Table([[p("Руководитель ____________________", body), p("Бухгалтер ____________________", body)]], colWidths=[92.5*mm, 92.5*mm], style=TableStyle([("VALIGN", (0,0), (-1,-1), "TOP")])) )
+    doc.build(story)
+    stream.seek(0)
+    return stream
+
+
 def _build_executor_transportation_application_docx_compact(transportation):
     """Build the compact, print-oriented executor application."""
     document = Document()

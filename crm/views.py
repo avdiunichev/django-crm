@@ -11125,6 +11125,42 @@ class TransportationWaybillPDFView(LoginRequiredMixin, View):
         return response
 
 
+class TransportationCustomerInvoicePDFView(LoginRequiredMixin, FinanceAccessMixin, View):
+    """Create (once) and download the customer invoice for a trip."""
+
+    def get(self, request, *args, **kwargs):
+        transportation = get_object_or_404(
+            scope_transportations_for_user(
+                Transportation.objects.select_related("owner_company", "customer_contract"),
+                request.user,
+            ),
+            pk=kwargs["pk"],
+        )
+        invoice = (
+            ShipmentDocument.objects.filter(
+                lines__transportation=transportation,
+                direction=ShipmentDocument.Direction.OUTGOING,
+                kind=ShipmentDocument.Kind.INVOICE,
+            )
+            .select_related("owner_company", "counterparty", "contract")
+            .order_by("-document_date", "-pk")
+            .first()
+        )
+        if invoice is None:
+            from .accounting_documents import issue_customer_invoice
+
+            invoice = issue_customer_invoice(
+                [transportation], invoice_date=timezone.localdate(), user=request.user
+            )
+        from .documents import build_customer_invoice_pdf
+
+        stream = build_customer_invoice_pdf(invoice)
+        safe_number = re.sub(r"[^0-9A-Za-zА-Яа-я_-]+", "_", str(invoice.display_number or transportation.number or transportation.pk))
+        response = HttpResponse(stream.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="Счет-клиенту-{safe_number}.pdf"'
+        return response
+
+
 class TransportationChainUpdateView(LoginRequiredMixin, OperationsAccessMixin, FormView):
     form_class = TransportationChainForm
     template_name = "crm/transportation_chain_form.html"
