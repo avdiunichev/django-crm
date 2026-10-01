@@ -218,6 +218,17 @@ html[data-theme="dark"] body.uikit-theme .organization-register-table .organizat
     grid-column: 1 / -1;
 }
 .uikit-theme .transportation-register-table .transportation-register-date { white-space: nowrap; }
+
+/* Compact document labels keep the register readable at narrow widths. */
+.transportation-register-documents > div > span { font-size: 0 !important; }
+.transportation-register-documents > div:first-child > span::after {
+    content: "Вх.";
+    font-size: 10px;
+}
+.transportation-register-documents > div:nth-child(2) > span::after {
+    content: "Исх.";
+    font-size: 10px;
+}
 .uikit-theme .transportation-register-table .transportation-register-payment-due { display: grid; gap: 7px; }
 .uikit-theme .transportation-register-table .transportation-register-payment-due > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
 .uikit-theme .transportation-register-table .transportation-register-payment-due span { color: #77869a; font-size: 10px; text-transform: uppercase; }
