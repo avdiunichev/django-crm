@@ -577,7 +577,7 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     return stream
 
 
-def build_executor_transportation_application_docx(transportation):
+def _build_executor_transportation_application_docx_compact(transportation):
     """Build the compact, print-oriented executor application."""
     document = Document()
     section = document.sections[0]
@@ -679,6 +679,11 @@ def build_executor_transportation_application_docx(transportation):
     _set_cell_text(signatures.cell(2, 0), "________________ / __________________", size=8)
     _set_cell_text(signatures.cell(2, 1), "________________ / __________________", size=8)
     stream = BytesIO(); document.save(stream); stream.seek(0); return stream
+
+
+def build_executor_transportation_application_docx(transportation):
+    """Build the approved strict table-style application form."""
+    return _build_executor_transportation_application_docx_legacy(transportation)
 
 
 def build_transportation_waybill_pdf(transportation, data):
