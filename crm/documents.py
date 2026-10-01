@@ -358,7 +358,7 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
 
     title_number = _document_number_for_title(number)
-    title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.LEFT, space_after=2)
     _set_run_font(
         title.add_run(
             f"{document_kind.upper()} №{title_number} "
@@ -605,11 +605,12 @@ def build_executor_transportation_application_docx(transportation):
 
     title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
     _set_run_font(title.add_run(f"{kind} №{_document_number_for_title(number)}"), size=14, bold=True)
-    p = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=10)
+    p = _paragraph(document, align=WD_ALIGN_PARAGRAPH.LEFT, space_after=10)
     _set_run_font(p.add_run(f"от {_date_plain(transportation.document_date)} г."), size=9)
 
     meta = document.add_table(rows=2, cols=4)
     meta.style = "Table Grid"; meta.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _remove_table_borders(meta)
     for i, text in enumerate(("Рейс", "Статус", "Договор", "Дата перевозки")):
         _set_cell_text(meta.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     values = (number, transportation.get_status_display(), contract.number if contract else "не указан", f"{_date_plain(transportation.planned_start_date)} — {_date_plain(transportation.planned_end_date)}")
@@ -618,6 +619,7 @@ def build_executor_transportation_application_docx(transportation):
 
     heading("Стороны")
     parties = document.add_table(rows=2, cols=2); parties.style = "Table Grid"; parties.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _remove_table_borders(parties)
     _set_cell_text(parties.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(parties.cell(0, 1), executor_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(parties.cell(1, 0), f"{_full_organization_name(transportation.owner_company)}\n{_organization_requisites(transportation.owner_company)}", size=8)
@@ -641,6 +643,7 @@ def build_executor_transportation_application_docx(transportation):
     heading("Транспорт")
     vehicle = assignment.vehicle if assignment else None; trailer = assignment.trailer if assignment else None; driver = assignment.driver if assignment else None
     transport = document.add_table(rows=2, cols=4); transport.style = "Table Grid"; transport.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _remove_table_borders(transport)
     for i, text in enumerate(("Водитель", "Автомобиль", "Прицеп", "Телефон")):
         _set_cell_text(transport.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     vals = (driver.full_name if driver else "не указан", _vehicle_name(vehicle), trailer.registration_number if trailer else "не указан", driver.phone if driver and driver.phone else "не указан")
@@ -649,6 +652,7 @@ def build_executor_transportation_application_docx(transportation):
 
     heading("Финансовые условия")
     finance = document.add_table(rows=2, cols=5); finance.style = "Table Grid"; finance.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _remove_table_borders(finance)
     labels = ("Ставка", "НДС", "Предоплата", "Форма оплаты", "Отсрочка")
     for i, text in enumerate(labels): _set_cell_text(finance.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     vat = transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else "Без НДС"
