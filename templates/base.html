@@ -54,7 +54,7 @@
                     </div>
                 </li>
                 {% if crm_access.can_access_finance %}
-                <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'customer-document' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'accounting-document-create' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'payment-calendar' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or request.resolver_match.url_name == 'quarterly-tax-report' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
+                <li class="{% if request.resolver_match.url_name == 'accounting-dashboard' or 'customer-document' in request.resolver_match.url_name or 'shipment-document' in request.resolver_match.url_name or 'document-batch' in request.resolver_match.url_name or 'primary-document-registry' in request.resolver_match.url_name or 'accounting-document-create' in request.resolver_match.url_name or 'contract' in request.resolver_match.url_name or 'bank-statement' in request.resolver_match.url_name or request.resolver_match.url_name == 'debt-report' or request.resolver_match.url_name == 'payment-calendar' or request.resolver_match.url_name == 'control-center' or request.resolver_match.url_name == 'profitability-report' or request.resolver_match.url_name == 'reports' or request.resolver_match.url_name == 'quarterly-tax-report' or 'reconciliation-act' in request.resolver_match.url_name %}uk-active{% endif %}">
                     <a href="#"><span uk-icon="database"></span> Бухгалтерия <span uk-navbar-parent-icon></span></a>
                     <div class="uk-navbar-dropdown">
                         <ul class="uk-nav uk-navbar-dropdown-nav">
@@ -66,6 +66,7 @@
                             <li><a href="{% url 'contract-list' %}"><span uk-icon="album"></span> Договоры</a></li>
                             <li><a href="{% url 'bank-statement-list' %}"><span uk-icon="credit-card"></span> Банковские выписки</a></li>
                             <li><a href="{% url 'debt-report' %}"><span uk-icon="warning"></span> Задолженность</a></li>
+                            <li><a href="{% url 'control-center' %}"><span uk-icon="bell"></span> Контроль сроков</a></li>
                             <li><a href="{% url 'payment-calendar' %}"><span uk-icon="calendar"></span> Платёжный календарь</a></li>
                             <li><a href="{% url 'profitability-report' %}"><span uk-icon="triangle-up"></span> Прибыльность</a></li>
                             <li><a href="{% url 'quarterly-tax-report' %}"><span uk-icon="database"></span> Налоги</a></li>
@@ -138,6 +139,7 @@
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Банковские выписки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'control-center' %}is-active{% endif %}" href="{% url 'control-center' %}">Контроль сроков</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'payment-calendar' %}is-active{% endif %}" href="{% url 'payment-calendar' %}">Платёжный календарь</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'quarterly-tax-report' %}is-active{% endif %}" href="{% url 'quarterly-tax-report' %}">Налоги</a>
@@ -187,6 +189,7 @@
                 <a class="mobile-nav-subitem {% if 'contract' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'contract-list' %}">Договоры</a>
                 <a class="mobile-nav-subitem {% if 'bank-statement' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'bank-statement-list' %}">Банковские выписки</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'debt-report' %}is-active{% endif %}" href="{% url 'debt-report' %}">Задолженность</a>
+                <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'control-center' %}is-active{% endif %}" href="{% url 'control-center' %}">Контроль сроков</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'payment-calendar' %}is-active{% endif %}" href="{% url 'payment-calendar' %}">Платёжный календарь</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'profitability-report' %}is-active{% endif %}" href="{% url 'profitability-report' %}">Прибыльность</a>
                 <a class="mobile-nav-subitem {% if request.resolver_match.url_name == 'quarterly-tax-report' %}is-active{% endif %}" href="{% url 'quarterly-tax-report' %}">Налоги</a>

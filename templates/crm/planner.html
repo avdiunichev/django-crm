@@ -26,6 +26,8 @@
     <article class="metric-card uk-card uk-card-default uk-card-body"><span class="metric-top"><span>Просрочено</span><i class="metric-icon uk-icon-button" uk-icon="warning"></i></span><strong class="uk-text-danger">{{ overdue_task_count }}</strong><small><span>задач требуют внимания</span></small></article>
 </section>
 
+{% if resource_conflicts %}<section class="panel uk-card uk-card-default planner-notifications uk-margin-medium-bottom"><div class="panel-header"><div><span class="eyebrow">Ресурсы</span><h2>Пересечения назначений</h2><p>Один ресурс назначен на несколько рейсов в один период.</p></div><span class="uk-text-danger">{{ resource_conflict_count }}</span></div><div class="planner-notification-list">{% for item in resource_conflicts %}<a class="planner-notification planner-notification-urgent" href="{{ item.first.get_absolute_url }}"><span class="planner-notification-icon" uk-icon="warning"></span><span class="planner-notification-body"><strong>{{ item.resource_type }}: {{ item.resource_label }}</strong><small>{{ item.start|date:'d.m.Y' }} — {{ item.end|date:'d.m.Y' }}</small><span>{{ item.first.number|default:'Черновик' }} пересекается с {{ item.second.number|default:'Черновик' }}</span></span></a>{% endfor %}</div></section>{% endif %}
+
 <section class="panel uk-card uk-card-default planner-notifications uk-margin-medium-bottom">
     <div class="panel-header"><div><span class="eyebrow">Автоконтроль</span><h2>Уведомления по рейсам</h2><p>Подсказки исчезают автоматически после заполнения данных или оплаты.</p></div><span class="uk-text-meta">{{ automatic_task_count }} открытых</span></div>
     <div class="planner-notification-list">

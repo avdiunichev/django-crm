@@ -6506,6 +6506,40 @@ class PlannerView(LoginRequiredMixin, TemplateView):
             .order_by("planned_start_date", "pk")
         )
         automatic_tasks = automatic_planner_tasks(transportations)
+        # A driver, vehicle or trailer cannot be assigned to overlapping trips.
+        # Show a live warning instead of silently blocking an already saved plan.
+        resource_periods = defaultdict(list)
+        for transportation in transportations:
+            start = transportation.planned_start_date
+            end = transportation.planned_end_date or start
+            if not start:
+                continue
+            for assignment in transportation.vehicle_assignments.all():
+                for resource_type, resource_id, label in (
+                    ("Водитель", assignment.driver_id, getattr(assignment.driver, "full_name", "")),
+                    ("ТС", assignment.vehicle_id, getattr(assignment.vehicle, "registration_number", "")),
+                    ("Прицеп", assignment.trailer_id, getattr(assignment.trailer, "registration_number", "")),
+                ):
+                    if resource_id:
+                        resource_periods[(resource_type, resource_id)].append(
+                            (start, end, transportation, label)
+                        )
+        resource_conflicts = []
+        for (resource_type, _resource_id), periods in resource_periods.items():
+            periods.sort(key=lambda item: (item[0], item[1], item[2].pk))
+            for index, current in enumerate(periods):
+                for other in periods[index + 1:]:
+                    if other[0] > current[1]:
+                        break
+                    if current[2].pk != other[2].pk:
+                        resource_conflicts.append({
+                            "resource_type": resource_type,
+                            "resource_label": current[3] or other[3] or "Не указан",
+                            "first": current[2],
+                            "second": other[2],
+                            "start": max(current[0], other[0]),
+                            "end": min(current[1], other[1]),
+                        })
         event_items = []
 
         def workflow_index(transportation):
@@ -6653,6 +6687,8 @@ class PlannerView(LoginRequiredMixin, TemplateView):
                 "event_count": len(event_items),
                 "automatic_tasks": automatic_tasks,
                 "automatic_task_count": len(automatic_tasks),
+                "resource_conflicts": resource_conflicts,
+                "resource_conflict_count": len(resource_conflicts),
                 "tasks": tasks,
                 "task_count": len(tasks),
                 "open_task_count": len(open_tasks),
@@ -6670,6 +6706,37 @@ class PlannerView(LoginRequiredMixin, TemplateView):
                 "today": timezone.localdate(),
             }
         )
+        return context
+
+
+class ControlCenterView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
+    template_name = "crm/control_center.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        deadline = today + timedelta(days=30)
+        documents = ShipmentDocument.objects.filter(
+            expected_date__isnull=False,
+            expected_date__lte=deadline,
+        ).exclude(status__in=(ShipmentDocument.Status.SIGNED, ShipmentDocument.Status.CANCELLED)).select_related("transportation", "counterparty").order_by("expected_date")
+        contracts = Contract.objects.filter(
+            valid_until__isnull=False,
+            valid_until__lte=deadline,
+            terminated_on__isnull=True,
+        ).select_related("expeditor", "customer", "carrier").order_by("valid_until")
+        licenses = DriverLicense.objects.filter(
+            is_current=True,
+            expiry_date__lte=deadline,
+        ).select_related("driver").order_by("expiry_date")
+        context.update({
+            "today": today,
+            "deadline": deadline,
+            "overdue_documents": [item for item in documents if item.expected_date < today],
+            "upcoming_documents": [item for item in documents if item.expected_date >= today],
+            "expiring_contracts": contracts,
+            "expiring_licenses": licenses,
+        })
         return context
 
 
