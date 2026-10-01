@@ -101,6 +101,7 @@ urlpatterns = [
         name="tax-report-export",
     ),
     path("debts/", views.DebtReportView.as_view(), name="debt-report"),
+    path("payment-calendar/", views.PaymentCalendarView.as_view(), name="payment-calendar"),
     path(
         "debts/export/",
         views.DebtReportExportView.as_view(),

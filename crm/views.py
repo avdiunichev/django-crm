@@ -6006,6 +6006,65 @@ class DebtReportExportView(DebtReportView):
         )
 
 
+class PaymentCalendarView(DebtReportView):
+    """Cash-flow plan based solely on open, posted settlement movements."""
+
+    template_name = "crm/payment_calendar.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        start = parse_crm_date(self.request.GET.get("date_from", "")) or today
+        end = parse_crm_date(self.request.GET.get("date_to", "")) or (start + timedelta(days=13))
+        if end < start:
+            start, end = end, start
+
+        overdue_rows = []
+        planned_rows = []
+        daily = {
+            start + timedelta(days=offset): {
+                "date": start + timedelta(days=offset),
+                "income": Decimal("0.00"),
+                "expense": Decimal("0.00"),
+            }
+            for offset in range((end - start).days + 1)
+        }
+        for row in context["debt_rows"]:
+            due_date = row["due_date"]
+            if due_date and due_date < today:
+                overdue_rows.append(row)
+            if not due_date or not start <= due_date <= end:
+                continue
+            planned_rows.append(row)
+            direction = "income" if row["side"] == SettlementMovement.Side.RECEIVABLE else "expense"
+            daily[due_date][direction] += row["balance"]
+
+        daily_rows = []
+        running_balance = Decimal("0.00")
+        for item in daily.values():
+            item["net"] = item["income"] - item["expense"]
+            running_balance += item["net"]
+            item["running_balance"] = running_balance
+            daily_rows.append(item)
+
+        context.update(
+            {
+                "calendar_start": start,
+                "calendar_end": end,
+                "overdue_rows": overdue_rows,
+                "planned_rows": sorted(
+                    planned_rows,
+                    key=lambda row: (row["due_date"], row["side"], -row["balance"]),
+                ),
+                "daily_rows": daily_rows,
+                "planned_income": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.RECEIVABLE), Decimal("0.00")),
+                "planned_expense": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.PAYABLE), Decimal("0.00")),
+            }
+        )
+        context["planned_net"] = context["planned_income"] - context["planned_expense"]
+        return context
+
+
 class ProfitabilityReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):
     template_name = "crm/profitability_report.html"
 
