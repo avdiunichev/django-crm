@@ -613,7 +613,7 @@ def build_executor_transportation_application_docx(transportation):
     _remove_table_borders(meta)
     for i, text in enumerate(("Рейс", "Статус", "Договор", "Дата перевозки")):
         _set_cell_text(meta.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
-    values = (number, transportation.get_status_display(), contract.number if contract else "не указан", f"{_date_plain(transportation.planned_start_date)} — {_date_plain(transportation.planned_end_date)}")
+    values = (number, transportation.get_status_display(), (f"{contract.number} от {_date_plain(contract.contract_date)}" if contract else "не указан"), f"{_date_plain(transportation.planned_start_date)} — {_date_plain(transportation.planned_end_date)}")
     for i, value in enumerate(values): _set_cell_text(meta.cell(1, i), value, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     _paragraph(document, space_after=6)
 
@@ -622,8 +622,12 @@ def build_executor_transportation_application_docx(transportation):
     _remove_table_borders(parties)
     _set_cell_text(parties.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(parties.cell(0, 1), executor_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _set_cell_text(parties.cell(1, 0), f"{_full_organization_name(transportation.owner_company)}\n{_organization_requisites(transportation.owner_company)}", size=8)
-    _set_cell_text(parties.cell(1, 1), f"{_full_organization_name(executor)}\n{_organization_requisites(executor)}", size=8)
+    owner_contact = transportation.client_contact
+    executor_contact = transportation.executor_contact
+    owner_contact_text = " / ".join(x for x in (getattr(owner_contact, "full_name", ""), getattr(owner_contact, "phone", ""), getattr(owner_contact, "email", "")) if x)
+    executor_contact_text = " / ".join(x for x in (getattr(executor_contact, "full_name", ""), getattr(executor_contact, "phone", ""), getattr(executor_contact, "email", "")) if x)
+    _set_cell_text(parties.cell(1, 0), f"{_full_organization_name(transportation.owner_company)}\n{_organization_requisites(transportation.owner_company)}\nКонтакт: {owner_contact_text or 'не указан'}", size=8)
+    _set_cell_text(parties.cell(1, 1), f"{_full_organization_name(executor)}\n{_organization_requisites(executor)}\nКонтакт: {executor_contact_text or 'не указан'}", size=8)
     _paragraph(document, space_after=6)
 
     heading("Маршрут и груз")
@@ -632,12 +636,13 @@ def build_executor_transportation_application_docx(transportation):
         _set_cell_text(route.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     for stop in transportation.stops.all():
         row = route.add_row().cells
-        _set_cell_text(row[0], stop.get_kind_display(), size=8)
+        handling = str(stop.handling_method) if stop.handling_method else "вид не указан"
+        _set_cell_text(row[0], f"{stop.get_kind_display()} · {handling}", size=8)
         _set_cell_text(row[1], _stop_address(stop), size=8)
         _set_cell_text(row[2], _datetime_window(stop.planned_from, stop.planned_to), size=8)
         _set_cell_text(row[3], " / ".join(x for x in (stop.contact_name, stop.contact_phone) if x) or "не указан", size=8)
     cargo = route.add_row().cells
-    cargo[0].merge(cargo[3]); _set_cell_text(cargo[0], "Груз: " + " · ".join(x for x in (transportation.cargo_name, f"{_decimal_text(transportation.weight_kg)} кг", f"{_decimal_text(transportation.volume_m3)} м³" if transportation.volume_m3 else "", f"{transportation.total_package_count} мест" if transportation.total_package_count else "") if x) or "не указан", size=8)
+    cargo[0].merge(cargo[3]); _set_cell_text(cargo[0], "Груз: " + " · ".join(x for x in (transportation.cargo_name, transportation.cargo_description, f"{_decimal_text(transportation.weight_kg)} кг", f"{_decimal_text(transportation.volume_m3)} м³" if transportation.volume_m3 else "", f"{transportation.total_package_count} мест" if transportation.total_package_count else "", f"упаковка: {transportation.package_type}" if transportation.package_type_id else "", f"стоимость: {_money_text(transportation.cargo_value, transportation.currency)}" if transportation.cargo_value is not None else "", f"температура: {transportation.temperature_regime}" if transportation.temperature_regime else "", f"ADR: {transportation.adr_class}" if transportation.adr_class else "", f"требования: {transportation.vehicle_requirements}" if transportation.vehicle_requirements else "") if x) or "не указан", size=8)
     _paragraph(document, space_after=6)
 
     heading("Транспорт")
@@ -659,8 +664,12 @@ def build_executor_transportation_application_docx(transportation):
     terms = contract.payment_terms if contract and contract.payment_terms else (f"{transportation.executor_payment_term_days} дней" if transportation.executor_payment_term_days else "по согласованию")
     vals = (_money_text(transportation.executor_amount, transportation.currency), vat, _money_text(transportation.executor_prepayment, transportation.currency) if transportation.executor_prepayment is not None else "нет", transportation.get_executor_payment_form_display(), terms)
     for i, value in enumerate(vals): _set_cell_text(finance.cell(1, i), value, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
-    if transportation.notes:
-        _paragraph(document, space_after=2); _set_run_font(document.paragraphs[-1].add_run("Особые условия: " + transportation.notes), size=8)
+    conditions = []
+    if transportation.special_requirements: conditions.append("Особые условия: " + transportation.special_requirements)
+    if transportation.notes: conditions.append("Основные условия: " + transportation.notes)
+    conditions.append("Простои и дополнительные расходы согласовываются сторонами и подтверждаются документально.")
+    for condition in conditions:
+        _paragraph(document, space_after=2); _set_run_font(document.paragraphs[-1].add_run(condition), size=8)
     _paragraph(document, space_after=4)
     signatures = document.add_table(rows=3, cols=2); signatures.style = "Table Grid"; signatures.alignment = WD_TABLE_ALIGNMENT.CENTER; _remove_table_borders(signatures)
     _set_cell_text(signatures.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
