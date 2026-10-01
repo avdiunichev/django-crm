@@ -168,8 +168,16 @@ class AddressFormatter:
             # outdated index. Keep exactly the index returned by DaData.
             address = re.sub(r"^(?:\d{6}\s*,\s*)+", "", address)
             if not re.match(rf"^{re.escape(postal_code)}(?:,|\s)", address):
-                return f"{postal_code}, {address}" if address else postal_code
-        return address
+                address = f"{postal_code}, {address}" if address else postal_code
+        # Единый печатный формат CRM: не оставляем технические сокращения
+        # DaData в адресах маршрута и нормализуем элементы дома.
+        address = re.sub(r"\bа\.\s*окр\.?\b", "АО", address, flags=re.I)
+        address = re.sub(r"\bавтономный округ\.?", "АО", address, flags=re.I)
+        address = re.sub(r"\bАО\.(?=,|\s|$)", "АО", address, flags=re.I)
+        address = re.sub(r"\bд\s+(?=\d)", "д. ", address, flags=re.I)
+        address = re.sub(r"\bлитера\s+(?=\S)", "лит. ", address, flags=re.I)
+        address = re.sub(r"\b(оф|пом|кв)\s*(?=\d)", r"\1. ", address, flags=re.I)
+        return re.sub(r"\s+", " ", address).strip()
 
     @classmethod
     def original(cls, payload):
