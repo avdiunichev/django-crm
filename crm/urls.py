@@ -102,6 +102,7 @@ urlpatterns = [
     ),
     path("debts/", views.DebtReportView.as_view(), name="debt-report"),
     path("payment-calendar/", views.PaymentCalendarView.as_view(), name="payment-calendar"),
+    path("payment-calendar/new/", views.PlannedPaymentCreateView.as_view(), name="planned-payment-create"),
     path(
         "debts/export/",
         views.DebtReportExportView.as_view(),

@@ -478,6 +478,7 @@ from .forms import (
     OrganizationRequisiteChangeFormSet,
     OrganizationForm,
     PaymentForm,
+    PlannedPaymentForm,
     PersonalSettingsForm,
     PlannerTaskForm,
     QuickOrganizationForm,
@@ -539,6 +540,7 @@ from .models import (
     OrganizationRole,
     MailboxConnection,
     Payment,
+    PlannedPayment,
     PersonalDataAccessLog,
     PlannerTask,
     ReconciliationAct,
@@ -6039,6 +6041,18 @@ class PaymentCalendarView(DebtReportView):
             direction = "income" if row["side"] == SettlementMovement.Side.RECEIVABLE else "expense"
             daily[due_date][direction] += row["balance"]
 
+        planned_payment_queryset = PlannedPayment.objects.filter(
+            status=PlannedPayment.Status.PLANNED,
+            currency=context["current_currency"],
+        ).select_related("owner_company", "bank_account", "counterparty")
+        if context["current_owner"].isdigit():
+            planned_payment_queryset = planned_payment_queryset.filter(
+                owner_company_id=context["current_owner"]
+            )
+        manual_plans = list(planned_payment_queryset.filter(due_date__range=(start, end)))
+        for plan in manual_plans:
+            daily[plan.due_date]["expense"] += plan.amount
+
         daily_rows = []
         account_queryset = OrganizationBankAccount.objects.filter(
             organization__is_own_company=True,
@@ -6080,7 +6094,8 @@ class PaymentCalendarView(DebtReportView):
                 ),
                 "daily_rows": daily_rows,
                 "planned_income": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.RECEIVABLE), Decimal("0.00")),
-                "planned_expense": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.PAYABLE), Decimal("0.00")),
+                "planned_expense": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.PAYABLE), Decimal("0.00")) + sum((plan.amount for plan in manual_plans), Decimal("0.00")),
+                "manual_plans": manual_plans,
                 "account_rows": account_rows,
                 "opening_balance": opening_balance,
                 "known_account_count": sum(1 for row in account_rows if row["balance"] is not None),
@@ -6089,6 +6104,29 @@ class PaymentCalendarView(DebtReportView):
         context["planned_net"] = context["planned_income"] - context["planned_expense"]
         context["forecast_balance"] = opening_balance + context["planned_net"]
         return context
+
+
+class PlannedPaymentCreateView(LoginRequiredMixin, FinanceAccessMixin, CreateView):
+    model = PlannedPayment
+    form_class = PlannedPaymentForm
+    template_name = "crm/planned_payment_form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["due_date"] = parse_crm_date(self.request.GET.get("date", "")) or timezone.localdate()
+        initial["currency"] = get_currency_filter(self.request, default="RUB")
+        owner = self.request.GET.get("owner", "")
+        if owner.isdigit():
+            initial["owner_company"] = owner
+        return initial
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, "Плановый платёж добавлен в календарь.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("payment-calendar")
 
 
 class ProfitabilityReportView(LoginRequiredMixin, FinanceAccessMixin, TemplateView):

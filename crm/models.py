@@ -4083,6 +4083,42 @@ class SettlementMovement(TimestampedModel):
         return f"{self.get_side_display()} · {self.amount} {self.currency}"
 
 
+class PlannedPayment(TimestampedModel):
+    """A cash-plan item that is intentionally independent from a trip."""
+
+    class Kind(models.TextChoices):
+        RENT = "rent", "Аренда"
+        PAYROLL = "payroll", "Зарплата"
+        TAX = "tax", "Налоги"
+        BANK_FEE = "bank_fee", "Комиссия банка"
+        OTHER = "other", "Прочее"
+
+    class Status(models.TextChoices):
+        PLANNED = "planned", "Запланирован"
+        PAID = "paid", "Оплачен"
+        CANCELLED = "cancelled", "Отменён"
+
+    owner_company = models.ForeignKey(Organization, related_name="planned_payments", on_delete=models.PROTECT)
+    bank_account = models.ForeignKey(OrganizationBankAccount, related_name="planned_payments", on_delete=models.PROTECT, null=True, blank=True)
+    counterparty = models.ForeignKey(Organization, related_name="planned_payment_counterparty", on_delete=models.PROTECT, null=True, blank=True)
+    due_date = models.DateField("Дата платежа")
+    kind = models.CharField("Категория", max_length=20, choices=Kind.choices, default=Kind.OTHER)
+    status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.PLANNED)
+    amount = models.DecimalField("Сумма", max_digits=14, decimal_places=2)
+    currency = models.CharField("Валюта", max_length=3, default="RUB")
+    description = models.CharField("Назначение", max_length=255)
+    notes = models.TextField("Комментарий", blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="created_planned_payments", on_delete=models.PROTECT, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "плановый платёж"
+        verbose_name_plural = "плановые платежи"
+        ordering = ("due_date", "pk")
+
+    def __str__(self):
+        return f"{self.description} · {self.amount} {self.currency}"
+
+
 class TransportationIncident(TimestampedModel):
     """Claim, penalty or operational incident linked to a transportation."""
 

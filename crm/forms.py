@@ -36,6 +36,7 @@ from .models import (
     OrganizationRequisiteChange,
     OrganizationRole,
     Payment,
+    PlannedPayment,
     PlannerTask,
     ReconciliationAct,
     Shipment,
@@ -4498,6 +4499,22 @@ class PaymentForm(StyledModelForm):
         elif transportation:
             self.instance.transportation = transportation
             self.instance.shipment = None
+
+
+class PlannedPaymentForm(StyledModelForm):
+    class Meta:
+        model = PlannedPayment
+        fields = ["owner_company", "bank_account", "counterparty", "due_date", "kind", "status", "amount", "currency", "description", "notes"]
+        widgets = {
+            "due_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["owner_company"].queryset = Organization.objects.filter(is_own_company=True, is_active=True)
+        self.fields["bank_account"].queryset = OrganizationBankAccount.objects.filter(is_active=True, organization__is_own_company=True)
+        self.fields["counterparty"].queryset = Organization.objects.filter(is_active=True)
 
 
 class BankStatementForm(StyledModelForm):

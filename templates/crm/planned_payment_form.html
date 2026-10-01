@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Плановый платёж — Моя CRM{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">Платёжный календарь</span><h1>Плановый платёж</h1><p>Добавьте расход, который не связан с рейсом. Он сразу повлияет на прогноз, пока имеет статус «Запланирован».</p></div></div>
+<form method="post" class="panel uk-card uk-card-default uk-card-body">{% csrf_token %}{% if form.non_field_errors %}<div class="uk-alert-danger" uk-alert>{{ form.non_field_errors }}</div>{% endif %}<div class="uk-grid-small uk-child-width-1-2@m" uk-grid>{% for field in form %}<div class="{% if field.name == 'description' or field.name == 'notes' %}uk-width-1-1{% endif %}"><label class="uk-form-label" for="{{ field.id_for_label }}">{{ field.label }}</label><div class="uk-form-controls">{{ field }}{% if field.errors %}<div class="uk-text-danger">{{ field.errors }}</div>{% endif %}</div></div>{% endfor %}</div><div class="form-actions uk-margin-top"><button class="uk-button uk-button-primary">Сохранить</button><a class="uk-button uk-button-default" href="{% url 'payment-calendar' %}">Отмена</a></div></form>
+{% endblock %}
