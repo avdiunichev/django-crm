@@ -6040,11 +6040,33 @@ class PaymentCalendarView(DebtReportView):
             daily[due_date][direction] += row["balance"]
 
         daily_rows = []
-        running_balance = Decimal("0.00")
+        account_queryset = OrganizationBankAccount.objects.filter(
+            organization__is_own_company=True,
+            is_active=True,
+            currency=context["current_currency"],
+        ).select_related("organization")
+        if context["current_owner"].isdigit():
+            account_queryset = account_queryset.filter(organization_id=context["current_owner"])
+        account_rows = []
+        opening_balance = Decimal("0.00")
+        for account in account_queryset:
+            last_import = account.statement_imports.exclude(
+                closing_balance__isnull=True
+            ).order_by("-period_end", "-created_at", "-pk").first()
+            balance = last_import.closing_balance if last_import else None
+            if balance is not None:
+                opening_balance += balance
+            account_rows.append({
+                "account": account,
+                "balance": balance,
+                "balance_date": last_import.period_end if last_import else None,
+            })
+
+        running_balance = opening_balance
         for item in daily.values():
             item["net"] = item["income"] - item["expense"]
             running_balance += item["net"]
-            item["running_balance"] = running_balance
+            item["forecast_balance"] = running_balance
             daily_rows.append(item)
 
         context.update(
@@ -6059,9 +6081,13 @@ class PaymentCalendarView(DebtReportView):
                 "daily_rows": daily_rows,
                 "planned_income": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.RECEIVABLE), Decimal("0.00")),
                 "planned_expense": sum((row["balance"] for row in planned_rows if row["side"] == SettlementMovement.Side.PAYABLE), Decimal("0.00")),
+                "account_rows": account_rows,
+                "opening_balance": opening_balance,
+                "known_account_count": sum(1 for row in account_rows if row["balance"] is not None),
             }
         )
         context["planned_net"] = context["planned_income"] - context["planned_expense"]
+        context["forecast_balance"] = opening_balance + context["planned_net"]
         return context
 
 
