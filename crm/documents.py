@@ -311,7 +311,7 @@ def _vehicle_name(vehicle):
     return ", ".join(part for part in (kind, title) if part) or str(vehicle)
 
 
-def build_executor_transportation_application_docx(transportation):
+def _build_executor_transportation_application_docx_legacy(transportation):
     """Build a printable DOCX application for the selected executor."""
 
     document = Document()
@@ -575,6 +575,97 @@ def build_executor_transportation_application_docx(transportation):
     document.save(stream)
     stream.seek(0)
     return stream
+
+
+def build_executor_transportation_application_docx(transportation):
+    """Build the compact, print-oriented executor application."""
+    document = Document()
+    section = document.sections[0]
+    section.page_width, section.page_height = Cm(21), Cm(29.7)
+    section.top_margin = section.bottom_margin = Cm(1.25)
+    section.left_margin = section.right_margin = Cm(1.35)
+    normal = document.styles["Normal"]
+    normal.font.name = "Arial"
+    normal._element.rPr.rFonts.set(qn("w:eastAsia"), "Arial")
+    normal.font.size = Pt(9)
+
+    link = transportation.active_execution_link()
+    assignment = transportation.active_vehicle_assignment()
+    executor = link.contractor_party.organization if link else None
+    contract = link.contract if link else None
+    forwarder = bool(link and link.contractor_role == "forwarder")
+    kind = "ПОРУЧЕНИЕ ЭКСПЕДИТОРУ" if forwarder else "ЗАЯВКА НА ПЕРЕВОЗКУ"
+    owner_label = "Клиент" if forwarder else "Заказчик"
+    executor_label = "Экспедитор-партнёр" if forwarder else "Перевозчик"
+    number = link.instruction_number if link and link.instruction_number else transportation.number or f"рейс-{transportation.pk}"
+
+    def heading(text):
+        p = _paragraph(document, space_after=3)
+        _set_run_font(p.add_run(text.upper()), size=9, bold=True)
+
+    title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _set_run_font(title.add_run(f"{kind} №{_document_number_for_title(number)}"), size=14, bold=True)
+    p = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=10)
+    _set_run_font(p.add_run(f"от {_date_plain(transportation.document_date)} г."), size=9)
+
+    meta = document.add_table(rows=2, cols=4)
+    meta.style = "Table Grid"; meta.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, text in enumerate(("Рейс", "Статус", "Договор", "Дата перевозки")):
+        _set_cell_text(meta.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    values = (number, transportation.get_status_display(), contract.number if contract else "не указан", f"{_date_plain(transportation.planned_start_date)} — {_date_plain(transportation.planned_end_date)}")
+    for i, value in enumerate(values): _set_cell_text(meta.cell(1, i), value, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _paragraph(document, space_after=6)
+
+    heading("Стороны")
+    parties = document.add_table(rows=2, cols=2); parties.style = "Table Grid"; parties.alignment = WD_TABLE_ALIGNMENT.CENTER
+    _set_cell_text(parties.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(parties.cell(0, 1), executor_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(parties.cell(1, 0), f"{_full_organization_name(transportation.owner_company)}\n{_organization_requisites(transportation.owner_company)}", size=8)
+    _set_cell_text(parties.cell(1, 1), f"{_full_organization_name(executor)}\n{_organization_requisites(executor)}", size=8)
+    _paragraph(document, space_after=6)
+
+    heading("Маршрут и груз")
+    route = document.add_table(rows=1, cols=4); route.style = "Table Grid"; route.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, text in enumerate(("Операция", "Адрес", "Дата / время", "Контакт")):
+        _set_cell_text(route.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    for stop in transportation.stops.all():
+        row = route.add_row().cells
+        _set_cell_text(row[0], stop.get_kind_display(), size=8)
+        _set_cell_text(row[1], _stop_address(stop), size=8)
+        _set_cell_text(row[2], _datetime_window(stop.planned_from, stop.planned_to), size=8)
+        _set_cell_text(row[3], " / ".join(x for x in (stop.contact_name, stop.contact_phone) if x) or "не указан", size=8)
+    cargo = route.add_row().cells
+    cargo[0].merge(cargo[3]); _set_cell_text(cargo[0], "Груз: " + " · ".join(x for x in (transportation.cargo_name, f"{_decimal_text(transportation.weight_kg)} кг", f"{_decimal_text(transportation.volume_m3)} м³" if transportation.volume_m3 else "", f"{transportation.total_package_count} мест" if transportation.total_package_count else "") if x) or "не указан", size=8)
+    _paragraph(document, space_after=6)
+
+    heading("Транспорт")
+    vehicle = assignment.vehicle if assignment else None; trailer = assignment.trailer if assignment else None; driver = assignment.driver if assignment else None
+    transport = document.add_table(rows=2, cols=4); transport.style = "Table Grid"; transport.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, text in enumerate(("Водитель", "Автомобиль", "Прицеп", "Телефон")):
+        _set_cell_text(transport.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    vals = (driver.full_name if driver else "не указан", _vehicle_name(vehicle), trailer.registration_number if trailer else "не указан", driver.phone if driver and driver.phone else "не указан")
+    for i, value in enumerate(vals): _set_cell_text(transport.cell(1, i), value, size=8)
+    _paragraph(document, space_after=6)
+
+    heading("Финансовые условия")
+    finance = document.add_table(rows=2, cols=5); finance.style = "Table Grid"; finance.alignment = WD_TABLE_ALIGNMENT.CENTER
+    labels = ("Ставка", "НДС", "Предоплата", "Форма оплаты", "Отсрочка")
+    for i, text in enumerate(labels): _set_cell_text(finance.cell(0, i), text, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    vat = transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else "Без НДС"
+    terms = contract.payment_terms if contract and contract.payment_terms else (f"{transportation.executor_payment_term_days} дней" if transportation.executor_payment_term_days else "по согласованию")
+    vals = (_money_text(transportation.executor_amount, transportation.currency), vat, _money_text(transportation.executor_prepayment, transportation.currency) if transportation.executor_prepayment is not None else "нет", transportation.get_executor_payment_form_display(), terms)
+    for i, value in enumerate(vals): _set_cell_text(finance.cell(1, i), value, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+    if transportation.notes:
+        _paragraph(document, space_after=2); _set_run_font(document.paragraphs[-1].add_run("Особые условия: " + transportation.notes), size=8)
+    _paragraph(document, space_after=4)
+    signatures = document.add_table(rows=3, cols=2); signatures.style = "Table Grid"; signatures.alignment = WD_TABLE_ALIGNMENT.CENTER; _remove_table_borders(signatures)
+    _set_cell_text(signatures.cell(0, 0), owner_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(signatures.cell(0, 1), executor_label, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+    _set_cell_text(signatures.cell(1, 0), _contract_signatory_text(contract, "expeditor", transportation.owner_company), size=8)
+    _set_cell_text(signatures.cell(1, 1), _contract_signatory_text(contract, "counterparty", executor), size=8)
+    _set_cell_text(signatures.cell(2, 0), "________________ / __________________", size=8)
+    _set_cell_text(signatures.cell(2, 1), "________________ / __________________", size=8)
+    stream = BytesIO(); document.save(stream); stream.seek(0); return stream
 
 
 def build_transportation_waybill_pdf(transportation, data):
