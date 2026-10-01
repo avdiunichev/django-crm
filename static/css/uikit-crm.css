@@ -2367,6 +2367,73 @@ body.uikit-theme #transportation-form .transportation-primary-pair-grid {
 
 body.uikit-theme #transportation-form .form-grid > * { min-width: 0; }
 
+/* Transportation editor follows the same calm, sectioned workspace pattern
+   as the counterparty card instead of looking like a long technical form. */
+body.uikit-theme #transportation-form.transportation-workspace {
+    max-width: 1240px;
+    margin: 0 auto;
+    gap: 14px;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .form-section {
+    border: 1px solid var(--workspace-line, #dfe6ee);
+    border-radius: 12px;
+    background: var(--workspace-card, #fff);
+    box-shadow: none;
+    padding: 20px 22px;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .form-section > .form-section-title {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .form-section > .form-section-title > span {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    background: #eaf4ff;
+    color: #287fdb;
+    font-size: 12px;
+    font-weight: 700;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .form-section > .form-section-title h2 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 600;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .form-section > .form-section-title p {
+    margin: 4px 0 0;
+    color: #8994a3;
+    font-size: 12px;
+}
+body.uikit-theme #transportation-form.transportation-workspace > .transportation-assignment-header {
+    border-color: #cfd9e6;
+    background: #f7fbff;
+    padding: 16px 20px;
+}
+body.uikit-theme #transportation-form.transportation-workspace .transportation-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+body.uikit-theme #transportation-form.transportation-workspace .form-grid { gap: 14px; }
+body.uikit-theme #transportation-form.transportation-workspace .order-route-stop {
+    border: 1px solid #dfe6ee;
+    border-radius: 8px;
+    box-shadow: none;
+}
+@media (max-width: 700px) {
+    body.uikit-theme #transportation-form.transportation-workspace { gap: 10px; }
+    body.uikit-theme #transportation-form.transportation-workspace > .form-section { padding: 15px; border-radius: 8px; }
+    body.uikit-theme #transportation-form.transportation-workspace > .transportation-assignment-header { padding: 14px; }
+}
+
 @media (max-width: 700px) {
     body.uikit-theme #transportation-form { gap: 14px; }
     body.uikit-theme #transportation-form > .form-section { padding: 16px; }
