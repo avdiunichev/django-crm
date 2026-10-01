@@ -53,6 +53,15 @@ def _normalize_party(suggestion):
             tz=timezone.utc,
         ).date().isoformat()
     organization_type = data.get("type") or ""
+    fio = data.get("fio") or {}
+    entrepreneur_name = " ".join(
+        fio.get(part) or "" for part in ("surname", "name", "patronymic")
+    ).strip()
+    acting_basis = ""
+    if organization_type == "INDIVIDUAL" and data.get("ogrn"):
+        acting_basis = f"Государственная регистрация в качестве ИП, ОГРНИП {data['ogrn']}"
+        if registration_date:
+            acting_basis += f" от {datetime.strptime(registration_date, '%Y-%m-%d').strftime('%d.%m.%Y')}"
     # DaData does not reliably supply a legal address for an entrepreneur.
     # Do not turn an absent value into a misleading auto-filled address;
     # the operator can specify it manually through the common address picker.
@@ -66,8 +75,9 @@ def _normalize_party(suggestion):
         "okato": data.get("okato") or "",
         "registration_date": registration_date,
         "legal_address": AddressFormatter.format(address).upper() if has_legal_address else "",
-        "director_name": management.get("name") or "",
-        "director_post": management.get("post") or "",
+        "director_name": management.get("name") or (entrepreneur_name if organization_type == "INDIVIDUAL" else ""),
+        "director_post": management.get("post") or ("Индивидуальный предприниматель" if organization_type == "INDIVIDUAL" else ""),
+        "acting_basis": acting_basis,
         "phone": _first_value(data.get("phones")),
         "email": _first_value(data.get("emails")),
         "status": status,
@@ -132,7 +142,7 @@ def _request_suggestions(url, payload):
 
 
 def find_party_by_inn(inn):
-    cache_key = f"dadata-party:v2:{inn}"
+    cache_key = f"dadata-party:v3:{inn}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached

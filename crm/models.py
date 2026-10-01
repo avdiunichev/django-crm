@@ -360,6 +360,9 @@ class Organization(TimestampedModel):
         "Основание срока оплаты",
         max_length=30,
         choices=(
+            ("unloading", "По факту выгрузки"),
+            ("scans_received", "Получение сканов документов"),
+            ("edo_signed", "После подписания документов по ЭДО"),
             ("delivery_date", "Дата доставки"),
             ("document_date", "Дата документа"),
             ("originals_received", "Получение оригиналов"),
@@ -867,10 +870,11 @@ class Contract(TimestampedModel):
     class PaymentDayType(models.TextChoices):
         CALENDAR = "calendar", "Календарные дни"
         WORKING = "working", "Рабочие дни"
-        BANKING = "banking", "Банковские дни"
+        BANKING = "banking", "Банковские дни (рабочие)"
 
     class PaymentTrigger(models.TextChoices):
-        UNLOADING = "unloading", "Дата выгрузки"
+        UNLOADING = "unloading", "По факту выгрузки"
+        EDO_SIGNED = "edo_signed", "После подписания документов по ЭДО"
         DELIVERY = "delivery_date", "Дата доставки"
         ORIGINALS = "originals_received", "Получение оригиналов документов"
         SCANS = "scans_received", "Получение сканов документов"
@@ -1683,6 +1687,7 @@ class PersonalDataAccessLog(models.Model):
 class Vehicle(TimestampedModel):
     class Kind(models.TextChoices):
         TRUCK = "truck", "Грузовой автомобиль"
+        MANIPULATOR = "manipulator", "Манипулятор"
         TRACTOR = "tractor", "Седельный тягач"
         VAN = "van", "Фургон"
         GAZELLE = "gazelle", "Газель"
@@ -1718,6 +1723,10 @@ class Vehicle(TimestampedModel):
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(Decimal("0"))],
+    )
+    boom_capacity_kg = models.DecimalField(
+        "Грузоподъёмность стрелы, кг", max_digits=12, decimal_places=2,
+        null=True, blank=True, validators=[MinValueValidator(Decimal("0"))],
     )
     volume_m3 = models.DecimalField(
         "Объём кузова, м³",
@@ -1803,12 +1812,12 @@ class Vehicle(TimestampedModel):
 
     @property
     def is_power_unit(self):
-        return self.kind in {self.Kind.TRACTOR, self.Kind.TRUCK}
+        return self.kind in {self.Kind.TRACTOR, self.Kind.TRUCK, self.Kind.MANIPULATOR}
 
     @property
     def can_tow_trailer(self):
         """Whether this unit may form a road train with a trailer."""
-        return self.kind in {self.Kind.TRACTOR, self.Kind.TRUCK}
+        return self.kind in {self.Kind.TRACTOR, self.Kind.TRUCK, self.Kind.MANIPULATOR}
 
     @property
     def requires_trailer(self):
@@ -2204,9 +2213,12 @@ class Transportation(TimestampedModel):
         VOIDED = "voided", "Аннулирован"
 
     class PaymentDueBasis(models.TextChoices):
+        UNLOADING = "unloading", "По факту выгрузки"
+        SCANS_RECEIVED = "scans_received", "Получение сканов документов"
+        EDO_SIGNED = "edo_signed", "После подписания документов по ЭДО"
         DELIVERY_DATE = "delivery_date", "Дата доставки"
         DOCUMENT_DATE = "document_date", "Дата документа"
-        ORIGINALS_RECEIVED = "originals_received", "Получение оригиналов"
+        ORIGINALS_RECEIVED = "originals_received", "Получение оригиналов документов"
 
     class Status(models.TextChoices):
         NEW = "new", "Новая"

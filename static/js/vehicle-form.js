@@ -26,7 +26,11 @@
                 field.setAttribute("aria-hidden", hidden ? "true" : "false");
             });
             form.classList.toggle("is-tractor", hidden);
-            const canAttach = [TRACTOR, "truck"].includes(kindField.value);
+            form.querySelectorAll("[data-vehicle-boom-capacity]").forEach((field) => {
+                const container = field.closest(".field") || field.parentElement;
+                if (container) container.hidden = kindField.value !== "manipulator";
+            });
+            const canAttach = [TRACTOR, "truck", "manipulator"].includes(kindField.value);
             if (attachmentSection) attachmentSection.hidden = !canAttach;
             const expectedKind = kindField.value === TRACTOR ? "semitrailer" : "trailer";
             if (attachmentKind && canAttach) {

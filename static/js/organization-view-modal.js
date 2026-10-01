@@ -132,6 +132,7 @@
                     id_kpp: party.kpp, id_ogrn: party.ogrn, id_registration_date: party.registration_date,
                     id_legal_address: party.legal_address, id_legal_address_meta: JSON.stringify(party.address_data || {}),
                     id_director_position: party.director_post, id_director_name: party.director_name,
+                    id_acting_basis: party.acting_basis,
                     id_verification_status: party.is_invalid || (party.status && party.status !== "ACTIVE") ? "warning" : "verified",
                     id_fns_status: ({ACTIVE: "active", LIQUIDATED: "liquidated", LIQUIDATING: "liquidating", REORGANIZING: "reorganizing", BANKRUPT: "bankrupt"})[party.status] || "unknown"
                 };

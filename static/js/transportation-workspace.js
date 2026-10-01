@@ -430,6 +430,7 @@
                     ogrn: party.ogrn,
                     legal_address: party.legal_address,
                     director_name: party.director_name,
+                    acting_basis: party.acting_basis,
                     phone: party.phone,
                     email: party.email,
                     kind: party.organization_type === "INDIVIDUAL" ? "entrepreneur" : "legal_entity"
@@ -541,6 +542,7 @@
                     id_legal_address_meta: JSON.stringify(party.address_data || {}),
                     id_director_position: party.director_post,
                     id_director_name: party.director_name,
+                    id_acting_basis: party.acting_basis,
                     id_verification_status: party.is_invalid || (party.status && party.status !== "ACTIVE") ? "warning" : "verified",
                     id_fns_status: ({ACTIVE: "active", LIQUIDATED: "liquidated", LIQUIDATING: "liquidating", REORGANIZING: "reorganizing", BANKRUPT: "bankrupt"})[party.status] || "unknown"
                 };

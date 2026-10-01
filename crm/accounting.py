@@ -130,6 +130,12 @@ def _due_base(transportation, *, for_executor=False):
     )
     if basis == Transportation.PaymentDueBasis.DOCUMENT_DATE:
         return transportation.document_date
+    if basis in {
+        Transportation.PaymentDueBasis.SCANS_RECEIVED,
+        Transportation.PaymentDueBasis.EDO_SIGNED,
+    }:
+        # Do not silently replace a documentary event with the unloading date.
+        return None
     return transportation.planned_end_date or transportation.document_date
 
 
@@ -162,10 +168,10 @@ def post_transportation(transportation, user=None):
     executor_due_base = _due_base(transportation, for_executor=True)
     transportation.customer_payment_due_date = customer_due_base + timedelta(
         days=transportation.customer_payment_term_days
-    )
+    ) if customer_due_base else None
     transportation.executor_payment_due_date = executor_due_base + timedelta(
         days=transportation.executor_payment_term_days
-    )
+    ) if executor_due_base else None
 
     executor = executor_link.contractor_party.organization
     TripCharge.objects.filter(transportation=transportation).delete()

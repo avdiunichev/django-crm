@@ -227,7 +227,7 @@ def restrict_to_current_vat_payment_forms(form, field_name):
     selected_value = (
         form.data.get(form.add_prefix(field_name))
         if form.is_bound
-        else getattr(form.instance, field_name, "")
+        else form.initial.get(field_name, getattr(form.instance, field_name, ""))
     )
     original_choices = list(field.choices)
     choices = [
@@ -418,6 +418,34 @@ def configure_dadata_address_fields(form):
 class StyledModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if isinstance(field, forms.ModelChoiceField) and field.queryset.model is VATRate:
+                selected = self.initial.get(name, getattr(self.instance, f"{name}_id", None))
+                active = Q(is_active=True) & ~Q(rate__in=[18, 20])
+                field.queryset = VATRate.objects.filter(
+                    active | Q(pk=selected)
+                ) if selected else VATRate.objects.filter(active)
+                field.label_from_instance = lambda rate: (
+                    "НДС не облагается" if rate.is_without_vat else
+                    f"НДС {rate.rate.normalize():f}%" + (" (архивная ставка)" if rate.rate in [18, 20] else "")
+                )
+            if not isinstance(field, forms.ChoiceField) or isinstance(field, forms.ModelChoiceField):
+                continue
+            if name.endswith("payment_due_basis") or name == "payment_trigger":
+                standard = list(Organization.PaymentTrigger.choices)
+            elif name.endswith("payment_day_type"):
+                standard = list(Organization.PaymentDayType.choices)
+            else:
+                continue
+            saved = getattr(self.instance, name, "") if self.instance.pk else ""
+            old_choices = dict(field.choices)
+            if saved and saved not in dict(standard) and saved in old_choices:
+                standard.append((saved, f"{old_choices[saved]} (ранее сохранено)"))
+            field.choices = [("", "---------")] + standard
+            if not self.instance.pk and name.endswith("payment_due_basis"):
+                self.initial.setdefault(name, Organization.PaymentTrigger.UNLOADING)
+            if not self.instance.pk and name == "payment_trigger":
+                self.initial.setdefault(name, Organization.PaymentTrigger.UNLOADING)
         configure_crm_date_fields(self)
         configure_crm_time_fields(self)
         for field_name, field in self.fields.items():
@@ -597,7 +625,6 @@ class OrganizationForm(StyledModelForm):
         self.fields["name"].label = "Полное наименование"
         self.fields["registration_country"].required = False
         self.fields["profit_tax_rate"].required = False
-        self.fields["default_vat_rate"].queryset = VATRate.objects.filter(is_active=True)
         self.fields["default_vat_rate"].required = False
         self.fields["default_payment_form"].required = False
         restrict_to_current_vat_payment_forms(self, "default_payment_form")
@@ -755,14 +782,7 @@ class OrganizationForm(StyledModelForm):
         )
         trigger = cleaned.get("payment_trigger") or Organization.PaymentTrigger.UNLOADING
         cleaned["payment_trigger"] = trigger
-        # Заказы и рейсы пока используют прежнее поле основания. Сохраняем
-        # совместимое значение, а в карточке контрагента держим точное событие.
-        cleaned["payment_term_basis"] = {
-            Organization.PaymentTrigger.ORIGINALS: "originals_received",
-            Organization.PaymentTrigger.UNLOADING: "delivery_date",
-            Organization.PaymentTrigger.SCANS: "document_date",
-            Organization.PaymentTrigger.EDO_SIGNED: "document_date",
-        }[trigger]
+        cleaned["payment_term_basis"] = trigger
         return cleaned
 
     def save(self, commit=True):
@@ -872,7 +892,7 @@ class QuickOrganizationForm(StyledModelForm):
         model = Organization
         fields = [
             "kind", "name", "short_name", "tax_id", "kpp", "ogrn",
-            "legal_address", "director_name", "phone", "email", "notes",
+            "legal_address", "director_name", "acting_basis", "phone", "email", "notes",
             "is_active",
         ]
         widgets = {"notes": forms.Textarea(attrs={"rows": 2})}
@@ -1387,7 +1407,8 @@ class TransportOrderForm(StyledModelForm):
                 ).filter(pk=client_id).first()
                 if client_org:
                     self.initial.setdefault("payment_term_days", client_org.payment_term_days)
-                    self.initial.setdefault("payment_due_basis", client_org.payment_term_basis)
+                    if not self.instance.pk:
+                        self.initial["payment_due_basis"] = client_org.payment_trigger
                     self.initial.setdefault(
                         "payment_form",
                         client_org.default_payment_form
@@ -2209,12 +2230,6 @@ class TransportationDocumentForm(StyledModelForm):
         self.fields["executor_contract"].queryset = active_contracts.exclude(
             kind=Contract.Kind.CLIENT_FORWARDING
         )
-        self.fields["customer_vat_rate"].queryset = self.fields[
-            "customer_vat_rate"
-        ].queryset.filter(is_active=True)
-        self.fields["executor_vat_rate"].queryset = self.fields[
-            "executor_vat_rate"
-        ].queryset.filter(is_active=True)
         for field_name in (
             "customer_amount",
             "customer_prepayment",
@@ -2439,6 +2454,8 @@ class TransportationDocumentForm(StyledModelForm):
 
         if not self.is_bound and client_party:
             client_org = client_party.organization
+            if not self.instance.pk:
+                self.initial["payment_due_basis"] = client_org.payment_trigger
             if client_org.default_vat_rate_id:
                 self.initial.setdefault("customer_vat_rate", client_org.default_vat_rate_id)
             if client_org.payment_term_days:
@@ -2465,9 +2482,8 @@ class TransportationDocumentForm(StyledModelForm):
                 self.initial.setdefault("executor_vat_rate", executor_org.default_vat_rate_id)
             if executor_org.payment_term_days is not None:
                 self.initial.setdefault("executor_payment_term_days", executor_org.payment_term_days)
-            self.initial.setdefault(
-                "executor_payment_due_basis", executor_org.payment_term_basis,
-            )
+            if not self.instance.pk:
+                self.initial["executor_payment_due_basis"] = executor_org.payment_trigger
             self.initial.setdefault(
                 "executor_payment_form",
                 executor_org.default_payment_form
@@ -2724,7 +2740,7 @@ class TransportationDocumentForm(StyledModelForm):
             if cleaned.get("executor_payment_term_days") is None:
                 cleaned["executor_payment_term_days"] = executor.payment_term_days
             if not cleaned.get("executor_payment_due_basis"):
-                cleaned["executor_payment_due_basis"] = executor.payment_term_basis
+                cleaned["executor_payment_due_basis"] = executor.payment_trigger
         else:
             # Значения хранятся с безопасными системными значениями, однако
             # в новой форме они намеренно не показываются до выбора стороны.
@@ -3167,7 +3183,6 @@ class ContractForm(StyledModelForm):
         )
         self.fields["customer"].queryset = Customer.objects.filter(is_active=True)
         self.fields["carrier"].queryset = Carrier.objects.filter(is_active=True)
-        self.fields["vat_rate"].queryset = VATRate.objects.filter(is_active=True)
         self.fields["vat_rate"].required = False
         self.fields["payment_term_days"].required = False
         self.fields["effective_from"].required = False
@@ -4166,18 +4181,20 @@ class VehicleForm(StyledModelForm):
         model = Vehicle
         fields = [
             "carrier", "kind", "make", "registration_number", "body_type",
-            "capacity_kg", "volume_m3", "pallet_capacity",
+            "capacity_kg", "boom_capacity_kg", "volume_m3", "pallet_capacity",
         ]
 
     def __init__(self, *args, register_mode=False, **kwargs):
         super().__init__(*args, **kwargs)
         allowed_kinds = {
+            Vehicle.Kind.MANIPULATOR,
             Vehicle.Kind.TRACTOR,
             Vehicle.Kind.SEMITRAILER,
             Vehicle.Kind.TRUCK,
             Vehicle.Kind.TRAILER,
         }
         choices = [
+            (Vehicle.Kind.MANIPULATOR, "Манипулятор"),
             (Vehicle.Kind.TRACTOR, "Седельный тягач"),
             (Vehicle.Kind.SEMITRAILER, "Полуприцеп"),
             (Vehicle.Kind.TRUCK, "Грузовик"),
@@ -4197,6 +4214,7 @@ class VehicleForm(StyledModelForm):
             self.fields["carrier"].required = False
             self.fields["carrier"].widget = forms.HiddenInput()
         self.fields["kind"].widget.attrs["data-vehicle-kind"] = ""
+        self.fields["boom_capacity_kg"].widget.attrs["data-vehicle-boom-capacity"] = ""
         for field_name in ("body_type", "capacity_kg", "volume_m3", "pallet_capacity"):
             self.fields[field_name].required = False
             self.fields[field_name].widget.attrs["data-vehicle-tractor-optional"] = ""
@@ -4208,6 +4226,8 @@ class VehicleForm(StyledModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        if cleaned.get("kind") != Vehicle.Kind.MANIPULATOR:
+            cleaned["boom_capacity_kg"] = None
         if cleaned.get("kind") == Vehicle.Kind.TRACTOR:
             cleaned["body_type"] = ""
             cleaned["capacity_kg"] = Decimal("0")
@@ -4386,7 +4406,7 @@ class VehicleCombinationForm(StyledModelForm):
         super().__init__(*args, **kwargs)
         power_units = Vehicle.objects.filter(
             is_active=True,
-            kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK],
+            kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK, Vehicle.Kind.MANIPULATOR],
         ).select_related("carrier")
         trailers = Vehicle.objects.filter(
             is_active=True,
@@ -4395,7 +4415,7 @@ class VehicleCombinationForm(StyledModelForm):
         if self.instance.pk:
             power_units = Vehicle.objects.filter(
                 Q(pk=self.instance.tractor_id)
-                | Q(is_active=True, kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK])
+                | Q(is_active=True, kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK, Vehicle.Kind.MANIPULATOR])
             ).select_related("carrier")
             trailers = Vehicle.objects.filter(
                 Q(pk=self.instance.trailer_id)

@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 setField("id_director_position", party.director_post);
                 setField("id_director_name", party.director_name);
+                setField("id_acting_basis", party.acting_basis);
                 setField("id_phone", party.phone);
                 setField("id_email", party.email);
                 setField("id_verification_status", party.is_invalid || (party.status && party.status !== "ACTIVE") ? "warning" : "verified");

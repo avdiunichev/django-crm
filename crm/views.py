@@ -1030,7 +1030,7 @@ def organization_defaults(request, pk):
         "vat_rate_id": organization.default_vat_rate_id,
         "vat_rate_label": str(organization.default_vat_rate) if organization.default_vat_rate_id else "",
         "payment_term_days": organization.payment_term_days,
-        "payment_term_basis": organization.payment_term_basis,
+        "payment_term_basis": organization.payment_trigger,
         "payment_day_type": organization.payment_day_type,
         "payment_trigger": organization.payment_trigger,
         "payment_form": organization.default_payment_form
@@ -8859,6 +8859,14 @@ class BankStatementEditorMixin:
     form_class = BankStatementForm
     template_name = "crm/bank_statement_form.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # The shared editor template expects the generic CBV object key.
+        # Explicitly provide it for CreateView as well (where Django leaves it
+        # out), so the form works for both manual and imported operations.
+        context["object"] = getattr(self, "object", None) or BankStatement()
+        return context
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
@@ -8982,6 +8990,7 @@ class BankStatementEditorMixin:
         context = super().get_context_data(**kwargs)
         form = context["form"]
         context.update(self._candidate_context(form))
+        context["object"] = getattr(self, "object", None) or BankStatement()
         context["entity_title"] = "Банковский приход / расход"
         context["cancel_url"] = reverse_lazy("bank-statement-list")
         return context
@@ -9953,6 +9962,8 @@ class TransportationDocumentEditMixin:
             if not form.cleaned_data.get("payment_due_basis"):
                 form.instance.payment_due_basis = {
                     Contract.PaymentTrigger.ORIGINALS: Transportation.PaymentDueBasis.ORIGINALS_RECEIVED,
+                    Contract.PaymentTrigger.SCANS: Transportation.PaymentDueBasis.SCANS_RECEIVED,
+                    Contract.PaymentTrigger.EDO_SIGNED: Transportation.PaymentDueBasis.EDO_SIGNED,
                     Contract.PaymentTrigger.DELIVERY: Transportation.PaymentDueBasis.DELIVERY_DATE,
                     Contract.PaymentTrigger.UNLOADING: Transportation.PaymentDueBasis.DELIVERY_DATE,
                 }.get(customer_contract.payment_trigger, Transportation.PaymentDueBasis.DOCUMENT_DATE)
@@ -9970,6 +9981,8 @@ class TransportationDocumentEditMixin:
             if not form.cleaned_data.get("executor_payment_due_basis"):
                 form.instance.executor_payment_due_basis = {
                     Contract.PaymentTrigger.ORIGINALS: Transportation.PaymentDueBasis.ORIGINALS_RECEIVED,
+                    Contract.PaymentTrigger.SCANS: Transportation.PaymentDueBasis.SCANS_RECEIVED,
+                    Contract.PaymentTrigger.EDO_SIGNED: Transportation.PaymentDueBasis.EDO_SIGNED,
                     Contract.PaymentTrigger.DELIVERY: Transportation.PaymentDueBasis.DELIVERY_DATE,
                     Contract.PaymentTrigger.UNLOADING: Transportation.PaymentDueBasis.DELIVERY_DATE,
                 }.get(executor_contract.payment_trigger, Transportation.PaymentDueBasis.DOCUMENT_DATE)
@@ -11325,7 +11338,7 @@ def contract_party_defaults(party, prefix):
             Organization.PaymentTrigger.ORIGINALS: Contract.PaymentTrigger.ORIGINALS,
             Organization.PaymentTrigger.SCANS: Contract.PaymentTrigger.SCANS,
             Organization.PaymentTrigger.UNLOADING: Contract.PaymentTrigger.UNLOADING,
-            Organization.PaymentTrigger.EDO_SIGNED: Contract.PaymentTrigger.ACT,
+            Organization.PaymentTrigger.EDO_SIGNED: Contract.PaymentTrigger.EDO_SIGNED,
         }.get(organization.payment_trigger, Contract.PaymentTrigger.DELIVERY)
         values.update(
             {
@@ -12686,6 +12699,7 @@ class VehicleAttachmentFormMixin:
                 if enabled and self.object.kind in {
                     Vehicle.Kind.TRACTOR,
                     Vehicle.Kind.TRUCK,
+                    Vehicle.Kind.MANIPULATOR,
                 }:
                     trailer = attachment_form.save(commit=False)
                     trailer.carrier = self.object.carrier
@@ -12822,7 +12836,7 @@ class VehicleCombinationCreateView(
             tractor = Vehicle.objects.filter(
                 pk=tractor_id,
                 is_active=True,
-                kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK],
+                kind__in=[Vehicle.Kind.TRACTOR, Vehicle.Kind.TRUCK, Vehicle.Kind.MANIPULATOR],
             ).first()
             if tractor:
                 initial["tractor"] = tractor.pk
