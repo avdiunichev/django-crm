@@ -11163,9 +11163,21 @@ class TransportationCustomerInvoicePDFView(LoginRequiredMixin, FinanceAccessMixi
             )
         from .documents import build_customer_invoice_pdf
 
-        stream = build_customer_invoice_pdf(invoice)
+        if invoice.file:
+            invoice.file.open("rb")
+            pdf_bytes = invoice.file.read()
+            invoice.file.close()
+        else:
+            stream = build_customer_invoice_pdf(invoice)
+            pdf_bytes = stream.getvalue()
+            invoice.file.save(
+                f"customer-invoice-{invoice.display_number or invoice.pk}.pdf",
+                ContentFile(pdf_bytes),
+                save=False,
+            )
+            invoice.save(update_fields=["file", "updated_at"])
         safe_number = re.sub(r"[^0-9A-Za-zА-Яа-я_-]+", "_", str(invoice.display_number or transportation.number or transportation.pk))
-        response = HttpResponse(stream.getvalue(), content_type="application/pdf")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="Счет-клиенту-{safe_number}.pdf"'
         return response
 
