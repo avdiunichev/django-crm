@@ -9456,7 +9456,11 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         # Do not alter financial documents automatically.  We only flag rows
         # whose bank attributes completely coincide with another operation, so
         # an accountant can review them before any manual action is taken.
-        duplicate_ids = self.get_duplicate_statement_ids()
+        duplicate_ids = (
+            self.get_duplicate_statement_ids()
+            if self.request.GET.get("duplicates") == "1"
+            else set()
+        )
         batches = {statement.import_batch_id: statement.import_batch for statement in statements if statement.import_batch_id}
         balance_maps = {batch_id: batch.operation_balance_map() for batch_id, batch in batches.items()}
         # The name supplied by the bank is useful as a fallback, but the
@@ -9470,7 +9474,7 @@ class BankStatementListView(LoginRequiredMixin, FinanceAccessMixin, PersistentPa
         }
         organizations_by_tax_id = {}
         if statement_tax_ids:
-            for organization in Organization.objects.exclude(tax_id="").only(
+            for organization in Organization.objects.filter(tax_id__in=statement_tax_ids).only(
                 "pk", "name", "short_name", "tax_id"
             ):
                 normalized_tax_id = "".join(
