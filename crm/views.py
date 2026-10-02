@@ -2074,7 +2074,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
     page_size_session_key = "crm_mailbox_page_size"
     # Reading a mailbox requires a remote TLS/IMAP session. Keep routine page
     # visits responsive; the explicit refresh control still bypasses this cache.
-    list_cache_seconds = 45
+    list_cache_seconds = 90
 
     @staticmethod
     def list_cache_key(user_id, folder, limit, offset=0):
@@ -2124,7 +2124,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 mailbox_counts = cache.get(cache_key)
                 if mailbox_counts is None:
                     mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
-                    cache.set(cache_key, mailbox_counts, 60)
+                    cache.set(cache_key, mailbox_counts, 120)
                 message_total = mailbox_counts.get(mailbox_folder, {}).get("total", 0)
                 mailbox_total_pages = (
                     1 if current_per_page == "all" else max(1, (message_total + fetch_limit - 1) // fetch_limit)
