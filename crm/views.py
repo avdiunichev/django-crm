@@ -10908,6 +10908,13 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
             .distinct()
             .order_by("-document_date", "-created_at")
         )
+        document_kinds = {(document.direction, document.kind) for document in transportation_documents}
+        document_checklist = [
+            {"label": "Счёт клиенту", "direction": "outgoing", "kind": ShipmentDocument.Kind.INVOICE, "ready": (ShipmentDocument.Direction.OUTGOING, ShipmentDocument.Kind.INVOICE) in document_kinds},
+            {"label": "УПД клиенту", "direction": "outgoing", "kind": ShipmentDocument.Kind.UPD, "ready": (ShipmentDocument.Direction.OUTGOING, ShipmentDocument.Kind.UPD) in document_kinds},
+            {"label": "Счёт исполнителя", "direction": "incoming", "kind": ShipmentDocument.Kind.INVOICE, "ready": (ShipmentDocument.Direction.INCOMING, ShipmentDocument.Kind.INVOICE) in document_kinds},
+            {"label": "УПД исполнителя", "direction": "incoming", "kind": ShipmentDocument.Kind.UPD, "ready": (ShipmentDocument.Direction.INCOMING, ShipmentDocument.Kind.UPD) in document_kinds},
+        ]
         payments = list(transportation.payments.all())
         customer_payments = [
             payment
@@ -10954,6 +10961,8 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
                     else []
                 ),
                 "transportation_documents": transportation_documents,
+                "document_checklist": document_checklist,
+                "document_ready_count": sum(1 for item in document_checklist if item["ready"]),
                 "outgoing_documents": [
                     document
                     for document in transportation_documents

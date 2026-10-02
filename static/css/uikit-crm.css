@@ -474,6 +474,12 @@ html[data-theme="dark"] body.uikit-theme .crm-toast-close:hover {
 .accounting-import-help li + li { margin-top: 8px; }
 .accounting-import-warnings li + li { margin-top: 8px; }
 .transportation-accounting-actions { max-width: 760px; justify-content: flex-end; }
+.document-checklist { margin: 10px 0 14px; padding: 10px 12px; border: 1px solid var(--crm-border, #d9dce3); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.document-checklist > strong { font-size: 0.9rem; }
+.checklist-items { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+.checklist-item { font-size: 0.78rem; padding: 3px 8px; border: 1px solid currentColor; }
+.checklist-item.is-ready { color: #2d9d68; }
+.checklist-item.is-missing { color: #b56b6b; }
 
 html[data-theme="dark"] body.uikit-theme .accounting-workflow-card,
 html[data-theme="dark"] body.uikit-theme .accounting-actions-bar {
