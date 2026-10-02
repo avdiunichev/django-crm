@@ -619,6 +619,31 @@ def build_customer_invoice_pdf(record):
         bits = [str(org), f"ИНН {org.tax_id}" if org.tax_id else "", f"КПП {org.kpp}" if org.kpp else ""]
         return ", ".join(bit for bit in bits if bit)
 
+    def amount_words(value):
+        ones = ("ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять")
+        teens = ("десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать")
+        tens = ("", "", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто")
+        hundreds = ("", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот")
+        def group(number, feminine=False):
+            result = []
+            if number >= 100:
+                result.append(hundreds[number // 100]); number %= 100
+            if 10 <= number < 20:
+                result.append(teens[number - 10]); return result
+            if number >= 20:
+                result.append(tens[number // 10]); number %= 10
+            if number:
+                result.append(("одна", "две")[number - 1] if feminine and number in (1, 2) else ones[number])
+            return result
+        amount = Decimal(value or 0).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        integer, kopecks = divmod(int(amount), 100)
+        parts = group(integer)
+        if integer >= 1000:
+            thousands, rest = divmod(integer, 1000)
+            parts = group(rest) + (["тысяча"] if thousands == 1 else (["тысячи"] if 2 <= thousands % 10 <= 4 else ["тысяч"]))
+        text = " ".join(parts) or "ноль"
+        return f"{text.capitalize()} рублей {kopecks:02d} копеек"
+
     def bank_rows(org):
         account = org.bank_accounts.filter(is_active=True).order_by("-is_primary", "pk").first() if org else None
         return [
@@ -656,6 +681,7 @@ def build_customer_invoice_pdf(record):
         [p("Адрес поставщика", label), p(getattr(seller, "formatted_legal_address", "") if seller else "")],
         [p("Покупатель", label), p(org_line(buyer))],
         [p("Адрес покупателя", label), p(getattr(buyer, "formatted_legal_address", "") if buyer else "")],
+        [p("Контакты", label), p("; ".join(bit for bit in (getattr(seller, "phone", ""), getattr(seller, "email", ""), getattr(buyer, "phone", ""), getattr(buyer, "email", "")) if bit) or "—")],
         [p("Основание", label), p(contract_text or "По рейсу")],
     ]
     story.append(Table(party_data, colWidths=[42*mm, 143*mm], style=TableStyle([
@@ -681,6 +707,7 @@ def build_customer_invoice_pdf(record):
     ])))
     story.append(Spacer(1, 3 * mm))
     story.append(p(f"Всего к оплате: {money(total)} {record.currency or 'RUB'}"))
+    story.append(p(f"Сумма прописью: {amount_words(total)}"))
     story.append(Spacer(1, 9 * mm))
     story.append(Table([[p("Руководитель ____________________", body), p("Бухгалтер ____________________", body)]], colWidths=[92.5*mm, 92.5*mm], style=TableStyle([("VALIGN", (0,0), (-1,-1), "TOP")])) )
     doc.build(story)
