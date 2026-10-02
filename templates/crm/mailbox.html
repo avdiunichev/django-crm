@@ -22,6 +22,8 @@
             <form id="mailbox-bulk-form" method="post" action="{% url 'mailbox-delete-selected' %}">{% csrf_token %}<input type="hidden" name="folder" value="{{ mailbox_folder }}"></form>
             {% if inbox_error %}
                 <p class="mailbox-inbox-empty">Не удалось обновить ящик. Проверьте, что пароль внешнего приложения ещё активен.</p>
+            {% elif mailbox_needs_refresh %}
+                <div class="empty-state">Нажмите «Обновить», чтобы загрузить письма.</div>
             {% elif inbox_messages %}
                 <div class="table-wrap mailbox-message-list"><table class="uk-table uk-table-small uk-table-divider uk-table-middle mailbox-register-table"><thead><tr><th class="mailbox-select-column"><input class="uk-checkbox" type="checkbox" aria-label="Выбрать все письма" data-mailbox-select-all></th><th>{% if mailbox_folder == 'sent' %}Кому{% else %}От кого{% endif %}</th><th>Тема</th><th>Дата</th></tr></thead><tbody>
                     {% for message in inbox_messages %}

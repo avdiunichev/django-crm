@@ -2100,6 +2100,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
         mailbox, _ = MailboxConnection.objects.get_or_create(user=self.request.user)
         inbox_messages = []
         inbox_error = False
+        mailbox_needs_refresh = False
         mailbox_folder = self.request.GET.get("folder", "inbox")
         mailbox_query = self.request.GET.get("q", "").strip()
         requested_page_size = self.request.GET.get("per_page", "").strip().lower()
@@ -2144,14 +2145,18 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 )
                 inbox_messages = None if refresh_requested else cache.get(list_cache_key)
                 if inbox_messages is None:
-                    inbox_messages = fetch_recent_inbox(
-                        mailbox.email,
-                        password,
-                        folder=mailbox_folder,
-                        limit=fetch_limit,
-                        offset=page_offset,
-                    )
-                    cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
+                    if refresh_requested:
+                        inbox_messages = fetch_recent_inbox(
+                            mailbox.email,
+                            password,
+                            folder=mailbox_folder,
+                            limit=fetch_limit,
+                            offset=page_offset,
+                        )
+                        cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
+                    else:
+                        mailbox_needs_refresh = True
+                        inbox_messages = []
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
@@ -2175,6 +2180,7 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 "mailbox_address": mailbox.email or self.request.user.email,
                 "inbox_messages": inbox_messages,
                 "inbox_error": inbox_error,
+                "mailbox_needs_refresh": mailbox_needs_refresh,
                 "mailbox_folder": mailbox_folder,
                 "mailbox_query": mailbox_query,
                 "mailbox_counts": mailbox_counts,
