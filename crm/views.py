@@ -2122,9 +2122,17 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 password = decrypt_app_password(mailbox.encrypted_app_password)
                 cache_key = f"crm-mailbox-navigation-counts:{self.request.user.pk}"
                 mailbox_counts = cache.get(cache_key)
-                if mailbox_counts is None:
+                refresh_requested = self.request.GET.get("refresh") == "1"
+                # Folder counters are remote IMAP metadata.  Never block the
+                # first render of the mailbox on a fresh counters request;
+                # refresh=1 is the explicit action that may refresh them.
+                if mailbox_counts is None and refresh_requested:
                     mailbox_counts = fetch_mailbox_counts(mailbox.email, password)
                     cache.set(cache_key, mailbox_counts, 120)
+                mailbox_counts = mailbox_counts or {
+                    folder: {"total": 0, "unread": 0}
+                    for folder in ("inbox", "sent", "drafts", "trash")
+                }
                 message_total = mailbox_counts.get(mailbox_folder, {}).get("total", 0)
                 mailbox_total_pages = (
                     1 if current_per_page == "all" else max(1, (message_total + fetch_limit - 1) // fetch_limit)
@@ -2134,7 +2142,6 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 list_cache_key = self.list_cache_key(
                     self.request.user.pk, mailbox_folder, fetch_limit, page_offset
                 )
-                refresh_requested = self.request.GET.get("refresh") == "1"
                 inbox_messages = None if refresh_requested else cache.get(list_cache_key)
                 if inbox_messages is None:
                     inbox_messages = fetch_recent_inbox(
