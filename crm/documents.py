@@ -1051,8 +1051,17 @@ def build_transportation_waybill_pdf(transportation, data):
         table.setStyle(TableStyle([("SPAN", (0, 0), (-1, 0)), ("VALIGN", (0, 0), (-1, 0), "MIDDLE")]))
         return table
 
+    link = transportation.active_execution_link()
     number = data.get("number") or f"ТрН-{transportation.pk}"
     date_value = as_date(data.get("document_date"))
+    stops = list(transportation.stops.all())
+    first_stop = stops[0] if stops else None
+    last_stop = stops[-1] if stops else None
+    owner = transportation.owner_company
+    default_shipper = _stop_organization_text(first_stop) if first_stop else _full_organization_name(owner)
+    default_consignee = _stop_organization_text(last_stop) if last_stop else default_shipper
+    default_pickup = _stop_address(first_stop) if first_stop else ""
+    default_delivery = _stop_address(last_stop) if last_stop else ""
     cargo_volume = f"{transportation.volume_m3} м³" if transportation.volume_m3 else ""
     packages = f"{transportation.total_package_count} мест" if transportation.total_package_count else ""
     vehicle_description = " · ".join(part for part in (data.get("vehicle_registration"), data.get("trailer_registration")) if part) or ""
@@ -1078,13 +1087,13 @@ def build_transportation_waybill_pdf(transportation, data):
     story.append(header)
     story.append(Spacer(1, 2 * mm))
     story.append(numbered_section("1", "Грузоотправитель", [[
-        cell(f"{data.get('shipper_name') or ''}, ИНН {data.get('shipper_inn') or ''}\n{data.get('shipper_address') or ''}", "реквизиты, позволяющие идентифицировать грузоотправителя"),
+        cell(f"{data.get('shipper_name') or default_shipper}, ИНН {data.get('shipper_inn') or ''}\n{data.get('shipper_address') or default_pickup}", "реквизиты, позволяющие идентифицировать грузоотправителя"),
         cell("", "контактные данные грузоотправителя"),
     ]], heights=[18 * mm]))
-    story.append(boxed([[cell("1а. Заказчик услуг по организации перевозки груза (при наличии)", small=True), cell("является экспедитором: да / нет", small=True)], [cell("", "реквизиты заказчика услуг"), cell("", "реквизиты договора транспортной экспедиции")]], [page_width / 2, page_width / 2], [6 * mm, 13 * mm]))
+    story.append(boxed([[cell("1а. Заказчик услуг по организации перевозки груза (при наличии)", small=True), cell("является экспедитором: да / нет", small=True)], [cell(_organization_requisites(owner), "реквизиты заказчика услуг"), cell((link.contract.number if link and link.contract else ""), "реквизиты договора транспортной экспедиции")]], [page_width / 2, page_width / 2], [6 * mm, 13 * mm]))
     story.append(numbered_section("2", "Грузополучатель", [[
-        cell(f"{data.get('consignee_name') or ''}, ИНН {data.get('consignee_inn') or ''}", "реквизиты, позволяющие идентифицировать грузополучателя"),
-        cell(data.get("consignee_address"), "адрес места выгрузки"),
+        cell(f"{data.get('consignee_name') or default_consignee}, ИНН {data.get('consignee_inn') or ''}", "реквизиты, позволяющие идентифицировать грузополучателя"),
+        cell(data.get("consignee_address") or default_delivery, "адрес места выгрузки"),
     ]], heights=[15 * mm]))
     story.append(numbered_section("3", "Груз", [[
         cell(data.get("cargo_name"), "наименование груза"), cell("", "состояние груза"), cell(transportation.package_type or "", "способ упаковки"), cell(f"брутто: {data.get('gross_weight_kg') or ''} кг", "масса нетто / брутто"),
