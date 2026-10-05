@@ -952,6 +952,7 @@ def _build_transportation_waybill_reference_pdf(transportation, data):
     vehicle = assignment.vehicle if assignment else None; trailer = assignment.trailer if assignment else None
     stops = list(transportation.stops.all()); pickup, delivery = (stops[0] if stops else None), (stops[-1] if stops else None)
     def val(v): return str(v or "—")
+    def date_text(v): return v.strftime("%d.%m.%Y") if hasattr(v, "strftime") else val(v)
     def put(x, y, text, size=7, color="#111111"):
         c.setFont(regular_font, size); c.setFillColor(HexColor(color)); c.drawString(x, y, val(text))
     def multiline(x, y, text, size=6.5, leading=8, max_chars=70):
@@ -963,7 +964,7 @@ def _build_transportation_waybill_reference_pdf(transportation, data):
         if line: put(x, y, line, size)
     owner = transportation.owner_company
     c.drawImage(ImageReader(str(page_images[0])), 0, 0, width=width, height=height)
-    put(75, 752, _date_plain(data.get("document_date")), 7); put(145, 752, data.get("number"), 7); put(370, 752, _date_plain(data.get("document_date")), 7); put(445, 752, transportation.number, 7)
+    put(75, 752, date_text(data.get("document_date")), 7); put(145, 752, data.get("number"), 7); put(370, 752, date_text(data.get("document_date")), 7); put(445, 752, transportation.number, 7)
     multiline(45, 690, f"{_full_organization_name(owner)}, ИНН {getattr(owner, 'tax_id', '')}, {getattr(owner, 'formatted_legal_address', '')}", 6.2)
     multiline(45, 595, f"{_full_organization_name(delivery.organization if delivery and delivery.organization_id else None)} {data.get('consignee_address') or _stop_address(delivery) if delivery else ''}", 6.2)
     multiline(45, 507, f"{transportation.cargo_name}; {transportation.weight_kg or '—'} кг; {transportation.volume_m3 or '—'} м³; мест: {transportation.total_package_count or '—'}", 6.2)
