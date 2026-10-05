@@ -1078,8 +1078,20 @@ def build_transportation_waybill_pdf(transportation, data):
         title=f"Транспортная накладная {number}", author="CRM.Экспедитор",
     )
     story = [
+        Paragraph("Приложение № 4", ParagraphStyle(
+            "WaybillAppendix", parent=value_style, fontName=regular_font,
+            fontSize=6.5, leading=8, alignment=2,
+        )),
+        Paragraph("к Правилам перевозок грузов автомобильным транспортом,", ParagraphStyle(
+            "WaybillLegal", parent=value_style, fontName=regular_font,
+            fontSize=6.5, leading=8, alignment=2,
+        )),
+        Paragraph("утв. постановлением Правительства РФ от 21 декабря 2020 г. № 2200", ParagraphStyle(
+            "WaybillLegalDate", parent=value_style, fontName=regular_font,
+            fontSize=6.5, leading=8, alignment=2, spaceAfter=3,
+        )),
         Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ", title_style),
-        Paragraph("Печатная форма по образцу формы 1-Т", ParagraphStyle(
+        Paragraph("форма 1-Т", ParagraphStyle(
             "WaybillSubtitle", parent=value_style, fontName=regular_font,
             fontSize=6.5, leading=8, alignment=1, textColor=colors.HexColor("#687385"),
             spaceAfter=3,

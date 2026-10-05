@@ -2145,18 +2145,14 @@ class MailboxView(LoginRequiredMixin, TemplateView):
                 )
                 inbox_messages = None if refresh_requested else cache.get(list_cache_key)
                 if inbox_messages is None:
-                    if refresh_requested:
-                        inbox_messages = fetch_recent_inbox(
-                            mailbox.email,
-                            password,
-                            folder=mailbox_folder,
-                            limit=fetch_limit,
-                            offset=page_offset,
-                        )
-                        cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
-                    else:
-                        mailbox_needs_refresh = True
-                        inbox_messages = []
+                    inbox_messages = fetch_recent_inbox(
+                        mailbox.email,
+                        password,
+                        folder=mailbox_folder,
+                        limit=fetch_limit,
+                        offset=page_offset,
+                    )
+                    cache.set(list_cache_key, inbox_messages, self.list_cache_seconds)
                 if mailbox_query:
                     needle = mailbox_query.casefold()
                     inbox_messages = [
@@ -11108,6 +11104,20 @@ class TransportationWaybillPDFView(LoginRequiredMixin, View):
         form = TransportationWaybillPreflightForm(
             transportation=transportation, saved_data=self.saved_data(transportation)
         )
+        # The trip card button is a download action.  Build the PDF from the
+        # current trip values immediately; the edit form remains available via
+        # ?edit=1 for incomplete trips.
+        if request.GET.get("download") == "1":
+            from .documents import build_transportation_waybill_pdf
+
+            stream = build_transportation_waybill_pdf(transportation, form.waybill_data)
+            safe_number = re.sub(
+                r"[^0-9A-Za-zА-Яа-я_-]+", "_",
+                str(form.waybill_data.get("number") or transportation.number or transportation.pk),
+            )
+            response = HttpResponse(stream.getvalue(), content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="transportation-waybill-{safe_number}.pdf"'
+            return response
         return render(request, self.template_name, {"transportation": transportation, "form": form})
 
     def post(self, request, *args, **kwargs):
