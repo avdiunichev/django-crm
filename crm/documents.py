@@ -358,10 +358,10 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
 
     title_number = _document_number_for_title(number)
-    title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.LEFT, space_after=2)
+    title = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
     _set_run_font(
         title.add_run(
-            f"{document_kind.upper()} №{title_number} "
+            f"{('ПОРУЧЕНИЕ НА ПЕРЕВОЗКУ' if is_forwarder_instruction else 'ЗАЯВКА НА ПЕРЕВОЗКУ')} № {title_number} "
             f"от {_date_plain(transportation.document_date)} г."
         ),
         size=12,
@@ -374,6 +374,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
     contract_paragraph = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
     _set_run_font(contract_paragraph.add_run(contract_text), size=10)
+    subtitle = _paragraph(document, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
+    _set_run_font(subtitle.add_run("ПОРУЧЕНИЕ НА ПЕРЕВОЗКУ ГРУЗА"), size=11, bold=True)
 
     parties_table = document.add_table(rows=2, cols=2)
     parties_table.style = "Table Grid"
@@ -397,6 +399,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
 
     _paragraph(document, space_after=4)
+    cargo_heading = _paragraph(document, space_after=3)
+    _set_run_font(cargo_heading.add_run("01  ИНФОРМАЦИЯ О ГРУЗЕ"), size=10, bold=True)
     cargo_table = document.add_table(rows=2, cols=5)
     cargo_table.style = "Table Grid"
     cargo_table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -429,6 +433,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
 
     _paragraph(document, space_after=4)
+    route_heading = _paragraph(document, space_after=3)
+    _set_run_font(route_heading.add_run("02  МАРШРУТ"), size=10, bold=True)
     route_table = document.add_table(rows=0, cols=3)
     route_table.style = "Table Grid"
     route_table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -466,6 +472,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
 
     add_stop_rows(stops)
 
+    vehicle_heading = _paragraph(document, space_after=3)
+    _set_run_font(vehicle_heading.add_run("03  ВОДИТЕЛЬ И ТРАНСПОРТНОЕ СРЕДСТВО"), size=10, bold=True)
     vehicle_header = route_table.add_row().cells
     _set_cell_text(vehicle_header[0], "ТС", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
     _set_cell_text(vehicle_header[1], "Водитель", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
@@ -501,6 +509,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     row[1].merge(row[2])
 
     _paragraph(document, space_after=4)
+    finance_heading = _paragraph(document, space_after=3)
+    _set_run_font(finance_heading.add_run("05  РАСЧЁТЫ"), size=10, bold=True)
     finance_table = document.add_table(rows=2, cols=4)
     finance_table.style = "Table Grid"
     finance_table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -535,6 +545,8 @@ def _build_executor_transportation_application_docx_legacy(transportation):
     )
     _set_cell_text(finance_table.cell(1, 3), payment_terms)
 
+    conditions_heading = _paragraph(document, space_after=3)
+    _set_run_font(conditions_heading.add_run("04  ОСНОВНЫЕ УСЛОВИЯ"), size=10, bold=True)
     if is_forwarder_instruction:
         clauses = (
             "Клиент поручает, а Экспедитор-партнёр принимает к исполнению организацию перевозки по условиям настоящего поручения.",
