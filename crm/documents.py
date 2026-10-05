@@ -987,14 +987,6 @@ def build_transportation_waybill_pdf(transportation, data):
     loading and delivery remain blank for the parties to complete.  It must
     not pretend to be an EDO operator's legally-significant EТрН.
     """
-    try:
-        reference_pdf = _build_transportation_waybill_reference_pdf(transportation, data)
-    except Exception:
-        # A malformed optional field must never turn document download into a
-        # 500 response; retain the legacy renderer as a safe fallback.
-        reference_pdf = None
-    if reference_pdf is not None:
-        return reference_pdf
     from html import escape
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
