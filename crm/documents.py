@@ -832,8 +832,100 @@ def _build_executor_transportation_application_docx_compact(transportation):
 
 
 def build_executor_transportation_application_docx(transportation):
-    """Build the approved print-oriented application form."""
-    return _build_executor_transportation_application_docx_compact(transportation)
+    """Fill the approved DOCX template while preserving its visual layout."""
+    template_path = Path(__file__).resolve().parent / "assets" / "carrier_application_template.docx"
+    if not template_path.exists():
+        return _build_executor_transportation_application_docx_compact(transportation)
+    document = Document(str(template_path))
+    link = transportation.active_execution_link()
+    executor = link.contractor_party.organization if link else None
+    contract = link.contract if link else None
+    assignment = transportation.active_vehicle_assignment()
+    driver = assignment.driver if assignment else None
+    vehicle = assignment.vehicle if assignment else None
+
+    def replacement_map():
+        owner = transportation.owner_company
+        stops = list(transportation.stops.all())
+        first, last = (stops[0] if stops else None), (stops[-1] if stops else None)
+        owner_address = getattr(owner, "formatted_legal_address", "") or "не указан"
+        executor_address = getattr(executor, "formatted_legal_address", "") or "не указан"
+        owner_contact = transportation.client_contact
+        executor_contact = transportation.executor_contact
+        owner_contact_text = " / ".join(x for x in (getattr(owner_contact, "full_name", ""), getattr(owner_contact, "phone", "")) if x) or "не указан"
+        executor_contact_text = " / ".join(x for x in (getattr(executor_contact, "full_name", ""), getattr(executor_contact, "phone", "")) if x) or "не указан"
+        first_date = _date_plain(first.planned_from) if first and first.planned_from else "не указана"
+        last_date = _date_plain(last.planned_from) if last and last.planned_from else "не указана"
+        first_window = _datetime_window(first.planned_from, first.planned_to) if first else "не указан"
+        last_window = _datetime_window(last.planned_from, last.planned_to) if last else "не указан"
+        vehicle_name = _vehicle_name(vehicle)
+        trailer = assignment.trailer if assignment else None
+        vat = transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else "Без НДС"
+        payment_terms = contract.payment_terms if contract and contract.payment_terms else (f"{transportation.executor_payment_term_days} дней" if transportation.executor_payment_term_days else "по согласованию")
+        values = {
+            'ООО "ДЕМО ТРАНС"': _full_organization_name(executor),
+            'ООО "НОВЫЙ ПРОЕКТ"': _full_organization_name(owner),
+            '0000-000123': transportation.number or f"РС-{transportation.pk}",
+            '0000-000321': contract.number if contract else "не указан",
+            'Сергей Викторович Образцов': driver.full_name if driver else "не указан",
+            'Volvo FH 460': _vehicle_name(vehicle),
+            'А000АА 00': vehicle.registration_number if vehicle else "не указан",
+            '8 400': _decimal_text(transportation.weight_kg),
+            '54': _decimal_text(transportation.volume_m3),
+            '24': str(transportation.total_package_count or "не указано"),
+            'Бумажная упаковка: коробки и пакеты': transportation.cargo_name or "не указано",
+            'Паллет 1,2 х 0,8 м': transportation.package_type.name if transportation.package_type_id else "не указано",
+            'ИНН 7804496014 КПП 781401001 ОГРН 1127847212345': _organization_requisites(owner),
+            'Адрес: 197349, Санкт-Петербург г., Приморский р-н, Уточкина ул., д. 3, корп. 1 лит. А, оф. 310': f"Адрес: {owner_address}",
+            'Контакт: +7 921 926-20-24': f"Контакт: {owner_contact_text}",
+            'E-mail: office@newproject-spb.ru': f"E-mail: {getattr(owner, 'email', '') or 'не указан'}",
+            'ИНН 0000000000 КПП 000000000 ОГРН 0000000000000': _organization_requisites(executor),
+            'Адрес: Санкт-Петербург, ул. Примерная, 10': f"Адрес: {executor_address}",
+            'Контакт: +7 000 000-00-01': f"Контакт: {executor_contact_text}",
+            'E-mail: transport@example.com': f"E-mail: {getattr(executor, 'email', '') or 'не указан'}",
+            '05.10.2026': _date_plain(transportation.planned_start_date) if transportation.planned_start_date else "не указана",
+            '06.10.2026': first_date,
+            '07.10.2026': last_date,
+            '15.10.2026': _date_plain(transportation.planned_end_date) if transportation.planned_end_date else last_date,
+            '09:00 – 11:00': first_window,
+            '09:00–11:00': first_window,
+            'Седельный тягач, DONGFENG': vehicle_name,
+            'BE598556': trailer.registration_number if trailer else "не указан",
+            '650 000,00 ₽': _money_text(transportation.executor_amount, transportation.currency),
+            'НДС 22%': vat,
+            '400 000,00 ₽': _money_text(transportation.executor_prepayment, transportation.currency) if transportation.executor_prepayment is not None else "нет",
+            '10 дней': payment_terms,
+        }
+        if first:
+            values['Санкт-Петербург, ул. Учебная, 12, склад А, ворота 2'] = _stop_address(first)
+        if last:
+            values['Иван Примеров +7 000 000-00-03'] = " / ".join(x for x in (last.contact_name, last.contact_phone) if x) or "не указан"
+        return {source: str(target) for source, target in values.items() if target}
+
+    mapping = replacement_map()
+    def replace_in_paragraph(paragraph):
+        # Word frequently splits a visible phrase into several runs. Replace
+        # against the complete paragraph text so the approved template keeps
+        # its layout while still receiving the live trip values.
+        original = "".join(run.text or "" for run in paragraph.runs)
+        updated = original
+        for source, target in mapping.items():
+            updated = updated.replace(source, target)
+        if updated != original and paragraph.runs:
+            paragraph.runs[0].text = updated
+            for run in paragraph.runs[1:]:
+                run.text = ""
+    for paragraph in document.paragraphs:
+        replace_in_paragraph(paragraph)
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    replace_in_paragraph(paragraph)
+    stream = BytesIO()
+    document.save(stream)
+    stream.seek(0)
+    return stream
 
 
 def build_transportation_waybill_pdf(transportation, data):
