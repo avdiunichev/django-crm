@@ -832,8 +832,8 @@ def _build_executor_transportation_application_docx_compact(transportation):
 
 
 def build_executor_transportation_application_docx(transportation):
-    """Build the approved strict table-style application form."""
-    return _build_executor_transportation_application_docx_legacy(transportation)
+    """Build the approved print-oriented application form."""
+    return _build_executor_transportation_application_docx_compact(transportation)
 
 
 def build_transportation_waybill_pdf(transportation, data):
