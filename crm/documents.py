@@ -1011,7 +1011,14 @@ def build_transportation_waybill_pdf(transportation, data):
         topMargin=9 * mm, bottomMargin=11 * mm,
         title=f"Транспортная накладная {number}", author="CRM.Экспедитор",
     )
-    story = [Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ (ФОРМА)", title_style)]
+    story = [
+        Paragraph("ТРАНСПОРТНАЯ НАКЛАДНАЯ", title_style),
+        Paragraph("Печатная форма по образцу формы 1-Т", ParagraphStyle(
+            "WaybillSubtitle", parent=value_style, fontName=regular_font,
+            fontSize=6.5, leading=8, alignment=1, textColor=colors.HexColor("#687385"),
+            spaceAfter=3,
+        )),
+    ]
     header = boxed([
         [cell("Транспортная накладная", small=True), cell("Заказ (заявка)", small=True)],
         [cell(f"Дата: {date_value}\n№ {number}\nЭкземпляр № ____"), cell(f"Дата: {date_value}\n№ {transportation.number or '—'}")],
