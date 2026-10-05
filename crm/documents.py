@@ -928,6 +928,57 @@ def build_executor_transportation_application_docx(transportation):
     return stream
 
 
+def _build_transportation_waybill_reference_pdf(transportation, data):
+    """Fill the supplied two-page Form 1-T PDF without changing its grid."""
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    asset_dir = Path(__file__).resolve().parent / "assets"
+    page_images = [asset_dir / "transport_waybill_reference-1.png", asset_dir / "transport_waybill_reference-2.png"]
+    if not all(path.exists() for path in page_images):
+        return None
+    regular_font = "Helvetica"
+    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    if Path(font_path).exists():
+        pdfmetrics.registerFont(TTFont("WaybillReference", font_path)); regular_font = "WaybillReference"
+    from reportlab.lib.colors import HexColor
+    buffer = BytesIO(); c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    link = transportation.active_execution_link(); executor = link.contractor_party.organization if link else None
+    assignment = transportation.active_vehicle_assignment(); driver = assignment.driver if assignment else None
+    vehicle = assignment.vehicle if assignment else None; trailer = assignment.trailer if assignment else None
+    stops = list(transportation.stops.all()); pickup, delivery = (stops[0] if stops else None), (stops[-1] if stops else None)
+    def val(v): return str(v or "—")
+    def put(x, y, text, size=7, color="#111111"):
+        c.setFont(regular_font, size); c.setFillColor(HexColor(color)); c.drawString(x, y, val(text))
+    def multiline(x, y, text, size=6.5, leading=8, max_chars=70):
+        words = val(text).split(); line = ""
+        for word in words:
+            if len(line) + len(word) + 1 > max_chars:
+                put(x, y, line, size); y -= leading; line = word
+            else: line = f"{line} {word}".strip()
+        if line: put(x, y, line, size)
+    owner = transportation.owner_company
+    c.drawImage(ImageReader(str(page_images[0])), 0, 0, width=width, height=height)
+    put(75, 752, _date_plain(data.get("document_date")), 7); put(145, 752, data.get("number"), 7); put(370, 752, _date_plain(data.get("document_date")), 7); put(445, 752, transportation.number, 7)
+    multiline(45, 690, f"{_full_organization_name(owner)}, ИНН {getattr(owner, 'tax_id', '')}, {getattr(owner, 'formatted_legal_address', '')}", 6.2)
+    multiline(45, 595, f"{_full_organization_name(delivery.organization if delivery and delivery.organization_id else None)} {data.get('consignee_address') or _stop_address(delivery) if delivery else ''}", 6.2)
+    multiline(45, 507, f"{transportation.cargo_name}; {transportation.weight_kg or '—'} кг; {transportation.volume_m3 or '—'} м³; мест: {transportation.total_package_count or '—'}", 6.2)
+    multiline(45, 394, data.get("accompanying_documents") or "—", 6.2)
+    multiline(45, 315, f"{_stop_address(pickup) if pickup else '—'} — {_stop_address(delivery) if delivery else '—'}", 6.2)
+    multiline(45, 220, f"{_full_organization_name(executor)}, ИНН {getattr(executor, 'tax_id', '')}; водитель: {driver.full_name if driver else '—'}", 6.2)
+    multiline(45, 166, f"{_vehicle_name(vehicle)} {getattr(vehicle, 'registration_number', '')}; прицеп {getattr(trailer, 'registration_number', '')}", 6.2)
+    c.showPage()
+    c.drawImage(ImageReader(str(page_images[1])), 0, 0, width=width, height=height)
+    multiline(45, 735, _stop_address(pickup) if pickup else "—", 6.2)
+    multiline(45, 655, _stop_address(delivery) if delivery else "—", 6.2)
+    multiline(45, 500, f"{transportation.executor_amount or '—'}; НДС: {transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else 'Без НДС'}; форма: {transportation.get_executor_payment_form_display()}", 6.2)
+    c.save(); buffer.seek(0); return buffer
+
+
 def build_transportation_waybill_pdf(transportation, data):
     """Build a print copy using the structure of the current EТрН form.
 
@@ -935,6 +986,9 @@ def build_transportation_waybill_pdf(transportation, data):
     loading and delivery remain blank for the parties to complete.  It must
     not pretend to be an EDO operator's legally-significant EТрН.
     """
+    reference_pdf = _build_transportation_waybill_reference_pdf(transportation, data)
+    if reference_pdf is not None:
+        return reference_pdf
     from html import escape
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
