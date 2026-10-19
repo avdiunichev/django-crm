@@ -972,18 +972,11 @@ def build_executor_transportation_application_docx(transportation):
     # unloading in separate rows.  Fill those cells directly so each stop
     # receives its own address/date/contact instead of sharing a placeholder.
     def replace_cell(cell, value):
-        paragraphs = cell.paragraphs or [cell.add_paragraph()]
-        for index, paragraph in enumerate(paragraphs):
-            if index == 0:
-                if paragraph.runs:
-                    paragraph.runs[0].text = str(value or "не указано")
-                    for run in paragraph.runs[1:]:
-                        run.text = ""
-                else:
-                    paragraph.add_run(str(value or "не указано"))
-            else:
-                for run in paragraph.runs:
-                    run.text = ""
+        # Assigning a run inside the existing template paragraph leaves behind
+        # drawing/field nodes used by Word's merged cells.  On macOS Word that
+        # renders as several strings drawn on top of each other.  Replacing the
+        # cell body atomically removes those nodes and keeps the table grid.
+        cell.text = str(value or "не указано")
 
     if len(document.tables) >= 5:
         owner_table = document.tables[0]
