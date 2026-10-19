@@ -857,29 +857,11 @@ def build_executor_transportation_application_docx(transportation):
     manager = transportation.manager
     manager_name = manager.get_full_name() if manager else "не указан"
 
-    # The approved template keeps its large heading in a Word text box, which
-    # is not exposed through python-docx and therefore cannot be populated by
-    # ordinary paragraph replacement.  The first body paragraph is intentionally
-    # blank in the template; use it for the live application title so the
-    # downloaded document contains the same information as the visible header.
     application_number = (
         link.instruction_number
         if link and link.instruction_number
         else transportation.number or f"рейс-{transportation.pk}"
     )
-    title_paragraph = document.paragraphs[0] if document.paragraphs else document.add_paragraph()
-    for run in title_paragraph.runs:
-        run.text = ""
-    title_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title_paragraph.paragraph_format.space_after = Pt(2)
-    title_run = title_paragraph.add_run(
-        f"ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА №{_document_number_for_title(application_number)} "
-        f"от {_date_plain(transportation.document_date)} г."
-    )
-    title_run.font.name = "Arial"
-    title_run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
-    title_run.font.size = Pt(18)
-    title_run.bold = True
 
     def replacement_map():
         owner = transportation.owner_company

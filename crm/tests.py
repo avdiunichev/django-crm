@@ -6029,10 +6029,13 @@ class CrmTestCase(TestCase):
             for cell in row.cells
         )
         text = "\n".join(text_parts)
-        self.assertIn("ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА", text)
+        # The approved DOCX keeps the large application title in a Word text
+        # box, which python-docx does not expose as a paragraph.  Verify the
+        # populated title cell instead of requiring a duplicate body heading.
+        self.assertIn("ЗАЯВКА №", text)
         self.assertIn("Заказчик", text)
         self.assertIn("Перевозчик", text)
-        self.assertIn("№ЗП-77 от", text)
+        self.assertIn("ЗАЯВКА № ЗП-77", text)
         self.assertNotIn("ЗП-77 от 01.01.2026 от", text)
         self.assertEqual(len(document.inline_shapes), 0)
 
