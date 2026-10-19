@@ -872,14 +872,14 @@ def build_executor_transportation_application_docx(transportation):
         run.text = ""
     title_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     title_paragraph.paragraph_format.space_after = Pt(2)
-    _set_run_font(
-        title_paragraph.add_run(
-            f"ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА №{_document_number_for_title(application_number)} "
-            f"от {_date_plain(transportation.document_date)} г."
-        ),
-        size=12,
-        bold=True,
+    title_run = title_paragraph.add_run(
+        f"ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА №{_document_number_for_title(application_number)} "
+        f"от {_date_plain(transportation.document_date)} г."
     )
+    title_run.font.name = "Arial"
+    title_run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
+    title_run.font.size = Pt(18)
+    title_run.bold = True
 
     def replacement_map():
         owner = transportation.owner_company
@@ -971,17 +971,43 @@ def build_executor_transportation_application_docx(transportation):
     # The approved template contains merged cells and keeps loading and
     # unloading in separate rows.  Fill those cells directly so each stop
     # receives its own address/date/contact instead of sharing a placeholder.
-    def replace_cell(cell, value):
+    def replace_cell(cell, value, first_line_title=False, first_line_organization=False):
         # Assigning a run inside the existing template paragraph leaves behind
         # drawing/field nodes used by Word's merged cells.  On macOS Word that
         # renders as several strings drawn on top of each other.  Replacing the
         # cell body atomically removes those nodes and keeps the table grid.
-        cell.text = str(value or "не указано")
+        cell.text = ""
+        paragraph = cell.paragraphs[0]
+        paragraph.paragraph_format.space_after = Pt(0)
+        lines = str(value or "не указано").splitlines() or ["не указано"]
+        visible_index = 0
+        for index, line in enumerate(lines):
+            text = line or " "
+            normalized = text.strip()
+            is_heading = bool(normalized) and (
+                normalized == normalized.upper()
+                or normalized.startswith(("ПОГРУЗКА", "ВЫГРУЗКА"))
+            )
+            size = 7 if is_heading else 8
+            bold = is_heading
+            if normalized and visible_index == 0 and first_line_title:
+                size, bold = 18, True
+            elif normalized and visible_index == 0 and first_line_organization:
+                size, bold = 10, True
+            run = paragraph.add_run(text)
+            run.font.name = "Arial"
+            run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
+            run.font.size = Pt(size)
+            run.bold = bold
+            if index < len(lines) - 1:
+                run.add_break()
+            if normalized:
+                visible_index += 1
 
     if len(document.tables) >= 5:
         owner_table = document.tables[0]
-        replace_cell(owner_table.cell(0, 0), f"\n{_full_organization_name(owner)}\n{_organization_requisites(owner)}\nАдрес: {owner_address}\nКонтакт: {owner_contact_text}\nE-mail: {getattr(owner, 'email', '') or 'не указан'}")
-        replace_cell(owner_table.cell(0, 1), f"\nЗАЯВКА № {_document_number_for_title(application_number)}\nот {_date_plain(transportation.document_date)}\nк договору № {contract.number if contract else 'не указан'} от {_date_plain(contract.contract_date) if contract else 'не указана'}")
+        replace_cell(owner_table.cell(0, 0), f"\n{_full_organization_name(owner)}\n{_organization_requisites(owner)}\nАдрес: {owner_address}\nКонтакт: {owner_contact_text}\nE-mail: {getattr(owner, 'email', '') or 'не указан'}", first_line_organization=True)
+        replace_cell(owner_table.cell(0, 1), f"\nЗАЯВКА № {_document_number_for_title(application_number)}\nот {_date_plain(transportation.document_date)}\nк договору № {contract.number if contract else 'не указан'} от {_date_plain(contract.contract_date) if contract else 'не указана'}", first_line_title=True)
         request_table = document.tables[1]
         replace_cell(request_table.cell(0, 1), "\nРЕКВИЗИТЫ ЗАЯВКИ\n"
                     f"Рейс / внутренний № {transportation.number or 'не указан'}\n"
