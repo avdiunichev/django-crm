@@ -950,14 +950,38 @@ def build_executor_transportation_application_docx(transportation):
                         for paragraph in cell.paragraphs:
                             replace_in_paragraph(paragraph)
 
+    for paragraph in document.paragraphs:
+        if paragraph.text.strip().startswith("Особые требования к грузу"):
+            text = (
+                "Особые требования к грузу: "
+                + (transportation.special_requirements or transportation.vehicle_requirements or "не указаны")
+            )
+            if paragraph.runs:
+                paragraph.runs[0].text = text
+                for run in paragraph.runs[1:]:
+                    run.text = ""
+
     # The approved template contains merged cells and keeps loading and
     # unloading in separate rows.  Fill those cells directly so each stop
     # receives its own address/date/contact instead of sharing a placeholder.
-    def replace_cell(cell, value, first_line_title=False, first_line_organization=False):
+    def replace_cell(cell, value, first_line_title=False, first_line_organization=False, organization_line=0):
         # Assigning a run inside the existing template paragraph leaves behind
         # drawing/field nodes used by Word's merged cells.  On macOS Word that
         # renders as several strings drawn on top of each other.  Replacing the
         # cell body atomically removes those nodes and keeps the table grid.
+        line_styles = []
+        for source_paragraph in cell.paragraphs:
+            for source_run in source_paragraph.runs:
+                chunks = (source_run.text or "").splitlines() or [""]
+                for _ in chunks:
+                    line_styles.append(
+                        (
+                            source_run.font.name or "Arial",
+                            source_run.font.size.pt if source_run.font.size else 8,
+                            bool(source_run.bold),
+                            bool(source_run.italic),
+                        )
+                    )
         cell.text = ""
         paragraph = cell.paragraphs[0]
         paragraph.paragraph_format.space_after = Pt(0)
@@ -974,19 +998,28 @@ def build_executor_transportation_application_docx(transportation):
             bold = is_heading
             if normalized and visible_index == 0 and first_line_title:
                 size, bold = 18, True
-            elif normalized and visible_index == 0 and first_line_organization:
+            elif normalized and visible_index == organization_line and first_line_organization:
                 size, bold = 10, True
             run = paragraph.add_run(text)
-            run.font.name = "Arial"
-            run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
-            run.font.size = Pt(size)
-            run.bold = bold
+            style_index = min(visible_index, len(line_styles) - 1) if line_styles else -1
+            if style_index >= 0:
+                font_name, template_size, template_bold, template_italic = line_styles[style_index]
+                run.font.name = font_name
+                run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), font_name)
+                run.font.size = Pt(template_size)
+                run.bold = template_bold
+                run.italic = template_italic
+            else:
+                run.font.name = "Arial"
+                run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
+                run.font.size = Pt(size)
+                run.bold = bold
             if index < len(lines) - 1:
                 run.add_break()
             if normalized:
                 visible_index += 1
 
-    if len(document.tables) >= 5:
+    if len(document.tables) >= 7:
         owner_table = document.tables[0]
         replace_cell(owner_table.cell(0, 0), f"\n{_full_organization_name(owner)}\n{_organization_requisites(owner)}\nАдрес: {owner_address}\nКонтакт: {owner_contact_text}\nE-mail: {getattr(owner, 'email', '') or 'не указан'}", first_line_organization=True)
         replace_cell(owner_table.cell(0, 1), f"\nЗАЯВКА № {_document_number_for_title(application_number)}\nот {_date_plain(transportation.document_date)}\nк договору № {contract.number if contract else 'не указан'} от {_date_plain(contract.contract_date) if contract else 'не указана'}", first_line_title=True)
@@ -1059,6 +1092,85 @@ def build_executor_transportation_application_docx(transportation):
             finance_table.cell(0, 2),
             f"\nНДС\n{executor_vat}\n\nИТОГО\n{executor_amount}",
         )
+    elif len(document.tables) == 6:
+        # This is the user's reference layout: header/parties, cargo, route,
+        # transport, finance and signatures.  Keep its six-table geometry
+        # intact and only replace the values inside the existing cells.
+        header_table, cargo_table, route_table, transport_table, finance_table, signatures_table = document.tables
+        manager_phone = getattr(owner_contact, "phone", "") or "не указан"
+        manager_email = getattr(owner_contact, "email", "") or getattr(owner, "email", "") or "не указан"
+        replace_cell(
+            header_table.cell(0, 0),
+            f"\nОтветственный менеджер: {manager_name}\nТелефон: {manager_phone}\nE-mail: {manager_email}",
+        )
+        replace_cell(
+            header_table.cell(0, 2),
+            f"ЗАЯВКА № {_document_number_for_title(application_number)} от {_date_plain(transportation.document_date)}\n"
+            f"к договору № {contract.number if contract else 'не указан'} от "
+            f"{_date_plain(contract.contract_date) if contract else 'не указана'}",
+            first_line_title=True,
+        )
+        replace_cell(
+            header_table.cell(1, 0),
+            f"ЗАКАЗЧИК\n{_full_organization_name(owner)}\n{_organization_requisites(owner)}\n"
+            f"Адрес: {owner_address}\nКонтакт: {owner_contact_text}\nE-mail: {getattr(owner, 'email', '') or 'не указан'}",
+            first_line_organization=True,
+            organization_line=1,
+        )
+        replace_cell(
+            header_table.cell(1, 1),
+            f"ПЕРЕВОЗЧИК\n{_full_organization_name(executor)}\n{_organization_requisites(executor)}\n"
+            f"Адрес: {getattr(executor, 'formatted_legal_address', '') or 'не указан'}\n"
+            f"Контакт: {' / '.join(x for x in (getattr(transportation.executor_contact, 'full_name', ''), getattr(transportation.executor_contact, 'phone', '')) if x) or 'не указан'}\n"
+            f"E-mail: {getattr(executor, 'email', '') or 'не указан'}",
+            first_line_organization=True,
+            organization_line=1,
+        )
+        replace_cell(cargo_table.cell(0, 0), f"НАИМЕНОВАНИЕ ГРУЗА\n{transportation.cargo_name or 'не указан'}")
+        replace_cell(cargo_table.cell(0, 3), f"УПАКОВКА\n{transportation.package_type or 'не указана'}")
+        replace_cell(cargo_table.cell(1, 0), f"МАССА, КГ\n{_decimal_text(transportation.weight_kg)}")
+        replace_cell(cargo_table.cell(1, 1), f"ОБЪЕМ, М³\n{_decimal_text(transportation.volume_m3)}")
+        replace_cell(cargo_table.cell(1, 2), f"КОЛИЧЕСТВО, ШТ\n{transportation.total_package_count or 'Не указано'}")
+        replace_cell(cargo_table.cell(1, 3), f"ТЕМПЕРАТУРА, °C\n{transportation.temperature_regime or 'Не требуется'}")
+        replace_cell(cargo_table.cell(1, 4), f"КЛАСС ОПАСНОСТИ, ADR\n{transportation.adr_class or 'Не относится'}")
+        for row, stop, label in ((route_table.rows[0], first, "ПОГРУЗКА"), (route_table.rows[1], last, "ВЫГРУЗКА")):
+            if not stop:
+                continue
+            stop_start = timezone.localtime(stop.planned_from) if stop.planned_from else None
+            stop_end = timezone.localtime(stop.planned_to) if stop.planned_to else None
+            stop_time = (
+                f"{stop_start:%H:%M} {stop_end:%H:%M}" if stop_start and stop_end
+                else f"{stop_start:%H:%M}" if stop_start else "время не указано"
+            )
+            replace_cell(row.cells[0], f"{label} 01\n{_date_plain(stop.planned_from)}\n{stop_time}")
+            replace_cell(
+                row.cells[1],
+                f"Наименование организации: {_stop_organization_text(stop)}\n"
+                f"Адрес: {_stop_address(stop)}\n"
+                f"Контакт: {' / '.join(x for x in (stop.contact_name, stop.contact_phone) if x) or 'не указан'}\n"
+                f"{label.title()}: {stop.handling_method or 'вид не указан'}",
+            )
+        replace_cell(transport_table.cell(0, 0), f"ВОДИТЕЛЬ\n{driver.full_name if driver else 'не указан'}")
+        replace_cell(transport_table.cell(0, 2), f"ТЕЛЕФОН\n{getattr(driver, 'phone', '') or 'не указан'}")
+        replace_cell(transport_table.cell(1, 0), f"ПАСПОРТ\n{_driver_passport_text(driver)}")
+        replace_cell(transport_table.cell(1, 2), f"ВОДИТЕЛЬСКОЕ УДОСТОВЕРЕНИЕ\n{getattr(license_doc, 'number', '') or 'не указано'}")
+        replace_cell(transport_table.cell(2, 0), f"ТЯГАЧ / АВТОМОБИЛЬ\n{vehicle_name}")
+        replace_cell(transport_table.cell(2, 2), f"ГОСНОМЕР\n{getattr(vehicle, 'registration_number', '') or 'не указан'}")
+        replace_cell(transport_table.cell(3, 0), f"ПРИЦЕП / ПОЛУПРИЦЕП\n{_vehicle_name(trailer) if trailer else 'не указан'}")
+        replace_cell(transport_table.cell(3, 1), f"ТИП\n{trailer.get_kind_display() if trailer else 'не указан'}")
+        replace_cell(transport_table.cell(3, 2), f"ГОСНОМЕР\n{getattr(trailer, 'registration_number', '') or getattr(assignment, 'trailer_registration_number', '') or 'не указан'}")
+        executor_currency = getattr(transportation, "executor_currency", None) or transportation.currency
+        executor_amount = _money_text(transportation.executor_amount, executor_currency)
+        executor_prepayment = _money_text(transportation.executor_prepayment, executor_currency) if transportation.executor_prepayment is not None else "не предусмотрена"
+        executor_vat = transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else "НДС не облагается"
+        payment_form = transportation.get_executor_payment_form_display()
+        payment_terms = contract.payment_terms if contract and contract.payment_terms else (f"{transportation.executor_payment_term_days} дней" if transportation.executor_payment_term_days else "по согласованию сторон")
+        replace_cell(finance_table.cell(0, 0), f"ФОРМА ОПЛАТЫ\n{payment_form}\nОТСРОЧКА\n{payment_terms}\nОТСЧЁТ СРОКА\n{transportation.get_executor_payment_due_basis_display()}")
+        replace_cell(finance_table.cell(0, 1), "СТОИМОСТЬ ПЕРЕВОЗКИ\nСтоимость\nВ том числе " + executor_vat + "\nИТОГО")
+        replace_cell(finance_table.cell(0, 2), f"СТОИМОСТЬ ПЕРЕВОЗКИ\n{executor_amount}\n{executor_vat}\n{executor_amount}")
+        replace_cell(finance_table.cell(1, 0), f"ДОПОЛНИТЕЛЬНЫЕ УСЛОВИЯ ОПЛАТЫ\nПредоплата {executor_prepayment} по условиям заявки")
+        replace_cell(signatures_table.cell(0, 0), f"ЗАКАЗЧИК\n{_full_organization_name(owner)}\n{_contract_signatory_text(contract, 'expeditor', owner)}\n________________ / __________________")
+        replace_cell(signatures_table.cell(0, 1), f"ПЕРЕВОЗЧИК\n{_full_organization_name(executor)}\n{_contract_signatory_text(contract, 'counterparty', executor)}\n________________ / __________________")
     stream = BytesIO()
     document.save(stream)
     stream.seek(0)
