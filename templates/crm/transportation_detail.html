@@ -12,6 +12,7 @@
     {% with link=execution_links.0 %}{% if link and not link.contract %}<a class="uk-button uk-button-default" href="{% url 'contract-create' %}?kind={% if link.contractor_role == 'carrier' %}carrier_transport{% else %}subcontractor_forwarding{% endif %}&return_transportation={{ transportation.pk }}&owner_organization={{ transportation.owner_company_id }}&counterparty_organization={{ link.contractor_party.organization_id }}"><span uk-icon="plus"></span> Создать договор</a>{% endif %}{% endwith %}
     <a class="uk-button uk-button-default trip-delete-button" href="{% url 'transportation-delete' transportation.pk %}">Удалить</a>
     <a class="uk-button uk-button-default" href="{% url 'transportation-list' %}">Закрыть</a>
+    <form method="post" action="{% url 'transportation-copy-order' transportation.pk %}" class="inline-form" onsubmit="return confirm('Создать копию заказа с теми же данными?');">{% csrf_token %}<button class="uk-button uk-button-default" type="submit"><span uk-icon="copy"></span> Копировать заказ</button></form>
 
 </div></details></div></header>
 <ul class="uk-tab trip-work-tabs trip-profile-tabs" uk-tab="connect: #transportation-detail-tabs"><li><a href="#">Обзор</a></li><li><a href="#">Документы</a></li><li><a href="#">Финансы</a></li><li><a href="#">События и история</a></li></ul>

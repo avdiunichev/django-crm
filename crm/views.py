@@ -11014,6 +11014,107 @@ class TransportationDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+class TransportationCopyOrderView(LoginRequiredMixin, OperationsAccessMixin, View):
+    """Create a reusable new order from the current trip without copying documents."""
+
+    def post(self, request, pk):
+        transportation = get_object_or_404(
+            scope_transportations_for_user(
+                Transportation.objects.select_related("owner_company", "manager", "customer_contract"),
+                request.user,
+            ),
+            pk=pk,
+        )
+        source_order = getattr(transportation, "source_order", None)
+        with transaction.atomic():
+            if source_order:
+                excluded = {"id", "created_at", "updated_at", "number", "number_year", "transportation", "assigned_at", "assigned_by", "status"}
+                values = {
+                    field.name: getattr(source_order, field.name)
+                    for field in TransportOrder._meta.fields
+                    if field.name not in excluded and not field.auto_created
+                }
+                values.update(status=TransportOrder.Status.NEW, manager=request.user)
+                order = TransportOrder.objects.create(**values)
+                source_stops = list(source_order.stops.all())
+                for stop in source_stops:
+                    stop_values = {
+                        field.name: getattr(stop, field.name)
+                        for field in TransportOrderStop._meta.fields
+                        if field.name not in {"id", "created_at", "updated_at", "order"}
+                    }
+                    stop_values["order"] = order
+                    TransportOrderStop.objects.create(**stop_values)
+            else:
+                client_party = transportation.parties.filter(
+                    role=TransportationParty.Role.CLIENT, is_active=True
+                ).select_related("organization").first()
+                if not client_party:
+                    messages.error(request, "Нельзя скопировать рейс: в нём не указан клиент.")
+                    return redirect(transportation.get_absolute_url())
+                order = TransportOrder.objects.create(
+                    document_date=transportation.document_date,
+                    owner_company=transportation.owner_company,
+                    client=client_party.organization,
+                    manager=request.user,
+                    rate=transportation.customer_amount,
+                    prepayment=transportation.customer_prepayment,
+                    currency=transportation.currency,
+                    payment_form=TransportOrder.payment_form_for_vat_rate(transportation.customer_vat_rate),
+                    payment_term_days=transportation.customer_payment_term_days,
+                    customer_contract=transportation.customer_contract,
+                    payment_due_basis=transportation.payment_due_basis,
+                    cargo_name=transportation.cargo_name,
+                    cargo_description=transportation.cargo_description,
+                    cargo_value=transportation.cargo_value,
+                    weight_kg=transportation.weight_kg,
+                    volume_m3=transportation.volume_m3,
+                    package_count=transportation.package_count,
+                    pallet_count=transportation.pallet_count,
+                    package_type=transportation.package_type,
+                    temperature_regime=transportation.temperature_regime,
+                    adr_class=transportation.adr_class,
+                    vehicle_requirements=transportation.vehicle_requirements,
+                    special_requirements=transportation.special_requirements,
+                    planned_start_date=transportation.planned_start_date,
+                    planned_end_date=transportation.planned_end_date,
+                    notes=transportation.notes,
+                )
+                for stop in transportation.stops.all():
+                    local_start = timezone.localtime(stop.planned_from) if stop.planned_from else None
+                    local_end = timezone.localtime(stop.planned_to) if stop.planned_to else None
+                    TransportOrderStop.objects.create(
+                        order=order,
+                        sequence=stop.sequence,
+                        kind=stop.kind,
+                        organization=stop.organization,
+                        organization_text=stop.organization_text,
+                        city=stop.city,
+                        address=stop.address,
+                        address_raw=stop.address_raw,
+                        address_fias_id=stop.address_fias_id,
+                        address_postal_code=stop.address_postal_code,
+                        address_region_code=stop.address_region_code,
+                        address_region=stop.address_region,
+                        address_area=stop.address_area,
+                        address_city=stop.address_city,
+                        address_settlement=stop.address_settlement,
+                        address_street=stop.address_street,
+                        address_house=stop.address_house,
+                        address_block=stop.address_block,
+                        address_flat=stop.address_flat,
+                        planned_date=local_start.date() if local_start else None,
+                        planned_time_from=local_start.time() if local_start else None,
+                        planned_time_to=local_end.time() if local_end else None,
+                        contact_name=stop.contact_name,
+                        contact_phone=stop.contact_phone,
+                        handling_method=stop.handling_method,
+                        instructions=stop.instructions,
+                    )
+        messages.success(request, f"Создана копия заказа {order.number}. Проверьте даты и назначьте её в новый рейс.")
+        return redirect(order.get_absolute_url())
+
+
 class TransportationExecutorApplicationDownloadView(LoginRequiredMixin, View):
     def get(self, request, pk):
         transportation = get_object_or_404(

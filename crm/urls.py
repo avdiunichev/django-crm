@@ -298,6 +298,11 @@ urlpatterns = [
         name="transportation-update",
     ),
     path(
+        "transportations/<int:pk>/copy-order/",
+        views.TransportationCopyOrderView.as_view(),
+        name="transportation-copy-order",
+    ),
+    path(
         "transportations/<int:pk>/delete/",
         views.TransportationDeleteView.as_view(),
         name="transportation-delete",
