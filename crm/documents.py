@@ -1015,6 +1015,42 @@ def build_executor_transportation_application_docx(transportation):
         replace_cell(transport_table.cell(3, 0), f"\nПРИЦЕП / ПОЛУПРИЦЕП\n{_vehicle_name(trailer) if trailer else 'не указан'}")
         replace_cell(transport_table.cell(3, 1), f"ТИП\n{trailer.get_kind_display() if trailer else 'не указан'}")
         replace_cell(transport_table.cell(3, 2), f"\nГОСНОМЕР\n{getattr(trailer, 'registration_number', '') or getattr(assignment, 'trailer_registration_number', '') or 'не указан'}")
+        finance_table = document.tables[5]
+        executor_currency = getattr(transportation, "executor_currency", None) or transportation.currency
+        executor_amount = _money_text(transportation.executor_amount, executor_currency)
+        executor_prepayment = (
+            _money_text(transportation.executor_prepayment, executor_currency)
+            if transportation.executor_prepayment is not None
+            else "не предусмотрена"
+        )
+        executor_vat = (
+            transportation.executor_vat_rate.name
+            if transportation.executor_vat_rate_id
+            else "НДС не облагается"
+        )
+        payment_form = transportation.get_executor_payment_form_display()
+        payment_terms = (
+            contract.payment_terms
+            if contract and contract.payment_terms
+            else (
+                f"{transportation.executor_payment_term_days} дней"
+                if transportation.executor_payment_term_days
+                else "по согласованию сторон"
+            )
+        )
+        due_basis = transportation.get_executor_payment_due_basis_display()
+        replace_cell(
+            finance_table.cell(0, 0),
+            f"\nФОРМА ОПЛАТЫ\n{payment_form}\n\nОТСРОЧКА\n{payment_terms}\n\nОТСЧЁТ СРОКА\n{due_basis}",
+        )
+        replace_cell(
+            finance_table.cell(0, 1),
+            f"\nСТОИМОСТЬ ПЕРЕВОЗКИ\n\nСТАВКА\n{executor_amount}\n\nПРЕДОПЛАТА\n{executor_prepayment}",
+        )
+        replace_cell(
+            finance_table.cell(0, 2),
+            f"\nНДС\n{executor_vat}\n\nИТОГО\n{executor_amount}",
+        )
     stream = BytesIO()
     document.save(stream)
     stream.seek(0)
