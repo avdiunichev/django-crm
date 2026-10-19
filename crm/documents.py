@@ -841,13 +841,52 @@ def build_executor_transportation_application_docx(transportation):
     executor = link.contractor_party.organization if link else None
     contract = link.contract if link else None
     assignment = transportation.active_vehicle_assignment()
+    owner = transportation.owner_company
+    owner_address = getattr(owner, "formatted_legal_address", "") or "не указан"
     driver = assignment.driver if assignment else None
     vehicle = assignment.vehicle if assignment else None
+    trailer = assignment.trailer if assignment else None
+    stops = list(transportation.stops.all())
+    first = next((stop for stop in stops if stop.kind == stop.Kind.PICKUP), None) or (stops[0] if stops else None)
+    deliveries = [stop for stop in stops if stop.kind == stop.Kind.DELIVERY]
+    last = deliveries[-1] if deliveries else (stops[-1] if stops else None)
+    license_doc = driver.current_license if driver else None
+    owner_contact = transportation.client_contact
+    owner_contact_text = " / ".join(x for x in (getattr(owner_contact, "full_name", ""), getattr(owner_contact, "phone", "")) if x) or "не указан"
+    vehicle_name = _vehicle_name(vehicle)
+    manager = transportation.manager
+    manager_name = manager.get_full_name() if manager else "не указан"
+
+    # The approved template keeps its large heading in a Word text box, which
+    # is not exposed through python-docx and therefore cannot be populated by
+    # ordinary paragraph replacement.  The first body paragraph is intentionally
+    # blank in the template; use it for the live application title so the
+    # downloaded document contains the same information as the visible header.
+    application_number = (
+        link.instruction_number
+        if link and link.instruction_number
+        else transportation.number or f"рейс-{transportation.pk}"
+    )
+    title_paragraph = document.paragraphs[0] if document.paragraphs else document.add_paragraph()
+    for run in title_paragraph.runs:
+        run.text = ""
+    title_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title_paragraph.paragraph_format.space_after = Pt(2)
+    _set_run_font(
+        title_paragraph.add_run(
+            f"ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА №{_document_number_for_title(application_number)} "
+            f"от {_date_plain(transportation.document_date)} г."
+        ),
+        size=12,
+        bold=True,
+    )
 
     def replacement_map():
         owner = transportation.owner_company
         stops = list(transportation.stops.all())
-        first, last = (stops[0] if stops else None), (stops[-1] if stops else None)
+        first = next((stop for stop in stops if stop.kind == stop.Kind.PICKUP), None) or (stops[0] if stops else None)
+        deliveries = [stop for stop in stops if stop.kind == stop.Kind.DELIVERY]
+        last = deliveries[-1] if deliveries else (stops[-1] if stops else None)
         owner_address = getattr(owner, "formatted_legal_address", "") or "не указан"
         executor_address = getattr(executor, "formatted_legal_address", "") or "не указан"
         owner_contact = transportation.client_contact
@@ -860,6 +899,7 @@ def build_executor_transportation_application_docx(transportation):
         last_window = _datetime_window(last.planned_from, last.planned_to) if last else "не указан"
         vehicle_name = _vehicle_name(vehicle)
         trailer = assignment.trailer if assignment else None
+        license_doc = driver.current_license if driver else None
         vat = transportation.executor_vat_rate.name if transportation.executor_vat_rate_id else "Без НДС"
         payment_terms = contract.payment_terms if contract and contract.payment_terms else (f"{transportation.executor_payment_term_days} дней" if transportation.executor_payment_term_days else "по согласованию")
         values = {
@@ -870,9 +910,6 @@ def build_executor_transportation_application_docx(transportation):
             'Сергей Викторович Образцов': driver.full_name if driver else "не указан",
             'Volvo FH 460': _vehicle_name(vehicle),
             'А000АА 00': vehicle.registration_number if vehicle else "не указан",
-            '8 400': _decimal_text(transportation.weight_kg),
-            '54': _decimal_text(transportation.volume_m3),
-            '24': str(transportation.total_package_count or "не указано"),
             'Бумажная упаковка: коробки и пакеты': transportation.cargo_name or "не указано",
             'Паллет 1,2 х 0,8 м': transportation.package_type.name if transportation.package_type_id else "не указано",
             'ИНН 7804496014 КПП 781401001 ОГРН 1127847212345': _organization_requisites(owner),
@@ -883,14 +920,13 @@ def build_executor_transportation_application_docx(transportation):
             'Адрес: Санкт-Петербург, ул. Примерная, 10': f"Адрес: {executor_address}",
             'Контакт: +7 000 000-00-01': f"Контакт: {executor_contact_text}",
             'E-mail: transport@example.com': f"E-mail: {getattr(executor, 'email', '') or 'не указан'}",
-            '05.10.2026': _date_plain(transportation.planned_start_date) if transportation.planned_start_date else "не указана",
-            '06.10.2026': first_date,
-            '07.10.2026': last_date,
-            '15.10.2026': _date_plain(transportation.planned_end_date) if transportation.planned_end_date else last_date,
-            '09:00 – 11:00': first_window,
-            '09:00–11:00': first_window,
+            '+7 000 000-00-07': getattr(driver, 'phone', '') or 'не указан',
+            '0000 000000 УМВД РОССИИ ПО ОБЛ. 01.01.2026': _driver_passport_text(driver),
+            '00 00 000000 01.01.2020 – 01.01.2030': " ".join(part for part in (getattr(license_doc, 'number', ''), getattr(license_doc, 'categories', ''), f"до {_date_plain(license_doc.expiry_date)}" if license_doc and license_doc.expiry_date else '') if part) or "не указано",
             'Седельный тягач, DONGFENG': vehicle_name,
             'BE598556': trailer.registration_number if trailer else "не указан",
+            'Schmitz': _vehicle_name(trailer) if trailer else "не указан",
+            'АА0000 00': trailer.registration_number if trailer else "не указан",
             '650 000,00 ₽': _money_text(transportation.executor_amount, transportation.currency),
             'НДС 22%': vat,
             '400 000,00 ₽': _money_text(transportation.executor_prepayment, transportation.currency) if transportation.executor_prepayment is not None else "нет",
@@ -922,6 +958,70 @@ def build_executor_transportation_application_docx(transportation):
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
                     replace_in_paragraph(paragraph)
+    for section in document.sections:
+        for container in (section.header, section.footer):
+            for paragraph in container.paragraphs:
+                replace_in_paragraph(paragraph)
+            for table in container.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            replace_in_paragraph(paragraph)
+
+    # The approved template contains merged cells and keeps loading and
+    # unloading in separate rows.  Fill those cells directly so each stop
+    # receives its own address/date/contact instead of sharing a placeholder.
+    def replace_cell(cell, value):
+        paragraphs = cell.paragraphs or [cell.add_paragraph()]
+        for index, paragraph in enumerate(paragraphs):
+            if index == 0:
+                if paragraph.runs:
+                    paragraph.runs[0].text = str(value or "не указано")
+                    for run in paragraph.runs[1:]:
+                        run.text = ""
+                else:
+                    paragraph.add_run(str(value or "не указано"))
+            else:
+                for run in paragraph.runs:
+                    run.text = ""
+
+    if len(document.tables) >= 5:
+        owner_table = document.tables[0]
+        replace_cell(owner_table.cell(0, 0), f"\n{_full_organization_name(owner)}\n{_organization_requisites(owner)}\nАдрес: {owner_address}\nКонтакт: {owner_contact_text}\nE-mail: {getattr(owner, 'email', '') or 'не указан'}")
+        replace_cell(owner_table.cell(0, 1), f"\nЗАЯВКА № {_document_number_for_title(application_number)}\nот {_date_plain(transportation.document_date)}\nк договору № {contract.number if contract else 'не указан'} от {_date_plain(contract.contract_date) if contract else 'не указана'}")
+        request_table = document.tables[1]
+        replace_cell(request_table.cell(0, 1), "\nРЕКВИЗИТЫ ЗАЯВКИ\n"
+                    f"Рейс / внутренний № {transportation.number or 'не указан'}\n"
+                    f"Маршрут: {_stop_address(first)} — {_stop_address(last)}\n"
+                    f"Дата перевозки: {_date_plain(first.planned_from) if first and first.planned_from else _date_plain(transportation.planned_start_date)} — "
+                    f"{_date_plain(last.planned_from) if last and last.planned_from else _date_plain(transportation.planned_end_date)}\n"
+                    f"Ответственный менеджер: {manager_name}\n"
+                    f"Телефон: {getattr(owner_contact, 'phone', '') or 'не указан'}")
+        cargo_table = document.tables[2]
+        replace_cell(cargo_table.cell(0, 0), f"\nНАИМЕНОВАНИЕ ГРУЗА\n{transportation.cargo_name or 'не указан'}")
+        replace_cell(cargo_table.cell(0, 4), f"\nУПАКОВКА\n{transportation.package_type or 'не указана'}")
+        replace_cell(cargo_table.cell(1, 0), f"\nМАССА, КГ\n{_decimal_text(transportation.weight_kg)}")
+        replace_cell(cargo_table.cell(1, 1), f"\nОБЪЕМ, М³\n{_decimal_text(transportation.volume_m3)}")
+        replace_cell(cargo_table.cell(1, 2), f"\nКОЛИЧЕСТВО, ШТ\n{transportation.total_package_count or 'не указано'}")
+        replace_cell(cargo_table.cell(1, 3), f"\nТЕМПЕРАТУРА, °C\n{transportation.temperature_regime or 'не указана'}")
+        replace_cell(cargo_table.cell(1, 4), f"\nКЛАСС ОПАСНОСТИ, ADR\n{transportation.adr_class or 'Не относится'}")
+        route_table = document.tables[3]
+        for row, stop, label in ((route_table.rows[0], first, "ПОГРУЗКА"), (route_table.rows[1], last, "ВЫГРУЗКА")):
+            if not stop:
+                continue
+            organization = _stop_organization_text(stop)
+            replace_cell(row.cells[0], f"\n{label} {stop.sequence:02d}\n{_datetime_window(stop.planned_from, stop.planned_to)}")
+            replace_cell(row.cells[1], f"\nНаименование организации: {organization}\nАдрес: {_stop_address(stop)}\nКонтакт: {' / '.join(x for x in (stop.contact_name, stop.contact_phone) if x) or 'не указан'}\n{label.title()}: {stop.handling_method or 'вид не указан'}")
+        transport_table = document.tables[4]
+        replace_cell(transport_table.cell(0, 0), f"\nВОДИТЕЛЬ\n{driver.full_name if driver else 'не указан'}")
+        replace_cell(transport_table.cell(0, 2), f"\nТЕЛЕФОН\n{getattr(driver, 'phone', '') or 'не указан'}")
+        replace_cell(transport_table.cell(1, 0), f"\nПАСПОРТ\n{_driver_passport_text(driver)}")
+        replace_cell(transport_table.cell(1, 2), f"\nВОДИТЕЛЬСКОЕ УДОСТОВЕРЕНИЕ\n{getattr(license_doc, 'number', '') or 'не указано'}")
+        replace_cell(transport_table.cell(2, 0), f"\nТЯГАЧ / АВТОМОБИЛЬ\n{vehicle_name}")
+        replace_cell(transport_table.cell(2, 2), f"\nГОСНОМЕР\n{getattr(vehicle, 'registration_number', '') or 'не указан'}")
+        replace_cell(transport_table.cell(3, 0), f"\nПРИЦЕП / ПОЛУПРИЦЕП\n{_vehicle_name(trailer) if trailer else 'не указан'}")
+        replace_cell(transport_table.cell(3, 1), f"ТИП\n{trailer.get_kind_display() if trailer else 'не указан'}")
+        replace_cell(transport_table.cell(3, 2), f"\nГОСНОМЕР\n{getattr(trailer, 'registration_number', '') or getattr(assignment, 'trailer_registration_number', '') or 'не указан'}")
     stream = BytesIO()
     document.save(stream)
     stream.seek(0)
