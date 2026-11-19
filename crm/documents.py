@@ -1236,6 +1236,10 @@ def build_transportation_waybill_pdf(transportation, data):
     loading and delivery remain blank for the parties to complete.  It must
     not pretend to be an EDO operator's legally-significant EТрН.
     """
+    reference = _build_transportation_waybill_reference_pdf(transportation, data)
+    if reference is not None:
+        return reference
+
     from html import escape
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
